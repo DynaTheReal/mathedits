@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>MathEdits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --radius-card: 22px;
+    --radius-btn: 999px;
+    --radius-key: 16px;
+  }
+  [data-theme="dark"]{
+    --bg: #0a0a10;
+    --bg-soft: #101018;
+    --card: #16161f;
+    --card-2: #1c1c28;
+    --border: #26263a;
+    --text: #f3f3f7;
+    --text-dim: #92929f;
+    --accent: #c9ff52;
+    --accent-text: #0a0a10;
+    --accent-2: #8b5cf6;
+    --danger: #ff4d6d;
+    --success: #3ee08a;
+    --shadow: 0 20px 50px rgba(0,0,0,.45);
+    --overlay-bg: rgba(6,6,10,.94);
+  }
+  [data-theme="light"]{
+    --bg: #f6f9f2;
+    --bg-soft: #eef3e7;
+    --card: #ffffff;
+    --card-2: #ffffff;
+    --border: #dde6d3;
+    --text: #17241a;
+    --text-dim: #62705f;
+    --accent: #1fa958;
+    --accent-text: #ffffff;
+    --accent-2: #ff9f1c;
+    --danger: #e5484d;
+    --success: #1fa958;
+    --shadow: 0 16px 40px rgba(31,71,45,.12);
+    --overlay-bg: rgba(246,249,242,.96);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    display:flex;
+    justify-content:center;
+    min-height:100vh;
+    min-height:100dvh;
+    transition: background .35s ease, color .35s ease;
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001s !important; transition-duration:.001s !important;}
+  }
+  .app{
+    width:100%;
+    max-width:460px;
+    min-height:100vh;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    background: radial-gradient(circle at 50% -10%, var(--bg-soft), var(--bg) 55%);
+  }
+  .screen{display:none; flex-direction:column; flex:1; padding:14px 16px 14px;}
+  .screen.active{display:flex;}
+  #screen-lesson{padding:12px 14px 10px; justify-content:space-between;}
+
+  /* ---------- top bar ---------- */
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
+  .brand{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:26px;
+    letter-spacing:.2px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent); box-shadow:0 0 14px var(--accent);}
+  .theme-toggle{
+    width:44px;height:44px;border-radius:50%;
+    background:var(--card); border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer; font-size:18px; color:var(--text);
+  }
+
+  /* ---------- stat pills ---------- */
+  .stats-row{display:flex; gap:10px; margin-bottom:22px;}
+  .stat-pill{
+    flex:1; background:var(--card); border:1px solid var(--border);
+    border-radius:var(--radius-card); padding:12px 10px;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+  }
+  .stat-pill .val{font-family:'Baloo 2',sans-serif; font-size:19px; font-weight:700;}
+  .stat-pill .lbl{font-size:11px; color:var(--text-dim); font-weight:500;}
+  .hearts{display:flex; gap:3px;}
+  .heart{font-size:15px; filter:grayscale(1); opacity:.25;}
+  .heart.full{filter:none; opacity:1;}
+
+  /* ---------- home hero ---------- */
+  .hero{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:6px; padding:10px 6px 30px;
+  }
+  .hero-badge{
+    width:132px; height:132px; border-radius:34px;
+    background: linear-gradient(155deg, var(--accent-2), var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    font-size:64px; margin-bottom:18px;
+    box-shadow: var(--shadow);
+    transform: rotate(-4deg);
+  }
+  .hero h1{
+    font-family:'Baloo 2', sans-serif; font-size:28px; font-weight:800; margin:0 0 6px;
+    line-height:1.15;
+  }
+  .hero p{color:var(--text-dim); font-size:14.5px; max-width:280px; margin:0; line-height:1.5;}
+  .level-tag{
+    margin-top:16px; font-size:13px; font-weight:700; color:var(--accent-2);
+    background:var(--card); border:1px solid var(--border); padding:6px 14px; border-radius:var(--radius-btn);
+  }
+
+  .btn{
+    border:none; cursor:pointer; font-family:'Inter',sans-serif; font-weight:700;
+    border-radius:var(--radius-btn); padding:14px 20px; font-size:15.5px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%;
+  }
+  .btn-primary{
+    background:var(--accent); color:var(--accent-text);
+    box-shadow: 0 10px 26px -8px var(--accent), inset 0 -3px 0 rgba(0,0,0,.15);
+  }
+  .btn-primary:active{transform:translateY(2px); box-shadow:none;}
+  .btn-ghost{
+    background:transparent; color:var(--text-dim); border:1.5px solid var(--border);
+  }
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+
+  /* ---------- lesson screen ---------- */
+  .lesson-top{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .exit-x{
+    width:36px;height:36px;border-radius:50%; background:var(--card); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-dim); font-size:15px;
+    flex-shrink:0;
+  }
+  .progress-track{flex:1; height:12px; background:var(--card); border:1px solid var(--border); border-radius:99px; overflow:hidden;}
+  .progress-fill{height:100%; background:var(--accent); width:0%; transition:width .35s ease;}
+  .lesson-hearts{display:flex; gap:3px; flex-shrink:0;}
+
+  .timer-wrap{display:flex; justify-content:center; margin-bottom:4px;}
+  .timer-ring{position:relative; width:52px; height:52px;}
+  .timer-ring svg{transform:rotate(-90deg); width:52px; height:52px;}
+  .timer-ring circle{fill:none; stroke-width:5;}
+  .timer-bg{stroke:var(--border);}
+  .timer-fg{stroke:var(--accent); stroke-linecap:round; transition:stroke .2s;}
+  .timer-num{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:16px;}
+
+  .question-card{
+    background:var(--card); border:1px solid var(--border); border-radius:22px;
+    padding:18px 16px; text-align:center; margin:8px 0 10px; flex-shrink:0;
+    box-shadow: var(--shadow);
+  }
+  .q-tier{font-size:11px; font-weight:700; color:var(--accent-2); text-transform:none; margin-bottom:6px;}
+  .q-text{font-family:'Baloo 2',sans-serif; font-size:clamp(22px,7vw,34px); font-weight:700; letter-spacing:.3px; line-height:1.2;}
+  .answer-display{
+    min-height:38px; display:flex; align-items:center; justify-content:center;
+    font-family:'Baloo 2',sans-serif; font-size:24px; font-weight:700; color:var(--accent-2);
+    letter-spacing:1px;
+  }
+  .answer-display.empty{color:var(--text-dim); font-size:14px; font-weight:500; font-family:'Inter',sans-serif;}
+  .answer-display.wrong{color:var(--danger); animation: shake .35s;}
+  .answer-display.right{color:var(--success);}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);} 20%{transform:translateX(-8px);} 40%{transform:translateX(8px);}
+    60%{transform:translateX(-6px);} 80%{transform:translateX(6px);}
+  }
+
+  .numpad{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:auto;}
+  .key{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius-key);
+    padding:11px 0; font-size:18px; font-weight:700; color:var(--text); cursor:pointer;
+    font-family:'Baloo 2',sans-serif;
+  }
+  .key:active{background:var(--card-2); transform:scale(.96);}
+  .key.wide{grid-column:span 1;}
+  .key.func{color:var(--text-dim); font-size:14px;}
+  .submit-btn{margin-top:8px;}
+
+  /* ---------- locked screen ---------- */
+  .locked-wrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px;}
+  .locked-wrap .emoji{font-size:56px; margin-bottom:6px;}
+  .locked-wrap h2{font-family:'Baloo 2',sans-serif; font-size:22px; margin:0;}
+  .locked-wrap p{color:var(--text-dim); font-size:14px; max-width:260px;}
+  .countdown{
+    font-family:'Baloo 2',sans-serif; font-size:34px; font-weight:700; color:var(--accent-2); margin:8px 0 18px;
+    letter-spacing:1px;
+  }
+
+  /* ---------- overlays ---------- */
+  .overlay{
+    position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
+    background:var(--overlay-bg); backdrop-filter: blur(2px) saturate(.4);
+    opacity:0; pointer-events:none; transition:opacity .25s ease;
+    padding:26px;
+  }
+  .overlay.show{opacity:1; pointer-events:auto;}
+  .overlay-card{text-align:center; max-width:340px;}
+
+  /* aura edit */
+  .aura-fig{font-size:96px; display:inline-block; animation: aura-pop .55s cubic-bezier(.22,1.4,.4,1);}
+  @keyframes aura-pop{
+    0%{transform:scale(.3) rotate(-12deg); opacity:0;}
+    55%{transform:scale(1.18) rotate(4deg); opacity:1;}
+    100%{transform:scale(1) rotate(0deg);}
+  }
+  .aura-text{
+    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:34px; margin-top:6px;
+    background:linear-gradient(90deg, var(--accent-2), var(--accent));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    letter-spacing:.5px;
+  }
+  .aura-sub{color:var(--text-dim); font-size:14px; margin-top:4px; font-weight:600;}
+  .aura-particles{position:absolute; inset:0; pointer-events:none; overflow:hidden;}
+  .spark{position:absolute; font-size:20px; opacity:0; animation: spark-fly 1.1s ease-out forwards;}
+  @keyframes spark-fly{
+    0%{opacity:1; transform:translateY(0) scale(.6);}
+    100%{opacity:0; transform: translateY(-160px) scale(1.3);}
+  }
+
+  /* meme */
+  .meme-card{
+    background:#0a0a0a; border-radius:18px; padding:0; overflow:hidden; border:3px solid #fff;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .meme-visual{
+    height:170px; display:flex; align-items:center; justify-content:center; font-size:76px;
+    background: repeating-linear-gradient(135deg, #1a1a1a 0 12px, #111 12px 24px);
+  }
+  .meme-caption{
+    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:21px; color:#fff;
+    text-transform:uppercase; padding:14px 16px 18px; line-height:1.25;
+    text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000;
+  }
+  .meme-foot{color:var(--text-dim); font-size:13px; margin-top:14px;}
+
+  /* lesson complete */
+  .complete-emoji{font-size:64px;}
+  .complete-title{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:26px; margin:8px 0 4px;}
+  .complete-sub{color:var(--text-dim); font-size:14px; margin-bottom:20px;}
+  .complete-stats{display:flex; gap:10px; margin-bottom:24px;}
+  .complete-stats .box{flex:1; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:12px 8px;}
+  .complete-stats .box .n{font-family:'Baloo 2',sans-serif; font-size:20px; font-weight:700;}
+  .complete-stats .box .l{font-size:11px; color:var(--text-dim);}
+
+  .flash{
+    position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:60;
+  }
+  .flash.go{animation:flash-go .4s ease-out;}
+  @keyframes flash-go{0%{opacity:.85;} 100%{opacity:0;}}
+
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div class="app" data-theme="dark" id="app">
+
+  <!-- ============ HOME ============ -->
+  <section class="screen active" id="screen-home">
+    <div class="topbar">
+      <div class="brand"><span class="dot"></span>MathEdits</div>
+      <div class="theme-toggle" id="themeToggle">🌙</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-pill">
+        <div class="hearts" id="homeHearts"></div>
+        <div class="lbl">Leben</div>
+      </div>
+      <div class="stat-pill">
+        <div class="val" id="homeLevel">1</div>
+        <div class="lbl">Level</div>
+      </div>
+      <div class="stat-pill">
+        <div class="val" id="homeAura">0</div>
+        <div class="lbl">Aura</div>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="hero-badge">🧮</div>
+      <h1>Bereit für dein<br>nächstes Aura-Edit?</h1>
+      <p>Löse Aufgaben blitzschnell für ein Aura-Edit. Bist du zu langsam, gibt's ein Meme. So einfach ist das.</p>
+      <div class="level-tag" id="tierLabel">Einmaleins · 1–5</div>
+    </div>
+
+    <button class="btn btn-primary" id="startBtn">Lektion starten</button>
+  </section>
+
+  <!-- ============ LOCKED (no lives) ============ -->
+  <section class="screen" id="screen-locked">
+    <div class="topbar">
+      <div class="brand"><span class="dot"></span>MathEdits</div>
+      <div class="theme-toggle" id="themeToggleLocked">🌙</div>
+    </div>
+    <div class="locked-wrap">
+      <div class="emoji">💀</div>
+      <h2>Keine Leben mehr</h2>
+      <p>Du bist ausgeknockt. Nächstes Leben in:</p>
+      <div class="countdown" id="lockedCountdown">59:59</div>
+      <p style="font-size:12px;">Jede Stunde füllt sich automatisch ein Leben auf.</p>
+    </div>
+    <button class="btn btn-ghost" id="backHomeFromLocked">Zurück zum Menü</button>
+  </section>
+
+  <!-- ============ LESSON ============ -->
+  <section class="screen" id="screen-lesson">
+    <div class="lesson-top">
+      <div class="exit-x" id="exitLesson">✕</div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="lesson-hearts" id="lessonHearts"></div>
+    </div>
+
+    <div class="timer-wrap">
+      <div class="timer-ring">
+        <svg viewBox="0 0 52 52">
+          <circle class="timer-bg" cx="26" cy="26" r="22"></circle>
+          <circle class="timer-fg" id="timerCircle" cx="26" cy="26" r="22" stroke-dasharray="138.2" stroke-dashoffset="0"></circle>
+        </svg>
+        <div class="timer-num" id="timerNum">8</div>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="q-tier" id="qTier">Level 1</div>
+      <div class="q-text" id="qText">7 × 8</div>
+    </div>
+
+    <div class="answer-display empty" id="answerDisplay">Tippe deine Antwort</div>
+
+    <div class="numpad" id="numpad">
+      <div class="key" data-k="1">1</div>
+      <div class="key" data-k="2">2</div>
+      <div class="key" data-k="3">3</div>
+      <div class="key" data-k="4">4</div>
+      <div class="key" data-k="5">5</div>
+      <div class="key" data-k="6">6</div>
+      <div class="key" data-k="7">7</div>
+      <div class="key" data-k="8">8</div>
+      <div class="key" data-k="9">9</div>
+      <div class="key func" data-k="back">⌫</div>
+      <div class="key" data-k="0">0</div>
+      <div class="key func" data-k="minus">−</div>
+    </div>
+    <button class="btn btn-primary submit-btn" id="submitBtn">Prüfen</button>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section class="screen" id="screen-result">
+    <div class="topbar"><div class="brand"><span class="dot"></span>MathEdits</div><div></div></div>
+    <div class="locked-wrap">
+      <div class="complete-emoji" id="resultEmoji">🔥</div>
+      <div class="complete-title" id="resultTitle">Lektion geschafft!</div>
+      <div class="complete-sub" id="resultSub">Starkes Tempo.</div>
+      <div class="complete-stats">
+        <div class="box"><div class="n" id="resCorrect">0/10</div><div class="l">Richtig</div></div>
+        <div class="box"><div class="n" id="resAura">+0</div><div class="l">Aura</div></div>
+        <div class="box"><div class="n" id="resLevel">2</div><div class="l">Neues Level</div></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="resultContinue">Weiter</button>
+  </section>
+
+  <!-- ============ OVERLAYS ============ -->
+  <div class="overlay" id="overlayAura">
+    <div class="overlay-card" style="position:relative;">
+      <div class="aura-particles" id="auraParticles"></div>
+      <div class="aura-fig">💀</div>
+      <div class="aura-text">AURA EDIT</div>
+      <div class="aura-sub" id="auraSubText">+100 Aura · unter 2 Sekunden</div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlayMeme">
+    <div class="overlay-card">
+      <div class="meme-card">
+        <div class="meme-visual" id="memeEmoji">🐌</div>
+        <div class="meme-caption" id="memeCaption">BRO WAS BUFFERING</div>
+      </div>
+      <div class="meme-foot">−1 Leben</div>
+    </div>
+  </div>
+
+  <div class="flash" id="flash"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ========================================================
+     STORAGE
+  ======================================================== */
+  const PROFILE_KEY = "mathedits:profile";
+  const DEFAULT_PROFILE = {
+    lives: 5,
+    lastLifeChangeAt: Date.now(),
+    level: 1,
+    totalAura: 0,
+    lessonsCompleted: 0,
+    theme: "dark"
+  };
+  let profile = { ...DEFAULT_PROFILE };
+
+  async function loadProfile(){
+    try{
+      const res = await window.storage.get(PROFILE_KEY, false);
+      if(res && res.value){
+        profile = { ...DEFAULT_PROFILE, ...JSON.parse(res.value) };
+      }
+    }catch(e){
+      profile = { ...DEFAULT_PROFILE };
+    }
+  }
+  async function saveProfile(){
+    try{
+      await window.storage.set(PROFILE_KEY, JSON.stringify(profile), false);
+    }catch(e){ /* best effort, keep playing even if it fails */ }
+  }
+
+  /* ========================================================
+     LIVES / REGEN
+  ======================================================== */
+  const MAX_LIVES = 5;
+  const HOUR_MS = 60 * 60 * 1000;
+
+  function refillLives(){
+    if(profile.lives >= MAX_LIVES) return;
+    const elapsed = Date.now() - profile.lastLifeChangeAt;
+    const gained = Math.floor(elapsed / HOUR_MS);
+    if(gained > 0){
+      profile.lives = Math.min(MAX_LIVES, profile.lives + gained);
+      profile.lastLifeChangeAt += gained * HOUR_MS;
+    }
+  }
+  function loseLife(){
+    profile.lives = Math.max(0, profile.lives - 1);
+    profile.lastLifeChangeAt = Date.now();
+    saveProfile();
+  }
+  function msUntilNextLife(){
+    if(profile.lives >= MAX_LIVES) return 0;
+    const elapsed = Date.now() - profile.lastLifeChangeAt;
+    return Math.max(0, HOUR_MS - elapsed);
+  }
+
+  /* ========================================================
+     TIERS / QUESTION GENERATION
+  ======================================================== */
+  function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+  function getTier(level){
+    if(level <= 3) return {name:"Kleines Einmaleins · 1–5", label:"Level " + level, gen: () => mult(1,5)};
+    if(level <= 6) return {name:"Einmaleins · 1–10", label:"Level " + level, gen: () => mult(1,10)};
+    if(level <= 9) return {name:"Großes Einmaleins · 10–20", label:"Level " + level, gen: () => bigMult()};
+    if(level <= 12) return {name:"Plus & Minus · bis 50", label:"Level " + level, gen: () => addSub(50)};
+    if(level <= 15) return {name:"Geteilt · 1–12", label:"Level " + level, gen: () => divide(1,12)};
+    if(level <= 18) return {name:"Brüche", label:"Level " + level, gen: () => fraction()};
+    if(level <= 21) return {name:"Plus & Minus · bis 100", label:"Level " + level, gen: () => addSub(100)};
+    return {name:"Gemischt · Profi", label:"Level " + level, gen: () => mixedHard()};
+  }
+
+  function mult(min, max){
+    const a = randInt(min,max), b = randInt(min,max);
+    return { text: `${a} × ${b}`, answer: a*b };
+  }
+  function bigMult(){
+    // Großes Einmaleins: ein Faktor 10-20, der andere 2-12
+    const a = randInt(10,20), b = randInt(2,12);
+    return { text: Math.random()<0.5 ? `${a} × ${b}` : `${b} × ${a}`, answer: a*b };
+  }
+  function addSub(range){
+    if(Math.random() < 0.5){
+      const a = randInt(0,range), b = randInt(0,range);
+      return { text: `${a} + ${b}`, answer: a+b };
+    } else {
+      let a = randInt(0,range), b = randInt(0,range);
+      if(b > a) [a,b] = [b,a];
+      return { text: `${a} − ${b}`, answer: a-b };
+    }
+  }
+  function divide(min, max){
+    const b = randInt(min,max);
+    const q = randInt(min,max);
+    const a = b*q;
+    return { text: `${a} ÷ ${b}`, answer: q };
+  }
+  function fraction(){
+    // Bruchteil von einer Zahl, z.B. "3/4 von 20" -> 15
+    const denoms = [2,3,4,5,6,8,10];
+    const c = denoms[randInt(0, denoms.length-1)];
+    const b = randInt(1, c-1);
+    const k = randInt(2, 12);
+    const n = c * k;
+    return { text: `${b}⁄${c} von ${n}`, answer: b * k };
+  }
+  function mixedHard(){
+    const r = Math.random();
+    if(r < 0.25) return bigMult();
+    if(r < 0.5) return addSub(100);
+    if(r < 0.75) return divide(2,15);
+    return fraction();
+  }
+
+  /* ========================================================
+     CONTENT: aura + meme lines
+  ======================================================== */
+  const AURA_LINES = [
+    "+100 Aura · unter 2 Sekunden",
+    "Blitzschnell. Absoluter Aura-Boost.",
+    "Reflexe wie ein Boss.",
+    "Das war Speedrun-Niveau.",
+    "Gehirn im Turbo-Modus."
+  ];
+  const SLOW_MEMES = [
+    {emoji:"🐌", cap:"Bro war am Buffern"},
+    {emoji:"🦴", cap:"Ping: 9999ms"},
+    {emoji:"🕰️", cap:"Zeitlupe erfunden"},
+    {emoji:"📡", cap:"Selbst Omas WLAN ist schneller"},
+    {emoji:"🥱", cap:"Loading... loading... immer noch loading"},
+    {emoji:"🧊", cap:"Eingefroren wie ein Eiswürfel"}
+  ];
+  const WRONG_SLOW_MEMES = [
+    {emoji:"💀", cap:"Skill Issue, offiziell bestätigt"},
+    {emoji:"📉", cap:"Die Zahlen lügen nicht, du schon"},
+    {emoji:"🫠", cap:"Gehirn hat sich verabschiedet"}
+  ];
+  const COMPLETE_LINES = [
+    {emoji:"🔥", title:"Lektion geschafft!", sub:"Du hast gegessen und nichts übrig gelassen."},
+    {emoji:"🎓", title:"Zertifizierter Mathe-Boss", sub:"Big Brain Energy bestätigt."},
+    {emoji:"⚡", title:"Lektion geschafft!", sub:"Das war fast zu einfach für dich."},
+    {emoji:"🧠", title:"Gehirn auf 100%", sub:"Sauber durchgezogen."}
+  ];
+  const FAIL_LINES = [
+    {emoji:"💀", title:"Ausgeknockt", sub:"Die Mathe hat heute gewonnen. Komm zurück, wenn Leben da sind."}
+  ];
+
+  /* ========================================================
+     SOUND (kurzer Erfolgs-Jingle, per Web Audio erzeugt –
+     kein externes Audiofile nötig)
+  ======================================================== */
+  let audioCtx = null;
+  function playSuccessJingle(){
+    try{
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if(audioCtx.state === "suspended") audioCtx.resume();
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5 E5 G5 C6
+      notes.forEach((freq, i) => {
+        const t0 = audioCtx.currentTime + i * 0.1;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "triangle";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(0.16, t0 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.32);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(t0);
+        osc.stop(t0 + 0.34);
+      });
+    }catch(e){ /* Audio nicht verfügbar - kein Problem, Spiel läuft weiter */ }
+  }
+
+  /* ========================================================
+     LESSON STATE
+  ======================================================== */
+  const QUESTIONS_PER_LESSON = 10;
+  const AURA_THRESHOLD_MS = 2000;
+  const SLOW_THRESHOLD_MS = 6000;
+  const TIME_LIMIT_MS = 8000;
+
+  let lesson = null; // {tier, questions:[], index, correct, auraCount, startedAt, timerHandle, answer, locked}
+
+  function buildLesson(){
+    const tier = getTier(profile.level);
+    const questions = [];
+    for(let i=0;i<QUESTIONS_PER_LESSON;i++) questions.push(tier.gen());
+    return { tier, questions, index:0, correct:0, aura:0, answer:"", locked:false };
+  }
+
+  /* ========================================================
+     DOM refs
+  ======================================================== */
+  const $ = (id) => document.getElementById(id);
+  const app = $("app");
+  const screens = {
+    home: $("screen-home"), locked: $("screen-locked"), lesson: $("screen-lesson"), result: $("screen-result")
+  };
+  function showScreen(name){
+    Object.values(screens).forEach(s => s.classList.remove("active"));
+    screens[name].classList.add("active");
+  }
+
+  /* ========================================================
+     THEME
+  ======================================================== */
+  function applyTheme(){
+    app.setAttribute("data-theme", profile.theme);
+    const icon = profile.theme === "dark" ? "🌙" : "☀️";
+    $("themeToggle").textContent = icon;
+    $("themeToggleLocked").textContent = icon;
+  }
+  function toggleTheme(){
+    profile.theme = profile.theme === "dark" ? "light" : "dark";
+    applyTheme();
+    saveProfile();
+  }
+  $("themeToggle").addEventListener("click", toggleTheme);
+  $("themeToggleLocked").addEventListener("click", toggleTheme);
+
+  /* ========================================================
+     HOME RENDER
+  ======================================================== */
+  function renderHearts(container, count){
+    container.innerHTML = "";
+    for(let i=0;i<MAX_LIVES;i++){
+      const span = document.createElement("span");
+      span.className = "heart" + (i < count ? " full" : "");
+      span.textContent = "❤";
+      container.appendChild(span);
+    }
+  }
+
+  function renderHome(){
+    refillLives();
+    saveProfile();
+    renderHearts($("homeHearts"), profile.lives);
+    $("homeLevel").textContent = profile.level;
+    $("homeAura").textContent = profile.totalAura;
+    $("tierLabel").textContent = getTier(profile.level).name;
+    $("startBtn").disabled = false;
+  }
+
+  function renderLocked(){
+    refillLives();
+    saveProfile();
+    renderHearts($("homeHearts"), profile.lives);
+    updateLockedCountdown();
+  }
+  let lockedInterval = null;
+  function updateLockedCountdown(){
+    refillLives();
+    if(profile.lives > 0){
+      saveProfile();
+      clearInterval(lockedInterval);
+      showScreen("home");
+      renderHome();
+      return;
+    }
+    const ms = msUntilNextLife();
+    const totalSec = Math.ceil(ms/1000);
+    const m = Math.floor(totalSec/60).toString().padStart(2,"0");
+    const s = (totalSec%60).toString().padStart(2,"0");
+    $("lockedCountdown").textContent = `${m}:${s}`;
+  }
+
+  $("startBtn").addEventListener("click", () => {
+    refillLives(); saveProfile();
+    if(profile.lives <= 0){
+      showScreen("locked");
+      renderLocked();
+      lockedInterval = setInterval(updateLockedCountdown, 1000);
+      return;
+    }
+    startLesson();
+  });
+  $("backHomeFromLocked").addEventListener("click", () => {
+    clearInterval(lockedInterval);
+    showScreen("home");
+    renderHome();
+  });
+  $("exitLesson").addEventListener("click", () => {
+    stopTimer();
+    showScreen("home");
+    renderHome();
+  });
+
+  /* ========================================================
+     LESSON FLOW
+  ======================================================== */
+  let timerRAF = null;
+  let questionStartedAt = 0;
+  const TIMER_CIRCUMFERENCE = 2 * Math.PI * 22;
+
+  function startLesson(){
+    lesson = buildLesson();
+    showScreen("lesson");
+    renderQuestion();
+  }
+
+  function renderQuestion(){
+    if(!lesson) return;
+    lesson.answer = "";
+    lesson.locked = false;
+    const q = lesson.questions[lesson.index];
+    $("qTier").textContent = lesson.tier.name;
+    $("qText").textContent = q.text;
+    $("progressFill").style.width = (lesson.index / QUESTIONS_PER_LESSON * 100) + "%";
+    renderHearts($("lessonHearts"), profile.lives);
+    updateAnswerDisplay();
+    startTimer();
+  }
+
+  function updateAnswerDisplay(){
+    const el = $("answerDisplay");
+    el.classList.remove("wrong","right","empty");
+    if(lesson.answer === ""){
+      el.textContent = "Tippe deine Antwort";
+      el.classList.add("empty");
+    } else {
+      el.textContent = lesson.answer;
+    }
+  }
+
+  function startTimer(){
+    questionStartedAt = performance.now();
+    const circle = $("timerCircle");
+    const numEl = $("timerNum");
+    circle.setAttribute("stroke-dasharray", TIMER_CIRCUMFERENCE);
+    cancelAnimationFrame(timerRAF);
+
+    function tick(){
+      if(!lesson || lesson.locked) return;
+      const elapsed = performance.now() - questionStartedAt;
+      const remaining = Math.max(0, TIME_LIMIT_MS - elapsed);
+      const frac = remaining / TIME_LIMIT_MS;
+      circle.setAttribute("stroke-dashoffset", TIMER_CIRCUMFERENCE * (1-frac));
+      numEl.textContent = Math.ceil(remaining/1000);
+      circle.style.stroke = frac < 0.25 ? "var(--danger)" : "var(--accent)";
+      if(remaining <= 0){
+        handleAnswer(true); // timeout
+        return;
+      }
+      timerRAF = requestAnimationFrame(tick);
+    }
+    tick();
+  }
+  function stopTimer(){ cancelAnimationFrame(timerRAF); }
+
+  /* numpad input */
+  $("numpad").addEventListener("click", (e) => {
+    const key = e.target.closest(".key");
+    if(!key || !lesson || lesson.locked) return;
+    const k = key.dataset.k;
+    if(k === "back"){
+      lesson.answer = lesson.answer.slice(0,-1);
+    } else if(k === "minus"){
+      if(lesson.answer.startsWith("-")) lesson.answer = lesson.answer.slice(1);
+      else lesson.answer = "-" + lesson.answer;
+    } else {
+      if(lesson.answer.length < 6) lesson.answer += k;
+    }
+    updateAnswerDisplay();
+  });
+  $("submitBtn").addEventListener("click", () => {
+    if(!lesson || lesson.locked || lesson.answer === "") return;
+    handleAnswer(false);
+  });
+
+  function handleAnswer(isTimeout){
+    if(!lesson || lesson.locked) return;
+    lesson.locked = true;
+    stopTimer();
+    const elapsed = performance.now() - questionStartedAt;
+    const q = lesson.questions[lesson.index];
+    const given = isTimeout ? null : parseInt(lesson.answer, 10);
+    const isCorrect = !isTimeout && given === q.answer;
+    const isSlow = isTimeout || elapsed > SLOW_THRESHOLD_MS;
+    const isFastCorrect = isCorrect && elapsed <= AURA_THRESHOLD_MS;
+
+    const el = $("answerDisplay");
+    if(isTimeout){
+      el.textContent = "Zeit abgelaufen · " + q.answer;
+    } else {
+      el.textContent = isCorrect ? lesson.answer : `${lesson.answer} · richtig: ${q.answer}`;
+    }
+    el.classList.remove("empty");
+    el.classList.add(isCorrect ? "right" : "wrong");
+
+    if(isCorrect) lesson.correct++;
+
+    let delay = 650;
+
+    if(isFastCorrect){
+      lesson.aura++;
+      delay = 1500;
+      setTimeout(() => showAuraOverlay(), 150);
+    } else if(isSlow){
+      loseLife();
+      delay = 1900;
+      setTimeout(() => showMemeOverlay(isCorrect), 150);
+    } else if(!isCorrect){
+      loseLife();
+      flashScreen();
+    } else {
+      flashScreen();
+    }
+
+    setTimeout(() => advance(), delay);
+  }
+
+  function flashScreen(){
+    const f = $("flash");
+    f.classList.remove("go"); void f.offsetWidth; f.classList.add("go");
+  }
+
+  function advance(){
+    renderHearts($("lessonHearts"), profile.lives);
+    if(profile.lives <= 0){
+      finishLesson(false);
+      return;
+    }
+    lesson.index++;
+    if(lesson.index >= QUESTIONS_PER_LESSON){
+      finishLesson(true);
+      return;
+    }
+    renderQuestion();
+  }
+
+  function finishLesson(passed){
+    saveProfile();
+    let title, sub, emoji;
+    if(passed){
+      const pick = COMPLETE_LINES[randInt(0, COMPLETE_LINES.length-1)];
+      title = pick.title; sub = pick.sub; emoji = pick.emoji;
+      profile.level += 1;
+      profile.lessonsCompleted += 1;
+      playSuccessJingle();
+    } else {
+      const pick = FAIL_LINES[0];
+      title = pick.title; sub = pick.sub; emoji = pick.emoji;
+    }
+    const auraGained = lesson.aura * 100 + lesson.correct * 10;
+    profile.totalAura += auraGained;
+    saveProfile();
+
+    $("resultEmoji").textContent = emoji;
+    $("resultTitle").textContent = title;
+    $("resultSub").textContent = sub;
+    $("resCorrect").textContent = `${lesson.correct}/${QUESTIONS_PER_LESSON}`;
+    $("resAura").textContent = `+${auraGained}`;
+    $("resLevel").textContent = profile.level;
+
+    showScreen("result");
+  }
+
+  $("resultContinue").addEventListener("click", () => {
+    showScreen("home");
+    renderHome();
+  });
+
+  /* ========================================================
+     OVERLAYS
+  ======================================================== */
+  function showAuraOverlay(){
+    $("auraSubText").textContent = AURA_LINES[randInt(0, AURA_LINES.length-1)];
+    spawnParticles();
+    const ov = $("overlayAura");
+    ov.classList.add("show");
+    setTimeout(() => ov.classList.remove("show"), 1250);
+  }
+  function spawnParticles(){
+    const wrap = $("auraParticles");
+    wrap.innerHTML = "";
+    const icons = ["✨","⚡","💫","🔥"];
+    for(let i=0;i<10;i++){
+      const s = document.createElement("span");
+      s.className = "spark";
+      s.textContent = icons[randInt(0,icons.length-1)];
+      s.style.left = randInt(5,90) + "%";
+      s.style.top = randInt(30,70) + "%";
+      s.style.animationDelay = (Math.random()*.3) + "s";
+      wrap.appendChild(s);
+    }
+  }
+  function showMemeOverlay(wasCorrect){
+    const pool = wasCorrect ? SLOW_MEMES : SLOW_MEMES.concat(WRONG_SLOW_MEMES);
+    const pick = pool[randInt(0, pool.length-1)];
+    $("memeEmoji").textContent = pick.emoji;
+    $("memeCaption").textContent = pick.cap;
+    const ov = $("overlayMeme");
+    ov.classList.add("show");
+    setTimeout(() => ov.classList.remove("show"), 1650);
+  }
+
+  /* ========================================================
+     INIT
+  ======================================================== */
+  async function init(){
+    await loadProfile();
+    refillLives();
+    await saveProfile();
+    applyTheme();
+    renderHome();
+  }
+  init();
+
+})();
+</script>
+</body>
+</html>

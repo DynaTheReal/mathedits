@@ -7,6 +7,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Firebase SDKs (Compat Version für einfache HTML-Einbindung) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
 <style>
   :root{
     --radius-card: 22px;
@@ -19,8 +25,8 @@
     --card: #16161f;
     --card-2: #1c1c28;
     --border: #26263a;
-    --text: #f3f3f7;
-    --text-dim: #92929f;
+    --text: #ffffff;
+    --text-dim: #e2e8f0;
     --accent: #c9ff52;
     --accent-text: #0a0a10;
     --accent-2: #8b5cf6;
@@ -30,27 +36,31 @@
     --overlay-bg: rgba(6,6,10,.94);
   }
   [data-theme="light"]{
-    --bg: #f6f9f2;
-    --bg-soft: #eef3e7;
-    --card: #ffffff;
-    --card-2: #ffffff;
-    --border: #dde6d3;
-    --text: #17241a;
-    --text-dim: #62705f;
-    --accent: #1fa958;
-    --accent-text: #ffffff;
-    --accent-2: #ff9f1c;
-    --danger: #e5484d;
-    --success: #1fa958;
-    --shadow: 0 16px 40px rgba(31,71,45,.12);
-    --overlay-bg: rgba(246,249,242,.96);
+    --bg: #0c1712;
+    --bg-soft: #101d16;
+    --card: #16261c;
+    --card-2: #1b2e21;
+    --border: #24392c;
+    --text: #ffffff;
+    --text-dim: #e2e8f0;
+    --accent: #4ade80;
+    --accent-text: #0c1712;
+    --accent-2: #ffb84d;
+    --danger: #ff6b7d;
+    --success: #4ade80;
+    --shadow: 0 20px 50px rgba(0,0,0,.45);
+    --overlay-bg: rgba(8,15,11,.94);
   }
-  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  *{
+    box-sizing:border-box; 
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
   html,body{height:100%;}
   body{
     margin:0;
     background:var(--bg);
-    color:var(--text);
+    color:#ffffff !important;
     font-family:'Inter',system-ui,sans-serif;
     display:flex;
     justify-content:center;
@@ -59,6 +69,12 @@
     transition: background .35s ease, color .35s ease;
     overflow-x:hidden;
   }
+  
+  /* Erzwinge weißen Text für alle Labels und Paragraphen */
+  h1, h2, h3, h4, p, span, div, label, input, button {
+    color: #ffffff;
+  }
+
   @media (prefers-reduced-motion: reduce){
     *{animation-duration:.001s !important; transition-duration:.001s !important;}
   }
@@ -84,14 +100,38 @@
     font-size:26px;
     letter-spacing:.2px;
     display:flex; align-items:center; gap:8px;
+    color: #ffffff;
   }
   .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent); box-shadow:0 0 14px var(--accent);}
+  .topbar-actions{display:flex; gap:8px;}
   .theme-toggle{
     width:44px;height:44px;border-radius:50%;
     background:var(--card); border:1px solid var(--border);
     display:flex;align-items:center;justify-content:center;
-    cursor:pointer; font-size:18px; color:var(--text);
+    cursor:pointer; font-size:18px; color:#ffffff;
   }
+
+  /* ---------- settings screen ---------- */
+  .settings-title{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:20px; margin-left:8px; color: #ffffff;}
+  .settings-row{
+    background:var(--card); border:1px solid var(--border); border-radius:20px;
+    padding:16px 18px; display:flex; align-items:center; justify-content:space-between;
+    gap:14px; margin-top:14px;
+  }
+  .settings-row .info{flex:1;}
+  .settings-row .t{font-weight:700; font-size:15px; margin-bottom:3px; color: #ffffff;}
+  .settings-row .d{font-size:12.5px; color:#ffffff; opacity:.85; line-height:1.4;}
+  .switch{
+    width:50px; height:30px; border-radius:99px; background:var(--border);
+    position:relative; flex-shrink:0; cursor:pointer; transition:background .2s;
+  }
+  .switch .knob{
+    position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%;
+    background:#fff; transition:transform .2s; box-shadow:0 2px 6px rgba(0,0,0,.3);
+  }
+  .switch.on{background:var(--accent);}
+  .switch.on .knob{transform:translateX(20px);}
+  .settings-foot{margin-top:auto; text-align:center; color:#ffffff; opacity:.8; font-size:12px; padding-top:16px;}
 
   /* ---------- stat pills ---------- */
   .stats-row{display:flex; gap:10px; margin-bottom:22px;}
@@ -100,11 +140,26 @@
     border-radius:var(--radius-card); padding:12px 10px;
     display:flex; flex-direction:column; align-items:center; gap:2px;
   }
-  .stat-pill .val{font-family:'Baloo 2',sans-serif; font-size:19px; font-weight:700;}
-  .stat-pill .lbl{font-size:11px; color:var(--text-dim); font-weight:500;}
+  .stat-pill .val{font-family:'Baloo 2',sans-serif; font-size:19px; font-weight:700; color:#ffffff;}
+  .stat-pill .lbl{font-size:11px; color:#ffffff; opacity:.85; font-weight:500;}
   .hearts{display:flex; gap:3px;}
-  .heart{font-size:15px; filter:grayscale(1); opacity:.25;}
+  .heart{font-size:15px; filter:grayscale(1); opacity:.25; transition: all .3s;}
   .heart.full{filter:none; opacity:1;}
+
+  /* Rainbow animation for Super Version */
+  @keyframes rainbowGlow {
+    0% { color: #ff3366; text-shadow: 0 0 8px #ff3366; }
+    20% { color: #ff9933; text-shadow: 0 0 8px #ff9933; }
+    40% { color: #ffff33; text-shadow: 0 0 8px #ffff33; }
+    60% { color: #33ff66; text-shadow: 0 0 8px #33ff66; }
+    80% { color: #3399ff; text-shadow: 0 0 8px #3399ff; }
+    100% { color: #cc33ff; text-shadow: 0 0 8px #cc33ff; }
+  }
+  .heart.rainbow-heart {
+    animation: rainbowGlow 2s infinite linear !important;
+    filter: none !important;
+    opacity: 1 !important;
+  }
 
   /* ---------- home hero ---------- */
   .hero{
@@ -121,17 +176,17 @@
   }
   .hero h1{
     font-family:'Baloo 2', sans-serif; font-size:22px; font-weight:800; margin:0 0 4px;
-    line-height:1.15;
+    line-height:1.15; color: #ffffff;
   }
-  .hero p{color:var(--text-dim); font-size:13.5px; max-width:280px; margin:0; line-height:1.4;}
+  .hero p{color:#ffffff; opacity:.85; font-size:13.5px; max-width:280px; margin:0; line-height:1.4;}
   .level-tag{
-    margin-top:10px; font-size:13px; font-weight:700; color:var(--accent-2);
+    margin-top:10px; font-size:13px; font-weight:700; color:#ffffff;
     background:var(--card); border:1px solid var(--border); padding:6px 14px; border-radius:var(--radius-btn);
   }
 
-  /* ---------- level carousel (swipe) ---------- */
+  /* ---------- level carousel ---------- */
   .levels-heading{
-    font-size:13px; font-weight:700; color:var(--text-dim); margin:8px 2px 8px;
+    font-size:13px; font-weight:700; color:#ffffff; opacity:.85; margin:8px 2px 8px;
   }
   .tier-carousel{
     display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity;
@@ -147,7 +202,7 @@
   }
   .tier-card:active{transform:scale(.96);}
   .tier-card .icon{font-size:24px;}
-  .tier-card .name{font-size:11.5px; font-weight:700; text-align:center; line-height:1.25; font-family:'Baloo 2',sans-serif;}
+  .tier-card .name{font-size:11.5px; font-weight:700; text-align:center; line-height:1.25; font-family:'Baloo 2',sans-serif; color: #ffffff;}
   .tier-card.active{border-color:var(--accent); box-shadow:0 0 0 1.5px var(--accent) inset;}
   .tier-card.locked{opacity:.42;}
   .tier-card .lock{position:absolute; top:8px; right:9px; font-size:12px;}
@@ -161,15 +216,18 @@
     border:none; cursor:pointer; font-family:'Inter',sans-serif; font-weight:700;
     border-radius:var(--radius-btn); padding:14px 20px; font-size:15.5px;
     display:flex; align-items:center; justify-content:center; gap:8px;
-    width:100%;
+    width:100%; user-select:none;
   }
   .btn-primary{
-    background:var(--accent); color:var(--accent-text);
+    background:var(--accent); color:var(--accent-text) !important;
     box-shadow: 0 10px 26px -8px var(--accent), inset 0 -3px 0 rgba(0,0,0,.15);
   }
   .btn-primary:active{transform:translateY(2px); box-shadow:none;}
   .btn-ghost{
-    background:transparent; color:var(--text-dim); border:1.5px solid var(--border);
+    background:transparent; color:#ffffff !important; border:1.5px solid var(--border);
+  }
+  .btn-small{
+    padding:8px 14px; font-size:13px; border-radius:12px; width:auto;
   }
   .btn:disabled{opacity:.45; cursor:not-allowed;}
 
@@ -177,7 +235,7 @@
   .lesson-top{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
   .exit-x{
     width:36px;height:36px;border-radius:50%; background:var(--card); border:1px solid var(--border);
-    display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-dim); font-size:15px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:#ffffff; font-size:15px;
     flex-shrink:0;
   }
   .progress-track{flex:1; height:12px; background:var(--card); border:1px solid var(--border); border-radius:99px; overflow:hidden;}
@@ -190,23 +248,23 @@
   .timer-ring circle{fill:none; stroke-width:5;}
   .timer-bg{stroke:var(--border);}
   .timer-fg{stroke:var(--accent); stroke-linecap:round; transition:stroke .2s;}
-  .timer-num{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:16px;}
+  .timer-num{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:16px; color: #ffffff;}
 
   .question-card{
     background: linear-gradient(160deg, #1a1a24, #0e0e14);
-    border: 1px solid rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
     border-radius:22px;
     padding:18px 16px; text-align:center; margin:8px 0 10px; flex-shrink:0;
     box-shadow: var(--shadow);
   }
   .q-tier{font-size:11px; font-weight:700; color:#c3b1ff; text-transform:none; margin-bottom:6px;}
-  .q-text{font-family:'Baloo 2',sans-serif; font-size:clamp(22px,7vw,34px); font-weight:700; letter-spacing:.3px; line-height:1.2; color:#ffffff;}
+  .q-text{font-family:'Baloo 2',sans-serif; font-size:clamp(24px,8vw,36px); font-weight:700; letter-spacing:.3px; line-height:1.2; color:#ffffff !important;}
   .answer-display{
     min-height:38px; display:flex; align-items:center; justify-content:center;
-    font-family:'Baloo 2',sans-serif; font-size:24px; font-weight:700; color:var(--accent-2);
+    font-family:'Baloo 2',sans-serif; font-size:26px; font-weight:700; color:#ffffff;
     letter-spacing:1px;
   }
-  .answer-display.empty{color:var(--text-dim); font-size:14px; font-weight:500; font-family:'Inter',sans-serif;}
+  .answer-display.empty{color:#ffffff; opacity:.6; font-size:14px; font-weight:500; font-family:'Inter',sans-serif;}
   .answer-display.wrong{color:var(--danger); animation: shake .35s;}
   .answer-display.right{color:var(--success);}
   @keyframes shake{
@@ -214,25 +272,39 @@
     60%{transform:translateX(-6px);} 80%{transform:translateX(6px);}
   }
 
+  /* Fast numpad styling */
   .numpad{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:auto;}
   .key{
     background:var(--card); border:1px solid var(--border); border-radius:var(--radius-key);
-    padding:11px 0; font-size:18px; font-weight:700; color:var(--text); cursor:pointer;
-    font-family:'Baloo 2',sans-serif;
+    padding:14px 0; font-size:22px; font-weight:700; color:#ffffff !important; cursor:pointer;
+    font-family:'Baloo 2',sans-serif; text-align:center; user-select:none;
   }
-  .key:active{background:var(--card-2); transform:scale(.96);}
+  .key:active{background:var(--card-2); transform:scale(.94);}
   .key.wide{grid-column:span 1;}
-  .key.func{color:var(--text-dim); font-size:14px;}
+  .key.func{color:#ffffff !important; opacity:.8; font-size:16px;}
   .submit-btn{margin-top:8px;}
 
   /* ---------- locked screen ---------- */
   .locked-wrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px;}
   .locked-wrap .emoji{font-size:56px; margin-bottom:6px;}
-  .locked-wrap h2{font-family:'Baloo 2',sans-serif; font-size:22px; margin:0;}
-  .locked-wrap p{color:var(--text-dim); font-size:14px; max-width:260px;}
+  .locked-wrap h2{font-family:'Baloo 2',sans-serif; font-size:22px; margin:0; color:#ffffff;}
+  .locked-wrap p{color:#ffffff; opacity:.85; font-size:14px; max-width:260px;}
   .countdown{
     font-family:'Baloo 2',sans-serif; font-size:34px; font-weight:700; color:var(--accent-2); margin:8px 0 18px;
     letter-spacing:1px;
+  }
+
+  /* ---------- inputs & auth modal ---------- */
+  .input-field{
+    width:100%; padding:12px 14px; border-radius:12px;
+    background:var(--card); border:1px solid var(--border);
+    color:#ffffff !important; font-size:14px; margin-bottom:10px;
+    outline:none;
+  }
+  .input-field::placeholder{color:rgba(255,255,255,.4);}
+  .auth-box{
+    background:var(--card); border:1px solid var(--border); border-radius:20px;
+    padding:18px; margin-top:14px; text-align:left;
   }
 
   /* ---------- overlays ---------- */
@@ -243,9 +315,8 @@
     padding:26px;
   }
   .overlay.show{opacity:1; pointer-events:auto;}
-  .overlay-card{text-align:center; max-width:340px;}
+  .overlay-card{text-align:center; max-width:340px; width:100%;}
 
-  /* aura edit */
   .aura-fig{font-size:96px; display:inline-block; animation: aura-pop .55s cubic-bezier(.22,1.4,.4,1);}
   @keyframes aura-pop{
     0%{transform:scale(.3) rotate(-12deg); opacity:0;}
@@ -258,7 +329,7 @@
     -webkit-background-clip:text; background-clip:text; color:transparent;
     letter-spacing:.5px;
   }
-  .aura-sub{color:var(--text-dim); font-size:14px; margin-top:4px; font-weight:600;}
+  .aura-sub{color:#ffffff; opacity:.9; font-size:14px; margin-top:4px; font-weight:600;}
   .aura-particles{position:absolute; inset:0; pointer-events:none; overflow:hidden;}
   .spark{position:absolute; font-size:20px; opacity:0; animation: spark-fly 1.1s ease-out forwards;}
   @keyframes spark-fly{
@@ -266,7 +337,6 @@
     100%{opacity:0; transform: translateY(-160px) scale(1.3);}
   }
 
-  /* meme */
   .meme-card{
     background:#0a0a0a; border-radius:18px; padding:0; overflow:hidden; border:3px solid #fff;
     box-shadow:0 20px 60px rgba(0,0,0,.5);
@@ -276,20 +346,19 @@
     background: repeating-linear-gradient(135deg, #1a1a1a 0 12px, #111 12px 24px);
   }
   .meme-caption{
-    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:21px; color:#fff;
+    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:21px; color:#fff !important;
     text-transform:uppercase; padding:14px 16px 18px; line-height:1.25;
     text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000;
   }
-  .meme-foot{color:var(--text-dim); font-size:13px; margin-top:14px;}
+  .meme-foot{color:#ffffff; opacity:.85; font-size:13px; margin-top:14px;}
 
-  /* lesson complete */
   .complete-emoji{font-size:64px;}
-  .complete-title{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:26px; margin:8px 0 4px;}
-  .complete-sub{color:var(--text-dim); font-size:14px; margin-bottom:20px;}
+  .complete-title{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:26px; margin:8px 0 4px; color:#ffffff;}
+  .complete-sub{color:#ffffff; opacity:.85; font-size:14px; margin-bottom:20px;}
   .complete-stats{display:flex; gap:10px; margin-bottom:24px;}
   .complete-stats .box{flex:1; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:12px 8px;}
-  .complete-stats .box .n{font-family:'Baloo 2',sans-serif; font-size:20px; font-weight:700;}
-  .complete-stats .box .l{font-size:11px; color:var(--text-dim);}
+  .complete-stats .box .n{font-family:'Baloo 2',sans-serif; font-size:20px; font-weight:700; color:#ffffff;}
+  .complete-stats .box .l{font-size:11px; color:#ffffff; opacity:.85;}
 
   .flash{
     position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:60;
@@ -297,7 +366,14 @@
   .flash.go{animation:flash-go .4s ease-out;}
   @keyframes flash-go{0%{opacity:.85;} 100%{opacity:0;}}
 
-  .hidden{display:none !important;}
+  /* Toast Notification */
+  .toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:var(--accent); color:var(--accent-text); padding:10px 18px;
+    border-radius:99px; font-weight:700; font-size:13px; z-index:100;
+    opacity:0; transition:opacity .3s; pointer-events:none;
+  }
+  .toast.show{opacity:1;}
 </style>
 </head>
 <body>
@@ -307,7 +383,10 @@
   <section class="screen active" id="screen-home">
     <div class="topbar">
       <div class="brand"><span class="dot"></span>MathEdits</div>
-      <div class="theme-toggle" id="themeToggle">🌙</div>
+      <div class="topbar-actions">
+        <div class="theme-toggle" id="settingsBtn">⚙️</div>
+        <div class="theme-toggle" id="themeToggle">🌙</div>
+      </div>
     </div>
 
     <div class="stats-row">
@@ -336,6 +415,45 @@
     <div class="tier-carousel" id="tierCarousel"></div>
 
     <button class="btn btn-primary" id="startBtn">Lektion starten</button>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section class="screen" id="screen-settings">
+    <div class="topbar">
+      <div class="exit-x" id="settingsBack">←</div>
+      <div class="settings-title">Einstellungen</div>
+    </div>
+
+    <div class="settings-row">
+      <div class="info">
+        <div class="t">Long Mode</div>
+        <div class="d">Aura-Edits und Memes bleiben 4 Sekunden statt kurz sichtbar.</div>
+      </div>
+      <div class="switch" id="longModeSwitch"><div class="knob"></div></div>
+    </div>
+
+    <!-- Firebase UID Button & Display -->
+    <div class="settings-row">
+      <div class="info">
+        <div class="t">Deine UID</div>
+        <div class="d" id="uidTextDisplay">Nicht angemeldet / Gast</div>
+      </div>
+      <button class="btn btn-ghost btn-small" id="copyUidBtn">Kopieren</button>
+    </div>
+
+    <!-- Firebase Auth Box -->
+    <div class="auth-box">
+      <div class="t" style="font-weight:700; font-size:15px; margin-bottom:8px;" id="authTitle">Account / Login</div>
+      <input type="email" id="authEmail" class="input-field" placeholder="E-Mail">
+      <input type="password" id="authPassword" class="input-field" placeholder="Passwort">
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <button class="btn btn-primary btn-small" id="loginBtn">Einloggen</button>
+        <button class="btn btn-ghost btn-small" id="registerBtn">Registrieren</button>
+        <button class="btn btn-ghost btn-small" id="logoutBtn" style="display:none;">Ausloggen</button>
+      </div>
+    </div>
+
+    <div class="settings-foot">MathEdits · Dein Fortschritt wird synchronisiert.</div>
   </section>
 
   <!-- ============ LOCKED (no lives) ============ -->
@@ -433,6 +551,7 @@
   </div>
 
   <div class="flash" id="flash"></div>
+  <div class="toast" id="toast">UID kopiert!</div>
 </div>
 
 <script>
@@ -440,33 +559,82 @@
   "use strict";
 
   /* ========================================================
-     STORAGE
+     SUPER VERSION (5 VIP-UIDs HIER EINTRAGEN)
+     Füge hier bis zu 5 UIDs ein. Wer mit dieser UID eingeloggt
+     ist, erhält unendlich Leben (Regenbogen-Herzen)!
   ======================================================== */
-  const PROFILE_KEY = "mathedits:profile";
+  const SUPER_USER_UIDS = [
+    "DEINE_UID_1_HIER",
+    "DEINE_UID_2_HIER",
+    "DEINE_UID_3_HIER",
+    "DEINE_UID_4_HIER",
+    "DEINE_UID_5_HIER"
+  ];
+
+  /* ========================================================
+     FIREBASE INITIALISIERUNG
+     Ersetze die Platzhalter mit deinen Firebase-Daten!
+  ======================================================== */
+  const firebaseConfig = {
+    apiKey: "DEIN_API_KEY_HIER",
+    authDomain: "DEIN_PROJECT_ID.firebaseapp.com",
+    projectId: "DEIN_PROJECT_ID",
+    storageBucket: "DEIN_PROJECT_ID.appspot.com",
+    messagingSenderId: "DEIN_SENDER_ID",
+    appId: "DEIN_APP_ID"
+  };
+
+  let firebaseInitialized = false;
+  let currentUser = null;
+
+  try {
+    if(firebaseConfig.apiKey !== "DEIN_API_KEY_HIER"){
+      firebase.initializeApp(firebaseConfig);
+      firebaseInitialized = true;
+    }
+  } catch(e) {
+    console.warn("Firebase Init Hinweis:", e);
+  }
+
+  /* ========================================================
+     STORAGE & PROFILE
+  ======================================================== */
+  const PROFILE_KEY = "mathedits_profile_v1";
   const DEFAULT_PROFILE = {
     lives: 5,
     lastLifeChangeAt: Date.now(),
     level: 1,
     totalAura: 0,
     lessonsCompleted: 0,
-    theme: "dark"
+    theme: "dark",
+    longMode: false,
+    uid: "guest_" + Math.random().toString(36).substring(2, 10)
   };
   let profile = { ...DEFAULT_PROFILE };
 
-  async function loadProfile(){
+  function loadProfile(){
     try{
-      const res = await window.storage.get(PROFILE_KEY, false);
-      if(res && res.value){
-        profile = { ...DEFAULT_PROFILE, ...JSON.parse(res.value) };
+      const raw = localStorage.getItem(PROFILE_KEY);
+      if(raw){
+        profile = { ...DEFAULT_PROFILE, ...JSON.parse(raw) };
       }
     }catch(e){
       profile = { ...DEFAULT_PROFILE };
     }
   }
-  async function saveProfile(){
+  
+  function saveProfile(){
     try{
-      await window.storage.set(PROFILE_KEY, JSON.stringify(profile), false);
-    }catch(e){ /* best effort, keep playing even if it fails */ }
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      if(firebaseInitialized && currentUser){
+        firebase.firestore().collection("users").doc(currentUser.uid).set(profile, { merge: true });
+      }
+    }catch(e){ /* Fallback */ }
+  }
+
+  function isSuperUser(){
+    const activeUid = (currentUser && currentUser.uid) ? currentUser.uid : profile.uid;
+    return SUPER_USER_UIDS.includes(activeUid);
   }
 
   /* ========================================================
@@ -476,6 +644,10 @@
   const HOUR_MS = 60 * 60 * 1000;
 
   function refillLives(){
+    if(isSuperUser()){
+      profile.lives = MAX_LIVES;
+      return;
+    }
     if(profile.lives >= MAX_LIVES) return;
     const elapsed = Date.now() - profile.lastLifeChangeAt;
     const gained = Math.floor(elapsed / HOUR_MS);
@@ -484,13 +656,16 @@
       profile.lastLifeChangeAt += gained * HOUR_MS;
     }
   }
+
   function loseLife(){
+    if(isSuperUser()) return; // Unendliche Leben in Super Version!
     profile.lives = Math.max(0, profile.lives - 1);
     profile.lastLifeChangeAt = Date.now();
     saveProfile();
   }
+
   function msUntilNextLife(){
-    if(profile.lives >= MAX_LIVES) return 0;
+    if(isSuperUser() || profile.lives >= MAX_LIVES) return 0;
     const elapsed = Date.now() - profile.lastLifeChangeAt;
     return Math.max(0, HOUR_MS - elapsed);
   }
@@ -520,7 +695,6 @@
     return { text: `${a} × ${b}`, answer: a*b };
   }
   function bigMult(){
-    // Großes Einmaleins: ein Faktor 10-20, der andere 2-12
     const a = randInt(10,20), b = randInt(2,12);
     return { text: Math.random()<0.5 ? `${a} × ${b}` : `${b} × ${a}`, answer: a*b };
   }
@@ -541,7 +715,6 @@
     return { text: `${a} ÷ ${b}`, answer: q };
   }
   function fraction(){
-    // Bruchteil von einer Zahl, z.B. "3/4 von 20" -> 15
     const denoms = [2,3,4,5,6,8,10];
     const c = denoms[randInt(0, denoms.length-1)];
     const b = randInt(1, c-1);
@@ -591,15 +764,14 @@
   ];
 
   /* ========================================================
-     SOUND (kurzer Erfolgs-Jingle, per Web Audio erzeugt –
-     kein externes Audiofile nötig)
+     SOUND (Web Audio Jingle)
   ======================================================== */
   let audioCtx = null;
   function playSuccessJingle(){
     try{
       audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
       if(audioCtx.state === "suspended") audioCtx.resume();
-      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5 E5 G5 C6
+      const notes = [523.25, 659.25, 783.99, 1046.50];
       notes.forEach((freq, i) => {
         const t0 = audioCtx.currentTime + i * 0.1;
         const osc = audioCtx.createOscillator();
@@ -613,19 +785,19 @@
         osc.start(t0);
         osc.stop(t0 + 0.34);
       });
-    }catch(e){ /* Audio nicht verfügbar - kein Problem, Spiel läuft weiter */ }
+    }catch(e){ }
   }
 
   /* ========================================================
-     LESSON STATE
+     LESSON STATE & CONFIG
   ======================================================== */
   const QUESTIONS_PER_LESSON = 10;
   const AURA_THRESHOLD_MS = 2000;
   const SLOW_THRESHOLD_MS = 6000;
   const TIME_LIMIT_MS = 8000;
 
-  let lesson = null; // {tier, questions:[], index, correct, auraCount, startedAt, timerHandle, answer, locked}
-  let selectedTierIndex = null; // null = automatisch (aktueller Fortschritt)
+  let lesson = null;
+  let selectedTierIndex = null;
 
   function buildLesson(){
     const activeIdx = tierIndexForLevel(profile.level);
@@ -638,16 +810,24 @@
   }
 
   /* ========================================================
-     DOM refs
+     DOM REFS & SCREEN SWITCHING
   ======================================================== */
   const $ = (id) => document.getElementById(id);
   const app = $("app");
   const screens = {
-    home: $("screen-home"), locked: $("screen-locked"), lesson: $("screen-lesson"), result: $("screen-result")
+    home: $("screen-home"), locked: $("screen-locked"), lesson: $("screen-lesson"),
+    result: $("screen-result"), settings: $("screen-settings")
   };
   function showScreen(name){
     Object.values(screens).forEach(s => s.classList.remove("active"));
     screens[name].classList.add("active");
+  }
+
+  function showToast(msg){
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2000);
   }
 
   /* ========================================================
@@ -655,7 +835,7 @@
   ======================================================== */
   function applyTheme(){
     app.setAttribute("data-theme", profile.theme);
-    const icon = profile.theme === "dark" ? "🌙" : "☀️";
+    const icon = profile.theme === "dark" ? "🌲" : "⚫";
     $("themeToggle").textContent = icon;
     $("themeToggleLocked").textContent = icon;
   }
@@ -668,13 +848,111 @@
   $("themeToggleLocked").addEventListener("click", toggleTheme);
 
   /* ========================================================
-     HOME RENDER
+     SETTINGS & FIREBASE USER UI
+  ======================================================== */
+  function renderSettings(){
+    $("longModeSwitch").classList.toggle("on", !!profile.longMode);
+    const activeUid = (currentUser && currentUser.uid) ? currentUser.uid : profile.uid;
+    const displayUid = isSuperUser() ? activeUid + " ⭐ (Super)" : activeUid;
+    $("uidTextDisplay").textContent = displayUid;
+
+    if(currentUser){
+      $("authTitle").textContent = "Angemeldet als: " + currentUser.email;
+      $("authEmail").style.display = "none";
+      $("authPassword").style.display = "none";
+      $("loginBtn").style.display = "none";
+      $("registerBtn").style.display = "none";
+      $("logoutBtn").style.display = "block";
+    } else {
+      $("authTitle").textContent = "Account / Login";
+      $("authEmail").style.display = "block";
+      $("authPassword").style.display = "block";
+      $("loginBtn").style.display = "block";
+      $("registerBtn").style.display = "block";
+      $("logoutBtn").style.display = "none";
+    }
+  }
+
+  $("settingsBtn").addEventListener("click", () => {
+    renderSettings();
+    showScreen("settings");
+  });
+  $("settingsBack").addEventListener("click", () => {
+    showScreen("home");
+    renderHome();
+  });
+  $("longModeSwitch").addEventListener("click", () => {
+    profile.longMode = !profile.longMode;
+    saveProfile();
+    renderSettings();
+  });
+
+  $("copyUidBtn").addEventListener("click", () => {
+    const activeUid = (currentUser && currentUser.uid) ? currentUser.uid : profile.uid;
+    navigator.clipboard.writeText(activeUid).then(() => {
+      showToast("UID kopiert!");
+    }).catch(() => {
+      showToast("UID: " + activeUid);
+    });
+  });
+
+  /* Firebase Auth Operations */
+  if(firebaseInitialized){
+    firebase.auth().onAuthStateChanged((user) => {
+      currentUser = user;
+      if(user){
+        firebase.firestore().collection("users").doc(user.uid).get().then((doc) => {
+          if(doc.exists){
+            profile = { ...DEFAULT_PROFILE, ...doc.data() };
+            applyTheme();
+            renderHome();
+          }
+        });
+      }
+      renderSettings();
+    });
+  }
+
+  $("loginBtn").addEventListener("click", () => {
+    if(!firebaseInitialized) return showToast("Firebase API Key nicht konfiguriert");
+    const email = $("authEmail").value;
+    const pass = $("authPassword").value;
+    firebase.auth().signInWithEmailAndPassword(email, pass)
+      .then(() => showToast("Erfolgreich eingeloggt!"))
+      .catch((err) => alert(err.message));
+  });
+
+  $("registerBtn").addEventListener("click", () => {
+    if(!firebaseInitialized) return showToast("Firebase API Key nicht konfiguriert");
+    const email = $("authEmail").value;
+    const pass = $("authPassword").value;
+    firebase.auth().createUserWithEmailAndPassword(email, pass)
+      .then(() => {
+        showToast("Account erstellt!");
+        saveProfile();
+      })
+      .catch((err) => alert(err.message));
+  });
+
+  $("logoutBtn").addEventListener("click", () => {
+    if(!firebaseInitialized) return;
+    firebase.auth().signOut().then(() => {
+      currentUser = null;
+      showToast("Ausgeloggt");
+      renderSettings();
+      renderHome();
+    });
+  });
+
+  /* ========================================================
+     HOME RENDER & HEARTS
   ======================================================== */
   function renderHearts(container, count){
     container.innerHTML = "";
+    const superActive = isSuperUser();
     for(let i=0;i<MAX_LIVES;i++){
       const span = document.createElement("span");
-      span.className = "heart" + (i < count ? " full" : "");
+      span.className = "heart" + (i < count || superActive ? " full" : "") + (superActive ? " rainbow-heart" : "");
       span.textContent = "❤";
       container.appendChild(span);
     }
@@ -726,10 +1004,11 @@
     renderHearts($("homeHearts"), profile.lives);
     updateLockedCountdown();
   }
+
   let lockedInterval = null;
   function updateLockedCountdown(){
     refillLives();
-    if(profile.lives > 0){
+    if(profile.lives > 0 || isSuperUser()){
       saveProfile();
       clearInterval(lockedInterval);
       showScreen("home");
@@ -745,7 +1024,7 @@
 
   $("startBtn").addEventListener("click", () => {
     refillLives(); saveProfile();
-    if(profile.lives <= 0){
+    if(profile.lives <= 0 && !isSuperUser()){
       showScreen("locked");
       renderLocked();
       lockedInterval = setInterval(updateLockedCountdown, 1000);
@@ -753,11 +1032,13 @@
     }
     startLesson();
   });
+
   $("backHomeFromLocked").addEventListener("click", () => {
     clearInterval(lockedInterval);
     showScreen("home");
     renderHome();
   });
+
   $("exitLesson").addEventListener("click", () => {
     stopTimer();
     showScreen("home");
@@ -765,7 +1046,7 @@
   });
 
   /* ========================================================
-     LESSON FLOW
+     LESSON FLOW & ULTRA-FAST TYPING
   ======================================================== */
   let timerRAF = null;
   let questionStartedAt = 0;
@@ -817,7 +1098,7 @@
       numEl.textContent = Math.ceil(remaining/1000);
       circle.style.stroke = frac < 0.25 ? "var(--danger)" : "var(--accent)";
       if(remaining <= 0){
-        handleAnswer(true); // timeout
+        handleAnswer(true);
         return;
       }
       timerRAF = requestAnimationFrame(tick);
@@ -826,11 +1107,9 @@
   }
   function stopTimer(){ cancelAnimationFrame(timerRAF); }
 
-  /* numpad input */
-  $("numpad").addEventListener("click", (e) => {
-    const key = e.target.closest(".key");
-    if(!key || !lesson || lesson.locked) return;
-    const k = key.dataset.k;
+  /* Input Handling (Pointer Events & Keyboard Support für maximale Latenzfreiheit) */
+  function handleKeyPress(k){
+    if(!lesson || lesson.locked) return;
     if(k === "back"){
       lesson.answer = lesson.answer.slice(0,-1);
     } else if(k === "minus"){
@@ -840,7 +1119,30 @@
       if(lesson.answer.length < 6) lesson.answer += k;
     }
     updateAnswerDisplay();
+  }
+
+  const numpad = $("numpad");
+  numpad.addEventListener("pointerdown", (e) => {
+    const key = e.target.closest(".key");
+    if(!key) return;
+    e.preventDefault();
+    handleKeyPress(key.dataset.k);
   });
+
+  // Physikalische Tastatur-Unterstützung (PC/Laptop)
+  window.addEventListener("keydown", (e) => {
+    if(!screens.lesson.classList.contains("active") || !lesson || lesson.locked) return;
+    if(e.key >= "0" && e.key <= "9"){
+      handleKeyPress(e.key);
+    } else if(e.key === "Backspace"){
+      handleKeyPress("back");
+    } else if(e.key === "-"){
+      handleKeyPress("minus");
+    } else if(e.key === "Enter"){
+      if(lesson.answer !== "") handleAnswer(false);
+    }
+  });
+
   $("submitBtn").addEventListener("click", () => {
     if(!lesson || lesson.locked || lesson.answer === "") return;
     handleAnswer(false);
@@ -872,12 +1174,14 @@
 
     if(isFastCorrect){
       lesson.aura++;
-      delay = 1500;
-      setTimeout(() => showAuraOverlay(), 150);
+      const showMs = profile.longMode ? 4000 : 1250;
+      delay = 150 + showMs + 100;
+      setTimeout(() => showAuraOverlay(showMs), 150);
     } else if(isSlow){
       loseLife();
-      delay = 1900;
-      setTimeout(() => showMemeOverlay(isCorrect), 150);
+      const showMs = profile.longMode ? 4000 : 1650;
+      delay = 150 + showMs + 100;
+      setTimeout(() => showMemeOverlay(isCorrect, showMs), 150);
     } else if(!isCorrect){
       loseLife();
       flashScreen();
@@ -895,7 +1199,7 @@
 
   function advance(){
     renderHearts($("lessonHearts"), profile.lives);
-    if(profile.lives <= 0){
+    if(profile.lives <= 0 && !isSuperUser()){
       finishLesson(false);
       return;
     }
@@ -922,7 +1226,7 @@
     }
     const auraGained = lesson.aura * 100 + lesson.correct * 10;
     profile.totalAura += auraGained;
-    selectedTierIndex = null; // zurück zur aktuellen Fortschritts-Stufe für die nächste Lektion
+    selectedTierIndex = null;
     saveProfile();
 
     $("resultEmoji").textContent = emoji;
@@ -943,12 +1247,12 @@
   /* ========================================================
      OVERLAYS
   ======================================================== */
-  function showAuraOverlay(){
+  function showAuraOverlay(showMs){
     $("auraSubText").textContent = AURA_LINES[randInt(0, AURA_LINES.length-1)];
     spawnParticles();
     const ov = $("overlayAura");
     ov.classList.add("show");
-    setTimeout(() => ov.classList.remove("show"), 1250);
+    setTimeout(() => ov.classList.remove("show"), showMs || 1250);
   }
   function spawnParticles(){
     const wrap = $("auraParticles");
@@ -964,23 +1268,23 @@
       wrap.appendChild(s);
     }
   }
-  function showMemeOverlay(wasCorrect){
+  function showMemeOverlay(wasCorrect, showMs){
     const pool = wasCorrect ? SLOW_MEMES : SLOW_MEMES.concat(WRONG_SLOW_MEMES);
     const pick = pool[randInt(0, pool.length-1)];
     $("memeEmoji").textContent = pick.emoji;
     $("memeCaption").textContent = pick.cap;
     const ov = $("overlayMeme");
     ov.classList.add("show");
-    setTimeout(() => ov.classList.remove("show"), 1650);
+    setTimeout(() => ov.classList.remove("show"), showMs || 1650);
   }
 
   /* ========================================================
      INIT
   ======================================================== */
-  async function init(){
-    await loadProfile();
+  function init(){
+    loadProfile();
     refillLives();
-    await saveProfile();
+    saveProfile();
     applyTheme();
     renderHome();
   }

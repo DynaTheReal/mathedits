@@ -108,26 +108,54 @@
 
   /* ---------- home hero ---------- */
   .hero{
-    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; gap:6px; padding:10px 6px 30px;
+    display:flex; flex-direction:column; align-items:center;
+    text-align:center; gap:4px; padding:6px 6px 14px;
   }
   .hero-badge{
-    width:132px; height:132px; border-radius:34px;
+    width:88px; height:88px; border-radius:26px;
     background: linear-gradient(155deg, var(--accent-2), var(--accent));
     display:flex; align-items:center; justify-content:center;
-    font-size:64px; margin-bottom:18px;
+    font-size:44px; margin-bottom:10px;
     box-shadow: var(--shadow);
     transform: rotate(-4deg);
   }
   .hero h1{
-    font-family:'Baloo 2', sans-serif; font-size:28px; font-weight:800; margin:0 0 6px;
+    font-family:'Baloo 2', sans-serif; font-size:22px; font-weight:800; margin:0 0 4px;
     line-height:1.15;
   }
-  .hero p{color:var(--text-dim); font-size:14.5px; max-width:280px; margin:0; line-height:1.5;}
+  .hero p{color:var(--text-dim); font-size:13.5px; max-width:280px; margin:0; line-height:1.4;}
   .level-tag{
-    margin-top:16px; font-size:13px; font-weight:700; color:var(--accent-2);
+    margin-top:10px; font-size:13px; font-weight:700; color:var(--accent-2);
     background:var(--card); border:1px solid var(--border); padding:6px 14px; border-radius:var(--radius-btn);
   }
+
+  /* ---------- level carousel (swipe) ---------- */
+  .levels-heading{
+    font-size:13px; font-weight:700; color:var(--text-dim); margin:8px 2px 8px;
+  }
+  .tier-carousel{
+    display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity;
+    padding:2px 2px 10px; margin:0 -2px;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  }
+  .tier-carousel::-webkit-scrollbar{display:none;}
+  .tier-card{
+    scroll-snap-align:start; flex:0 0 auto; width:104px;
+    background:var(--card); border:1.5px solid var(--border); border-radius:18px;
+    padding:14px 8px 12px; display:flex; flex-direction:column; align-items:center; gap:6px;
+    cursor:pointer; position:relative; transition:border-color .15s, transform .12s;
+  }
+  .tier-card:active{transform:scale(.96);}
+  .tier-card .icon{font-size:24px;}
+  .tier-card .name{font-size:11.5px; font-weight:700; text-align:center; line-height:1.25; font-family:'Baloo 2',sans-serif;}
+  .tier-card.active{border-color:var(--accent); box-shadow:0 0 0 1.5px var(--accent) inset;}
+  .tier-card.locked{opacity:.42;}
+  .tier-card .lock{position:absolute; top:8px; right:9px; font-size:12px;}
+  .tier-card .current-dot{
+    width:6px; height:6px; border-radius:50%; background:var(--accent-2);
+    position:absolute; top:9px; left:10px; box-shadow:0 0 6px var(--accent-2);
+  }
+  .tier-card.shake{animation: shake .35s;}
 
   .btn{
     border:none; cursor:pointer; font-family:'Inter',sans-serif; font-weight:700;
@@ -165,12 +193,14 @@
   .timer-num{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:16px;}
 
   .question-card{
-    background:var(--card); border:1px solid var(--border); border-radius:22px;
+    background: linear-gradient(160deg, #1a1a24, #0e0e14);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius:22px;
     padding:18px 16px; text-align:center; margin:8px 0 10px; flex-shrink:0;
     box-shadow: var(--shadow);
   }
-  .q-tier{font-size:11px; font-weight:700; color:var(--accent-2); text-transform:none; margin-bottom:6px;}
-  .q-text{font-family:'Baloo 2',sans-serif; font-size:clamp(22px,7vw,34px); font-weight:700; letter-spacing:.3px; line-height:1.2;}
+  .q-tier{font-size:11px; font-weight:700; color:#c3b1ff; text-transform:none; margin-bottom:6px;}
+  .q-text{font-family:'Baloo 2',sans-serif; font-size:clamp(22px,7vw,34px); font-weight:700; letter-spacing:.3px; line-height:1.2; color:#ffffff;}
   .answer-display{
     min-height:38px; display:flex; align-items:center; justify-content:center;
     font-family:'Baloo 2',sans-serif; font-size:24px; font-weight:700; color:var(--accent-2);
@@ -298,9 +328,12 @@
     <div class="hero">
       <div class="hero-badge">🧮</div>
       <h1>Bereit für dein<br>nächstes Aura-Edit?</h1>
-      <p>Löse Aufgaben blitzschnell für ein Aura-Edit. Bist du zu langsam, gibt's ein Meme. So einfach ist das.</p>
-      <div class="level-tag" id="tierLabel">Einmaleins · 1–5</div>
+      <p>Löse Aufgaben blitzschnell für ein Aura-Edit. Bist du zu langsam, gibt's ein Meme.</p>
+      <div class="level-tag" id="tierLabel">Kleines Einmaleins</div>
     </div>
+
+    <div class="levels-heading">Levels · nach rechts wischen</div>
+    <div class="tier-carousel" id="tierCarousel"></div>
 
     <button class="btn btn-primary" id="startBtn">Lektion starten</button>
   </section>
@@ -467,15 +500,19 @@
   ======================================================== */
   function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
 
-  function getTier(level){
-    if(level <= 3) return {name:"Kleines Einmaleins · 1–5", label:"Level " + level, gen: () => mult(1,5)};
-    if(level <= 6) return {name:"Einmaleins · 1–10", label:"Level " + level, gen: () => mult(1,10)};
-    if(level <= 9) return {name:"Großes Einmaleins · 10–20", label:"Level " + level, gen: () => bigMult()};
-    if(level <= 12) return {name:"Plus & Minus · bis 50", label:"Level " + level, gen: () => addSub(50)};
-    if(level <= 15) return {name:"Geteilt · 1–12", label:"Level " + level, gen: () => divide(1,12)};
-    if(level <= 18) return {name:"Brüche", label:"Level " + level, gen: () => fraction()};
-    if(level <= 21) return {name:"Plus & Minus · bis 100", label:"Level " + level, gen: () => addSub(100)};
-    return {name:"Gemischt · Profi", label:"Level " + level, gen: () => mixedHard()};
+  const TIERS = [
+    {name:"Kleines Einmaleins", icon:"✖️", from:1,  to:3,        gen: () => mult(1,5)},
+    {name:"Einmaleins",         icon:"✳️", from:4,  to:6,        gen: () => mult(1,10)},
+    {name:"Großes Einmaleins",  icon:"💥", from:7,  to:9,        gen: () => bigMult()},
+    {name:"Plus & Minus",       icon:"➕", from:10, to:12,       gen: () => addSub(50)},
+    {name:"Geteilt",            icon:"➗", from:13, to:15,       gen: () => divide(1,12)},
+    {name:"Brüche",             icon:"🍰", from:16, to:18,       gen: () => fraction()},
+    {name:"Plus & Minus Profi", icon:"🧮", from:19, to:21,       gen: () => addSub(100)},
+    {name:"Gemischt Profi",     icon:"🏆", from:22, to:Infinity, gen: () => mixedHard()}
+  ];
+  function tierIndexForLevel(level){
+    for(let i=0;i<TIERS.length;i++){ if(level >= TIERS[i].from && level <= TIERS[i].to) return i; }
+    return TIERS.length - 1;
   }
 
   function mult(min, max){
@@ -588,12 +625,16 @@
   const TIME_LIMIT_MS = 8000;
 
   let lesson = null; // {tier, questions:[], index, correct, auraCount, startedAt, timerHandle, answer, locked}
+  let selectedTierIndex = null; // null = automatisch (aktueller Fortschritt)
 
   function buildLesson(){
-    const tier = getTier(profile.level);
+    const activeIdx = tierIndexForLevel(profile.level);
+    const idx = (selectedTierIndex !== null && selectedTierIndex <= activeIdx) ? selectedTierIndex : activeIdx;
+    const tier = TIERS[idx];
+    const isMainProgression = idx === activeIdx;
     const questions = [];
     for(let i=0;i<QUESTIONS_PER_LESSON;i++) questions.push(tier.gen());
-    return { tier, questions, index:0, correct:0, aura:0, answer:"", locked:false };
+    return { tier, isMainProgression, questions, index:0, correct:0, aura:0, answer:"", locked:false };
   }
 
   /* ========================================================
@@ -645,8 +686,38 @@
     renderHearts($("homeHearts"), profile.lives);
     $("homeLevel").textContent = profile.level;
     $("homeAura").textContent = profile.totalAura;
-    $("tierLabel").textContent = getTier(profile.level).name;
+    const activeIdx = tierIndexForLevel(profile.level);
+    if(selectedTierIndex === null) selectedTierIndex = activeIdx;
+    $("tierLabel").textContent = TIERS[selectedTierIndex].name;
     $("startBtn").disabled = false;
+    renderTierCarousel();
+  }
+
+  function renderTierCarousel(){
+    const wrap = $("tierCarousel");
+    const activeIdx = tierIndexForLevel(profile.level);
+    wrap.innerHTML = "";
+    TIERS.forEach((tier, i) => {
+      const locked = i > activeIdx;
+      const card = document.createElement("div");
+      card.className = "tier-card" + (i === selectedTierIndex ? " active" : "") + (locked ? " locked" : "");
+      card.innerHTML = `
+        ${i === activeIdx ? '<span class="current-dot"></span>' : ""}
+        ${locked ? '<span class="lock">🔒</span>' : ""}
+        <span class="icon">${tier.icon}</span>
+        <span class="name">${tier.name}</span>
+      `;
+      card.addEventListener("click", () => {
+        if(locked){
+          card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
+          return;
+        }
+        selectedTierIndex = i;
+        $("tierLabel").textContent = tier.name;
+        renderTierCarousel();
+      });
+      wrap.appendChild(card);
+    });
   }
 
   function renderLocked(){
@@ -842,7 +913,7 @@
     if(passed){
       const pick = COMPLETE_LINES[randInt(0, COMPLETE_LINES.length-1)];
       title = pick.title; sub = pick.sub; emoji = pick.emoji;
-      profile.level += 1;
+      if(lesson.isMainProgression) profile.level += 1;
       profile.lessonsCompleted += 1;
       playSuccessJingle();
     } else {
@@ -851,6 +922,7 @@
     }
     const auraGained = lesson.aura * 100 + lesson.correct * 10;
     profile.totalAura += auraGained;
+    selectedTierIndex = null; // zurück zur aktuellen Fortschritts-Stufe für die nächste Lektion
     saveProfile();
 
     $("resultEmoji").textContent = emoji;

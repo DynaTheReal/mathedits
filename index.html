@@ -547,9 +547,9 @@
   <div class="overlay" id="overlayAura">
     <div class="overlay-card" style="position:relative;">
       <div class="aura-particles" id="auraParticles"></div>
-      <div class="aura-fig">💀</div>
-      <div class="aura-text">AURA EDIT</div>
-      <div class="aura-sub" id="auraSubText">+100 Aura · unter 2 Sekunden</div>
+      <div class="aura-fig" id="auraEmoji">⚡</div>
+      <div class="aura-text" id="auraTitle">+2 Aura</div>
+      <div class="aura-sub" id="auraSubText">Sauber gelöst!</div>
     </div>
   </div>
 
@@ -746,12 +746,19 @@
   /* ========================================================
      CONTENT
   ======================================================== */
-  const AURA_LINES = [
-    "+100 Aura · unter 2 Sekunden",
+  const AURA_EDIT_LINES = [
+    "unter 2 Sekunden · Mega Speed!",
     "Blitzschnell. Absoluter Aura-Boost.",
     "Reflexe wie ein Boss.",
     "Das war Speedrun-Niveau.",
     "Gehirn im Turbo-Modus."
+  ];
+  const NORMAL_AURA_LINES = [
+    "Gut gelöst!",
+    "Sauber gerechnet!",
+    "Stark!",
+    "Punkt kassiert!",
+    "Weiter so!"
   ];
   const SLOW_MEMES = [
     {emoji:"🐌", cap:"Bro war am Buffern"},
@@ -1197,24 +1204,28 @@
     el.classList.remove("empty");
     el.classList.add(isCorrect ? "right" : "wrong");
 
-    if(isCorrect) lesson.correct++;
-
     let delay = 650;
 
-    if(isFastCorrect){
-      lesson.aura++;
-      const showMs = profile.longMode ? 4000 : 1250;
-      delay = 150 + showMs + 100;
-      setTimeout(() => showAuraOverlay(showMs), 150);
+    if(isCorrect){
+      lesson.correct++;
+      if(isFastCorrect){
+        lesson.aura += 5; // +5 Aura für Aura-Edit
+        const showMs = profile.longMode ? 4000 : 1250;
+        delay = 150 + showMs + 100;
+        setTimeout(() => showAuraOverlay(true, showMs), 150);
+      } else {
+        lesson.aura += 2; // +2 Aura für normale richtige Antwort
+        const showMs = profile.longMode ? 3000 : 1000;
+        delay = 150 + showMs + 100;
+        setTimeout(() => showAuraOverlay(false, showMs), 150);
+      }
     } else if(isSlow){
       loseLife();
       const showMs = profile.longMode ? 4000 : 1650;
       delay = 150 + showMs + 100;
       setTimeout(() => showMemeOverlay(isCorrect, showMs), 150);
-    } else if(!isCorrect){
-      loseLife();
-      flashScreen();
     } else {
+      loseLife();
       flashScreen();
     }
 
@@ -1253,7 +1264,7 @@
       const pick = FAIL_LINES[0];
       title = pick.title; sub = pick.sub; emoji = pick.emoji;
     }
-    const auraGained = lesson.aura * 100 + lesson.correct * 10;
+    const auraGained = lesson.aura;
     profile.totalAura += auraGained;
     selectedTierIndex = null;
     saveProfile();
@@ -1276,17 +1287,26 @@
   /* ========================================================
      OVERLAYS
   ======================================================== */
-  function showAuraOverlay(showMs){
-    $("auraSubText").textContent = AURA_LINES[randInt(0, AURA_LINES.length-1)];
+  function showAuraOverlay(isAuraEdit, showMs){
+    if(isAuraEdit){
+      $("auraEmoji").textContent = "💀";
+      $("auraTitle").textContent = "+5 AURA";
+      $("auraSubText").textContent = AURA_EDIT_LINES[randInt(0, AURA_EDIT_LINES.length-1)];
+    } else {
+      $("auraEmoji").textContent = "⚡";
+      $("auraTitle").textContent = "+2 AURA";
+      $("auraSubText").textContent = NORMAL_AURA_LINES[randInt(0, NORMAL_AURA_LINES.length-1)];
+    }
     spawnParticles();
     const ov = $("overlayAura");
     ov.classList.add("show");
-    setTimeout(() => ov.classList.remove("show"), showMs || 1250);
+    setTimeout(() => ov.classList.remove("show"), showMs || 1000);
   }
+
   function spawnParticles(){
     const wrap = $("auraParticles");
     wrap.innerHTML = "";
-    const icons = ["✨","⚡","💫","🔥"];
+    const icons = ["⚡","✨","💫","🔥"];
     for(let i=0;i<10;i++){
       const s = document.createElement("span");
       s.className = "spark";
@@ -1297,6 +1317,7 @@
       wrap.appendChild(s);
     }
   }
+
   function showMemeOverlay(wasCorrect, showMs){
     const pool = wasCorrect ? SLOW_MEMES : SLOW_MEMES.concat(WRONG_SLOW_MEMES);
     const pick = pool[randInt(0, pool.length-1)];

@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<!-- Firebase SDKs (Compat Version für einfache HTML-Einbindung) -->
+<!-- Firebase SDKs (Compat Version) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -70,7 +70,6 @@
     overflow-x:hidden;
   }
   
-  /* Erzwinge weißen Text für alle Labels und Paragraphen */
   h1, h2, h3, h4, p, span, div, label, input, button {
     color: #ffffff;
   }
@@ -146,7 +145,6 @@
   .heart{font-size:15px; filter:grayscale(1); opacity:.25; transition: all .3s;}
   .heart.full{filter:none; opacity:1;}
 
-  /* Rainbow animation for Super Version */
   @keyframes rainbowGlow {
     0% { color: #ff3366; text-shadow: 0 0 8px #ff3366; }
     20% { color: #ff9933; text-shadow: 0 0 8px #ff9933; }
@@ -272,7 +270,6 @@
     60%{transform:translateX(-6px);} 80%{transform:translateX(6px);}
   }
 
-  /* Fast numpad styling */
   .numpad{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:auto;}
   .key{
     background:var(--card); border:1px solid var(--border); border-radius:var(--radius-key);
@@ -306,6 +303,15 @@
     background:var(--card); border:1px solid var(--border); border-radius:20px;
     padding:18px; margin-top:14px; text-align:left;
   }
+
+  /* ---------- welcome modal ---------- */
+  .modal-card{
+    background:var(--card); border:1px solid var(--border); border-radius:24px;
+    padding:24px 20px; text-align:center; max-width:340px; width:100%;
+    box-shadow: var(--shadow);
+  }
+  .modal-card h2{font-family:'Baloo 2',sans-serif; font-size:24px; margin:0 0 8px;}
+  .modal-card p{font-size:13.5px; opacity:.85; line-height:1.45; margin-bottom:20px;}
 
   /* ---------- overlays ---------- */
   .overlay{
@@ -366,7 +372,6 @@
   .flash.go{animation:flash-go .4s ease-out;}
   @keyframes flash-go{0%{opacity:.85;} 100%{opacity:0;}}
 
-  /* Toast Notification */
   .toast{
     position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
     background:var(--accent); color:var(--accent-text); padding:10px 18px;
@@ -432,7 +437,6 @@
       <div class="switch" id="longModeSwitch"><div class="knob"></div></div>
     </div>
 
-    <!-- Firebase UID Button & Display -->
     <div class="settings-row">
       <div class="info">
         <div class="t">Deine UID</div>
@@ -441,7 +445,6 @@
       <button class="btn btn-ghost btn-small" id="copyUidBtn">Kopieren</button>
     </div>
 
-    <!-- Firebase Auth Box -->
     <div class="auth-box">
       <div class="t" style="font-weight:700; font-size:15px; margin-bottom:8px;" id="authTitle">Account / Login</div>
       <input type="email" id="authEmail" class="input-field" placeholder="E-Mail">
@@ -531,6 +534,16 @@
   </section>
 
   <!-- ============ OVERLAYS ============ -->
+  <div class="overlay" id="overlayWelcome">
+    <div class="modal-card">
+      <div style="font-size:42px; margin-bottom:8px;">👋</div>
+      <h2>Willkommen bei MathEdits!</h2>
+      <p>Möchtest du dich direkt einloggen, um deine Aura, dein Level und deinen Fortschritt sicher zu speichern?</p>
+      <button class="btn btn-primary" id="welcomeAuthBtn" style="margin-bottom:10px;">Einloggen / Account erstellen</button>
+      <button class="btn btn-ghost" id="welcomeGuestBtn">Erstmal als Gast spielen</button>
+    </div>
+  </div>
+
   <div class="overlay" id="overlayAura">
     <div class="overlay-card" style="position:relative;">
       <div class="aura-particles" id="auraParticles"></div>
@@ -560,8 +573,6 @@
 
   /* ========================================================
      SUPER VERSION (5 VIP-UIDs HIER EINTRAGEN)
-     Füge hier bis zu 5 UIDs ein. Wer mit dieser UID eingeloggt
-     ist, erhält unendlich Leben (Regenbogen-Herzen)!
   ======================================================== */
   const SUPER_USER_UIDS = [
     "DEINE_UID_1_HIER",
@@ -573,15 +584,14 @@
 
   /* ========================================================
      FIREBASE INITIALISIERUNG
-     Ersetze die Platzhalter mit deinen Firebase-Daten!
   ======================================================== */
   const firebaseConfig = {
-    apiKey: "DEIN_API_KEY_HIER",
-    authDomain: "DEIN_PROJECT_ID.firebaseapp.com",
-    projectId: "DEIN_PROJECT_ID",
-    storageBucket: "DEIN_PROJECT_ID.appspot.com",
-    messagingSenderId: "DEIN_SENDER_ID",
-    appId: "DEIN_APP_ID"
+    apiKey: "AIzaSyBsmahMtRDhjl-BYfJ2AuGMrORshL6Blok",
+    authDomain: "mathedits-bf4dd.firebaseapp.com",
+    projectId: "mathedits-bf4dd",
+    storageBucket: "mathedits-bf4dd.firebasestorage.app",
+    messagingSenderId: "932854951832",
+    appId: "1:932854951832:web:ab148c2f323b25f8bcc5ed"
   };
 
   let firebaseInitialized = false;
@@ -608,7 +618,8 @@
     lessonsCompleted: 0,
     theme: "dark",
     longMode: false,
-    uid: "guest_" + Math.random().toString(36).substring(2, 10)
+    uid: "guest_" + Math.random().toString(36).substring(2, 10),
+    hasSeenWelcome: false
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -629,7 +640,7 @@
       if(firebaseInitialized && currentUser){
         firebase.firestore().collection("users").doc(currentUser.uid).set(profile, { merge: true });
       }
-    }catch(e){ /* Fallback */ }
+    }catch(e){ }
   }
 
   function isSuperUser(){
@@ -658,7 +669,7 @@
   }
 
   function loseLife(){
-    if(isSuperUser()) return; // Unendliche Leben in Super Version!
+    if(isSuperUser()) return;
     profile.lives = Math.max(0, profile.lives - 1);
     profile.lastLifeChangeAt = Date.now();
     saveProfile();
@@ -671,20 +682,22 @@
   }
 
   /* ========================================================
-     TIERS / QUESTION GENERATION
+     TIERS & ZEIT-DYNAMIK (Dauer steigt mit Level!)
   ======================================================== */
   function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
 
+  // Base-Time-Limit: Schwere Stufen geben mehr Sekunden Zeit
   const TIERS = [
-    {name:"Kleines Einmaleins", icon:"✖️", from:1,  to:3,        gen: () => mult(1,5)},
-    {name:"Einmaleins",         icon:"✳️", from:4,  to:6,        gen: () => mult(1,10)},
-    {name:"Großes Einmaleins",  icon:"💥", from:7,  to:9,        gen: () => bigMult()},
-    {name:"Plus & Minus",       icon:"➕", from:10, to:12,       gen: () => addSub(50)},
-    {name:"Geteilt",            icon:"➗", from:13, to:15,       gen: () => divide(1,12)},
-    {name:"Brüche",             icon:"🍰", from:16, to:18,       gen: () => fraction()},
-    {name:"Plus & Minus Profi", icon:"🧮", from:19, to:21,       gen: () => addSub(100)},
-    {name:"Gemischt Profi",     icon:"🏆", from:22, to:Infinity, gen: () => mixedHard()}
+    {name:"Kleines Einmaleins", icon:"✖️", from:1,  to:3,        timeMs: 8000,  gen: () => mult(1,5)},
+    {name:"Einmaleins",         icon:"✳️", from:4,  to:6,        timeMs: 9000,  gen: () => mult(1,10)},
+    {name:"Großes Einmaleins",  icon:"💥", from:7,  to:9,        timeMs: 11000, gen: () => bigMult()},
+    {name:"Plus & Minus",       icon:"➕", from:10, to:12,       timeMs: 10000, gen: () => addSub(50)},
+    {name:"Geteilt",            icon:"➗", from:13, to:15,       timeMs: 12000, gen: () => divide(1,12)},
+    {name:"Brüche",             icon:"🍰", from:16, to:18,       timeMs: 15000, gen: () => fraction()},
+    {name:"Plus & Minus Profi", icon:"🧮", from:19, to:21,       timeMs: 14000, gen: () => addSub(100)},
+    {name:"Gemischt Profi",     icon:"🏆", from:22, to:Infinity, timeMs: 18000, gen: () => mixedHard()}
   ];
+
   function tierIndexForLevel(level){
     for(let i=0;i<TIERS.length;i++){ if(level >= TIERS[i].from && level <= TIERS[i].to) return i; }
     return TIERS.length - 1;
@@ -731,7 +744,7 @@
   }
 
   /* ========================================================
-     CONTENT: aura + meme lines
+     CONTENT
   ======================================================== */
   const AURA_LINES = [
     "+100 Aura · unter 2 Sekunden",
@@ -793,8 +806,6 @@
   ======================================================== */
   const QUESTIONS_PER_LESSON = 10;
   const AURA_THRESHOLD_MS = 2000;
-  const SLOW_THRESHOLD_MS = 6000;
-  const TIME_LIMIT_MS = 8000;
 
   let lesson = null;
   let selectedTierIndex = null;
@@ -894,6 +905,22 @@
     }).catch(() => {
       showToast("UID: " + activeUid);
     });
+  });
+
+  /* Welcome Modal Event Listeners */
+  $("welcomeAuthBtn").addEventListener("click", () => {
+    profile.hasSeenWelcome = true;
+    saveProfile();
+    $("overlayWelcome").classList.remove("show");
+    renderSettings();
+    showScreen("settings");
+  });
+
+  $("welcomeGuestBtn").addEventListener("click", () => {
+    profile.hasSeenWelcome = true;
+    saveProfile();
+    $("overlayWelcome").classList.remove("show");
+    showToast("Gastmodus: Fortschritt nicht gesichert");
   });
 
   /* Firebase Auth Operations */
@@ -1086,14 +1113,16 @@
     questionStartedAt = performance.now();
     const circle = $("timerCircle");
     const numEl = $("timerNum");
+    const timeLimitMs = lesson.tier.timeMs || 8000; // Dynamische Zeit pro Level!
+    
     circle.setAttribute("stroke-dasharray", TIMER_CIRCUMFERENCE);
     cancelAnimationFrame(timerRAF);
 
     function tick(){
       if(!lesson || lesson.locked) return;
       const elapsed = performance.now() - questionStartedAt;
-      const remaining = Math.max(0, TIME_LIMIT_MS - elapsed);
-      const frac = remaining / TIME_LIMIT_MS;
+      const remaining = Math.max(0, timeLimitMs - elapsed);
+      const frac = remaining / timeLimitMs;
       circle.setAttribute("stroke-dashoffset", TIMER_CIRCUMFERENCE * (1-frac));
       numEl.textContent = Math.ceil(remaining/1000);
       circle.style.stroke = frac < 0.25 ? "var(--danger)" : "var(--accent)";
@@ -1107,7 +1136,6 @@
   }
   function stopTimer(){ cancelAnimationFrame(timerRAF); }
 
-  /* Input Handling (Pointer Events & Keyboard Support für maximale Latenzfreiheit) */
   function handleKeyPress(k){
     if(!lesson || lesson.locked) return;
     if(k === "back"){
@@ -1129,7 +1157,6 @@
     handleKeyPress(key.dataset.k);
   });
 
-  // Physikalische Tastatur-Unterstützung (PC/Laptop)
   window.addEventListener("keydown", (e) => {
     if(!screens.lesson.classList.contains("active") || !lesson || lesson.locked) return;
     if(e.key >= "0" && e.key <= "9"){
@@ -1153,10 +1180,12 @@
     lesson.locked = true;
     stopTimer();
     const elapsed = performance.now() - questionStartedAt;
+    const timeLimitMs = lesson.tier.timeMs || 8000;
+    const slowThresholdMs = timeLimitMs * 0.75; // Langsam-Grenze skaliert mit
     const q = lesson.questions[lesson.index];
     const given = isTimeout ? null : parseInt(lesson.answer, 10);
     const isCorrect = !isTimeout && given === q.answer;
-    const isSlow = isTimeout || elapsed > SLOW_THRESHOLD_MS;
+    const isSlow = isTimeout || elapsed > slowThresholdMs;
     const isFastCorrect = isCorrect && elapsed <= AURA_THRESHOLD_MS;
 
     const el = $("answerDisplay");
@@ -1287,6 +1316,11 @@
     saveProfile();
     applyTheme();
     renderHome();
+
+    // Zeige Willkommens-Overlay beim allerersten Start
+    if(!profile.hasSeenWelcome && !currentUser){
+      $("overlayWelcome").classList.add("show");
+    }
   }
   init();
 

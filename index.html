@@ -734,6 +734,15 @@
     }catch(e){ }
   }
 
+  function syncWithCloud(cloudData){
+    if(!cloudData) return;
+    profile = { ...profile, ...cloudData };
+    saveProfile();
+    checkStreakDecay();
+    applyTheme();
+    renderHome();
+  }
+
   function isSuperUser(){
     const activeUid = (currentUser && currentUser.uid) ? currentUser.uid : profile.uid;
     return SUPER_USER_UIDS.includes(activeUid);
@@ -1130,11 +1139,12 @@
       if(user){
         firebase.firestore().collection("users").doc(user.uid).get().then((doc) => {
           if(doc.exists){
-            profile = { ...DEFAULT_PROFILE, ...doc.data() };
-            checkStreakDecay();
-            applyTheme();
-            renderHome();
+            syncWithCloud(doc.data());
+          } else {
+            saveProfile();
           }
+        }).catch((err) => {
+          console.warn("Fehler beim Laden der Cloud-Daten:", err);
         });
       }
       renderSettings();
@@ -1146,7 +1156,14 @@
     const email = $("authEmail").value;
     const pass = $("authPassword").value;
     firebase.auth().signInWithEmailAndPassword(email, pass)
-      .then(() => showToast("Erfolgreich eingeloggt!"))
+      .then((cred) => {
+        showToast("Erfolgreich eingeloggt!");
+        firebase.firestore().collection("users").doc(cred.user.uid).get().then((doc) => {
+          if(doc.exists){
+            syncWithCloud(doc.data());
+          }
+        });
+      })
       .catch((err) => alert(err.message));
   });
 
@@ -1155,7 +1172,7 @@
     const email = $("authEmail").value;
     const pass = $("authPassword").value;
     firebase.auth().createUserWithEmailAndPassword(email, pass)
-      .then(() => {
+      .then((cred) => {
         showToast("Account erstellt!");
         saveProfile();
       })

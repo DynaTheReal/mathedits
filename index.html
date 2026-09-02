@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" data-theme="dark">
+<html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
@@ -101,8 +101,8 @@
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
-  html,body{
-    height:100%;
+  html,body{height:100%;}
+  body{
     margin:0;
     background:var(--bg);
     color:var(--text);
@@ -122,17 +122,15 @@
   @media (prefers-reduced-motion: reduce){
     *{animation-duration:.001s !important; transition-duration:.001s !important;}
   }
-
   .app{
     width:100%;
     max-width:460px;
-    height:100vh;
-    height:100dvh;
+    min-height:100vh;
+    min-height:100dvh;
     display:flex;
     flex-direction:column;
     position:relative;
     background: radial-gradient(circle at 50% -10%, var(--bg-soft), var(--bg) 55%);
-    overflow: hidden;
   }
   .app::before {
     content: "";
@@ -142,25 +140,12 @@
     z-index: 100;
   }
 
-  /* SCREENS & SCROLLING FIX */
-  .screen{
-    display:none; 
-    flex-direction:column; 
-    flex:1; 
-    padding:14px 16px 85px; /* Platz unten für die Bottom Nav */
-    overflow-y:auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  .screen{display:none; flex-direction:column; flex:1; padding:14px 16px 14px;}
   .screen.active{display:flex;}
-  #screen-lesson{
-    padding:14px 16px 20px; 
-    justify-content:space-between;
-    overflow-y:auto;
-    gap: 10px;
-  }
+  #screen-lesson{padding:12px 14px 10px; justify-content:space-between;}
 
   /* ---------- top bar ---------- */
-  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-shrink: 0;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
   .brand{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
@@ -176,135 +161,6 @@
     background:var(--card); border:1px solid var(--border);
     display:flex;align-items:center;justify-content:center;
     cursor:pointer; font-size:18px; color:var(--text);
-    transition: background .35s ease, border-color .35s ease;
-  }
-
-  /* ---------- bottom navigation ---------- */
-  .bottom-nav {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 65px;
-    background: var(--card);
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 90;
-    backdrop-filter: blur(10px);
-    transition: background .35s ease, border-color .35s ease;
-  }
-  .nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    background: none;
-    border: none;
-    color: var(--text);
-    opacity: 0.5;
-    cursor: pointer;
-    width: 50%;
-    height: 100%;
-    transition: opacity .2s, transform .15s, color .35s;
-  }
-  .nav-item.active {
-    opacity: 1;
-    font-weight: 700;
-    color: var(--accent);
-  }
-  .nav-item .icon {
-    font-size: 20px;
-  }
-  .nav-item .label {
-    font-size: 11px;
-    font-family: 'Inter', sans-serif;
-  }
-
-  /* ---------- shop styling ---------- */
-  .shop-header {
-    text-align: center;
-    margin-bottom: 16px;
-  }
-  .shop-header h2 {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 24px;
-    font-weight: 800;
-    margin: 0 0 4px;
-  }
-  .shop-aura-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    padding: 6px 16px;
-    border-radius: 99px;
-    font-weight: 800;
-    font-size: 14px;
-  }
-  .shop-section-title {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    margin: 16px 0 8px;
-    opacity: 0.9;
-  }
-  .shop-item {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 14px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .shop-item .item-icon {
-    font-size: 30px;
-    width: 48px;
-    height: 48px;
-    background: var(--card-2);
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .shop-item .item-info {
-    flex: 1;
-  }
-  .shop-item .item-title {
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 2px;
-  }
-  .shop-item .item-desc {
-    font-size: 11.5px;
-    opacity: 0.75;
-    line-height: 1.3;
-  }
-  .shop-item .buy-btn {
-    background: var(--accent);
-    color: var(--accent-text);
-    border: none;
-    border-radius: 12px;
-    padding: 8px 12px;
-    font-weight: 800;
-    font-size: 12px;
-    cursor: pointer;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-  }
-  .shop-item .buy-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
   }
 
   /* ---------- settings screen ---------- */
@@ -341,7 +197,7 @@
   .settings-foot{margin-top:auto; text-align:center; color:var(--text); opacity:.8; font-size:12px; padding-top:16px;}
 
   /* ---------- stat pills ---------- */
-  .stats-row{display:flex; gap:10px; margin-bottom:18px;}
+  .stats-row{display:flex; gap:10px; margin-bottom:22px;}
   .stat-pill{
     flex:1; background:var(--card); border:1px solid var(--border);
     border-radius:var(--radius-card); padding:12px 10px;
@@ -370,7 +226,7 @@
   /* ---------- home hero ---------- */
   .hero{
     display:flex; flex-direction:column; align-items:center;
-    text-align:center; gap:4px; padding:4px 6px 10px;
+    text-align:center; gap:4px; padding:6px 6px 14px;
   }
   .hero h1{
     font-family:'Baloo 2', sans-serif; font-size:22px; font-weight:800; margin:0 0 4px;
@@ -378,7 +234,7 @@
   }
   .hero p{color:var(--text); opacity:.85; font-size:13.5px; max-width:280px; margin:0; line-height:1.4;}
   .level-tag{
-    margin-top:8px; font-size:13px; font-weight:700; color:var(--text);
+    margin-top:10px; font-size:13px; font-weight:700; color:var(--text);
     background:var(--card); border:1px solid var(--border); padding:6px 14px; border-radius:var(--radius-btn);
   }
   .hero-flame{
@@ -388,10 +244,10 @@
   .hero-flame:active .flame-wrap{transform:scale(.95);}
   .flame-wrap{
     position:relative; display:flex; align-items:center; justify-content:center;
-    width:100px; height:100px; transition:transform .12s;
+    width:112px; height:112px; transition:transform .12s;
   }
   .flame-icon{
-    font-size:92px; line-height:1;
+    font-size:104px; line-height:1;
     filter: drop-shadow(0 10px 22px rgba(255,122,61,.55));
     transition: filter .3s, opacity .3s;
   }
@@ -400,7 +256,7 @@
   }
   .flame-num{
     position:absolute; left:0; right:0; bottom:20%; text-align:center;
-    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:28px;
+    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:32px;
     color:#fff; text-shadow: 0 2px 6px rgba(0,0,0,.55);
   }
   .hero-flame.off .flame-num{ opacity:.7; }
@@ -433,13 +289,12 @@
 
   /* ---------- level carousel ---------- */
   .levels-heading{
-    font-size:13px; font-weight:700; color:var(--text); opacity:.85; margin:10px 2px 6px;
+    font-size:13px; font-weight:700; color:var(--text); opacity:.85; margin:8px 2px 8px;
   }
   .tier-carousel{
     display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity;
-    padding:2px 2px 10px; margin:0 -2px 12px;
+    padding:2px 2px 10px; margin:0 -2px;
     -webkit-overflow-scrolling:touch; scrollbar-width:none;
-    flex-shrink: 0;
   }
   .tier-carousel::-webkit-scrollbar{display:none;}
   .tier-card{
@@ -474,7 +329,6 @@
     border-radius:var(--radius-btn); padding:14px 20px; font-size:15.5px;
     display:flex; align-items:center; justify-content:center; gap:8px;
     width:100%; user-select:none; touch-action:manipulation;
-    flex-shrink: 0;
   }
   .btn-primary{
     background:var(--accent); color:var(--accent-text) !important;
@@ -489,14 +343,8 @@
   }
   .btn:disabled{opacity:.45; cursor:not-allowed;}
 
-  /* BUTTON FIX FOR HOME SCREEN */
-  #startBtn {
-    margin-top: 4px;
-    margin-bottom: 8px;
-  }
-
   /* ---------- lesson screen ---------- */
-  .lesson-top{display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-shrink: 0;}
+  .lesson-top{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
   .exit-x{
     width:36px;height:36px;border-radius:50%; background:var(--card); border:1px solid var(--border);
     display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); font-size:15px;
@@ -506,7 +354,7 @@
   .progress-fill{height:100%; background:var(--accent); width:0%; transition:width .35s ease;}
   .lesson-hearts{display:flex; gap:3px; flex-shrink:0;}
 
-  .timer-wrap{display:flex; justify-content:center; margin-bottom:4px; flex-shrink: 0;}
+  .timer-wrap{display:flex; justify-content:center; margin-bottom:4px;}
   .timer-ring{position:relative; width:52px; height:52px;}
   .timer-ring svg{transform:rotate(-90deg); width:52px; height:52px;}
   .timer-ring circle{fill:none; stroke-width:5;}
@@ -518,15 +366,15 @@
     background: var(--card);
     border: 1px solid var(--border);
     border-radius:22px;
-    padding:16px 14px; text-align:center; margin:4px 0; flex-shrink:0;
+    padding:18px 16px; text-align:center; margin:8px 0 10px; flex-shrink:0;
     box-shadow: var(--shadow);
   }
-  .q-tier{font-size:11px; font-weight:700; color:var(--accent-2); text-transform:none; margin-bottom:4px;}
+  .q-tier{font-size:11px; font-weight:700; color:var(--accent-2); text-transform:none; margin-bottom:6px;}
   .q-text{font-family:'Baloo 2',sans-serif; font-size:clamp(24px,8vw,36px); font-weight:700; letter-spacing:.3px; line-height:1.2; color:var(--text) !important;}
   .answer-display{
-    min-height:36px; display:flex; align-items:center; justify-content:center;
+    min-height:38px; display:flex; align-items:center; justify-content:center;
     font-family:'Baloo 2',sans-serif; font-size:26px; font-weight:700; color:var(--text);
-    letter-spacing:1px; flex-shrink: 0;
+    letter-spacing:1px;
   }
   .answer-display.empty{color:var(--text); opacity:.6; font-size:14px; font-weight:500; font-family:'Inter',sans-serif;}
   .answer-display.wrong{color:var(--danger); animation: shake .35s;}
@@ -536,16 +384,16 @@
     60%{transform:translateX(-6px);} 80%{transform:translateX(6px);}
   }
 
-  .numpad{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:auto; flex-shrink: 0;}
+  .numpad{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:auto;}
   .key{
     background:var(--card); border:1px solid var(--border); border-radius:var(--radius-key);
-    padding:12px 0; font-size:22px; font-weight:700; color:var(--text) !important; cursor:pointer;
+    padding:14px 0; font-size:22px; font-weight:700; color:var(--text) !important; cursor:pointer;
     font-family:'Baloo 2',sans-serif; text-align:center; user-select:none; touch-action:manipulation;
   }
   .key:active{background:var(--card-2); transform:scale(.94);}
   .key.wide{grid-column:span 1;}
   .key.func{color:var(--text) !important; opacity:.8; font-size:16px;}
-  .submit-btn{margin-top:6px;}
+  .submit-btn{margin-top:8px;}
 
   /* ---------- locked screen ---------- */
   .locked-wrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px;}
@@ -581,7 +429,7 @@
 
   /* ---------- overlays ---------- */
   .overlay{
-    position:fixed; inset:0; z-index:99; display:flex; align-items:center; justify-content:center;
+    position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
     background:var(--overlay-bg); backdrop-filter: blur(2px) saturate(.4);
     opacity:0; pointer-events:none; transition:opacity .25s ease;
     padding:26px;
@@ -639,16 +487,16 @@
   @keyframes flash-go{0%{opacity:.85;} 100%{opacity:0;}}
 
   .toast{
-    position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
     background:var(--accent); color:var(--accent-text); padding:10px 18px;
     border-radius:99px; font-weight:700; font-size:13px; z-index:100;
-    opacity:0; transition:opacity .3s; pointer-events:none; text-align:center;
+    opacity:0; transition:opacity .3s; pointer-events:none;
   }
   .toast.show{opacity:1;}
 </style>
 </head>
-<body data-theme="dark">
-<div class="app" id="app">
+<body>
+<div class="app" data-theme="dark" id="app">
 
   <!-- ============ HOME ============ -->
   <section class="screen active" id="screen-home">
@@ -698,91 +546,6 @@
     <button class="btn btn-primary" id="startBtn">Lektion starten</button>
   </section>
 
-  <!-- ============ SHOP ============ -->
-  <section class="screen" id="screen-shop">
-    <div class="topbar">
-      <div class="brand"><span class="dot"></span>MathEdits</div>
-      <div class="topbar-actions">
-        <div class="theme-toggle" id="themeToggleShop">🌙</div>
-      </div>
-    </div>
-
-    <div class="shop-header">
-      <h2>🛒 Aura-Shop</h2>
-      <div class="shop-aura-badge">
-        <span>⚡</span>
-        <span id="shopAuraVal">0</span> Aura
-      </div>
-    </div>
-
-    <div class="shop-section-title">Items & Boosts</div>
-    
-    <div class="shop-item">
-      <div class="item-icon">🧊</div>
-      <div class="item-info">
-        <div class="item-title">Icecube</div>
-        <div class="item-desc">Ein Tag ohne Lernen und Streak bleibt bestehen.</div>
-      </div>
-      <button class="buy-btn" id="buyIcecube">150 Aura</button>
-    </div>
-
-    <div class="shop-item">
-      <div class="item-icon">❤️</div>
-      <div class="item-info">
-        <div class="item-title">Leben</div>
-        <div class="item-desc">Füllt sofort 1 Leben auf.</div>
-      </div>
-      <button class="buy-btn" id="buyLife">100 Aura</button>
-    </div>
-
-    <div class="shop-item">
-      <div class="item-icon">⏱️</div>
-      <div class="item-info">
-        <div class="item-title">Zeit-Booster</div>
-        <div class="item-desc">Doppelte Zeit bei schwierigen Aufgaben in der nächsten Lektion.</div>
-      </div>
-      <button class="buy-btn" id="buyTimeBooster">200 Aura</button>
-    </div>
-
-    <div class="shop-item">
-      <div class="item-icon">✨</div>
-      <div class="item-info">
-        <div class="item-title">2× Aura</div>
-        <div class="item-desc">Für 15 Minuten doppelte Aura-Punkte sammeln.</div>
-      </div>
-      <button class="buy-btn" id="buyDoubleAura">300 Aura</button>
-    </div>
-
-    <div class="shop-section-title">Designs</div>
-
-    <div class="shop-item">
-      <div class="item-icon">🍃</div>
-      <div class="item-info">
-        <div class="item-title">Clean Theme</div>
-        <div class="item-desc">Minimalistischer Look in Grün & Dunkelgrün.</div>
-      </div>
-      <button class="buy-btn" id="buyCleanTheme">200 Aura</button>
-    </div>
-
-    <div class="shop-item">
-      <div class="item-icon">💜</div>
-      <div class="item-info">
-        <div class="item-title">White Clean Theme</div>
-        <div class="item-desc">Helles Design mit eleganten Violett-Tönen.</div>
-      </div>
-      <button class="buy-btn" id="buyWhiteTheme">500 Aura</button>
-    </div>
-
-    <div class="shop-item">
-      <div class="item-icon">🌸</div>
-      <div class="item-info">
-        <div class="item-title">Pink Theme</div>
-        <div class="item-desc">Farbenfrohes Design mit Regenbogen-Header.</div>
-      </div>
-      <button class="buy-btn" id="buyPinkTheme">500 Aura</button>
-    </div>
-  </section>
-
   <!-- ============ SETTINGS ============ -->
   <section class="screen" id="screen-settings">
     <div class="topbar">
@@ -797,9 +560,9 @@
       </div>
       <select class="select-input" id="themeSelect">
         <option value="black">Black</option>
-        <option value="white_clean">White Clean (🔒)</option>
-        <option value="clean">Clean (🔒)</option>
-        <option value="pink">Pink (🔒)</option>
+        <option value="white_clean">White Clean</option>
+        <option value="clean">Clean</option>
+        <option value="pink">Pink</option>
       </select>
     </div>
 
@@ -907,18 +670,6 @@
     <button class="btn btn-primary" id="resultContinue">Weiter</button>
   </section>
 
-  <!-- ============ BOTTOM NAVIGATION BAR ============ -->
-  <nav class="bottom-nav" id="bottomNav">
-    <button class="nav-item active" id="navHome">
-      <span class="icon">🏠</span>
-      <span class="label">Home</span>
-    </button>
-    <button class="nav-item" id="navShop">
-      <span class="icon">🛒</span>
-      <span class="label">Shop</span>
-    </button>
-  </nav>
-
   <!-- ============ OVERLAYS ============ -->
   <div class="overlay" id="overlayWelcome">
     <div class="modal-card">
@@ -1019,12 +770,6 @@
     totalAura: 0,
     lessonsCompleted: 0,
     theme: "black",
-    unlockedThemes: ["black"], // Freigeschaltete Designs
-    inventory: {
-      icecube: 0,
-      timeBooster: 0,
-      doubleAuraUntil: 0
-    },
     longMode: false,
     uid: "guest_" + Math.random().toString(36).substring(2, 10),
     hasSeenWelcome: false,
@@ -1038,13 +783,7 @@
     try{
       const raw = localStorage.getItem(PROFILE_KEY);
       if(raw){
-        const parsed = JSON.parse(raw);
-        profile = { 
-          ...DEFAULT_PROFILE, 
-          ...parsed,
-          unlockedThemes: parsed.unlockedThemes || ["black"],
-          inventory: { ...DEFAULT_PROFILE.inventory, ...(parsed.inventory || {}) }
-        };
+        profile = { ...DEFAULT_PROFILE, ...JSON.parse(raw) };
       }
     }catch(e){
       profile = { ...DEFAULT_PROFILE };
@@ -1101,16 +840,8 @@
     if(!profile.lastStreakDate) return;
     const today = todayStr();
     const yesterday = yesterdayStr();
-    
     if(profile.lastStreakDate !== today && profile.lastStreakDate !== yesterday){
-      // Wenn Icecube vorhanden ist, schütze den Streak einmalig!
-      if(profile.inventory && profile.inventory.icecube > 0){
-        profile.inventory.icecube--;
-        profile.lastStreakDate = yesterday; // Setze den Tag zurück, als ob gestern gelernt wurde
-        showToast("🧊 Icecube hat deinen Streak gerettet!");
-      } else {
-        profile.streak = 0;
-      }
+      profile.streak = 0;
     }
   }
 
@@ -1339,19 +1070,11 @@
   function buildLesson(){
     const activeIdx = tierIndexForLevel(profile.level);
     const idx = (selectedTierIndex !== null && selectedTierIndex <= activeIdx) ? selectedTierIndex : activeIdx;
-    const tier = { ...TIERS[idx] };
-    
-    // Verbrauche Zeit-Booster falls vorhanden
-    if(profile.inventory && profile.inventory.timeBooster > 0){
-      tier.timeMs = tier.timeMs * 2;
-      profile.inventory.timeBooster--;
-      saveProfile();
-      showToast("⏱️ Zeit-Booster aktiviert! (Doppelte Zeit)");
-    }
-
+    const tier = TIERS[idx];
+    const isMainProgression = idx === activeIdx;
     const questions = [];
     for(let i=0;i<QUESTIONS_PER_LESSON;i++) questions.push(tier.gen());
-    return { tier, isMainProgression: (idx === activeIdx), questions, index:0, correct:0, aura:0, answer:"", locked:false };
+    return { tier, isMainProgression, questions, index:0, correct:0, aura:0, answer:"", locked:false };
   }
 
   /* ========================================================
@@ -1360,154 +1083,26 @@
   const $ = (id) => document.getElementById(id);
   const app = $("app");
   const screens = {
-    home: $("screen-home"), shop: $("screen-shop"), locked: $("screen-locked"), 
-    lesson: $("screen-lesson"), result: $("screen-result"), settings: $("screen-settings")
+    home: $("screen-home"), locked: $("screen-locked"), lesson: $("screen-lesson"),
+    result: $("screen-result"), settings: $("screen-settings")
   };
-
   function showScreen(name){
     Object.values(screens).forEach(s => s.classList.remove("active"));
     screens[name].classList.add("active");
-    
-    // Navigation Leiste nur im Hauptmenü/Shop anzeigen
-    const nav = $("bottomNav");
-    if(name === "home" || name === "shop"){
-      nav.style.display = "flex";
-      $("navHome").classList.toggle("active", name === "home");
-      $("navShop").classList.toggle("active", name === "shop");
-    } else {
-      nav.style.display = "none";
-    }
   }
-
-  $("navHome").addEventListener("click", () => {
-    showScreen("home");
-    renderHome();
-  });
-
-  $("navShop").addEventListener("click", () => {
-    showScreen("shop");
-    renderShop();
-  });
 
   function showToast(msg){
     const t = $("toast");
     t.textContent = msg;
     t.classList.add("show");
-    setTimeout(() => t.classList.remove("show"), 2500);
+    setTimeout(() => t.classList.remove("show"), 2000);
   }
 
   /* ========================================================
-     SHOP SYSTEM
-  ======================================================== */
-  function renderShop(){
-    $("shopAuraVal").textContent = profile.totalAura;
-
-    const unlocked = profile.unlockedThemes || ["black"];
-
-    // Update Theme Knöpfe
-    const bClean = $("buyCleanTheme");
-    if(unlocked.includes("clean")){
-      bClean.textContent = "Freigeschaltet";
-      bClean.disabled = true;
-    } else {
-      bClean.textContent = "200 Aura";
-      bClean.disabled = profile.totalAura < 200;
-    }
-
-    const bWhite = $("buyWhiteTheme");
-    if(unlocked.includes("white_clean")){
-      bWhite.textContent = "Freigeschaltet";
-      bWhite.disabled = true;
-    } else {
-      bWhite.textContent = "500 Aura";
-      bWhite.disabled = profile.totalAura < 500;
-    }
-
-    const bPink = $("buyPinkTheme");
-    if(unlocked.includes("pink")){
-      bPink.textContent = "Freigeschaltet";
-      bPink.disabled = true;
-    } else {
-      bPink.textContent = "500 Aura";
-      bPink.disabled = profile.totalAura < 500;
-    }
-
-    // Update Item Knöpfe
-    $("buyIcecube").disabled = profile.totalAura < 150;
-    $("buyLife").disabled = profile.totalAura < 100 || profile.lives >= MAX_LIVES;
-    $("buyTimeBooster").disabled = profile.totalAura < 200;
-    
-    const doubleActive = profile.inventory.doubleAuraUntil > Date.now();
-    $("buyDoubleAura").disabled = profile.totalAura < 300 || doubleActive;
-    if(doubleActive) $("buyDoubleAura").textContent = "Aktiv!";
-    else $("buyDoubleAura").textContent = "300 Aura";
-  }
-
-  // SHOP EVENT LISTENERS
-  $("buyIcecube").addEventListener("click", () => {
-    if(profile.totalAura >= 150){
-      profile.totalAura -= 150;
-      profile.inventory.icecube = (profile.inventory.icecube || 0) + 1;
-      saveProfile();
-      renderShop();
-      showToast("🧊 Icecube gekauft! Dein Streak ist 1x geschützt.");
-    }
-  });
-
-  $("buyLife").addEventListener("click", () => {
-    if(profile.totalAura >= 100 && profile.lives < MAX_LIVES){
-      profile.totalAura -= 100;
-      profile.lives = Math.min(MAX_LIVES, profile.lives + 1);
-      saveProfile();
-      renderShop();
-      showToast("❤️ 1 Leben wiederhergestellt!");
-    }
-  });
-
-  $("buyTimeBooster").addEventListener("click", () => {
-    if(profile.totalAura >= 200){
-      profile.totalAura -= 200;
-      profile.inventory.timeBooster = (profile.inventory.timeBooster || 0) + 1;
-      saveProfile();
-      renderShop();
-      showToast("⏱️ Zeit-Booster gekauft! Gilt für die nächste Lektion.");
-    }
-  });
-
-  $("buyDoubleAura").addEventListener("click", () => {
-    if(profile.totalAura >= 300){
-      profile.totalAura -= 300;
-      profile.inventory.doubleAuraUntil = Date.now() + (15 * 60 * 1000); // 15 Min
-      saveProfile();
-      renderShop();
-      showToast("✨ 2× Aura aktiviert für 15 Minuten!");
-    }
-  });
-
-  function buyTheme(themeKey, cost, name){
-    if(profile.totalAura >= cost){
-      profile.totalAura -= cost;
-      if(!profile.unlockedThemes) profile.unlockedThemes = ["black"];
-      profile.unlockedThemes.push(themeKey);
-      profile.theme = themeKey;
-      applyTheme();
-      saveProfile();
-      renderShop();
-      showToast(`🎨 ${name} Theme freigeschaltet und aktiviert!`);
-    }
-  }
-
-  $("buyCleanTheme").addEventListener("click", () => buyTheme("clean", 200, "Clean"));
-  $("buyWhiteTheme").addEventListener("click", () => buyTheme("white_clean", 500, "White Clean"));
-  $("buyPinkTheme").addEventListener("click", () => buyTheme("pink", 500, "Pink"));
-
-  /* ========================================================
-     THEME SYSTEM
+     THEME SYSTEM (ANGEPASST MIT DEN NEUEN THEMES)
   ======================================================== */
   function applyTheme(){
     const t = profile.theme || "black";
-    document.documentElement.setAttribute("data-theme", t);
-    document.body.setAttribute("data-theme", t);
     app.setAttribute("data-theme", t);
     
     // Toggle-Icon für Schnellauswahl
@@ -1517,36 +1112,25 @@
     if(t === "clean" || t === "light") icon = "🍃";
     
     $("themeToggle").textContent = icon;
-    $("themeToggleShop").textContent = icon;
     $("themeToggleLocked").textContent = icon;
     if($("themeSelect")) $("themeSelect").value = t;
   }
   
   function toggleTheme(){
-    const unlocked = profile.unlockedThemes || ["black"];
-    let curIdx = unlocked.indexOf(profile.theme);
+    const themes = ["black", "white_clean", "clean", "pink"];
+    let curIdx = themes.indexOf(profile.theme);
     if(curIdx === -1) curIdx = 0;
-    profile.theme = unlocked[(curIdx + 1) % unlocked.length];
+    profile.theme = themes[(curIdx + 1) % themes.length];
     applyTheme();
     saveProfile();
-    showToast("Design gewechselt!");
   }
   
   $("themeToggle").addEventListener("click", toggleTheme);
-  $("themeToggleShop").addEventListener("click", toggleTheme);
   $("themeToggleLocked").addEventListener("click", toggleTheme);
-  
   $("themeSelect").addEventListener("change", (e) => {
-    const val = e.target.value;
-    const unlocked = profile.unlockedThemes || ["black"];
-    if(unlocked.includes(val)){
-      profile.theme = val;
-      applyTheme();
-      saveProfile();
-    } else {
-      showToast("🔒 Kaufe dieses Theme zuerst im Shop!");
-      e.target.value = profile.theme;
-    }
+    profile.theme = e.target.value;
+    applyTheme();
+    saveProfile();
   });
 
   /* ========================================================
@@ -1557,17 +1141,7 @@
     const activeUid = (currentUser && currentUser.uid) ? currentUser.uid : profile.uid;
     const displayUid = isSuperUser() ? activeUid + " ⭐ (Super)" : activeUid;
     $("uidTextDisplay").textContent = displayUid;
-    
-    // Update Theme Dropdown mit Schloss-Symbolen
-    const unlocked = profile.unlockedThemes || ["black"];
-    const select = $("themeSelect");
-    if(select){
-      select.options[0].text = "Black";
-      select.options[1].text = "White Clean " + (unlocked.includes("white_clean") ? "" : "(🔒)");
-      select.options[2].text = "Clean " + (unlocked.includes("clean") ? "" : "(🔒)");
-      select.options[3].text = "Pink " + (unlocked.includes("pink") ? "" : "(🔒)");
-      select.value = profile.theme || "black";
-    }
+    if($("themeSelect")) $("themeSelect").value = profile.theme || "black";
 
     if(currentUser){
       $("authTitle").textContent = "Angemeldet als: " + currentUser.email;
@@ -1644,25 +1218,23 @@
     firebase.auth().onAuthStateChanged((user) => {
       currentUser = user;
       
+      // Vorherigen Listener beenden
       if(syncUnsubscribe){
         syncUnsubscribe();
         syncUnsubscribe = null;
       }
 
       if(user){
+        // Echtzeit-Listener auf das Firestore-Dokument setzen (Lädt beim Einloggen sofort ab & synchronisiert)
         syncUnsubscribe = firebase.firestore().collection("users").doc(user.uid).onSnapshot((doc) => {
           if(doc.exists){
             const cloudData = doc.data();
-            profile = { 
-              ...DEFAULT_PROFILE, 
-              ...cloudData,
-              unlockedThemes: cloudData.unlockedThemes || ["black"],
-              inventory: { ...DEFAULT_PROFILE.inventory, ...(cloudData.inventory || {}) }
-            };
+            profile = { ...DEFAULT_PROFILE, ...cloudData };
             checkStreakDecay();
             applyTheme();
             renderHome();
           } else {
+            // Falls neu, erstelle Eintrag
             saveProfile();
           }
         }, (err) => console.error("Firestore Sync Fehler:", err));
@@ -1736,6 +1308,7 @@
     renderTierCarousel();
   }
 
+  /* ZEIGT JETZT BENÖTIGTE LEVEL BEI GESPERRTEN CATEGORIES AN */
   function renderTierCarousel(){
     const wrap = $("tierCarousel");
     const activeIdx = tierIndexForLevel(profile.level);
@@ -1916,6 +1489,7 @@
     handleAnswer(false);
   });
 
+  /* ANPASSUNG: DYNAMISCHE AURA BERECHNUNG GEMÄSS ANFORDERUNGEN */
   function handleAnswer(isTimeout){
     if(!lesson || lesson.locked) return;
     lesson.locked = true;
@@ -1942,13 +1516,9 @@
 
     if(isCorrect){
       lesson.correct++;
-      
-      // Multiplikator für 2x Aura Prüfen
-      const hasDoubleAura = profile.inventory && profile.inventory.doubleAuraUntil > Date.now();
-      const multiplier = hasDoubleAura ? 2 : 1;
-
-      let currentNormalAura = (lesson.tier.normalAura || 2) * multiplier;
-      let currentEditAura = (lesson.tier.editAura || 5) * multiplier;
+      // Dynamische Aura abrufen
+      const currentNormalAura = lesson.tier.normalAura || 2;
+      const currentEditAura = lesson.tier.editAura || 5;
 
       if(isFastCorrect){
         lesson.aura += currentEditAura; 

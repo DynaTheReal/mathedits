@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
@@ -153,9 +153,10 @@
   }
   .screen.active{display:flex;}
   #screen-lesson{
-    padding:12px 14px 20px; 
+    padding:14px 16px 20px; 
     justify-content:space-between;
-    overflow-y:hidden;
+    overflow-y:auto;
+    gap: 10px;
   }
 
   /* ---------- top bar ---------- */
@@ -495,7 +496,7 @@
   }
 
   /* ---------- lesson screen ---------- */
-  .lesson-top{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .lesson-top{display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-shrink: 0;}
   .exit-x{
     width:36px;height:36px;border-radius:50%; background:var(--card); border:1px solid var(--border);
     display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); font-size:15px;
@@ -505,7 +506,7 @@
   .progress-fill{height:100%; background:var(--accent); width:0%; transition:width .35s ease;}
   .lesson-hearts{display:flex; gap:3px; flex-shrink:0;}
 
-  .timer-wrap{display:flex; justify-content:center; margin-bottom:4px;}
+  .timer-wrap{display:flex; justify-content:center; margin-bottom:4px; flex-shrink: 0;}
   .timer-ring{position:relative; width:52px; height:52px;}
   .timer-ring svg{transform:rotate(-90deg); width:52px; height:52px;}
   .timer-ring circle{fill:none; stroke-width:5;}
@@ -517,15 +518,15 @@
     background: var(--card);
     border: 1px solid var(--border);
     border-radius:22px;
-    padding:18px 16px; text-align:center; margin:8px 0 10px; flex-shrink:0;
+    padding:16px 14px; text-align:center; margin:4px 0; flex-shrink:0;
     box-shadow: var(--shadow);
   }
-  .q-tier{font-size:11px; font-weight:700; color:var(--accent-2); text-transform:none; margin-bottom:6px;}
+  .q-tier{font-size:11px; font-weight:700; color:var(--accent-2); text-transform:none; margin-bottom:4px;}
   .q-text{font-family:'Baloo 2',sans-serif; font-size:clamp(24px,8vw,36px); font-weight:700; letter-spacing:.3px; line-height:1.2; color:var(--text) !important;}
   .answer-display{
-    min-height:38px; display:flex; align-items:center; justify-content:center;
+    min-height:36px; display:flex; align-items:center; justify-content:center;
     font-family:'Baloo 2',sans-serif; font-size:26px; font-weight:700; color:var(--text);
-    letter-spacing:1px;
+    letter-spacing:1px; flex-shrink: 0;
   }
   .answer-display.empty{color:var(--text); opacity:.6; font-size:14px; font-weight:500; font-family:'Inter',sans-serif;}
   .answer-display.wrong{color:var(--danger); animation: shake .35s;}
@@ -535,16 +536,16 @@
     60%{transform:translateX(-6px);} 80%{transform:translateX(6px);}
   }
 
-  .numpad{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:auto;}
+  .numpad{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:auto; flex-shrink: 0;}
   .key{
     background:var(--card); border:1px solid var(--border); border-radius:var(--radius-key);
-    padding:14px 0; font-size:22px; font-weight:700; color:var(--text) !important; cursor:pointer;
+    padding:12px 0; font-size:22px; font-weight:700; color:var(--text) !important; cursor:pointer;
     font-family:'Baloo 2',sans-serif; text-align:center; user-select:none; touch-action:manipulation;
   }
   .key:active{background:var(--card-2); transform:scale(.94);}
   .key.wide{grid-column:span 1;}
   .key.func{color:var(--text) !important; opacity:.8; font-size:16px;}
-  .submit-btn{margin-top:8px;}
+  .submit-btn{margin-top:6px;}
 
   /* ---------- locked screen ---------- */
   .locked-wrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px;}
@@ -646,8 +647,8 @@
   .toast.show{opacity:1;}
 </style>
 </head>
-<body>
-<div class="app" data-theme="dark" id="app">
+<body data-theme="dark">
+<div class="app" id="app">
 
   <!-- ============ HOME ============ -->
   <section class="screen active" id="screen-home">
@@ -1505,6 +1506,8 @@
   ======================================================== */
   function applyTheme(){
     const t = profile.theme || "black";
+    document.documentElement.setAttribute("data-theme", t);
+    document.body.setAttribute("data-theme", t);
     app.setAttribute("data-theme", t);
     
     // Toggle-Icon für Schnellauswahl

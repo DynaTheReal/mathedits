@@ -1,19 +1,5 @@
 <!DOCTYPE html>
 <html lang="de">
-<style>
-  /* Versteckt alle Netlify-Badges, Widgets und Skripte dauerhaft */
-  [class*="netlify"],
-  [id*="netlify"],
-  [data-netlify],
-  iframe[src*="netlify"],
-  div[style*="netlify"] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-  }
-</style>
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
@@ -734,15 +720,6 @@
     }catch(e){ }
   }
 
-  function syncWithCloud(cloudData){
-    if(!cloudData) return;
-    profile = { ...profile, ...cloudData };
-    saveProfile();
-    checkStreakDecay();
-    applyTheme();
-    renderHome();
-  }
-
   function isSuperUser(){
     const activeUid = (currentUser && currentUser.uid) ? currentUser.uid : profile.uid;
     return SUPER_USER_UIDS.includes(activeUid);
@@ -1139,12 +1116,11 @@
       if(user){
         firebase.firestore().collection("users").doc(user.uid).get().then((doc) => {
           if(doc.exists){
-            syncWithCloud(doc.data());
-          } else {
-            saveProfile();
+            profile = { ...DEFAULT_PROFILE, ...doc.data() };
+            checkStreakDecay();
+            applyTheme();
+            renderHome();
           }
-        }).catch((err) => {
-          console.warn("Fehler beim Laden der Cloud-Daten:", err);
         });
       }
       renderSettings();
@@ -1156,14 +1132,7 @@
     const email = $("authEmail").value;
     const pass = $("authPassword").value;
     firebase.auth().signInWithEmailAndPassword(email, pass)
-      .then((cred) => {
-        showToast("Erfolgreich eingeloggt!");
-        firebase.firestore().collection("users").doc(cred.user.uid).get().then((doc) => {
-          if(doc.exists){
-            syncWithCloud(doc.data());
-          }
-        });
-      })
+      .then(() => showToast("Erfolgreich eingeloggt!"))
       .catch((err) => alert(err.message));
   });
 
@@ -1172,7 +1141,7 @@
     const email = $("authEmail").value;
     const pass = $("authPassword").value;
     firebase.auth().createUserWithEmailAndPassword(email, pass)
-      .then((cred) => {
+      .then(() => {
         showToast("Account erstellt!");
         saveProfile();
       })

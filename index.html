@@ -181,6 +181,55 @@
     margin-top:10px; font-size:13px; font-weight:700; color:#ffffff;
     background:var(--card); border:1px solid var(--border); padding:6px 14px; border-radius:var(--radius-btn);
   }
+  .hero-flame{
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    cursor:pointer; user-select:none; margin-bottom:2px;
+  }
+  .hero-flame:active .flame-wrap{transform:scale(.95);}
+  .flame-wrap{
+    position:relative; display:flex; align-items:center; justify-content:center;
+    width:112px; height:112px; transition:transform .12s;
+  }
+  .flame-icon{
+    font-size:104px; line-height:1;
+    filter: drop-shadow(0 10px 22px rgba(255,122,61,.55));
+    transition: filter .3s, opacity .3s;
+  }
+  .hero-flame.off .flame-icon{
+    filter: grayscale(1); opacity:.3;
+  }
+  .flame-num{
+    position:absolute; left:0; right:0; bottom:20%; text-align:center;
+    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:32px;
+    color:#fff; text-shadow: 0 2px 6px rgba(0,0,0,.55);
+  }
+  .hero-flame.off .flame-num{ opacity:.7; }
+  .flame-tap-hint{
+    font-size:11px; color:#ffffff; opacity:.55; font-weight:600; margin-top:2px;
+  }
+
+  /* ---------- streak modal ---------- */
+  .streak-modal{padding-bottom:20px;}
+  .streak-modal-head{display:flex; flex-direction:column; align-items:center; gap:4px;}
+  .streak-modal-head .flame-wrap{width:80px; height:80px; margin-bottom:6px;}
+  .streak-modal-head h2{margin:2px 0 2px;}
+  .streak-modal-head p{margin-bottom:6px;}
+  .week-grid{display:flex; justify-content:space-between; gap:6px; margin-top:16px;}
+  .week-day{display:flex; flex-direction:column; align-items:center; gap:7px; flex:1;}
+  .week-day .d{font-size:11px; font-weight:700; color:#ffffff; opacity:.6;}
+  .week-day.today .d{color:var(--accent); opacity:1;}
+  .week-day .dot{
+    width:36px; height:36px; border-radius:50%;
+    background:var(--card); border:1.5px solid var(--border);
+    display:flex; align-items:center; justify-content:center; font-size:16px;
+  }
+  .week-day .dot.done{
+    background:linear-gradient(135deg, #ff7a3d, #ffb84d);
+    border-color:transparent;
+    box-shadow: 0 4px 12px -4px rgba(255,122,61,.7);
+  }
+  .week-day .dot.today-ring{box-shadow:0 0 0 2px var(--accent);}
+  .week-day .dot.done.today-ring{box-shadow:0 0 0 2px var(--accent), 0 4px 12px -4px rgba(255,122,61,.7);}
 
   /* ---------- level carousel ---------- */
   .levels-heading{
@@ -214,7 +263,7 @@
     border:none; cursor:pointer; font-family:'Inter',sans-serif; font-weight:700;
     border-radius:var(--radius-btn); padding:14px 20px; font-size:15.5px;
     display:flex; align-items:center; justify-content:center; gap:8px;
-    width:100%; user-select:none;
+    width:100%; user-select:none; touch-action:manipulation;
   }
   .btn-primary{
     background:var(--accent); color:var(--accent-text) !important;
@@ -274,7 +323,7 @@
   .key{
     background:var(--card); border:1px solid var(--border); border-radius:var(--radius-key);
     padding:14px 0; font-size:22px; font-weight:700; color:#ffffff !important; cursor:pointer;
-    font-family:'Baloo 2',sans-serif; text-align:center; user-select:none;
+    font-family:'Baloo 2',sans-serif; text-align:center; user-select:none; touch-action:manipulation;
   }
   .key:active{background:var(--card-2); transform:scale(.94);}
   .key.wide{grid-column:span 1;}
@@ -407,11 +456,21 @@
         <div class="val" id="homeAura">0</div>
         <div class="lbl">Aura</div>
       </div>
+      <div class="stat-pill">
+        <div class="val" id="homeStreak">0</div>
+        <div class="lbl">Streak</div>
+      </div>
     </div>
 
     <div class="hero">
-      <div class="hero-badge">🧮</div>
-      <h1>Bereit für dein<br>nächstes Aura-Edit?</h1>
+      <div class="hero-flame" id="heroFlame">
+        <div class="flame-wrap">
+          <span class="flame-icon">🔥</span>
+          <span class="flame-num" id="heroStreakNum">0</span>
+        </div>
+        <div class="flame-tap-hint">Tippen für Verlauf</div>
+      </div>
+      <h1 id="heroTitle">Halte deinen<br>Streak am Leben!</h1>
       <p>Löse Aufgaben blitzschnell für ein Aura-Edit. Bist du zu langsam, gibt's ein Meme.</p>
       <div class="level-tag" id="tierLabel">Kleines Einmaleins</div>
     </div>
@@ -553,6 +612,21 @@
     </div>
   </div>
 
+  <div class="overlay" id="overlayStreak">
+    <div class="modal-card streak-modal">
+      <div class="streak-modal-head">
+        <div class="flame-wrap">
+          <span class="flame-icon" style="font-size:78px;">🔥</span>
+          <span class="flame-num" id="modalStreakNum" style="font-size:24px; bottom:18%;">0</span>
+        </div>
+        <h2 id="modalStreakTitle">0 Tage Streak</h2>
+        <p>Mach jeden Tag eine Lektion, um deinen Streak zu behalten.</p>
+      </div>
+      <div class="week-grid" id="weekGrid"></div>
+      <button class="btn btn-ghost" id="closeStreakModal" style="margin-top:20px;">Schließen</button>
+    </div>
+  </div>
+
   <div class="overlay" id="overlayMeme">
     <div class="overlay-card">
       <div class="meme-card">
@@ -619,7 +693,10 @@
     theme: "dark",
     longMode: false,
     uid: "guest_" + Math.random().toString(36).substring(2, 10),
-    hasSeenWelcome: false
+    hasSeenWelcome: false,
+    streak: 0,
+    lastStreakDate: null,
+    streakDates: []
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -646,6 +723,94 @@
   function isSuperUser(){
     const activeUid = (currentUser && currentUser.uid) ? currentUser.uid : profile.uid;
     return SUPER_USER_UIDS.includes(activeUid);
+  }
+
+  /* ========================================================
+     STREAK
+  ======================================================== */
+  function dateStr(d){
+    const y = d.getFullYear();
+    const m = (d.getMonth()+1).toString().padStart(2,"0");
+    const day = d.getDate().toString().padStart(2,"0");
+    return `${y}-${m}-${day}`;
+  }
+  function todayStr(){ return dateStr(new Date()); }
+  function yesterdayStr(){
+    const d = new Date();
+    d.setDate(d.getDate()-1);
+    return dateStr(d);
+  }
+  function startOfWeekMonday(d){
+    const day = d.getDay(); // 0=So,1=Mo,...6=Sa
+    const diff = (day === 0 ? -6 : 1) - day;
+    const monday = new Date(d);
+    monday.setDate(d.getDate() + diff);
+    monday.setHours(0,0,0,0);
+    return monday;
+  }
+
+  // Beim App-Start prüfen: wurde ein Tag ausgelassen? Dann Streak zurücksetzen.
+  function checkStreakDecay(){
+    if(!profile.lastStreakDate) return;
+    const today = todayStr();
+    const yesterday = yesterdayStr();
+    if(profile.lastStreakDate !== today && profile.lastStreakDate !== yesterday){
+      profile.streak = 0;
+    }
+  }
+
+  // Wird aufgerufen, wenn der Nutzer an dem Tag etwas gemacht hat (Lektion abgeschlossen).
+  function registerStreakActivity(){
+    const today = todayStr();
+    if(profile.lastStreakDate === today) return; // heute schon gezählt
+    const yesterday = yesterdayStr();
+    if(profile.lastStreakDate === yesterday){
+      profile.streak += 1;
+    } else {
+      profile.streak = 1;
+    }
+    profile.lastStreakDate = today;
+    if(!profile.streakDates) profile.streakDates = [];
+    if(!profile.streakDates.includes(today)){
+      profile.streakDates.push(today);
+      if(profile.streakDates.length > 60){
+        profile.streakDates = profile.streakDates.slice(-60);
+      }
+    }
+  }
+
+  function renderStreak(){
+    const n = profile.streak || 0;
+    const flame = $("heroFlame");
+    if(flame){
+      flame.classList.toggle("off", n === 0);
+      $("heroStreakNum").textContent = n;
+    }
+    $("homeStreak").textContent = n;
+  }
+
+  function renderStreakWeek(){
+    const grid = $("weekGrid");
+    if(!grid) return;
+    grid.innerHTML = "";
+    const labels = ["Mo","Di","Mi","Do","Fr","Sa","So"];
+    const monday = startOfWeekMonday(new Date());
+    const todayVal = todayStr();
+    const dates = profile.streakDates || [];
+    for(let i=0;i<7;i++){
+      const d = new Date(monday);
+      d.setDate(monday.getDate()+i);
+      const ds = dateStr(d);
+      const done = dates.includes(ds);
+      const isToday = ds === todayVal;
+      const cell = document.createElement("div");
+      cell.className = "week-day" + (isToday ? " today" : "");
+      cell.innerHTML = `
+        <div class="d">${labels[i]}</div>
+        <div class="dot${done ? " done" : ""}${isToday ? " today-ring" : ""}">${done ? "🔥" : ""}</div>
+      `;
+      grid.appendChild(cell);
+    }
   }
 
   /* ========================================================
@@ -905,6 +1070,20 @@
     renderSettings();
   });
 
+  $("heroFlame").addEventListener("click", () => {
+    const n = profile.streak || 0;
+    $("modalStreakNum").textContent = n;
+    $("modalStreakTitle").textContent = `${n} ${n === 1 ? "Tag" : "Tage"} Streak`;
+    renderStreakWeek();
+    $("overlayStreak").classList.add("show");
+  });
+  $("closeStreakModal").addEventListener("click", () => {
+    $("overlayStreak").classList.remove("show");
+  });
+  $("overlayStreak").addEventListener("click", (e) => {
+    if(e.target.id === "overlayStreak") $("overlayStreak").classList.remove("show");
+  });
+
   $("copyUidBtn").addEventListener("click", () => {
     const activeUid = (currentUser && currentUser.uid) ? currentUser.uid : profile.uid;
     navigator.clipboard.writeText(activeUid).then(() => {
@@ -938,6 +1117,7 @@
         firebase.firestore().collection("users").doc(user.uid).get().then((doc) => {
           if(doc.exists){
             profile = { ...DEFAULT_PROFILE, ...doc.data() };
+            checkStreakDecay();
             applyTheme();
             renderHome();
           }
@@ -994,10 +1174,12 @@
 
   function renderHome(){
     refillLives();
+    checkStreakDecay();
     saveProfile();
     renderHearts($("homeHearts"), profile.lives);
     $("homeLevel").textContent = profile.level;
     $("homeAura").textContent = profile.totalAura;
+    renderStreak();
     const activeIdx = tierIndexForLevel(profile.level);
     if(selectedTierIndex === null) selectedTierIndex = activeIdx;
     $("tierLabel").textContent = TIERS[selectedTierIndex].name;
@@ -1177,7 +1359,8 @@
     }
   });
 
-  $("submitBtn").addEventListener("click", () => {
+  $("submitBtn").addEventListener("pointerdown", (e) => {
+    e.preventDefault();
     if(!lesson || lesson.locked || lesson.answer === "") return;
     handleAnswer(false);
   });
@@ -1259,6 +1442,7 @@
       title = pick.title; sub = pick.sub; emoji = pick.emoji;
       if(lesson.isMainProgression) profile.level += 1;
       profile.lessonsCompleted += 1;
+      registerStreakActivity();
       playSuccessJingle();
     } else {
       const pick = FAIL_LINES[0];
@@ -1334,6 +1518,7 @@
   function init(){
     loadProfile();
     refillLives();
+    checkStreakDecay();
     saveProfile();
     applyTheme();
     renderHome();

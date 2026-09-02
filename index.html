@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="de">
 <style>
-  /* Versteckt Netlify-Widgets, Badges und Injections */
-  #netlify-modal-backdrop,
-  .netlify-identity-widget,
-  [data-netlify-deploy-id],
-  iframe[src*="netlify"] {
+  /* Versteckt alle Netlify-Badges, Widgets und Skripte dauerhaft */
+  [class*="netlify"],
+  [id*="netlify"],
+  [data-netlify],
+  iframe[src*="netlify"],
+  div[style*="netlify"] {
     display: none !important;
     visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
 </style>
 

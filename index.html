@@ -748,6 +748,7 @@
 
   let firebaseInitialized = false;
   let currentUser = null;
+  let syncUnsubscribe = null;
 
   try {
     if(firebaseConfig.apiKey !== "DEIN_API_KEY_HIER"){
@@ -793,10 +794,18 @@
     try{
       localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
       if(firebaseInitialized && currentUser){
-        firebase.firestore().collection("users").doc(currentUser.uid).set(profile, { merge: true });
+        firebase.firestore().collection("users").doc(currentUser.uid).set(profile, { merge: true })
+          .catch(err => console.error("Firestore Save Error:", err));
       }
     }catch(e){ }
   }
+
+  /* AUTOMATISCHER SYNC ALLE 10 SEKUNDEN */
+  setInterval(() => {
+    if(firebaseInitialized && currentUser){
+      saveProfile();
+    }
+  }, 10000);
 
   function isSuperUser(){
     const activeUid = (currentUser && currentUser.uid) ? currentUser.uid : profile.uid;
@@ -1204,19 +1213,31 @@
     showToast("Gastmodus: Fortschritt nicht gesichert");
   });
 
-  /* Firebase Auth Operations */
+  /* Firebase Auth & Realtime Synchronization Listener */
   if(firebaseInitialized){
     firebase.auth().onAuthStateChanged((user) => {
       currentUser = user;
+      
+      // Vorherigen Listener beenden
+      if(syncUnsubscribe){
+        syncUnsubscribe();
+        syncUnsubscribe = null;
+      }
+
       if(user){
-        firebase.firestore().collection("users").doc(user.uid).get().then((doc) => {
+        // Echtzeit-Listener auf das Firestore-Dokument setzen (Lädt beim Einloggen sofort ab & synchronisiert)
+        syncUnsubscribe = firebase.firestore().collection("users").doc(user.uid).onSnapshot((doc) => {
           if(doc.exists){
-            profile = { ...DEFAULT_PROFILE, ...doc.data() };
+            const cloudData = doc.data();
+            profile = { ...DEFAULT_PROFILE, ...cloudData };
             checkStreakDecay();
             applyTheme();
             renderHome();
+          } else {
+            // Falls neu, erstelle Eintrag
+            saveProfile();
           }
-        });
+        }, (err) => console.error("Firestore Sync Fehler:", err));
       }
       renderSettings();
     });
@@ -1245,9 +1266,14 @@
 
   $("logoutBtn").addEventListener("click", () => {
     if(!firebaseInitialized) return;
+    if(syncUnsubscribe){
+      syncUnsubscribe();
+      syncUnsubscribe = null;
+    }
     firebase.auth().signOut().then(() => {
       currentUser = null;
       showToast("Ausgeloggt");
+      loadProfile();
       renderSettings();
       renderHome();
     });

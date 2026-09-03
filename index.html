@@ -254,6 +254,27 @@
     margin: 16px 0 8px;
     opacity: 0.9;
   }
+  .referral-banner{
+    background: linear-gradient(135deg, var(--accent-2), var(--accent));
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-bottom: 6px;
+    color: var(--accent-text);
+  }
+  .referral-banner *{ color: var(--accent-text) !important; }
+  .referral-banner .referral-banner-title{
+    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:16px; margin-bottom:4px;
+  }
+  .referral-banner .referral-banner-sub{ font-size:12.5px; opacity:.9; line-height:1.4; margin-bottom:10px; }
+  .referral-banner .input-field{
+    background: rgba(255,255,255,.25); border-color: rgba(255,255,255,.4);
+  }
+  .referral-banner .input-field::placeholder{ color: var(--accent-text); opacity:.6; }
+  .referral-banner .btn-primary{
+    background: var(--accent-text); color: var(--accent) !important;
+  }
+  .referral-banner .btn-primary *{ color: var(--accent) !important; }
+  .referral-banner .empty-hint{ opacity:.9; }
   .shop-item {
     background: var(--card);
     border: 1px solid var(--border);
@@ -792,6 +813,18 @@
       </div>
     </div>
 
+    <div class="referral-banner">
+      <div class="referral-banner-title">🎁 500 Aura gratis!</div>
+      <div class="referral-banner-sub">Lade einen Freund über deinen persönlichen Link ein. Registriert er sich genau darüber, bekommst du 500 Aura geschenkt.</div>
+      <div class="add-friend-row" id="referralLinkRow" style="display:none;">
+        <input type="text" id="referralLinkInput" class="input-field" readonly>
+        <button class="btn btn-primary btn-small" id="copyReferralBtn">Kopieren</button>
+      </div>
+      <div id="referralLoggedOutMsg" class="empty-hint" style="display:none; margin-top:2px; text-align:left;">
+        Melde dich in den Einstellungen an und wähle einen Benutzernamen, um deinen Einladungslink zu bekommen.
+      </div>
+    </div>
+
     <div class="shop-section-title">Items & Boosts</div>
     
     <div class="shop-item">
@@ -1117,6 +1150,22 @@
     </div>
   </div>
 
+  <div class="overlay" id="overlayReferralPromo">
+    <div class="modal-card">
+      <div style="font-size:42px; margin-bottom:8px;">🎁</div>
+      <h2>500 Aura gratis!</h2>
+      <p>Lade einen Freund über deinen persönlichen Einladungslink ein. Registriert er sich genau darüber als neuer Nutzer, bekommst du 500 Aura geschenkt.</p>
+      <div class="add-friend-row" id="referralPromoLinkRow" style="display:none; margin-bottom:14px;">
+        <input type="text" id="referralPromoLinkInput" class="input-field" readonly>
+        <button class="btn btn-primary btn-small" id="copyReferralPromoBtn">Kopieren</button>
+      </div>
+      <div id="referralPromoLoggedOutMsg" class="empty-hint" style="display:none; text-align:left; margin-bottom:14px;">
+        Melde dich an und wähle einen Benutzernamen, um deinen Einladungslink zu bekommen.
+      </div>
+      <button class="btn btn-ghost" id="closeReferralPromo">Schließen</button>
+    </div>
+  </div>
+
   <div class="overlay" id="overlayAura">
     <div class="overlay-card" style="position:relative;">
       <div class="aura-particles" id="auraParticles"></div>
@@ -1202,6 +1251,12 @@
   let firebaseInitialized = false;
   let currentUser = null;
   let syncUnsubscribe = null;
+  // Wird erst true, nachdem der allererste Cloud-Stand nach einem Login abgeglichen
+  // wurde (siehe reconcileProfiles/onSnapshot). Verhindert, dass ein Gerät mit
+  // veraltetem lokalem Stand (z.B. noch Level 7 im Browser-Cache) den Fortschritt
+  // eines anderen, längst weiter fortgeschrittenen Geräts (z.B. Level 9 am Handy)
+  // in der Cloud überschreibt, bevor der lokale Stand überhaupt abgeglichen wurde.
+  let cloudSyncReady = false;
 
   try {
     if(firebaseConfig.apiKey !== "DEIN_API_KEY_HIER"){
@@ -1213,6 +1268,26 @@
   }
 
   function db(){ return firebase.firestore(); }
+
+  /* ========================================================
+     EINLADUNGSLINK (NEU)
+     Ein ?ref=<benutzername> Parameter in der URL wird gemerkt (auch über
+     Reloads hinweg), damit er bei einer späteren Registrierung noch bekannt
+     ist, auch wenn der Link zuerst nur die Startseite ohne Login öffnet.
+  ======================================================== */
+  const REFERRAL_REWARD = 500;
+  const PENDING_REF_KEY = "mathedits_pending_ref";
+  let pendingReferralCode = null;
+  try{
+    const urlParams = new URLSearchParams(window.location.search);
+    const refFromUrl = urlParams.get("ref");
+    if(refFromUrl){
+      pendingReferralCode = refFromUrl;
+      localStorage.setItem(PENDING_REF_KEY, refFromUrl);
+    } else {
+      pendingReferralCode = localStorage.getItem(PENDING_REF_KEY);
+    }
+  }catch(e){ }
 
   /* ========================================================
      STORAGE & PROFILE
@@ -1240,7 +1315,10 @@
     username: null,
     usernameLower: null,
     following: [],
-    dailyMissions: null // wird von ensureDailyMissions() initialisiert/zurückgesetzt
+    dailyMissions: null, // wird von ensureDailyMissions() initialisiert/zurückgesetzt
+    hasSeenReferralPromo: false,
+    referredBy: null,
+    claimedReferralRewardIds: [] // welche referralRewards-Dokumente lokal schon gutgeschrieben wurden
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -1254,7 +1332,8 @@
           ...parsed,
           unlockedThemes: parsed.unlockedThemes || ["black"],
           inventory: { ...DEFAULT_PROFILE.inventory, ...(parsed.inventory || {}) },
-          following: parsed.following || []
+          following: parsed.following || [],
+          claimedReferralRewardIds: parsed.claimedReferralRewardIds || []
         };
       }
     }catch(e){
@@ -1265,7 +1344,7 @@
   function saveProfile(){
     try{
       localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-      if(firebaseInitialized && currentUser){
+      if(firebaseInitialized && currentUser && cloudSyncReady){
         db().collection("users").doc(currentUser.uid).set(profile, { merge: true })
           .catch(err => console.error("Firestore Save Error:", err));
       }
@@ -1274,7 +1353,7 @@
 
   /* AUTOMATISCHER SYNC ALLE 10 SEKUNDEN */
   setInterval(() => {
-    if(firebaseInitialized && currentUser){
+    if(firebaseInitialized && currentUser && cloudSyncReady){
       saveProfile();
     }
   }, 10000);
@@ -1311,6 +1390,73 @@
     profile.username = rawUsername.trim();
     profile.usernameLower = lower;
     saveProfile();
+  }
+
+  // Wird direkt nach einer erfolgreichen NEU-Registrierung aufgerufen. Prüft, ob
+  // dieser neue Nutzer über einen Einladungslink gekommen ist. Schreibt in diesem
+  // Fall NICHT direkt in das Konto des einladenden Nutzers (das verweigern
+  // Firestore-Sicherheitsregeln zurecht - sonst könnte sich jeder beliebig oft
+  // selbst Aura gutschreiben). Stattdessen legt der NEUE Nutzer - mit seinen
+  // eigenen, garantiert gültigen Schreibrechten - nur einen "Anspruch" ab. Der
+  // einladende Nutzer holt sich die Belohnung dann selbst ab (siehe
+  // claimPendingReferralRewards), ebenfalls über seine eigenen Schreibrechte.
+  async function processPendingReferral(newUid, newUsername, newUsernameLower){
+    const code = pendingReferralCode;
+    pendingReferralCode = null;
+    try{ localStorage.removeItem(PENDING_REF_KEY); }catch(e){ }
+    if(!code || !firebaseInitialized) return;
+    const refLower = normalizeUsername(code);
+    if(!refLower || refLower === newUsernameLower) return;
+    try{
+      const refDoc = await db().collection("usernames").doc(refLower).get();
+      if(!refDoc.exists) return;
+      const referrerUid = refDoc.data().uid;
+      if(referrerUid === newUid) return; // Selbst-Invite über eine andere UID-Konstellation ausschließen
+      await db().collection("referralRewards").add({
+        toUid: referrerUid,
+        amount: REFERRAL_REWARD,
+        fromUid: newUid,
+        fromUsername: newUsername,
+        createdAt: Date.now()
+      });
+      profile.referredBy = refLower;
+      saveProfile();
+      showToast(`🎉 Willkommen! @${code} hat dich eingeladen und bekommt 500 Aura.`);
+    }catch(err){
+      console.error("Einladungs-Bonus Fehler:", err);
+    }
+  }
+
+  // Vom einladenden Nutzer aus aufgerufen (eigener, garantiert erlaubter
+  // Schreibzugriff): sucht alle offenen Belohnungen, die auf die eigene UID
+  // ausgestellt wurden, schreibt sie der eigenen Aura gut und merkt sich lokal,
+  // welche IDs bereits verrechnet wurden (damit nichts doppelt gezählt wird).
+  async function claimPendingReferralRewards(){
+    if(!firebaseInitialized || !currentUser) return;
+    try{
+      const snap = await db().collection("referralRewards")
+        .where("toUid", "==", currentUser.uid)
+        .get();
+      if(snap.empty) return;
+      const already = new Set(profile.claimedReferralRewardIds || []);
+      let totalCredit = 0;
+      const newIds = [];
+      snap.forEach(doc => {
+        if(already.has(doc.id)) return;
+        const data = doc.data();
+        totalCredit += data.amount || 0;
+        newIds.push(doc.id);
+      });
+      if(newIds.length === 0) return;
+      profile.totalAura += totalCredit;
+      profile.claimedReferralRewardIds = [...(profile.claimedReferralRewardIds || []), ...newIds];
+      saveProfile();
+      showToast(`🎉 +${totalCredit} Aura durch Einladungen erhalten!`);
+      renderShop();
+      renderHome();
+    }catch(err){
+      console.error("Einladungs-Belohnungen abholen Fehler:", err);
+    }
   }
 
   function checkUsernameRequired(){
@@ -1870,6 +2016,98 @@
   }
 
   /* ========================================================
+     MEHRGERÄTE-ABGLEICH (NEU)
+     Verhindert, dass ein Gerät mit veraltetem lokalem Stand den Fortschritt
+     eines anderen, weiter fortgeschrittenen Geräts überschreibt. Statt beim
+     Login blind die Cloud-Version zu übernehmen (oder blind die lokale zu
+     pushen), wird bei jedem Cloud-Update immer der jeweils bessere/neuere
+     Wert je Feld behalten.
+  ======================================================== */
+  function maxDateStr(a, b){
+    if(!a) return b || null;
+    if(!b) return a;
+    return a > b ? a : b; // "YYYY-MM-DD" Strings lassen sich direkt vergleichen
+  }
+
+  function pickFurtherChest(a, b){
+    if(!a) return b || freshChest();
+    if(!b) return a;
+    // Bereits abgeholt schlägt nicht-abgeholt - sonst könnte dieselbe Truhe
+    // auf einem Gerät nochmal "offen" erscheinen, obwohl die Aura (die im
+    // Gesamt-Aura-Maximum bereits enthalten ist) schon anderswo kassiert wurde.
+    if(a.claimed !== b.claimed) return a.claimed ? a : b;
+    const rank = t => CHEST_TIER_ORDER.indexOf(t);
+    if(rank(a.tier) !== rank(b.tier)) return rank(a.tier) > rank(b.tier) ? a : b;
+    return (a.attemptsUsed || 0) >= (b.attemptsUsed || 0) ? a : b;
+  }
+
+  function reconcileDailyMissions(localDm, cloudDm){
+    if(!localDm) return cloudDm || null;
+    if(!cloudDm) return localDm;
+    if(localDm.date !== cloudDm.date){
+      // Unterschiedliche Tage: der aktuellere Tag gewinnt komplett.
+      return localDm.date > cloudDm.date ? localDm : cloudDm;
+    }
+    const chests = {};
+    DAILY_MISSION_DEFS.forEach(m => {
+      chests[m.id] = pickFurtherChest((localDm.chests || {})[m.id], (cloudDm.chests || {})[m.id]);
+    });
+    return {
+      date: localDm.date,
+      lessonsCompletedToday: Math.max(localDm.lessonsCompletedToday || 0, cloudDm.lessonsCompletedToday || 0),
+      chests
+    };
+  }
+
+  // Führt den lokalen Profil-Stand mit einem frisch aus der Cloud gelesenen
+  // Stand zusammen. Für echte Fortschritts-Werte gewinnt immer der höhere Wert;
+  // für Sammlungen (Themes, Freunde, Streak-Tage) wird die Vereinigung gebildet;
+  // für zeitabhängige Werte (Leben) gewinnt der zuletzt aktualisierte Stand.
+  function reconcileProfiles(localP, cloudP){
+    if(!cloudP) return localP;
+    if(!localP) return cloudP;
+    const merged = { ...localP };
+
+    merged.level = Math.max(localP.level || 1, cloudP.level || 1);
+    merged.totalAura = Math.max(localP.totalAura || 0, cloudP.totalAura || 0);
+    merged.lessonsCompleted = Math.max(localP.lessonsCompleted || 0, cloudP.lessonsCompleted || 0);
+    merged.streak = Math.max(localP.streak || 0, cloudP.streak || 0);
+    merged.lastStreakDate = maxDateStr(localP.lastStreakDate, cloudP.lastStreakDate);
+
+    const streakSet = new Set([...(localP.streakDates || []), ...(cloudP.streakDates || [])]);
+    merged.streakDates = Array.from(streakSet).sort().slice(-60);
+
+    merged.unlockedThemes = Array.from(new Set([
+      ...(localP.unlockedThemes || ["black"]),
+      ...(cloudP.unlockedThemes || ["black"])
+    ]));
+
+    const li = localP.inventory || {}, ci = cloudP.inventory || {};
+    merged.inventory = {
+      icecube: Math.max(li.icecube || 0, ci.icecube || 0),
+      timeBooster: Math.max(li.timeBooster || 0, ci.timeBooster || 0),
+      doubleAuraUntil: Math.max(li.doubleAuraUntil || 0, ci.doubleAuraUntil || 0)
+    };
+
+    merged.following = Array.from(new Set([...(localP.following || []), ...(cloudP.following || [])]));
+    merged.claimedReferralRewardIds = Array.from(new Set([
+      ...(localP.claimedReferralRewardIds || []),
+      ...(cloudP.claimedReferralRewardIds || [])
+    ]));
+
+    // Leben hängen von der Zeit ab (regenerieren stündlich) - hier gewinnt daher
+    // nicht der höhere, sondern der zuletzt aktualisierte Stand.
+    if((cloudP.lastLifeChangeAt || 0) > (localP.lastLifeChangeAt || 0)){
+      merged.lives = cloudP.lives;
+      merged.lastLifeChangeAt = cloudP.lastLifeChangeAt;
+    }
+
+    merged.dailyMissions = reconcileDailyMissions(localP.dailyMissions, cloudP.dailyMissions);
+
+    return merged;
+  }
+
+  /* ========================================================
      LIVES / REGEN
   ======================================================== */
   const MAX_LIVES = 5;
@@ -1912,8 +2150,8 @@
   // ganz einfachen Tiers. Ab "Plus & Minus" sind es zufällig gemischte Aufgaben
   // aus allen bis dahin freigeschalteten Aufgabentypen (kein reines Einmaleins mehr).
   const TIERS = [
-    {id:"kl_mult", name:"Kleines Einmaleins", icon:"✖️", from:1,  to:3,        timeMs: 8000,  normalAura: 1, editAura: 2, gen: () => mult(1,5)},
-    {id:"mult",    name:"Einmaleins",         icon:"✳️", from:4,  to:6,        timeMs: 9000,  normalAura: 2, editAura: 4, gen: () => mult(1,10)},
+    {id:"kl_mult", name:"Kleines Einmaleins", icon:"✖️", from:1,  to:3,        timeMs: 8000,  normalAura: 1, editAura: 2, gen: () => multFewOnes(1,5)},
+    {id:"mult",    name:"Einmaleins",         icon:"✳️", from:4,  to:6,        timeMs: 9000,  normalAura: 2, editAura: 4, gen: () => mult(2,10)},
     {id:"gr_mult", name:"Großes Einmaleins",  icon:"💥", from:7,  to:9,        timeMs: 11000, normalAura: 2, editAura: 5, gen: () => bigMult()},
     {id:"addsub",  name:"Plus & Minus",       icon:"➕", from:10, to:12,       timeMs: 10000, normalAura: 2, editAura: 5,
       gen: () => weightedPick([[() => addSub(50), 1]])},
@@ -1947,6 +2185,14 @@
   function mult(min, max){
     const a = randInt(min,max), b = randInt(min,max);
     return { text: `${a} × ${b}`, answer: a*b };
+  }
+  // Für den allerersten (leichtesten) Tier: ×1-Aufgaben kommen bewusst nur noch
+  // selten vor (statt gefühlt ständig), tauchen aber ab und zu noch auf.
+  function multFewOnes(min, max){
+    if(Math.random() < 0.75 && max > min){
+      return mult(min + 1, max);
+    }
+    return mult(min, max);
   }
   function bigMult(){
     const a = randInt(10,20), b = randInt(2,12);
@@ -2126,6 +2372,13 @@
   $("navShop").addEventListener("click", () => {
     showScreen("shop");
     renderShop();
+    claimPendingReferralRewards();
+    if(!profile.hasSeenReferralPromo){
+      profile.hasSeenReferralPromo = true;
+      saveProfile();
+      renderReferralUI($("referralPromoLinkRow"), $("referralPromoLinkInput"), $("referralPromoLoggedOutMsg"));
+      $("overlayReferralPromo").classList.add("show");
+    }
   });
 
   $("navLeaderboard").addEventListener("click", () => {
@@ -2175,8 +2428,47 @@
   /* ========================================================
      SHOP SYSTEM
   ======================================================== */
+  // Baut den persönlichen Einladungslink (falls möglich) und zeigt ihn in den
+  // übergebenen Elementen an - wird sowohl für den Shop-Banner als auch für
+  // den einmaligen Popup verwendet.
+  function referralLink(){
+    return `${location.origin}${location.pathname}?ref=${encodeURIComponent(profile.username)}`;
+  }
+  function renderReferralUI(linkRowEl, linkInputEl, loggedOutMsgEl){
+    const ready = !!(firebaseInitialized && currentUser && profile.username);
+    linkRowEl.style.display = ready ? "flex" : "none";
+    loggedOutMsgEl.style.display = ready ? "none" : "block";
+    if(ready) linkInputEl.value = referralLink();
+  }
+
+  function copyReferralLink(inputEl){
+    const val = inputEl.value;
+    if(!val) return;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(val).then(() => showToast("🔗 Link kopiert!")).catch(() => fallbackCopyText(val));
+    } else {
+      fallbackCopyText(val);
+    }
+  }
+  function fallbackCopyText(text){
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      showToast("🔗 Link kopiert!");
+    }catch(e){
+      showToast("Kopieren fehlgeschlagen - bitte manuell markieren.");
+    }
+  }
+
   function renderShop(){
     $("shopAuraVal").textContent = profile.totalAura;
+    renderReferralUI($("referralLinkRow"), $("referralLinkInput"), $("referralLoggedOutMsg"));
 
     const unlocked = profile.unlockedThemes || ["black"];
 
@@ -2412,6 +2704,20 @@
     if(e.target.id === "overlayChest") closeChestModal();
   });
 
+  /* Einladungslink (Shop-Banner + einmaliger Popup) */
+  $("copyReferralBtn").addEventListener("click", () => {
+    copyReferralLink($("referralLinkInput"));
+  });
+  $("copyReferralPromoBtn").addEventListener("click", () => {
+    copyReferralLink($("referralPromoLinkInput"));
+  });
+  $("closeReferralPromo").addEventListener("click", () => {
+    $("overlayReferralPromo").classList.remove("show");
+  });
+  $("overlayReferralPromo").addEventListener("click", (e) => {
+    if(e.target.id === "overlayReferralPromo") $("overlayReferralPromo").classList.remove("show");
+  });
+
   /* Welcome Modal Event Listeners */
   $("welcomeAuthBtn").addEventListener("click", () => {
     profile.hasSeenWelcome = true;
@@ -2447,6 +2753,7 @@
   if(firebaseInitialized){
     firebase.auth().onAuthStateChanged((user) => {
       currentUser = user;
+      cloudSyncReady = false; // bei jedem Auth-Wechsel neu abgleichen, bevor wieder geschrieben wird
       
       if(syncUnsubscribe){
         syncUnsubscribe();
@@ -2457,21 +2764,31 @@
         syncUnsubscribe = db().collection("users").doc(user.uid).onSnapshot((doc) => {
           if(doc.exists){
             const cloudData = doc.data();
-            profile = { 
-              ...DEFAULT_PROFILE, 
+            const normalizedCloud = {
+              ...DEFAULT_PROFILE,
               ...cloudData,
               unlockedThemes: cloudData.unlockedThemes || ["black"],
               inventory: { ...DEFAULT_PROFILE.inventory, ...(cloudData.inventory || {}) },
               following: cloudData.following || []
             };
+            // Wichtig gegen Mehrgeräte-Konflikte: nie blind übernehmen, sondern
+            // den lokalen Stand mit dem Cloud-Stand abgleichen (höhere Werte
+            // gewinnen). Erst danach dürfen wieder eigene Änderungen in die
+            // Cloud geschrieben werden (cloudSyncReady).
+            profile = reconcileProfiles(profile, normalizedCloud);
+            cloudSyncReady = true;
             checkStreakDecay();
             ensureDailyMissions();
             applyTheme();
             renderHome();
             updateMissionsBadge();
             checkUsernameRequired();
+            saveProfile(); // schreibt den abgeglichenen (nie schlechteren) Stand zurück
+            claimPendingReferralRewards();
           } else {
+            cloudSyncReady = true;
             saveProfile();
+            claimPendingReferralRewards();
           }
         }, (err) => console.error("Firestore Sync Fehler:", err));
       } else {
@@ -2504,6 +2821,7 @@
           await reserveUsername(cred.user.uid, uname);
           showToast("Account erstellt!");
           saveProfile();
+          processPendingReferral(cred.user.uid, uname, normalizeUsername(uname));
         }catch(err){
           alert(err.message);
         }
@@ -2519,6 +2837,7 @@
     }
     firebase.auth().signOut().then(() => {
       currentUser = null;
+      cloudSyncReady = false;
       showToast("Ausgeloggt");
       loadProfile();
       $("overlayUsername").classList.remove("show");

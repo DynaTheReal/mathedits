@@ -194,7 +194,7 @@
     color: var(--text);
     opacity: 0.5;
     cursor: pointer;
-    width: 50%;
+    width: 25%;
     height: 100%;
     transition: opacity .2s, transform .15s;
   }
@@ -206,7 +206,7 @@
     font-size: 20px;
   }
   .nav-item .label {
-    font-size: 11px;
+    font-size: 10.5px;
     font-family: 'Inter', sans-serif;
   }
 
@@ -624,6 +624,25 @@
     opacity:0; transition:opacity .3s; pointer-events:none; text-align:center;
   }
   .toast.show{opacity:1;}
+
+  /* ---------- profile & leaderboard (NEU) ---------- */
+  .friend-row{
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:10px 12px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    font-size:13.5px;
+  }
+  .friend-row .name{font-weight:700;}
+  .lb-row{
+    background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px;
+  }
+  .lb-row.me{border-color:var(--accent); box-shadow:0 0 0 1.5px var(--accent) inset;}
+  .lb-rank{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:16px; width:28px; text-align:center; opacity:.85;}
+  .lb-name{flex:1; font-weight:700; font-size:14px;}
+  .lb-aura{font-weight:800; font-size:14px; color:var(--accent);}
+  .empty-hint{text-align:center; opacity:.7; font-size:13px; margin-top:10px; line-height:1.5;}
+  .add-friend-row{display:flex; gap:8px; align-items:flex-start;}
+  .add-friend-row .input-field{margin-bottom:0;}
 </style>
 </head>
 <body>
@@ -762,6 +781,68 @@
     </div>
   </section>
 
+  <!-- ============ PROFIL (NEU) ============ -->
+  <section class="screen" id="screen-profile">
+    <div class="topbar">
+      <div class="brand"><span class="dot"></span>MathEdits</div>
+      <div class="topbar-actions">
+        <div class="theme-toggle" id="themeToggleProfile">🌙</div>
+      </div>
+    </div>
+
+    <div class="shop-header">
+      <h2 id="profileUsernameDisplay">Gast</h2>
+      <div class="shop-aura-badge"><span>⚡</span><span id="profileAuraVal">0</span> Aura</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-pill"><div class="val" id="profileLevel">1</div><div class="lbl">Level</div></div>
+      <div class="stat-pill"><div class="val" id="profileStreak">0</div><div class="lbl">Streak</div></div>
+      <div class="stat-pill"><div class="val" id="profileFriendsCount">0</div><div class="lbl">Freunde</div></div>
+    </div>
+
+    <div id="profileLoggedOutMsg" class="empty-hint" style="display:none;">
+      Melde dich in den Einstellungen an, um Freunde hinzuzufügen und am Leaderboard teilzunehmen.
+    </div>
+
+    <div id="profileLoggedInContent">
+      <div class="shop-section-title">Freund hinzufügen</div>
+      <div class="add-friend-row">
+        <input type="text" id="addFriendInput" class="input-field" placeholder="Benutzername">
+        <button class="btn btn-primary btn-small" id="addFriendBtn">Adden</button>
+      </div>
+
+      <div class="shop-section-title">Folgt dir</div>
+      <div id="followBackList"></div>
+
+      <div class="shop-section-title">Du folgst</div>
+      <div id="followingList"></div>
+    </div>
+  </section>
+
+  <!-- ============ LEADERBOARD (NEU) ============ -->
+  <section class="screen" id="screen-leaderboard">
+    <div class="topbar">
+      <div class="brand"><span class="dot"></span>MathEdits</div>
+      <div class="topbar-actions">
+        <div class="theme-toggle" id="themeToggleLeaderboard">🌙</div>
+      </div>
+    </div>
+
+    <div class="shop-header">
+      <h2>🏆 Rangliste</h2>
+      <div style="font-size:12px; opacity:.75;">Nur du und Freunde, die sich gegenseitig folgen</div>
+    </div>
+
+    <div id="leaderboardLoggedOutMsg" class="empty-hint" style="display:none;">
+      Melde dich in den Einstellungen an, um die Rangliste zu sehen.
+    </div>
+    <div id="leaderboardEmptyMsg" class="empty-hint" style="display:none;">
+      Noch keine gegenseitigen Freunde. Adde welche in deinem Profil!
+    </div>
+    <div id="leaderboardList"></div>
+  </section>
+
   <!-- ============ SETTINGS ============ -->
   <section class="screen" id="screen-settings">
     <div class="topbar">
@@ -792,14 +873,15 @@
 
     <div class="settings-row">
       <div class="info">
-        <div class="t">Deine UID</div>
-        <div class="d" id="uidTextDisplay">Nicht angemeldet / Gast</div>
+        <div class="t">Benutzername</div>
+        <div class="d" id="usernameTextDisplay">Nicht angemeldet / Gast</div>
       </div>
-      <button class="btn btn-ghost btn-small" id="copyUidBtn">Kopieren</button>
+      <button class="btn btn-ghost btn-small" id="goToProfileBtn">Profil</button>
     </div>
 
     <div class="auth-box">
       <div class="t" style="font-weight:700; font-size:15px; margin-bottom:8px;" id="authTitle">Account / Login</div>
+      <input type="text" id="authUsername" class="input-field" placeholder="Benutzername (nur bei Registrierung)">
       <input type="email" id="authEmail" class="input-field" placeholder="E-Mail">
       <input type="password" id="authPassword" class="input-field" placeholder="Passwort">
       <div style="display:flex; gap:8px; margin-top:4px;">
@@ -896,6 +978,14 @@
       <span class="icon">🛒</span>
       <span class="label">Shop</span>
     </button>
+    <button class="nav-item" id="navLeaderboard">
+      <span class="icon">🏆</span>
+      <span class="label">Rangliste</span>
+    </button>
+    <button class="nav-item" id="navProfile">
+      <span class="icon">👤</span>
+      <span class="label">Profil</span>
+    </button>
   </nav>
 
   <!-- ============ OVERLAYS ============ -->
@@ -906,6 +996,16 @@
       <p>Möchtest du dich direkt einloggen, um deine Aura, dein Level und deinen Fortschritt sicher zu speichern?</p>
       <button class="btn btn-primary" id="welcomeAuthBtn" style="margin-bottom:10px;">Einloggen / Account erstellen</button>
       <button class="btn btn-ghost" id="welcomeGuestBtn">Erstmal als Gast spielen</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlayUsername">
+    <div class="modal-card">
+      <div style="font-size:42px; margin-bottom:8px;">🧑‍🚀</div>
+      <h2>Wähle deinen Benutzernamen</h2>
+      <p>Dein Account wurde bisher nur über eine UID geführt. Wähle jetzt einen eindeutigen Benutzernamen — er ersetzt deine UID ab sofort überall in der App.</p>
+      <input type="text" id="chooseUsernameInput" class="input-field" placeholder="Benutzername" maxlength="20">
+      <button class="btn btn-primary" id="chooseUsernameBtn">Bestätigen</button>
     </div>
   </div>
 
@@ -944,7 +1044,7 @@
   </div>
 
   <div class="flash" id="flash"></div>
-  <div class="toast" id="toast">UID kopiert!</div>
+  <div class="toast" id="toast">Gespeichert!</div>
 </div>
 
 <script>
@@ -987,6 +1087,8 @@
     console.warn("Firebase Init Hinweis:", e);
   }
 
+  function db(){ return firebase.firestore(); }
+
   /* ========================================================
      STORAGE & PROFILE
   ======================================================== */
@@ -1009,7 +1111,10 @@
     hasSeenWelcome: false,
     streak: 0,
     lastStreakDate: null,
-    streakDates: []
+    streakDates: [],
+    username: null,
+    usernameLower: null,
+    following: []
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -1022,7 +1127,8 @@
           ...DEFAULT_PROFILE, 
           ...parsed,
           unlockedThemes: parsed.unlockedThemes || ["black"],
-          inventory: { ...DEFAULT_PROFILE.inventory, ...(parsed.inventory || {}) }
+          inventory: { ...DEFAULT_PROFILE.inventory, ...(parsed.inventory || {}) },
+          following: parsed.following || []
         };
       }
     }catch(e){
@@ -1034,7 +1140,7 @@
     try{
       localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
       if(firebaseInitialized && currentUser){
-        firebase.firestore().collection("users").doc(currentUser.uid).set(profile, { merge: true })
+        db().collection("users").doc(currentUser.uid).set(profile, { merge: true })
           .catch(err => console.error("Firestore Save Error:", err));
       }
     }catch(e){ }
@@ -1050,6 +1156,184 @@
   function isSuperUser(){
     const activeUid = (currentUser && currentUser.uid) ? currentUser.uid : profile.uid;
     return SUPER_USER_UIDS.includes(activeUid);
+  }
+
+  /* ========================================================
+     USERNAMES (NEU)
+  ======================================================== */
+  function normalizeUsername(u){
+    return (u || "").trim().toLowerCase().replace(/\s+/g, "");
+  }
+  function isValidUsername(lower){
+    return /^[a-z0-9_]{3,20}$/.test(lower);
+  }
+
+  // Reserviert einen Benutzernamen für die uid in der öffentlichen "usernames"-Sammlung
+  // und speichert ihn im Profil. Wirft einen Fehler, falls der Name ungültig/vergeben ist.
+  async function reserveUsername(uid, rawUsername){
+    if(!firebaseInitialized) throw new Error("Firebase ist nicht konfiguriert.");
+    const lower = normalizeUsername(rawUsername);
+    if(!isValidUsername(lower)){
+      throw new Error("Benutzername muss 3-20 Zeichen sein (a-z, 0-9, _).");
+    }
+    const ref = db().collection("usernames").doc(lower);
+    const existing = await ref.get();
+    if(existing.exists && existing.data().uid !== uid){
+      throw new Error("Dieser Benutzername ist bereits vergeben.");
+    }
+    await ref.set({ uid, username: rawUsername.trim() });
+    profile.username = rawUsername.trim();
+    profile.usernameLower = lower;
+    saveProfile();
+  }
+
+  function checkUsernameRequired(){
+    if(currentUser && !profile.username){
+      $("chooseUsernameInput").value = "";
+      $("overlayUsername").classList.add("show");
+    } else {
+      $("overlayUsername").classList.remove("show");
+    }
+  }
+
+  /* ========================================================
+     FREUNDE / FOLLOWING (NEU)
+  ======================================================== */
+  async function addFriendByUsername(rawUsername){
+    if(!firebaseInitialized) return showToast("Firebase ist nicht konfiguriert.");
+    if(!currentUser) return showToast("Bitte zuerst einloggen.");
+    const lower = normalizeUsername(rawUsername);
+    if(!lower) return;
+    try{
+      const unameDoc = await db().collection("usernames").doc(lower).get();
+      if(!unameDoc.exists) return showToast("Benutzername nicht gefunden.");
+      const targetUid = unameDoc.data().uid;
+      if(targetUid === currentUser.uid) return showToast("Das bist du selbst 🙂");
+      profile.following = profile.following || [];
+      if(profile.following.includes(targetUid)) return showToast("Du folgst dieser Person bereits.");
+      profile.following.push(targetUid);
+      saveProfile();
+      showToast("Freund hinzugefügt!");
+      renderProfile();
+    }catch(err){
+      showToast("Fehler beim Hinzufügen.");
+      console.error(err);
+    }
+  }
+
+  async function followBack(targetUid){
+    profile.following = profile.following || [];
+    if(!profile.following.includes(targetUid)) profile.following.push(targetUid);
+    saveProfile();
+    renderProfile();
+  }
+
+  async function fetchFollowers(uid){
+    try{
+      const snap = await db().collection("users").where("following", "array-contains", uid).get();
+      return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+    }catch(err){
+      console.error("Follower Fehler:", err);
+      return [];
+    }
+  }
+
+  async function fetchUserDoc(uid){
+    try{
+      const doc = await db().collection("users").doc(uid).get();
+      if(!doc.exists) return null;
+      return { uid, ...doc.data() };
+    }catch(err){
+      return null;
+    }
+  }
+
+  async function renderProfile(){
+    const loggedIn = !!(firebaseInitialized && currentUser);
+    $("profileLoggedOutMsg").style.display = loggedIn ? "none" : "block";
+    $("profileLoggedInContent").style.display = loggedIn ? "block" : "none";
+    $("profileUsernameDisplay").textContent = profile.username ? "@" + profile.username : "Gast";
+    $("profileAuraVal").textContent = profile.totalAura;
+    $("profileLevel").textContent = profile.level;
+    $("profileStreak").textContent = profile.streak || 0;
+
+    if(!loggedIn){
+      $("profileFriendsCount").textContent = "0";
+      return;
+    }
+
+    const following = profile.following || [];
+    $("profileFriendsCount").textContent = following.length;
+
+    const followersData = await fetchFollowers(currentUser.uid);
+    const followerUids = followersData.map(f => f.uid);
+
+    const followBackListEl = $("followBackList");
+    const notFollowedBack = followersData.filter(f => !following.includes(f.uid));
+    followBackListEl.innerHTML = "";
+    if(notFollowedBack.length === 0){
+      followBackListEl.innerHTML = "<div class='empty-hint'>Niemand wartet gerade auf ein Follow-back.</div>";
+    } else {
+      notFollowedBack.forEach(f => {
+        const row = document.createElement("div");
+        row.className = "friend-row";
+        row.innerHTML = `<span class="name">@${f.username || "?"}</span>`;
+        const btn = document.createElement("button");
+        btn.className = "btn btn-primary btn-small";
+        btn.textContent = "Zurückfolgen";
+        btn.addEventListener("click", () => followBack(f.uid));
+        row.appendChild(btn);
+        followBackListEl.appendChild(row);
+      });
+    }
+
+    const followingListEl = $("followingList");
+    followingListEl.innerHTML = "";
+    if(following.length === 0){
+      followingListEl.innerHTML = "<div class='empty-hint'>Du folgst noch niemandem.</div>";
+    } else {
+      for(const uid of following){
+        const u = await fetchUserDoc(uid);
+        const mutual = followerUids.includes(uid);
+        const row = document.createElement("div");
+        row.className = "friend-row";
+        row.innerHTML = `<span class="name">@${u ? (u.username || "?") : "?"}</span><span>${mutual ? "🤝 gegenseitig" : "wartet auf Follow-back"}</span>`;
+        followingListEl.appendChild(row);
+      }
+    }
+  }
+
+  async function renderLeaderboard(){
+    const loggedIn = !!(firebaseInitialized && currentUser);
+    $("leaderboardLoggedOutMsg").style.display = loggedIn ? "none" : "block";
+    $("leaderboardEmptyMsg").style.display = "none";
+    $("leaderboardList").innerHTML = "";
+    if(!loggedIn) return;
+
+    const following = profile.following || [];
+    const followersData = await fetchFollowers(currentUser.uid);
+    const followerUids = followersData.map(f => f.uid);
+    const mutualUids = following.filter(uid => followerUids.includes(uid));
+
+    if(mutualUids.length === 0){
+      $("leaderboardEmptyMsg").style.display = "block";
+      return;
+    }
+
+    const entries = [{ uid: currentUser.uid, username: profile.username, totalAura: profile.totalAura || 0 }];
+    for(const uid of mutualUids){
+      const u = await fetchUserDoc(uid);
+      if(u) entries.push({ uid: u.uid, username: u.username, totalAura: u.totalAura || 0 });
+    }
+    entries.sort((a,b) => b.totalAura - a.totalAura);
+
+    const list = $("leaderboardList");
+    entries.forEach((e, i) => {
+      const row = document.createElement("div");
+      row.className = "lb-row" + (e.uid === currentUser.uid ? " me" : "");
+      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-name">@${e.username || "?"}</div><div class="lb-aura">⚡ ${e.totalAura}</div>`;
+      list.appendChild(row);
+    });
   }
 
   /* ========================================================
@@ -1340,19 +1624,23 @@
   const app = $("app");
   const screens = {
     home: $("screen-home"), shop: $("screen-shop"), locked: $("screen-locked"), 
-    lesson: $("screen-lesson"), result: $("screen-result"), settings: $("screen-settings")
+    lesson: $("screen-lesson"), result: $("screen-result"), settings: $("screen-settings"),
+    profile: $("screen-profile"), leaderboard: $("screen-leaderboard")
   };
+  const NAV_SCREENS = ["home", "shop", "leaderboard", "profile"];
 
   function showScreen(name){
     Object.values(screens).forEach(s => s.classList.remove("active"));
     screens[name].classList.add("active");
     
-    // Navigation Leiste nur im Hauptmenü/Shop anzeigen
+    // Navigation Leiste nur im Hauptmenü/Shop/Rangliste/Profil anzeigen
     const nav = $("bottomNav");
-    if(name === "home" || name === "shop"){
+    if(NAV_SCREENS.includes(name)){
       nav.style.display = "flex";
       $("navHome").classList.toggle("active", name === "home");
       $("navShop").classList.toggle("active", name === "shop");
+      $("navLeaderboard").classList.toggle("active", name === "leaderboard");
+      $("navProfile").classList.toggle("active", name === "profile");
     } else {
       nav.style.display = "none";
     }
@@ -1366,6 +1654,27 @@
   $("navShop").addEventListener("click", () => {
     showScreen("shop");
     renderShop();
+  });
+
+  $("navLeaderboard").addEventListener("click", () => {
+    showScreen("leaderboard");
+    renderLeaderboard();
+  });
+
+  $("navProfile").addEventListener("click", () => {
+    showScreen("profile");
+    renderProfile();
+  });
+
+  $("goToProfileBtn").addEventListener("click", () => {
+    showScreen("profile");
+    renderProfile();
+  });
+
+  $("addFriendBtn").addEventListener("click", () => {
+    const val = $("addFriendInput").value;
+    addFriendByUsername(val);
+    $("addFriendInput").value = "";
   });
 
   function showToast(msg){
@@ -1496,6 +1805,8 @@
     $("themeToggle").textContent = icon;
     $("themeToggleShop").textContent = icon;
     $("themeToggleLocked").textContent = icon;
+    $("themeToggleProfile").textContent = icon;
+    $("themeToggleLeaderboard").textContent = icon;
     if($("themeSelect")) $("themeSelect").value = t;
   }
   
@@ -1512,6 +1823,8 @@
   $("themeToggle").addEventListener("click", toggleTheme);
   $("themeToggleShop").addEventListener("click", toggleTheme);
   $("themeToggleLocked").addEventListener("click", toggleTheme);
+  $("themeToggleProfile").addEventListener("click", toggleTheme);
+  $("themeToggleLeaderboard").addEventListener("click", toggleTheme);
   
   $("themeSelect").addEventListener("change", (e) => {
     const val = e.target.value;
@@ -1531,9 +1844,10 @@
   ======================================================== */
   function renderSettings(){
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
-    const activeUid = (currentUser && currentUser.uid) ? currentUser.uid : profile.uid;
-    const displayUid = isSuperUser() ? activeUid + " ⭐ (Super)" : activeUid;
-    $("uidTextDisplay").textContent = displayUid;
+    const displayName = profile.username
+      ? "@" + profile.username + (isSuperUser() ? " ⭐" : "")
+      : "Nicht angemeldet / Gast";
+    $("usernameTextDisplay").textContent = displayName;
     
     // Update Theme Dropdown mit Schloss-Symbolen
     const unlocked = profile.unlockedThemes || ["black"];
@@ -1548,6 +1862,7 @@
 
     if(currentUser){
       $("authTitle").textContent = "Angemeldet als: " + currentUser.email;
+      $("authUsername").style.display = "none";
       $("authEmail").style.display = "none";
       $("authPassword").style.display = "none";
       $("loginBtn").style.display = "none";
@@ -1555,6 +1870,7 @@
       $("logoutBtn").style.display = "block";
     } else {
       $("authTitle").textContent = "Account / Login";
+      $("authUsername").style.display = "block";
       $("authEmail").style.display = "block";
       $("authPassword").style.display = "block";
       $("loginBtn").style.display = "block";
@@ -1591,15 +1907,6 @@
     if(e.target.id === "overlayStreak") $("overlayStreak").classList.remove("show");
   });
 
-  $("copyUidBtn").addEventListener("click", () => {
-    const activeUid = (currentUser && currentUser.uid) ? currentUser.uid : profile.uid;
-    navigator.clipboard.writeText(activeUid).then(() => {
-      showToast("UID kopiert!");
-    }).catch(() => {
-      showToast("UID: " + activeUid);
-    });
-  });
-
   /* Welcome Modal Event Listeners */
   $("welcomeAuthBtn").addEventListener("click", () => {
     profile.hasSeenWelcome = true;
@@ -1616,6 +1923,21 @@
     showToast("Gastmodus: Fortschritt nicht gesichert");
   });
 
+  /* Benutzername-Pflicht-Modal (für alte Accounts ohne Benutzername) */
+  $("chooseUsernameBtn").addEventListener("click", async () => {
+    if(!currentUser) return;
+    const val = $("chooseUsernameInput").value;
+    try{
+      await reserveUsername(currentUser.uid, val);
+      $("overlayUsername").classList.remove("show");
+      showToast("Benutzername gesetzt!");
+      renderSettings();
+      renderProfile();
+    }catch(err){
+      alert(err.message);
+    }
+  });
+
   /* Firebase Auth & Realtime Synchronization Listener */
   if(firebaseInitialized){
     firebase.auth().onAuthStateChanged((user) => {
@@ -1627,22 +1949,26 @@
       }
 
       if(user){
-        syncUnsubscribe = firebase.firestore().collection("users").doc(user.uid).onSnapshot((doc) => {
+        syncUnsubscribe = db().collection("users").doc(user.uid).onSnapshot((doc) => {
           if(doc.exists){
             const cloudData = doc.data();
             profile = { 
               ...DEFAULT_PROFILE, 
               ...cloudData,
               unlockedThemes: cloudData.unlockedThemes || ["black"],
-              inventory: { ...DEFAULT_PROFILE.inventory, ...(cloudData.inventory || {}) }
+              inventory: { ...DEFAULT_PROFILE.inventory, ...(cloudData.inventory || {}) },
+              following: cloudData.following || []
             };
             checkStreakDecay();
             applyTheme();
             renderHome();
+            checkUsernameRequired();
           } else {
             saveProfile();
           }
         }, (err) => console.error("Firestore Sync Fehler:", err));
+      } else {
+        $("overlayUsername").classList.remove("show");
       }
       renderSettings();
     });
@@ -1661,10 +1987,19 @@
     if(!firebaseInitialized) return showToast("Firebase API Key nicht konfiguriert");
     const email = $("authEmail").value;
     const pass = $("authPassword").value;
+    const uname = $("authUsername").value;
+    if(!isValidUsername(normalizeUsername(uname))){
+      return alert("Bitte gib einen gültigen Benutzernamen ein (3-20 Zeichen: a-z, 0-9, _).");
+    }
     firebase.auth().createUserWithEmailAndPassword(email, pass)
-      .then(() => {
-        showToast("Account erstellt!");
-        saveProfile();
+      .then(async (cred) => {
+        try{
+          await reserveUsername(cred.user.uid, uname);
+          showToast("Account erstellt!");
+          saveProfile();
+        }catch(err){
+          alert(err.message);
+        }
       })
       .catch((err) => alert(err.message));
   });
@@ -1679,6 +2014,7 @@
       currentUser = null;
       showToast("Ausgeloggt");
       loadProfile();
+      $("overlayUsername").classList.remove("show");
       renderSettings();
       renderHome();
     });

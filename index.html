@@ -679,6 +679,12 @@
   .empty-hint{text-align:center; opacity:.7; font-size:13px; margin-top:10px; line-height:1.5;}
   .add-friend-row{display:flex; gap:8px; align-items:flex-start;}
   .add-friend-row .input-field{margin-bottom:0;}
+  .btn-duel{
+    background:#22c55e !important; color:#fff !important;
+    box-shadow: 0 6px 16px -6px rgba(34,197,94,.6);
+  }
+  .btn-duel *{ color:#fff !important; }
+  .duel-outcome{font-size:11.5px; opacity:.85; line-height:1.4;}
 
   /* ---------- leaderboard tabs (NEU) ---------- */
   .lb-tabs{
@@ -929,6 +935,9 @@
 
       <div class="shop-section-title">Du folgst</div>
       <div id="followingList"></div>
+
+      <div class="shop-section-title">⚔️ Deine Duelle</div>
+      <div id="duelsList"></div>
     </div>
   </section>
 
@@ -1570,8 +1579,176 @@
         const row = document.createElement("div");
         row.className = "friend-row";
         row.innerHTML = `<span class="name">@${u ? (u.username || "?") : "?"}</span><span>${mutual ? "🤝 gegenseitig" : "wartet auf Follow-back"}</span>`;
+        const duelBtn = document.createElement("button");
+        duelBtn.className = "btn btn-duel btn-small";
+        duelBtn.textContent = "⚔️ 1vs1";
+        duelBtn.addEventListener("click", () => startDuel(uid, u ? (u.username || "?") : "?"));
+        row.appendChild(duelBtn);
         followingListEl.appendChild(row);
       }
+    }
+
+    renderDuels();
+  }
+
+  /* ========================================================
+     1vs1 DUELLE (NEU)
+     Beide Spieler schreiben NUR in ihre eigenen Dokumente (nie ins Konto
+     des anderen) - genau wie beim Einladungslink, um Firestore-Regeln
+     sauber einzuhalten. Der Duell-Datensatz selbst (Fragen, Zeitlimit) wird
+     einmalig vom Herausforderer angelegt und danach nie mehr verändert;
+     jeder Spieler legt sein eigenes Ergebnis in einem eigenen, an seine UID
+     gebundenen Dokument ab.
+  ======================================================== */
+  async function startDuel(opponentUid, opponentUsername){
+    if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
+    if(opponentUid === currentUser.uid) return showToast("Das bist du selbst 🙂");
+    const activeIdx = tierIndexForLevel(profile.level);
+    const tier = TIERS[activeIdx];
+    const questions = [];
+    const seenTexts = new Set();
+    for(let i=0;i<QUESTIONS_PER_LESSON;i++){
+      let q = tier.gen();
+      let attempts = 0;
+      while(seenTexts.has(q.text) && attempts < 25){ q = tier.gen(); attempts++; }
+      seenTexts.add(q.text);
+      questions.push(q);
+    }
+    try{
+      const duelRef = await db().collection("duels").add({
+        challengerUid: currentUser.uid,
+        challengerUsername: profile.username,
+        opponentUid,
+        opponentUsername,
+        tierName: tier.name,
+        timeMs: tier.timeMs,
+        questions,
+        createdAt: Date.now()
+      });
+      showToast(`⚔️ Duell gegen @${opponentUsername} gestartet!`);
+      beginDuelLesson({
+        id: duelRef.id, timeMs: tier.timeMs, tierName: tier.name, questions,
+        opponentUid, opponentUsername
+      });
+    }catch(err){
+      console.error("Duell erstellen Fehler:", err);
+      showToast("Duell konnte nicht erstellt werden.");
+    }
+  }
+
+  function playDuel(duel){
+    const isChallenger = duel.challengerUid === currentUser.uid;
+    beginDuelLesson({
+      id: duel.id, timeMs: duel.timeMs, tierName: duel.tierName, questions: duel.questions,
+      opponentUid: isChallenger ? duel.opponentUid : duel.challengerUid,
+      opponentUsername: isChallenger ? duel.opponentUsername : duel.challengerUsername
+    });
+  }
+
+  function beginDuelLesson(duelCtx){
+    lesson = {
+      tier: { name: "⚔️ Duell: " + duelCtx.tierName, timeMs: duelCtx.timeMs, normalAura: 0, editAura: 0 },
+      isMainProgression: false,
+      isDuel: true,
+      duelId: duelCtx.id,
+      duelOpponentUid: duelCtx.opponentUid,
+      duelOpponentUsername: duelCtx.opponentUsername,
+      questions: duelCtx.questions,
+      index: 0, correct: 0, aura: 0, answer: "", locked: false
+    };
+    lesson.duelStartedAt = performance.now();
+    showScreen("lesson");
+    renderQuestion();
+  }
+
+  async function finishDuelLesson(){
+    const elapsedMs = Math.max(1, Math.round(performance.now() - lesson.duelStartedAt));
+    const correct = lesson.correct;
+    const duelId = lesson.duelId;
+    const oppUsername = lesson.duelOpponentUsername;
+    try{
+      await db().collection("duelResults").doc(`${duelId}_${currentUser.uid}`).set({
+        duelId, uid: currentUser.uid, username: profile.username,
+        correct, timeMs: elapsedMs, finishedAt: Date.now()
+      });
+    }catch(err){
+      console.error("Duell-Ergebnis speichern Fehler:", err);
+    }
+
+    $("resultEmoji").textContent = "⚔️";
+    $("resultTitle").textContent = "Duell gespielt!";
+    $("resultSub").textContent = `${correct}/10 richtig in ${(elapsedMs/1000).toFixed(1)}s gegen @${oppUsername}. Ergebnis erscheint in deinem Profil, sobald er/sie auch fertig ist.`;
+    $("resCorrect").textContent = `${correct}/${QUESTIONS_PER_LESSON}`;
+    $("resAura").textContent = `+0`;
+    $("resLevel").textContent = profile.level;
+    showScreen("result");
+  }
+
+  async function renderDuels(){
+    const wrap = $("duelsList");
+    if(!wrap) return;
+    wrap.innerHTML = "";
+    if(!firebaseInitialized || !currentUser) return;
+
+    try{
+      const [sentSnap, receivedSnap] = await Promise.all([
+        db().collection("duels").where("challengerUid", "==", currentUser.uid).get(),
+        db().collection("duels").where("opponentUid", "==", currentUser.uid).get()
+      ]);
+      const seen = new Set();
+      const duels = [];
+      [...sentSnap.docs, ...receivedSnap.docs].forEach(d => {
+        if(seen.has(d.id)) return;
+        seen.add(d.id);
+        duels.push({ id: d.id, ...d.data() });
+      });
+      duels.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+      if(duels.length === 0){
+        wrap.innerHTML = "<div class='empty-hint'>Noch keine Duelle. Fordere oben einen Freund heraus!</div>";
+        return;
+      }
+
+      for(const duel of duels.slice(0, 15)){
+        const isChallenger = duel.challengerUid === currentUser.uid;
+        const oppUid = isChallenger ? duel.opponentUid : duel.challengerUid;
+        const oppUsername = isChallenger ? duel.opponentUsername : duel.challengerUsername;
+
+        const [myResSnap, oppResSnap] = await Promise.all([
+          db().collection("duelResults").doc(`${duel.id}_${currentUser.uid}`).get(),
+          db().collection("duelResults").doc(`${duel.id}_${oppUid}`).get()
+        ]);
+        const myRes = myResSnap.exists ? myResSnap.data() : null;
+        const oppRes = oppResSnap.exists ? oppResSnap.data() : null;
+
+        const row = document.createElement("div");
+        row.className = "friend-row";
+
+        if(!myRes){
+          row.innerHTML = `<span class="name">⚔️ @${oppUsername}</span>`;
+          const btn = document.createElement("button");
+          btn.className = "btn btn-duel btn-small";
+          btn.textContent = "Annehmen";
+          btn.addEventListener("click", () => playDuel(duel));
+          row.appendChild(btn);
+        } else if(!oppRes){
+          row.innerHTML = `<span class="name">⚔️ @${oppUsername}</span><span class="duel-outcome">Wartet auf Gegner …</span>`;
+        } else {
+          let outcome;
+          if(myRes.correct !== oppRes.correct){
+            outcome = myRes.correct > oppRes.correct ? "🏆 Gewonnen" : "❌ Verloren";
+          } else if(myRes.timeMs !== oppRes.timeMs){
+            outcome = myRes.timeMs < oppRes.timeMs ? "🏆 Gewonnen" : "❌ Verloren";
+          } else {
+            outcome = "🤝 Unentschieden";
+          }
+          row.innerHTML = `<span class="name">⚔️ @${oppUsername}</span><span class="duel-outcome">${outcome} · ${myRes.correct}/10 in ${(myRes.timeMs/1000).toFixed(1)}s vs ${oppRes.correct}/10 in ${(oppRes.timeMs/1000).toFixed(1)}s</span>`;
+        }
+        wrap.appendChild(row);
+      }
+    }catch(err){
+      console.error("Duelle laden Fehler:", err);
+      wrap.innerHTML = "<div class='empty-hint'>Duelle konnten nicht geladen werden.</div>";
     }
   }
 
@@ -1584,7 +1761,7 @@
     entries.forEach((e, i) => {
       const row = document.createElement("div");
       row.className = "lb-row" + (e.uid === meUid ? " me" : "");
-      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-name">@${e.username || "?"}</div><div class="lb-aura">⚡ ${e.totalAura}</div>`;
+      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-name">@${e.username || "?"}</div><div class="lb-aura">🎯 Lvl ${e.level}</div>`;
       list.appendChild(row);
     });
   }
@@ -1607,12 +1784,12 @@
       return;
     }
 
-    const entries = [{ uid: currentUser.uid, username: profile.username, totalAura: profile.totalAura || 0 }];
+    const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 1 }];
     for(const uid of mutualUids){
       const u = await fetchUserDoc(uid);
-      if(u) entries.push({ uid: u.uid, username: u.username, totalAura: u.totalAura || 0 });
+      if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 1 });
     }
-    entries.sort((a,b) => b.totalAura - a.totalAura);
+    entries.sort((a,b) => b.level - a.level);
     renderLeaderboardRows(entries, currentUser.uid);
   }
 
@@ -1628,13 +1805,13 @@
 
     try{
       const snap = await db().collection("users")
-        .orderBy("totalAura", "desc")
+        .orderBy("level", "desc")
         .limit(GLOBAL_LEADERBOARD_LIMIT)
         .get();
       let entries = snap.docs
         .map(d => ({ uid: d.id, ...d.data() }))
-        .filter(e => !!e.username)
-        .map(e => ({ uid: e.uid, username: e.username, totalAura: e.totalAura || 0 }));
+        .filter(e => !!e.username && (e.level || 0) > 0) // Level 0 wird im globalen Leaderboard nicht angezeigt
+        .map(e => ({ uid: e.uid, username: e.username, level: e.level || 1 }));
 
       if(entries.length === 0){
         $("leaderboardEmptyMsg").textContent = "Noch keine globalen Einträge vorhanden.";
@@ -1763,7 +1940,8 @@
   // Zwei tägliche Missionen: 3 bzw. 5 Lektionen an einem Tag abschließen.
   const DAILY_MISSION_DEFS = [
     { id: "m3", label: "Mache 3 Lektionen", target: 3 },
-    { id: "m5", label: "Mache 5 Lektionen", target: 5 }
+    { id: "m5", label: "Mache 5 Lektionen", target: 5 },
+    { id: "m10", label: "Mache 10 Lektionen", target: 10 }
   ];
   // Aura-Belohnung je Truhen-Stufe (statt Euro, wie besprochen).
   const CHEST_REWARDS = { standard: 50, epic: 100, legendary: 200 };
@@ -1932,8 +2110,21 @@
     const reward = CHEST_REWARDS[chest.tier] || CHEST_REWARDS.standard;
     chest.claimed = true;
     profile.totalAura += reward;
+
+    // Truhen-Bonus-Item je Stufe (Aura gibt es bei jeder Stufe zusätzlich dazu):
+    // Standard -> 1 Leben (nur wenn kein Super-Nutzer, die haben eh volle Leben),
+    // Episch -> 2x Aura-Booster für 15 Minuten, Legendär -> kein Extra-Item.
+    let bonusText = "";
+    if(chest.tier === "standard" && !isSuperUser()){
+      profile.lives = Math.min(MAX_LIVES, profile.lives + 1);
+      bonusText = " + 1 Leben";
+    } else if(chest.tier === "epic"){
+      profile.inventory.doubleAuraUntil = Date.now() + (15 * 60 * 1000);
+      bonusText = " + 2× Aura-Booster (15 Min)";
+    }
+
     saveProfile();
-    showToast(`⚡ +${reward} Aura eingesammelt!`);
+    showToast(`⚡ +${reward} Aura${bonusText} eingesammelt!`);
     renderMissions();
     updateMissionsBadge();
     renderHome();
@@ -2095,6 +2286,11 @@
       ...(cloudP.claimedReferralRewardIds || [])
     ]));
 
+    // Benutzername: falls dieses Gerät (noch) keinen kennt (z.B. frisch/lokal
+    // geleert), den aus der Cloud übernehmen statt ihn zu verlieren.
+    merged.username = localP.username || cloudP.username || null;
+    merged.usernameLower = localP.usernameLower || cloudP.usernameLower || null;
+
     // Leben hängen von der Zeit ab (regenerieren stündlich) - hier gewinnt daher
     // nicht der höhere, sondern der zuletzt aktualisierte Stand.
     if((cloudP.lastLifeChangeAt || 0) > (localP.lastLifeChangeAt || 0)){
@@ -2146,23 +2342,41 @@
   function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
 
   // AURA REGELN HIER HINTERLEGT (normalAura, editAura)
-  // Hinweis: Einmaleins-Aufgaben (mult/bigMult) gibt es NUR in den ersten drei,
-  // ganz einfachen Tiers. Ab "Plus & Minus" sind es zufällig gemischte Aufgaben
-  // aus allen bis dahin freigeschalteten Aufgabentypen (kein reines Einmaleins mehr).
-  const TIERS = [
-    {id:"kl_mult", name:"Kleines Einmaleins", icon:"✖️", from:1,  to:3,        timeMs: 8000,  normalAura: 1, editAura: 2, gen: () => multFewOnes(1,5)},
-    {id:"mult",    name:"Einmaleins",         icon:"✳️", from:4,  to:6,        timeMs: 9000,  normalAura: 2, editAura: 4, gen: () => mult(2,10)},
-    {id:"gr_mult", name:"Großes Einmaleins",  icon:"💥", from:7,  to:9,        timeMs: 11000, normalAura: 2, editAura: 5, gen: () => bigMult()},
-    {id:"addsub",  name:"Plus & Minus",       icon:"➕", from:10, to:12,       timeMs: 10000, normalAura: 2, editAura: 5,
-      gen: () => weightedPick([[() => addSub(50), 1]])},
-    {id:"div",     name:"Geteilt",            icon:"➗", from:13, to:15,       timeMs: 12000, normalAura: 2, editAura: 5,
-      gen: () => weightedPick([[() => divide(1,12), 3], [() => addSub(50), 1]])},
-    {id:"frac",    name:"Brüche",             icon:"🍰", from:16, to:18,       timeMs: 15000, normalAura: 3, editAura: 6,
-      gen: () => weightedPick([[() => fraction(), 3], [() => divide(1,12), 1], [() => addSub(50), 1]])},
-    {id:"addsub_p",name:"Plus & Minus Profi", icon:"🧮", from:19, to:21,       timeMs: 14000, normalAura: 3, editAura: 6,
-      gen: () => weightedPick([[() => addSub(100), 3], [() => fraction(), 1], [() => divide(1,12), 1]])},
-    {id:"mix_p",   name:"Gemischt Profi",     icon:"🏆", from:22, to:Infinity, timeMs: 18000, normalAura: 4, editAura: 8, gen: () => mixedHard()}
+  // Hinweis: Einmaleins-Aufgaben (mult/bigMult) gibt es NUR in den ersten Tiers.
+  // Ab "Plus & Minus" sind es zufällig gemischte Aufgaben aus allen bis dahin
+  // freigeschalteten Aufgabentypen (kein reines Einmaleins mehr).
+  // Viele, kleinschrittige Tiers (je 3 Level) statt weniger, großer Sprünge -
+  // dadurch fühlt sich das Leveln ausgewogener an, da man pro Lektion 1 Level
+  // aufsteigt.
+  const LEVELS_PER_TIER = 3;
+  const TIER_DEFS = [
+    {id:"kl_mult",  name:"Kleines Einmaleins",        icon:"✖️",  timeMs: 8000,  normalAura: 1, editAura: 2, gen: () => multFewOnes(1,5)},
+    {id:"mult",     name:"Einmaleins",                icon:"✳️",  timeMs: 8500,  normalAura: 1, editAura: 2, gen: () => mult(2,10)},
+    {id:"mult_m",   name:"Mittleres Einmaleins",      icon:"🔢",  timeMs: 9000,  normalAura: 2, editAura: 3, gen: () => mult(2,12)},
+    {id:"gr_mult",  name:"Großes Einmaleins",         icon:"💥",  timeMs: 10500, normalAura: 2, editAura: 4, gen: () => bigMult()},
+    {id:"blitz_m",  name:"Blitz-Einmaleins",          icon:"⚡",  timeMs: 7000,  normalAura: 2, editAura: 5, gen: () => weightedPick([[() => mult(2,12), 1], [() => bigMult(), 1]])},
+    {id:"addsub_e", name:"Plus & Minus Einsteiger",   icon:"➕",  timeMs: 9000,  normalAura: 2, editAura: 4, gen: () => addSub(20)},
+    {id:"addsub",   name:"Plus & Minus",              icon:"➕",  timeMs: 10000, normalAura: 2, editAura: 5, gen: () => addSub(50)},
+    {id:"addsub_f", name:"Plus & Minus Fortgeschritten", icon:"➕", timeMs: 10000, normalAura: 3, editAura: 5, gen: () => weightedPick([[() => addSub(75), 3], [() => mult(2,12), 1]])},
+    {id:"div_e",    name:"Geteilt Einsteiger",        icon:"➗",  timeMs: 11000, normalAura: 2, editAura: 5, gen: () => divide(1,8)},
+    {id:"div",      name:"Geteilt",                   icon:"➗",  timeMs: 12000, normalAura: 2, editAura: 5, gen: () => weightedPick([[() => divide(1,12), 3], [() => addSub(50), 1]])},
+    {id:"div_p",    name:"Geteilt Profi",             icon:"➗",  timeMs: 12000, normalAura: 3, editAura: 6, gen: () => weightedPick([[() => divide(2,15), 3], [() => addSub(75), 1]])},
+    {id:"frac_e",   name:"Brüche Einsteiger",         icon:"🍰",  timeMs: 13000, normalAura: 2, editAura: 5, gen: () => fractionEasy()},
+    {id:"frac",     name:"Brüche",                    icon:"🍰",  timeMs: 15000, normalAura: 3, editAura: 6, gen: () => weightedPick([[() => fraction(), 3], [() => divide(1,12), 1], [() => addSub(50), 1]])},
+    {id:"mix_ad",   name:"Mix: Plus/Minus & Geteilt", icon:"🔀",  timeMs: 13000, normalAura: 3, editAura: 6, gen: () => weightedPick([[() => addSub(75), 1], [() => divide(2,15), 1]])},
+    {id:"mix_fd",   name:"Mix: Brüche & Geteilt",     icon:"🔀",  timeMs: 14000, normalAura: 3, editAura: 6, gen: () => weightedPick([[() => fraction(), 1], [() => divide(2,15), 1]])},
+    {id:"addsub_p", name:"Plus & Minus Profi",        icon:"🧮",  timeMs: 14000, normalAura: 3, editAura: 6, gen: () => weightedPick([[() => addSub(100), 3], [() => fraction(), 1], [() => divide(1,12), 1]])},
+    {id:"gr_mix",   name:"Großer Mix",                icon:"🌀",  timeMs: 15000, normalAura: 3, editAura: 7, gen: () => mixedHard()},
+    {id:"blitz_p",  name:"Blitz-Profi",               icon:"⚡",  timeMs: 10000, normalAura: 4, editAura: 7, gen: () => mixedHard()},
+    {id:"frac_p",   name:"Bruch-Profi",               icon:"🍰",  timeMs: 16000, normalAura: 4, editAura: 8, gen: () => fractionHard()},
+    {id:"kopf_m",   name:"Kopfrechnen-Meister",       icon:"🧠",  timeMs: 11000, normalAura: 4, editAura: 8, gen: () => mixedHard()},
+    {id:"mix_p",    name:"Gemischt Profi",            icon:"🏆",  timeMs: 18000, normalAura: 4, editAura: 8, gen: () => mixedHard()}
   ];
+  const TIERS = TIER_DEFS.map((def, i) => ({
+    ...def,
+    from: i * LEVELS_PER_TIER + 1,
+    to: (i === TIER_DEFS.length - 1) ? Infinity : (i + 1) * LEVELS_PER_TIER
+  }));
 
   function tierIndexForLevel(level){
     for(let i=0;i<TIERS.length;i++){ if(level >= TIERS[i].from && level <= TIERS[i].to) return i; }
@@ -2222,9 +2436,29 @@
     const n = c * k;
     return { text: `${b}⁄${c} von ${n}`, answer: b * k };
   }
+  // Einfachere Bruch-Variante (kleinere Nenner, kleinere Zielzahlen) für den
+  // "Brüche Einsteiger"-Tier.
+  function fractionEasy(){
+    const denoms = [2,4,5,10];
+    const c = denoms[randInt(0, denoms.length-1)];
+    const b = randInt(1, c-1);
+    const k = randInt(2, 8);
+    const n = c * k;
+    return { text: `${b}⁄${c} von ${n}`, answer: b * k };
+  }
+  // Schwierigere Bruch-Variante (mehr Nenner, größere Zielzahlen) für den
+  // "Bruch-Profi"-Tier.
+  function fractionHard(){
+    const denoms = [3,4,5,6,7,8,9,10,12];
+    const c = denoms[randInt(0, denoms.length-1)];
+    const b = randInt(1, c-1);
+    const k = randInt(4, 20);
+    const n = c * k;
+    return { text: `${b}⁄${c} von ${n}`, answer: b * k };
+  }
   function mixedHard(){
-    // Höchster Tier: Zufallsmix aus allen "Profi"-Aufgabentypen (bewusst ohne
-    // reines Einmaleins, das bleibt den ganz einfachen Tiers vorbehalten).
+    // Zufallsmix aus allen "Profi"-Aufgabentypen (bewusst ohne reines
+    // Einmaleins, das bleibt den ganz einfachen Tiers vorbehalten).
     return weightedPick([
       [() => addSub(100), 1],
       [() => divide(2,15), 1],
@@ -3081,7 +3315,12 @@
 
     let delay = 650;
 
-    if(isCorrect){
+    if(lesson.isDuel){
+      // Im Duell zählt nur Tempo & Richtigkeit - keine Leben, keine
+      // Aura-/Meme-Overlays, die das Rennen ausbremsen würden.
+      if(isCorrect) lesson.correct++;
+      delay = 250;
+    } else if(isCorrect){
       lesson.correct++;
       
       // Multiplikator für 2x Aura Prüfen
@@ -3122,6 +3361,15 @@
 
   function advance(){
     renderHearts($("lessonHearts"), profile.lives);
+    if(lesson.isDuel){
+      lesson.index++;
+      if(lesson.index >= QUESTIONS_PER_LESSON){
+        finishDuelLesson();
+        return;
+      }
+      renderQuestion();
+      return;
+    }
     if(profile.lives <= 0 && !isSuperUser()){
       finishLesson(false);
       return;

@@ -4,7 +4,7 @@
 <style>html, body { background-color: #000000; color: #ffffff; margin: 0; }</style>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>MathEdits</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -111,10 +111,10 @@
     font-family:'Inter',system-ui,sans-serif;
     display:flex;
     justify-content:center;
-    min-height:100vh;
-    min-height:100dvh;
+    height:100vh;
+    height:100dvh;
     transition: background .35s ease, color .35s ease;
-    overflow-x:hidden;
+    overflow:hidden;
   }
   
   h1, h2, h3, h4, p, span, div, label, input, button {
@@ -127,13 +127,13 @@
   .app{
     width:100%;
     max-width:460px;
-    min-height:100vh;
-    min-height:100dvh;
+    height:100vh;
+    height:100dvh;
     display:flex;
     flex-direction:column;
     position:relative;
     background: radial-gradient(circle at 50% -10%, var(--bg-soft), var(--bg) 55%);
-    padding-bottom: 70px; /* Platz für die untere Navigation */
+    overflow:hidden;
   }
   .app::before {
     content: "";
@@ -143,9 +143,23 @@
     z-index: 100;
   }
 
-  .screen{display:none; flex-direction:column; flex:1; padding:14px 16px 14px;}
+  /* Jeder Screen scrollt bei Bedarf selbst innerhalb der festen App-Höhe -
+     so bleibt z.B. der "Lektion starten"-Button immer erreichbar, egal wie
+     viel Platz Browser-Leisten (iPad/Safari/Chrome etc.) gerade wegnehmen. */
+  .screen{
+    display:none; flex-direction:column; flex:1; min-height:0;
+    padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
   .screen.active{display:flex;}
-  #screen-lesson{padding:12px 14px 10px; justify-content:space-between;}
+  #screen-lesson{padding:12px 14px calc(10px + env(safe-area-inset-bottom)); justify-content:space-between;}
+
+  /* Extra Platz unten bei Screens mit sichtbarer Bottom-Nav, damit Inhalte
+     (z.B. der Start-Button) nie unter der Leiste verschwinden. */
+  #screen-home, #screen-shop, #screen-leaderboard, #screen-profile, #screen-missions{
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  }
 
   /* ---------- top bar ---------- */
   .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
@@ -174,7 +188,8 @@
     transform: translateX(-50%);
     width: 100%;
     max-width: 460px;
-    height: 64px;
+    height: calc(64px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
     background: var(--card);
     border-top: 1px solid var(--border);
     display: flex;
@@ -194,7 +209,7 @@
     color: var(--text);
     opacity: 0.5;
     cursor: pointer;
-    width: 25%;
+    flex: 1;
     height: 100%;
     transition: opacity .2s, transform .15s;
   }
@@ -328,7 +343,7 @@
   .settings-foot{margin-top:auto; text-align:center; color:var(--text); opacity:.8; font-size:12px; padding-top:16px;}
 
   /* ---------- stat pills ---------- */
-  .stats-row{display:flex; gap:10px; margin-bottom:22px;}
+  .stats-row{display:flex; gap:10px; margin-bottom:clamp(10px, 3vh, 22px);}
   .stat-pill{
     flex:1; background:var(--card); border:1px solid var(--border);
     border-radius:var(--radius-card); padding:12px 10px;
@@ -357,15 +372,15 @@
   /* ---------- home hero ---------- */
   .hero{
     display:flex; flex-direction:column; align-items:center;
-    text-align:center; gap:4px; padding:6px 6px 14px;
+    text-align:center; gap:clamp(2px,0.6vh,4px); padding:clamp(0px,0.5vh,6px) 6px clamp(4px,1.5vh,14px);
   }
   .hero h1{
-    font-family:'Baloo 2', sans-serif; font-size:22px; font-weight:800; margin:0 0 4px;
+    font-family:'Baloo 2', sans-serif; font-size:clamp(17px,3.8vh,22px); font-weight:800; margin:0 0 4px;
     line-height:1.15; color: var(--text);
   }
   .hero p{color:var(--text); opacity:.85; font-size:13.5px; max-width:280px; margin:0; line-height:1.4;}
   .level-tag{
-    margin-top:10px; font-size:13px; font-weight:700; color:var(--text);
+    margin-top:clamp(4px,1.2vh,10px); font-size:13px; font-weight:700; color:var(--text);
     background:var(--card); border:1px solid var(--border); padding:6px 14px; border-radius:var(--radius-btn);
   }
   .hero-flame{
@@ -375,10 +390,10 @@
   .hero-flame:active .flame-wrap{transform:scale(.95);}
   .flame-wrap{
     position:relative; display:flex; align-items:center; justify-content:center;
-    width:112px; height:112px; transition:transform .12s;
+    width:clamp(72px,16vh,112px); height:clamp(72px,16vh,112px); transition:transform .12s;
   }
   .flame-icon{
-    font-size:104px; line-height:1;
+    font-size:clamp(64px,15vh,104px); line-height:1;
     filter: drop-shadow(0 10px 22px rgba(255,122,61,.55));
     transition: filter .3s, opacity .3s;
   }
@@ -387,7 +402,7 @@
   }
   .flame-num{
     position:absolute; left:0; right:0; bottom:20%; text-align:center;
-    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:32px;
+    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(22px,5vh,32px);
     color:#fff; text-shadow: 0 2px 6px rgba(0,0,0,.55);
   }
   .hero-flame.off .flame-num{ opacity:.7; }
@@ -420,11 +435,11 @@
 
   /* ---------- level carousel ---------- */
   .levels-heading{
-    font-size:13px; font-weight:700; color:var(--text); opacity:.85; margin:8px 2px 8px;
+    font-size:13px; font-weight:700; color:var(--text); opacity:.85; margin:clamp(2px,1vh,8px) 2px clamp(2px,1vh,8px);
   }
   .tier-carousel{
     display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity;
-    padding:2px 2px 10px; margin:0 -2px;
+    padding:2px 2px clamp(4px,1.5vh,10px); margin:0 -2px;
     -webkit-overflow-scrolling:touch; scrollbar-width:none;
   }
   .tier-carousel::-webkit-scrollbar{display:none;}
@@ -643,6 +658,70 @@
   .empty-hint{text-align:center; opacity:.7; font-size:13px; margin-top:10px; line-height:1.5;}
   .add-friend-row{display:flex; gap:8px; align-items:flex-start;}
   .add-friend-row .input-field{margin-bottom:0;}
+
+  /* ---------- leaderboard tabs (NEU) ---------- */
+  .lb-tabs{
+    display:flex; gap:8px; background:var(--card); border:1px solid var(--border);
+    border-radius:14px; padding:4px; margin-bottom:14px;
+  }
+  .lb-tab{
+    flex:1; text-align:center; padding:9px 0; border-radius:11px; cursor:pointer;
+    font-weight:700; font-size:13px; color:var(--text); opacity:.6; user-select:none;
+    transition: background .15s, opacity .15s;
+  }
+  .lb-tab.active{
+    background:var(--accent); color:var(--accent-text) !important; opacity:1;
+  }
+
+  /* ---------- missions & nav badge (NEU) ---------- */
+  .icon-wrap{position:relative; display:inline-flex;}
+  .nav-badge{
+    position:absolute; top:-5px; right:-9px;
+    background:var(--danger); color:#fff !important;
+    font-size:10px; font-weight:800; min-width:16px; height:16px;
+    border-radius:999px; display:flex; align-items:center; justify-content:center;
+    padding:0 3px; line-height:1; box-shadow:0 0 0 2px var(--card);
+  }
+  .mission-card{
+    background:var(--card); border:1px solid var(--border); border-radius:18px;
+    padding:16px; margin-bottom:12px;
+  }
+  .mission-card .m-title{font-weight:700; font-size:14.5px; margin-bottom:2px;}
+  .mission-card .m-sub{font-size:12px; opacity:.75; margin-bottom:10px;}
+  .mission-progress-track{
+    height:10px; background:var(--card-2); border:1px solid var(--border);
+    border-radius:99px; overflow:hidden; margin-bottom:10px;
+  }
+  .mission-progress-fill{height:100%; background:var(--accent); transition:width .3s ease;}
+  .mission-chest-row{display:flex; align-items:center; gap:12px;}
+  .mission-chest-icon{
+    font-size:32px; width:52px; height:52px; flex-shrink:0;
+    background:var(--card-2); border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .mission-chest-icon.tier-epic{box-shadow:0 0 0 2px var(--accent-2) inset;}
+  .mission-chest-icon.tier-legendary{box-shadow:0 0 0 2px #ffd54d inset;}
+  .mission-chest-actions{flex:1; display:flex; flex-direction:column; gap:6px;}
+  .mission-tier-label{font-size:11.5px; font-weight:800; opacity:.85;}
+
+  /* ---------- chest modal (Startdrop-Stil) ---------- */
+  .chest-modal{ position:relative; }
+  .chest-tap-wrap{
+    position:relative; display:flex; align-items:center; justify-content:center;
+    margin: 10px 0 12px; height:120px;
+  }
+  .chest-tap-icon{
+    font-size:88px; cursor:pointer; user-select:none; transition:transform .12s;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,.35));
+  }
+  .chest-tap-icon:active{ transform:scale(.88); }
+  .chest-tap-icon.maxed{ cursor:default; }
+  .chest-tap-icon.rolling{ animation: chestShake .35s; }
+  @keyframes chestShake{
+    0%,100%{transform:rotate(0);} 25%{transform:rotate(-8deg);} 75%{transform:rotate(8deg);}
+  }
+  .chest-tier-current{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:19px; margin-bottom:2px;}
+  .chest-attempts{font-size:12.5px; font-weight:700; opacity:.75; margin-bottom:16px;}
 </style>
 </head>
 <body>
@@ -831,7 +910,12 @@
 
     <div class="shop-header">
       <h2>🏆 Rangliste</h2>
-      <div style="font-size:12px; opacity:.75;">Nur du und Freunde, die sich gegenseitig folgen</div>
+      <div style="font-size:12px; opacity:.75;" id="lbSubtitle">Nur du und Freunde, die sich gegenseitig folgen</div>
+    </div>
+
+    <div class="lb-tabs">
+      <div class="lb-tab active" id="lbTabFriends">👥 Freunde</div>
+      <div class="lb-tab" id="lbTabGlobal">🌍 Global</div>
     </div>
 
     <div id="leaderboardLoggedOutMsg" class="empty-hint" style="display:none;">
@@ -841,6 +925,23 @@
       Noch keine gegenseitigen Freunde. Adde welche in deinem Profil!
     </div>
     <div id="leaderboardList"></div>
+  </section>
+
+  <!-- ============ MISSIONEN (NEU) ============ -->
+  <section class="screen" id="screen-missions">
+    <div class="topbar">
+      <div class="brand"><span class="dot"></span>MathEdits</div>
+      <div class="topbar-actions">
+        <div class="theme-toggle" id="themeToggleMissions">🌙</div>
+      </div>
+    </div>
+
+    <div class="shop-header">
+      <h2>🎯 Tagesmissionen</h2>
+      <div style="font-size:12px; opacity:.75;">Jeden Tag neu · Lektionen abschließen für Truhen</div>
+    </div>
+
+    <div id="missionsList"></div>
   </section>
 
   <!-- ============ SETTINGS ============ -->
@@ -982,6 +1083,13 @@
       <span class="icon">🏆</span>
       <span class="label">Rangliste</span>
     </button>
+    <button class="nav-item" id="navMissions">
+      <span class="icon-wrap">
+        <span class="icon">🎯</span>
+        <span class="nav-badge" id="missionsBadge" style="display:none;">1</span>
+      </span>
+      <span class="label">Missionen</span>
+    </button>
     <button class="nav-item" id="navProfile">
       <span class="icon">👤</span>
       <span class="label">Profil</span>
@@ -1043,9 +1151,26 @@
     </div>
   </div>
 
+  <div class="overlay" id="overlayChest">
+    <div class="modal-card chest-modal">
+      <div style="font-size:12px; font-weight:800; opacity:.6; letter-spacing:.5px; text-transform:uppercase;">Truhen-Öffnung</div>
+      <h2 id="chestModalTitle">Tagesmission</h2>
+      <p id="chestModalSub">Tippe auf die Truhe für eine Chance auf ein Upgrade (25%)!</p>
+      <div class="chest-tap-wrap" id="chestTapWrap">
+        <div class="aura-particles" id="chestParticles"></div>
+        <div class="chest-tap-icon" id="chestTapIcon">📦</div>
+      </div>
+      <div class="chest-tier-current" id="chestTierCurrent">Standard</div>
+      <div class="chest-attempts" id="chestAttemptsText">Versuche übrig: 3/3</div>
+      <button class="btn btn-primary" id="chestClaimBtn" style="display:none; margin-bottom:10px;">Belohnung abholen</button>
+      <button class="btn btn-ghost" id="closeChestModal">Schließen</button>
+    </div>
+  </div>
+
   <div class="flash" id="flash"></div>
   <div class="toast" id="toast">Gespeichert!</div>
 </div>
+
 
 <script>
 (function(){
@@ -1114,7 +1239,8 @@
     streakDates: [],
     username: null,
     usernameLower: null,
-    following: []
+    following: [],
+    dailyMissions: null // wird von ensureDailyMissions() initialisiert/zurückgesetzt
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -1303,7 +1429,21 @@
     }
   }
 
-  async function renderLeaderboard(){
+  let leaderboardTab = "friends"; // "friends" | "global"
+  const GLOBAL_LEADERBOARD_LIMIT = 50;
+
+  function renderLeaderboardRows(entries, meUid){
+    const list = $("leaderboardList");
+    list.innerHTML = "";
+    entries.forEach((e, i) => {
+      const row = document.createElement("div");
+      row.className = "lb-row" + (e.uid === meUid ? " me" : "");
+      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-name">@${e.username || "?"}</div><div class="lb-aura">⚡ ${e.totalAura}</div>`;
+      list.appendChild(row);
+    });
+  }
+
+  async function renderFriendsLeaderboard(){
     const loggedIn = !!(firebaseInitialized && currentUser);
     $("leaderboardLoggedOutMsg").style.display = loggedIn ? "none" : "block";
     $("leaderboardEmptyMsg").style.display = "none";
@@ -1316,6 +1456,7 @@
     const mutualUids = following.filter(uid => followerUids.includes(uid));
 
     if(mutualUids.length === 0){
+      $("leaderboardEmptyMsg").textContent = "Noch keine gegenseitigen Freunde. Adde welche in deinem Profil!";
       $("leaderboardEmptyMsg").style.display = "block";
       return;
     }
@@ -1326,14 +1467,54 @@
       if(u) entries.push({ uid: u.uid, username: u.username, totalAura: u.totalAura || 0 });
     }
     entries.sort((a,b) => b.totalAura - a.totalAura);
+    renderLeaderboardRows(entries, currentUser.uid);
+  }
 
-    const list = $("leaderboardList");
-    entries.forEach((e, i) => {
-      const row = document.createElement("div");
-      row.className = "lb-row" + (e.uid === currentUser.uid ? " me" : "");
-      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-name">@${e.username || "?"}</div><div class="lb-aura">⚡ ${e.totalAura}</div>`;
-      list.appendChild(row);
-    });
+  async function renderGlobalLeaderboard(){
+    $("leaderboardEmptyMsg").style.display = "none";
+    $("leaderboardList").innerHTML = "";
+
+    if(!firebaseInitialized){
+      $("leaderboardLoggedOutMsg").style.display = "block";
+      return;
+    }
+    $("leaderboardLoggedOutMsg").style.display = "none";
+
+    try{
+      const snap = await db().collection("users")
+        .orderBy("totalAura", "desc")
+        .limit(GLOBAL_LEADERBOARD_LIMIT)
+        .get();
+      let entries = snap.docs
+        .map(d => ({ uid: d.id, ...d.data() }))
+        .filter(e => !!e.username)
+        .map(e => ({ uid: e.uid, username: e.username, totalAura: e.totalAura || 0 }));
+
+      if(entries.length === 0){
+        $("leaderboardEmptyMsg").textContent = "Noch keine globalen Einträge vorhanden.";
+        $("leaderboardEmptyMsg").style.display = "block";
+        return;
+      }
+
+      renderLeaderboardRows(entries, currentUser ? currentUser.uid : null);
+    }catch(err){
+      console.error("Globale Rangliste Fehler:", err);
+      $("leaderboardEmptyMsg").textContent = "Globale Rangliste konnte nicht geladen werden.";
+      $("leaderboardEmptyMsg").style.display = "block";
+    }
+  }
+
+  function renderLeaderboard(){
+    $("lbTabFriends").classList.toggle("active", leaderboardTab === "friends");
+    $("lbTabGlobal").classList.toggle("active", leaderboardTab === "global");
+    $("lbSubtitle").textContent = leaderboardTab === "friends"
+      ? "Nur du und Freunde, die sich gegenseitig folgen"
+      : "Die ganze Welt · wer hat die meiste Aura?";
+    if(leaderboardTab === "friends"){
+      renderFriendsLeaderboard();
+    } else {
+      renderGlobalLeaderboard();
+    }
   }
 
   /* ========================================================
@@ -1431,6 +1612,264 @@
   }
 
   /* ========================================================
+     TAGESMISSIONEN & TRUHEN (NEU)
+  ======================================================== */
+  // Zwei tägliche Missionen: 3 bzw. 5 Lektionen an einem Tag abschließen.
+  const DAILY_MISSION_DEFS = [
+    { id: "m3", label: "Mache 3 Lektionen", target: 3 },
+    { id: "m5", label: "Mache 5 Lektionen", target: 5 }
+  ];
+  // Aura-Belohnung je Truhen-Stufe (statt Euro, wie besprochen).
+  const CHEST_REWARDS = { standard: 50, epic: 100, legendary: 200 };
+  const CHEST_TIER_LABEL = { standard: "Standard", epic: "Episch", legendary: "Legendär" };
+  const CHEST_TIER_ICON = { standard: "📦", epic: "💜", legendary: "👑" };
+  const CHEST_TIER_ORDER = ["standard", "epic", "legendary"];
+  const UPGRADE_CHANCE = 0.25;
+  const MAX_CHEST_ATTEMPTS = 3; // insgesamt 3 Tipps auf die Truhe, wie ein Startdrop
+
+  function freshChest(){
+    return { tier: "standard", attemptsUsed: 0, claimed: false };
+  }
+
+  // Setzt die Tagesmissionen zurück, wenn ein neuer Tag begonnen hat (oder beim allerersten Mal).
+  function ensureDailyMissions(){
+    const today = todayStr();
+    if(!profile.dailyMissions || profile.dailyMissions.date !== today){
+      const chests = {};
+      DAILY_MISSION_DEFS.forEach(m => { chests[m.id] = freshChest(); });
+      profile.dailyMissions = { date: today, lessonsCompletedToday: 0, chests };
+    }
+    if(!profile.dailyMissions.chests) profile.dailyMissions.chests = {};
+    DAILY_MISSION_DEFS.forEach(m => {
+      const c = profile.dailyMissions.chests[m.id];
+      if(!c){
+        profile.dailyMissions.chests[m.id] = freshChest();
+      } else if(typeof c.attemptsUsed !== "number"){
+        // Migration von einer älteren Truhen-Struktur (opened/legendaryAttempted)
+        c.attemptsUsed = c.opened ? (c.legendaryAttempted ? 2 : 1) : 0;
+        delete c.opened;
+        delete c.legendaryAttempted;
+      }
+    });
+  }
+
+  // Vom Ergebnis-Screen aus aufgerufen, wenn eine Lektion erfolgreich beendet wurde.
+  // Zeigt bewusst KEIN separates Popup - nur ein kurzer Toast plus roter Badge in der Nav.
+  function registerLessonForMissions(){
+    ensureDailyMissions();
+    const wasComplete = {};
+    DAILY_MISSION_DEFS.forEach(m => { wasComplete[m.id] = profile.dailyMissions.lessonsCompletedToday >= m.target; });
+    profile.dailyMissions.lessonsCompletedToday += 1;
+    DAILY_MISSION_DEFS.forEach(m => {
+      const nowComplete = profile.dailyMissions.lessonsCompletedToday >= m.target;
+      if(nowComplete && !wasComplete[m.id]){
+        showToast(`🎯 Tagesmission geschafft: "${m.label}" · Truhe wartet in den Missionen!`);
+      }
+    });
+    updateMissionsBadge();
+  }
+
+  function pendingMissionsCount(){
+    ensureDailyMissions();
+    let count = 0;
+    DAILY_MISSION_DEFS.forEach(m => {
+      const done = profile.dailyMissions.lessonsCompletedToday >= m.target;
+      const chest = profile.dailyMissions.chests[m.id];
+      if(done && chest && !chest.claimed) count++;
+    });
+    return count;
+  }
+
+  function updateMissionsBadge(){
+    const badge = $("missionsBadge");
+    if(!badge) return;
+    const n = pendingMissionsCount();
+    if(n > 0){
+      badge.textContent = n;
+      badge.style.display = "flex";
+    } else {
+      badge.style.display = "none";
+    }
+  }
+
+  function rollUpgrade(){ return Math.random() < UPGRADE_CHANCE; }
+
+  // Truhe kann noch getippt werden: höchste Stufe noch nicht erreicht UND Versuche übrig.
+  function chestCanTap(chest){
+    return chest.tier !== "legendary" && chest.attemptsUsed < MAX_CHEST_ATTEMPTS;
+  }
+
+  let activeChestMissionId = null;
+
+  function openChestModal(missionId){
+    ensureDailyMissions();
+    const chest = profile.dailyMissions.chests[missionId];
+    if(!chest) return;
+    activeChestMissionId = missionId;
+    const missionDef = DAILY_MISSION_DEFS.find(m => m.id === missionId);
+    $("chestModalTitle").textContent = missionDef ? missionDef.label : "Truhe";
+    renderChestModal();
+    $("overlayChest").classList.add("show");
+  }
+
+  function renderChestModal(){
+    if(!activeChestMissionId) return;
+    const chest = profile.dailyMissions.chests[activeChestMissionId];
+    if(!chest) return;
+    const icon = $("chestTapIcon");
+    icon.textContent = CHEST_TIER_ICON[chest.tier];
+    $("chestTierCurrent").textContent = CHEST_TIER_LABEL[chest.tier];
+
+    const canTap = !chest.claimed && chestCanTap(chest);
+    icon.classList.toggle("maxed", !canTap);
+
+    if(canTap){
+      const remaining = MAX_CHEST_ATTEMPTS - chest.attemptsUsed;
+      $("chestModalSub").textContent = "Tippe auf die Truhe für eine Chance auf ein Upgrade (25%)!";
+      $("chestAttemptsText").textContent = `Versuche übrig: ${remaining}/${MAX_CHEST_ATTEMPTS}`;
+      $("chestClaimBtn").style.display = "none";
+    } else {
+      $("chestModalSub").textContent = chest.tier === "legendary"
+        ? "Maximale Stufe erreicht!"
+        : "Keine Versuche mehr übrig.";
+      $("chestAttemptsText").textContent = `Belohnung: +${CHEST_REWARDS[chest.tier]} Aura`;
+      $("chestClaimBtn").style.display = "flex";
+      $("chestClaimBtn").textContent = chest.claimed
+        ? "Abgeholt ✓"
+        : `Belohnung abholen (+${CHEST_REWARDS[chest.tier]} Aura)`;
+      $("chestClaimBtn").disabled = chest.claimed;
+    }
+  }
+
+  function tapChest(){
+    if(!activeChestMissionId) return;
+    const chest = profile.dailyMissions.chests[activeChestMissionId];
+    if(!chest || chest.claimed || !chestCanTap(chest)) return;
+
+    chest.attemptsUsed += 1;
+    let upgraded = false;
+    if(rollUpgrade()){
+      const idx = CHEST_TIER_ORDER.indexOf(chest.tier);
+      if(idx < CHEST_TIER_ORDER.length - 1){
+        chest.tier = CHEST_TIER_ORDER[idx + 1];
+        upgraded = true;
+      }
+    }
+    saveProfile();
+
+    const icon = $("chestTapIcon");
+    icon.classList.remove("rolling"); void icon.offsetWidth; icon.classList.add("rolling");
+    if(upgraded) spawnChestParticles();
+
+    renderChestModal();
+  }
+
+  function spawnChestParticles(){
+    const wrap = $("chestParticles");
+    if(!wrap) return;
+    wrap.innerHTML = "";
+    const icons = ["⚡","✨","💫","🔥"];
+    for(let i=0;i<10;i++){
+      const s = document.createElement("span");
+      s.className = "spark";
+      s.textContent = icons[randInt(0,icons.length-1)];
+      s.style.left = randInt(5,90) + "%";
+      s.style.top = randInt(30,70) + "%";
+      s.style.animationDelay = (Math.random()*.3) + "s";
+      wrap.appendChild(s);
+    }
+  }
+
+  function claimChest(missionId){
+    const chest = profile.dailyMissions.chests[missionId];
+    if(!chest || chest.claimed) return;
+    const reward = CHEST_REWARDS[chest.tier] || CHEST_REWARDS.standard;
+    chest.claimed = true;
+    profile.totalAura += reward;
+    saveProfile();
+    showToast(`⚡ +${reward} Aura eingesammelt!`);
+    renderMissions();
+    updateMissionsBadge();
+    renderHome();
+  }
+
+  function claimChestFromModal(){
+    if(!activeChestMissionId) return;
+    claimChest(activeChestMissionId);
+    closeChestModal();
+  }
+
+  function closeChestModal(){
+    $("overlayChest").classList.remove("show");
+    activeChestMissionId = null;
+    renderMissions();
+  }
+
+  function renderMissions(){
+    ensureDailyMissions();
+    const wrap = $("missionsList");
+    wrap.innerHTML = "";
+
+    DAILY_MISSION_DEFS.forEach(m => {
+      const progress = Math.min(profile.dailyMissions.lessonsCompletedToday, m.target);
+      const done = progress >= m.target;
+      const chest = profile.dailyMissions.chests[m.id];
+      const pct = Math.round((progress / m.target) * 100);
+
+      const card = document.createElement("div");
+      card.className = "mission-card";
+
+      let chestHtml = "";
+      if(!done){
+        chestHtml = `<div class="empty-hint" style="margin-top:0; text-align:left;">Schließe noch ${m.target - progress} Lektion(en) ab, um die Truhe freizuschalten.</div>`;
+      } else if(!chest.claimed){
+        const icon = CHEST_TIER_ICON[chest.tier];
+        const tierClass = chest.tier !== "standard" ? ` tier-${chest.tier}` : "";
+        let label, btnLabel;
+        if(chest.attemptsUsed === 0){
+          label = "Truhe bereit!";
+          btnLabel = "Öffnen";
+        } else if(chestCanTap(chest)){
+          label = `${CHEST_TIER_LABEL[chest.tier]} · noch ${MAX_CHEST_ATTEMPTS - chest.attemptsUsed} Versuch(e)`;
+          btnLabel = "Weiter öffnen";
+        } else {
+          label = `${CHEST_TIER_LABEL[chest.tier]} · bereit zum Abholen`;
+          btnLabel = "Belohnung abholen";
+        }
+        chestHtml = `
+          <div class="mission-chest-row">
+            <div class="mission-chest-icon${tierClass}">${icon}</div>
+            <div class="mission-chest-actions">
+              <div class="mission-tier-label">${label}</div>
+              <button class="btn btn-primary btn-small chest-modal-open-btn" data-mission="${m.id}">${btnLabel}</button>
+            </div>
+          </div>`;
+      } else {
+        const icon = CHEST_TIER_ICON[chest.tier];
+        chestHtml = `
+          <div class="mission-chest-row">
+            <div class="mission-chest-icon">${icon}</div>
+            <div class="mission-chest-actions">
+              <div class="mission-tier-label">${CHEST_TIER_LABEL[chest.tier]} · abgeholt ✓</div>
+            </div>
+          </div>`;
+      }
+
+      card.innerHTML = `
+        <div class="m-title">${m.label}</div>
+        <div class="m-sub">${progress}/${m.target} Lektionen heute</div>
+        <div class="mission-progress-track"><div class="mission-progress-fill" style="width:${pct}%;"></div></div>
+        ${chestHtml}
+      `;
+      wrap.appendChild(card);
+    });
+
+    wrap.querySelectorAll(".chest-modal-open-btn").forEach(btn => {
+      btn.addEventListener("click", () => openChestModal(btn.dataset.mission));
+    });
+  }
+
+  /* ========================================================
      LIVES / REGEN
   ======================================================== */
   const MAX_LIVES = 5;
@@ -1469,20 +1908,40 @@
   function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
 
   // AURA REGELN HIER HINTERLEGT (normalAura, editAura)
+  // Hinweis: Einmaleins-Aufgaben (mult/bigMult) gibt es NUR in den ersten drei,
+  // ganz einfachen Tiers. Ab "Plus & Minus" sind es zufällig gemischte Aufgaben
+  // aus allen bis dahin freigeschalteten Aufgabentypen (kein reines Einmaleins mehr).
   const TIERS = [
     {id:"kl_mult", name:"Kleines Einmaleins", icon:"✖️", from:1,  to:3,        timeMs: 8000,  normalAura: 1, editAura: 2, gen: () => mult(1,5)},
     {id:"mult",    name:"Einmaleins",         icon:"✳️", from:4,  to:6,        timeMs: 9000,  normalAura: 2, editAura: 4, gen: () => mult(1,10)},
     {id:"gr_mult", name:"Großes Einmaleins",  icon:"💥", from:7,  to:9,        timeMs: 11000, normalAura: 2, editAura: 5, gen: () => bigMult()},
-    {id:"addsub",  name:"Plus & Minus",       icon:"➕", from:10, to:12,       timeMs: 10000, normalAura: 2, editAura: 5, gen: () => addSub(50)},
-    {id:"div",     name:"Geteilt",            icon:"➗", from:13, to:15,       timeMs: 12000, normalAura: 2, editAura: 5, gen: () => divide(1,12)},
-    {id:"frac",    name:"Brüche",             icon:"🍰", from:16, to:18,       timeMs: 15000, normalAura: 3, editAura: 6, gen: () => fraction()},
-    {id:"addsub_p",name:"Plus & Minus Profi", icon:"🧮", from:19, to:21,       timeMs: 14000, normalAura: 3, editAura: 6, gen: () => addSub(100)},
+    {id:"addsub",  name:"Plus & Minus",       icon:"➕", from:10, to:12,       timeMs: 10000, normalAura: 2, editAura: 5,
+      gen: () => weightedPick([[() => addSub(50), 1]])},
+    {id:"div",     name:"Geteilt",            icon:"➗", from:13, to:15,       timeMs: 12000, normalAura: 2, editAura: 5,
+      gen: () => weightedPick([[() => divide(1,12), 3], [() => addSub(50), 1]])},
+    {id:"frac",    name:"Brüche",             icon:"🍰", from:16, to:18,       timeMs: 15000, normalAura: 3, editAura: 6,
+      gen: () => weightedPick([[() => fraction(), 3], [() => divide(1,12), 1], [() => addSub(50), 1]])},
+    {id:"addsub_p",name:"Plus & Minus Profi", icon:"🧮", from:19, to:21,       timeMs: 14000, normalAura: 3, editAura: 6,
+      gen: () => weightedPick([[() => addSub(100), 3], [() => fraction(), 1], [() => divide(1,12), 1]])},
     {id:"mix_p",   name:"Gemischt Profi",     icon:"🏆", from:22, to:Infinity, timeMs: 18000, normalAura: 4, editAura: 8, gen: () => mixedHard()}
   ];
 
   function tierIndexForLevel(level){
     for(let i=0;i<TIERS.length;i++){ if(level >= TIERS[i].from && level <= TIERS[i].to) return i; }
     return TIERS.length - 1;
+  }
+
+  // Wählt zufällig (gewichtet) einen Aufgaben-Generator aus einer Liste von
+  // [generatorFn, gewicht] Paaren aus und ruft ihn auf. So entstehen ab den
+  // mittleren/schwereren Tiers "Zufall"-Aufgaben statt immer desselben Typs.
+  function weightedPick(entries){
+    const total = entries.reduce((sum, e) => sum + e[1], 0);
+    let r = Math.random() * total;
+    for(const [fn, weight] of entries){
+      r -= weight;
+      if(r <= 0) return fn();
+    }
+    return entries[entries.length - 1][0]();
   }
 
   function mult(min, max){
@@ -1518,11 +1977,13 @@
     return { text: `${b}⁄${c} von ${n}`, answer: b * k };
   }
   function mixedHard(){
-    const r = Math.random();
-    if(r < 0.25) return bigMult();
-    if(r < 0.5) return addSub(100);
-    if(r < 0.75) return divide(2,15);
-    return fraction();
+    // Höchster Tier: Zufallsmix aus allen "Profi"-Aufgabentypen (bewusst ohne
+    // reines Einmaleins, das bleibt den ganz einfachen Tiers vorbehalten).
+    return weightedPick([
+      [() => addSub(100), 1],
+      [() => divide(2,15), 1],
+      [() => fraction(), 1]
+    ]);
   }
 
   /* ========================================================
@@ -1613,7 +2074,17 @@
     }
 
     const questions = [];
-    for(let i=0;i<QUESTIONS_PER_LESSON;i++) questions.push(tier.gen());
+    const seenTexts = new Set();
+    for(let i=0;i<QUESTIONS_PER_LESSON;i++){
+      let q = tier.gen();
+      let attempts = 0;
+      while(seenTexts.has(q.text) && attempts < 25){
+        q = tier.gen();
+        attempts++;
+      }
+      seenTexts.add(q.text);
+      questions.push(q);
+    }
     return { tier, isMainProgression: (idx === activeIdx), questions, index:0, correct:0, aura:0, answer:"", locked:false };
   }
 
@@ -1625,9 +2096,9 @@
   const screens = {
     home: $("screen-home"), shop: $("screen-shop"), locked: $("screen-locked"), 
     lesson: $("screen-lesson"), result: $("screen-result"), settings: $("screen-settings"),
-    profile: $("screen-profile"), leaderboard: $("screen-leaderboard")
+    profile: $("screen-profile"), leaderboard: $("screen-leaderboard"), missions: $("screen-missions")
   };
-  const NAV_SCREENS = ["home", "shop", "leaderboard", "profile"];
+  const NAV_SCREENS = ["home", "shop", "leaderboard", "missions", "profile"];
 
   function showScreen(name){
     Object.values(screens).forEach(s => s.classList.remove("active"));
@@ -1640,6 +2111,7 @@
       $("navHome").classList.toggle("active", name === "home");
       $("navShop").classList.toggle("active", name === "shop");
       $("navLeaderboard").classList.toggle("active", name === "leaderboard");
+      $("navMissions").classList.toggle("active", name === "missions");
       $("navProfile").classList.toggle("active", name === "profile");
     } else {
       nav.style.display = "none";
@@ -1661,9 +2133,25 @@
     renderLeaderboard();
   });
 
+  $("lbTabFriends").addEventListener("click", () => {
+    if(leaderboardTab === "friends") return;
+    leaderboardTab = "friends";
+    renderLeaderboard();
+  });
+  $("lbTabGlobal").addEventListener("click", () => {
+    if(leaderboardTab === "global") return;
+    leaderboardTab = "global";
+    renderLeaderboard();
+  });
+
   $("navProfile").addEventListener("click", () => {
     showScreen("profile");
     renderProfile();
+  });
+
+  $("navMissions").addEventListener("click", () => {
+    showScreen("missions");
+    renderMissions();
   });
 
   $("goToProfileBtn").addEventListener("click", () => {
@@ -1807,6 +2295,7 @@
     $("themeToggleLocked").textContent = icon;
     $("themeToggleProfile").textContent = icon;
     $("themeToggleLeaderboard").textContent = icon;
+    $("themeToggleMissions").textContent = icon;
     if($("themeSelect")) $("themeSelect").value = t;
   }
   
@@ -1825,6 +2314,7 @@
   $("themeToggleLocked").addEventListener("click", toggleTheme);
   $("themeToggleProfile").addEventListener("click", toggleTheme);
   $("themeToggleLeaderboard").addEventListener("click", toggleTheme);
+  $("themeToggleMissions").addEventListener("click", toggleTheme);
   
   $("themeSelect").addEventListener("change", (e) => {
     const val = e.target.value;
@@ -1907,6 +2397,21 @@
     if(e.target.id === "overlayStreak") $("overlayStreak").classList.remove("show");
   });
 
+  /* Truhen-Modal (Startdrop-Stil) */
+  $("chestTapIcon").addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    tapChest();
+  });
+  $("chestClaimBtn").addEventListener("click", () => {
+    claimChestFromModal();
+  });
+  $("closeChestModal").addEventListener("click", () => {
+    closeChestModal();
+  });
+  $("overlayChest").addEventListener("click", (e) => {
+    if(e.target.id === "overlayChest") closeChestModal();
+  });
+
   /* Welcome Modal Event Listeners */
   $("welcomeAuthBtn").addEventListener("click", () => {
     profile.hasSeenWelcome = true;
@@ -1960,8 +2465,10 @@
               following: cloudData.following || []
             };
             checkStreakDecay();
+            ensureDailyMissions();
             applyTheme();
             renderHome();
+            updateMissionsBadge();
             checkUsernameRequired();
           } else {
             saveProfile();
@@ -2037,11 +2544,13 @@
   function renderHome(){
     refillLives();
     checkStreakDecay();
+    ensureDailyMissions();
     saveProfile();
     renderHearts($("homeHearts"), profile.lives);
     $("homeLevel").textContent = profile.level;
     $("homeAura").textContent = profile.totalAura;
     renderStreak();
+    updateMissionsBadge();
     const activeIdx = tierIndexForLevel(profile.level);
     if(selectedTierIndex === null) selectedTierIndex = activeIdx;
     $("tierLabel").textContent = TIERS[selectedTierIndex].name;
@@ -2315,6 +2824,7 @@
       if(lesson.isMainProgression) profile.level += 1;
       profile.lessonsCompleted += 1;
       registerStreakActivity();
+      registerLessonForMissions();
       playSuccessJingle();
     } else {
       const pick = FAIL_LINES[0];
@@ -2391,9 +2901,11 @@
     loadProfile();
     refillLives();
     checkStreakDecay();
+    ensureDailyMissions();
     saveProfile();
     applyTheme();
     renderHome();
+    updateMissionsBadge();
 
     if(!profile.hasSeenWelcome && !currentUser){
       $("overlayWelcome").classList.add("show");

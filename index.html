@@ -1639,10 +1639,21 @@
     }
   }
   
+  // Merkt sich den zuletzt tatsächlich in die Cloud geschriebenen Stand.
+  // Verhindert, dass unnötige Wiederholungs-Schreibvorgänge (z.B. weil
+  // renderHome() bei jedem Sync-Update erneut saveProfile() aufruft) den
+  // eigenen Firestore-Listener immer wieder selbst auslösen - das war die
+  // Ursache einer Rückkopplungsschleife, die den Browser dauerhaft beschäftigt
+  // und Klicks (besonders im Home-Menü) unbrauchbar gemacht hat.
+  let lastWrittenProfileJSON = null;
+
   function saveProfile(){
     try{
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      const json = JSON.stringify(profile);
+      localStorage.setItem(PROFILE_KEY, json);
       if(firebaseInitialized && currentUser && cloudSyncReady){
+        if(json === lastWrittenProfileJSON) return; // unverändert - kein erneuter Schreibvorgang nötig
+        lastWrittenProfileJSON = json;
         db().collection("users").doc(currentUser.uid).set(profile, { merge: true })
           .catch(err => console.error("Firestore Save Error:", err));
       }
@@ -3877,6 +3888,7 @@
       currentUser = user;
       cloudSyncReady = false; // bei jedem Auth-Wechsel neu abgleichen, bevor wieder geschrieben wird
       usernamePromptDismissedThisSession = false;
+      lastWrittenProfileJSON = null;
       
       if(syncUnsubscribe){
         syncUnsubscribe();
@@ -3885,6 +3897,16 @@
 
       if(user){
         syncUnsubscribe = db().collection("users").doc(user.uid).onSnapshot((doc) => {
+          // Sehr wichtig gegen eine Rückkopplungsschleife: jeder eigene
+          // Schreibvorgang (saveProfile) löst diesen Listener selbst wieder
+          // aus. Ohne diese Bremse würde das endlos weiterlaufen (schreiben ->
+          // Snapshot kommt zurück -> erneut schreiben -> ...), was den Browser
+          // dauerhaft beschäftigt hält und z.B. im Home-Menü wie "eingefroren"
+          // wirkt. "hasPendingWrites" ist true für den optimistischen Echo
+          // unseres eigenen, noch nicht vom Server bestätigten Schreibvorgangs -
+          // den ignorieren wir einfach.
+          if(doc.metadata && doc.metadata.hasPendingWrites) return;
+
           if(doc.exists){
             const cloudData = doc.data();
             const normalizedCloud = {
@@ -3900,14 +3922,12 @@
             // Cloud geschrieben werden (cloudSyncReady).
             profile = reconcileProfiles(profile, normalizedCloud);
             cloudSyncReady = true;
-            profile.lastActiveAt = Date.now();
             checkStreakDecay();
             ensureDailyMissions();
             applyTheme();
-            renderHome();
+            renderHome(); // speichert intern bereits (saveProfile() ist selbst dedupliziert)
             updateMissionsBadge();
             checkUsernameRequired();
-            saveProfile(); // schreibt den abgeglichenen (nie schlechteren) Stand zurück
             claimPendingReferralRewards();
           } else {
             cloudSyncReady = true;

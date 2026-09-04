@@ -732,7 +732,7 @@
     background:var(--card); border:1px solid var(--border); border-radius:16px;
     padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px;
   }
-  .lb-row.me{border-color:var(--accent); box-shadow:0 0 0 1.5px var(--accent) inset;}
+  .lb-row.me{border-color:#22c55e; box-shadow:0 0 0 1.5px #22c55e inset; background: rgba(34,197,94,0.08);}
   .lb-rank{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:16px; width:28px; text-align:center; opacity:.85;}
   .lb-name{flex:1; font-weight:700; font-size:14px;}
   .lb-aura{font-weight:800; font-size:14px; color:var(--accent);}
@@ -745,6 +745,19 @@
   }
   .btn-duel *{ color:#fff !important; }
   .duel-outcome{font-size:11.5px; opacity:.85; line-height:1.4;}
+  .online-dot{
+    display:inline-block; width:10px; height:10px; border-radius:50%;
+    background:#22c55e; box-shadow:0 0 8px 3px rgba(34,197,94,.85);
+    margin-right:6px; vertical-align:middle;
+  }
+  .difficulty-picker{ display:flex; gap:8px; margin: 16px 0 4px; }
+  .difficulty-btn{
+    flex:1; background:var(--card); border:1.5px solid var(--border); border-radius:14px;
+    padding:12px 6px; font-size:12.5px; font-weight:700; color:var(--text) !important; cursor:pointer;
+    text-align:center; line-height:1.4; font-family:'Inter',sans-serif;
+  }
+  .difficulty-btn span{ font-weight:500; font-size:10.5px; opacity:.7; display:block; margin-top:3px; }
+  .difficulty-btn.active{ border-color:var(--accent); box-shadow:0 0 0 1.5px var(--accent) inset; }
 
   /* ---------- Profilrahmen (NEU) ---------- */
   #profileHeaderCard, #friendProfileCard{ transition: box-shadow .3s, border-color .3s, background .3s; border-radius: var(--radius-card); }
@@ -1040,6 +1053,8 @@
       <div class="stat-pill"><div class="val" id="profileFriendsCount">0</div><div class="lbl">Freunde</div></div>
     </div>
 
+    <button class="btn btn-ghost btn-small" id="viewOwnStatsBtn" style="margin-bottom:14px;">📊 Meine Statistik ansehen</button>
+
     <div id="profileLoggedOutMsg" class="empty-hint" style="display:none;">
       Melde dich in den Einstellungen an, um Freunde hinzuzufügen und am Leaderboard teilzunehmen.
     </div>
@@ -1261,6 +1276,20 @@
   </nav>
 
   <!-- ============ OVERLAYS ============ -->
+  <div class="overlay" id="overlayDifficulty">
+    <div class="modal-card">
+      <div style="font-size:42px; margin-bottom:8px;">👋</div>
+      <h2>Willkommen bei MathEdits!</h2>
+      <p>Löse Matheaufgaben blitzschnell, sammle Aura und steig im Level auf. Wo möchtest du starten?</p>
+      <div class="difficulty-picker" id="difficultyPicker">
+        <button class="difficulty-btn active" data-diff="beginner">🟢 Anfänger<span>Ganz von vorne</span></button>
+        <button class="difficulty-btn" data-diff="medium">🟡 Mittel<span>Ab Einmaleins</span></button>
+        <button class="difficulty-btn" data-diff="hard">🔴 Schwer<span>Ab Großes Einmaleins</span></button>
+      </div>
+      <button class="btn btn-primary" id="difficultyContinueBtn" style="margin-top:16px;">Weiter</button>
+    </div>
+  </div>
+
   <div class="overlay" id="overlayWelcome">
     <div class="modal-card">
       <div style="font-size:42px; margin-bottom:8px;">👋</div>
@@ -1485,7 +1514,8 @@
     duelsPlayed: 0,
     duelsWon: 0,
     countedDuelWins: [], // welche Duell-IDs schon in duelsWon eingerechnet wurden
-    lastLessonAt: null // Zeitstempel der letzten Lektion (für "zuletzt gelernt" im Profil)
+    lastLessonAt: null, // Zeitstempel der letzten Lektion (für "zuletzt gelernt" im Profil)
+    lastActiveAt: null // Zeitstempel der letzten Aktivität in der App (für "online"-Punkt)
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -1521,12 +1551,19 @@
     }catch(e){ }
   }
 
-  /* AUTOMATISCHER SYNC ALLE 10 SEKUNDEN */
+  /* AUTOMATISCHER SYNC ALLE 10 SEKUNDEN - aktualisiert dabei auch die
+     "zuletzt aktiv"-Zeit für den Online-Punkt bei Freunden. */
+  const ONLINE_THRESHOLD_MS = 2 * 60 * 1000; // 2 Minuten
   setInterval(() => {
     if(firebaseInitialized && currentUser && cloudSyncReady){
+      profile.lastActiveAt = Date.now();
       saveProfile();
     }
   }, 10000);
+
+  function isOnline(u){
+    return !!(u && u.lastActiveAt && (Date.now() - u.lastActiveAt) < ONLINE_THRESHOLD_MS);
+  }
 
   function isSuperUser(){
     const activeUid = (currentUser && currentUser.uid) ? currentUser.uid : profile.uid;
@@ -1732,17 +1769,14 @@
       notFollowedBack.forEach(f => {
         const row = document.createElement("div");
         row.className = "friend-row";
-        row.innerHTML = `<span class="name">@${f.username || "?"}</span>`;
-        const viewBtn = document.createElement("button");
-        viewBtn.className = "btn btn-ghost btn-small";
-        viewBtn.textContent = "👁️";
-        viewBtn.addEventListener("click", () => openFriendProfile(f.uid));
-        row.appendChild(viewBtn);
+        row.style.cursor = "pointer";
+        row.innerHTML = `<span class="name">${isOnline(f) ? '<span class="online-dot"></span>' : ""}@${f.username || "Unbekannt"}</span>`;
         const btn = document.createElement("button");
         btn.className = "btn btn-primary btn-small";
         btn.textContent = "Zurückfolgen";
-        btn.addEventListener("click", () => followBack(f.uid));
+        btn.addEventListener("click", (e) => { e.stopPropagation(); followBack(f.uid); });
         row.appendChild(btn);
+        row.addEventListener("click", () => openFriendProfile(f.uid));
         followBackListEl.appendChild(row);
       });
     }
@@ -1757,17 +1791,15 @@
         const mutual = followerUids.includes(uid);
         const row = document.createElement("div");
         row.className = "friend-row";
-        row.innerHTML = `<span class="name">@${u ? (u.username || "?") : "?"}</span><span>${mutual ? "🤝 gegenseitig" : "wartet auf Follow-back"}</span>`;
-        const viewBtn = document.createElement("button");
-        viewBtn.className = "btn btn-ghost btn-small";
-        viewBtn.textContent = "👁️";
-        viewBtn.addEventListener("click", () => openFriendProfile(uid));
-        row.appendChild(viewBtn);
+        row.style.cursor = "pointer";
+        const uname = u ? (u.username || "Unbekannt") : "Unbekannt";
+        row.innerHTML = `<span class="name">${u && isOnline(u) ? '<span class="online-dot"></span>' : ""}@${uname}</span><span>${mutual ? "🤝 gegenseitig" : "wartet auf Follow-back"}</span>`;
         const duelBtn = document.createElement("button");
         duelBtn.className = "btn btn-duel btn-small";
         duelBtn.textContent = "⚔️ 1vs1";
-        duelBtn.addEventListener("click", () => startDuel(uid, u ? (u.username || "?") : "?"));
+        duelBtn.addEventListener("click", (e) => { e.stopPropagation(); startDuel(uid, uname); });
         row.appendChild(duelBtn);
+        row.addEventListener("click", () => openFriendProfile(uid));
         followingListEl.appendChild(row);
       }
     }
@@ -1955,7 +1987,9 @@
     entries.forEach((e, i) => {
       const row = document.createElement("div");
       row.className = "lb-row" + (e.uid === meUid ? " me" : "");
+      row.style.cursor = "pointer";
       row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-name">@${e.username || "?"}</div><div class="lb-aura">🎯 Lvl ${e.level}</div>`;
+      row.addEventListener("click", () => openFriendProfile(e.uid));
       list.appendChild(row);
     });
   }
@@ -2032,7 +2066,7 @@
     $("lbTabGlobal").classList.toggle("active", leaderboardTab === "global");
     $("lbSubtitle").textContent = leaderboardTab === "friends"
       ? "Nur du und Freunde, die sich gegenseitig folgen"
-      : "Die ganze Welt · wer hat die meiste Aura?";
+      : "Die ganze Welt · wer hat das höchste Level?";
     if(leaderboardTab === "friends"){
       renderFriendsLeaderboard();
     } else {
@@ -2172,10 +2206,11 @@
 
   // Öffnet die Profilansicht eines anderen Nutzers: Level, Aura, Streak,
   // Lektionen heute, letzte Aktivität und die Wochenübersicht.
-  async function openFriendProfile(uid){
-    const u = await fetchUserDoc(uid);
-    if(!u){ showToast("Profil konnte nicht geladen werden."); return; }
-    $("friendProfileUsername").textContent = u.username ? "@" + u.username : "Unbekannt";
+  // Füllt die Profil-Detailkarte (Level/Aura/Streak/Lektionen/Wochenübersicht)
+  // mit beliebigen Nutzerdaten - für Freunde (aus Firestore) UND für die
+  // eigene Statistik (direkt aus dem lokalen Profil, auch als Gast).
+  function renderFriendProfileCard(u){
+    $("friendProfileUsername").textContent = u.username ? "@" + u.username : "Gast";
     const titleEl = $("friendProfileTitle");
     if(u.activeTitle){
       titleEl.textContent = "🏅 " + u.activeTitle;
@@ -2201,6 +2236,18 @@
     $("friendProfileWeekGrid").innerHTML = buildWeekGridHtml(u.streakDates || []);
 
     $("overlayFriendProfile").classList.add("show");
+  }
+
+  async function openFriendProfile(uid){
+    const u = await fetchUserDoc(uid);
+    if(!u){ showToast("Profil konnte nicht geladen werden."); return; }
+    renderFriendProfileCard(u);
+  }
+
+  // Zeigt die eigene Statistik in derselben Ansicht - direkt aus dem lokalen
+  // Profil, funktioniert also auch als Gast ohne Cloud-Zugriff.
+  function openOwnStats(){
+    renderFriendProfileCard(profile);
   }
 
 
@@ -2648,6 +2695,7 @@
     merged.duelsWon = Math.max(localP.duelsWon || 0, cloudP.duelsWon || 0);
     merged.lastBrokenStreak = Math.max(localP.lastBrokenStreak || 0, cloudP.lastBrokenStreak || 0);
     merged.lastLessonAt = Math.max(localP.lastLessonAt || 0, cloudP.lastLessonAt || 0) || null;
+    merged.lastActiveAt = Math.max(localP.lastActiveAt || 0, cloudP.lastActiveAt || 0) || null;
     merged.countedDuelWins = Array.from(new Set([
       ...(localP.countedDuelWins || []),
       ...(cloudP.countedDuelWins || [])
@@ -3120,6 +3168,10 @@
     renderProfile();
   });
 
+  $("viewOwnStatsBtn").addEventListener("click", () => {
+    openOwnStats();
+  });
+
   $("profileTitleDisplay").addEventListener("click", () => {
     const titles = profile.unlockedTitles || [];
     if(titles.length === 0) return;
@@ -3496,6 +3548,28 @@
     if(e.target.id === "overlayFriendProfile") $("overlayFriendProfile").classList.remove("show");
   });
 
+  /* Schwierigkeits-Auswahl (NEU) - erscheint vor dem Login-Fenster */
+  let selectedDifficulty = "beginner";
+  $("difficultyPicker").querySelectorAll(".difficulty-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      $("difficultyPicker").querySelectorAll(".difficulty-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedDifficulty = btn.dataset.diff;
+    });
+  });
+  $("difficultyContinueBtn").addEventListener("click", () => {
+    const startLevels = {
+      beginner: 1,
+      medium: (TIERS.find(t => t.id === "mult") || {}).from || 1,
+      hard: (TIERS.find(t => t.id === "gr_mult") || {}).from || 1
+    };
+    profile.level = startLevels[selectedDifficulty] || 1;
+    selectedTierIndex = null;
+    saveProfile();
+    $("overlayDifficulty").classList.remove("show");
+    $("overlayWelcome").classList.add("show");
+  });
+
   /* Welcome Modal Event Listeners */
   $("welcomeAuthBtn").addEventListener("click", () => {
     profile.hasSeenWelcome = true;
@@ -3510,6 +3584,7 @@
     saveProfile();
     $("overlayWelcome").classList.remove("show");
     showToast("Gastmodus: Fortschritt nicht gesichert");
+    renderHome();
   });
 
   /* Benutzername-Pflicht-Modal (für alte Accounts ohne Benutzername) */
@@ -3555,6 +3630,7 @@
             // Cloud geschrieben werden (cloudSyncReady).
             profile = reconcileProfiles(profile, normalizedCloud);
             cloudSyncReady = true;
+            profile.lastActiveAt = Date.now();
             checkStreakDecay();
             ensureDailyMissions();
             applyTheme();
@@ -3565,6 +3641,7 @@
             claimPendingReferralRewards();
           } else {
             cloudSyncReady = true;
+            profile.lastActiveAt = Date.now();
             saveProfile();
             claimPendingReferralRewards();
           }
@@ -3916,11 +3993,12 @@
       renderQuestion();
       return;
     }
+    lesson.index++;
+    $("progressFill").style.width = (lesson.index / QUESTIONS_PER_LESSON * 100) + "%";
     if(profile.lives <= 0 && !isSuperUser()){
       finishLesson(false);
       return;
     }
-    lesson.index++;
     if(lesson.index >= QUESTIONS_PER_LESSON){
       finishLesson(true);
       return;
@@ -4023,7 +4101,7 @@
     updateMissionsBadge();
 
     if(!profile.hasSeenWelcome && !currentUser){
-      $("overlayWelcome").classList.add("show");
+      $("overlayDifficulty").classList.add("show");
     }
   }
   init();

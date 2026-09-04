@@ -5,6 +5,9 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <title>MathEdits</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -432,6 +435,31 @@
   }
   .stat-pill .val{font-family:'Baloo 2',sans-serif; font-size:19px; font-weight:700; color:var(--text);}
   .stat-pill .lbl{font-size:11px; color:var(--text); opacity:.85; font-weight:500;}
+  .level-progress-track{
+    width:100%; height:5px; background:var(--card-2); border:1px solid var(--border);
+    border-radius:99px; overflow:hidden; margin-top:4px;
+  }
+  .level-progress-fill{height:100%; background:var(--accent); width:0%; transition:width .5s ease;}
+
+  .level-point-fly{
+    position:fixed; left:50%; top:52%; transform:translate(-50%,-50%) scale(1);
+    font-size:34px; z-index:200; pointer-events:none; opacity:1;
+    transition: transform .55s cubic-bezier(.3,.8,.4,1), opacity .5s ease .05s;
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,.4));
+  }
+  .level-point-fly.flying{
+    transform:translate(-50%,-240px) scale(.35);
+    opacity:0;
+  }
+  .times-table-grid{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:14px 0 4px;
+  }
+  .times-table-btn{
+    background:var(--card); border:1.5px solid var(--border); border-radius:12px;
+    padding:12px 0; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:15px;
+    color:var(--text) !important; cursor:pointer;
+  }
+  .times-table-btn:active{ transform:scale(.94); }
   .hearts{display:flex; gap:3px;}
   .heart{font-size:15px; filter:grayscale(1); opacity:.25; transition: all .3s;}
   .heart.full{filter:none; opacity:1;}
@@ -454,6 +482,7 @@
   .hero{
     display:flex; flex-direction:column; align-items:center;
     text-align:center; gap:clamp(2px,0.6vh,4px); padding:clamp(0px,0.5vh,6px) 6px clamp(4px,1.5vh,14px);
+    position:relative;
   }
   .hero h1{
     font-family:'Baloo 2', sans-serif; font-size:clamp(17px,3.8vh,22px); font-weight:800; margin:0 0 4px;
@@ -878,6 +907,7 @@
       <div class="stat-pill">
         <div class="val" id="homeLevel">1</div>
         <div class="lbl">Level</div>
+        <div class="level-progress-track"><div class="level-progress-fill" id="levelProgressFill"></div></div>
       </div>
       <div class="stat-pill">
         <div class="val" id="homeAura">0</div>
@@ -890,6 +920,7 @@
     </div>
 
     <div class="hero">
+      <button class="theme-toggle" id="timesTableBtn" title="Einmaleins-Übung" style="position:absolute; top:6px; right:6px;">🔢</button>
       <div class="hero-flame" id="heroFlame">
         <div class="flame-wrap">
           <span class="flame-icon">🔥</span>
@@ -1254,7 +1285,7 @@
       <div class="complete-stats">
         <div class="box"><div class="n" id="resCorrect">0/10</div><div class="l">Richtig</div></div>
         <div class="box"><div class="n" id="resAura">+0</div><div class="l">Aura</div></div>
-        <div class="box"><div class="n" id="resLevel">2</div><div class="l">Neues Level</div></div>
+        <div class="box"><div class="n" id="resLevel">0:00</div><div class="l">Zeit</div></div>
       </div>
     </div>
     <button class="btn btn-primary" id="resultContinue">Weiter</button>
@@ -1390,6 +1421,16 @@
     </div>
   </div>
 
+  <div class="overlay" id="overlayTimesTablePicker">
+    <div class="modal-card" style="max-width:360px;">
+      <div style="font-size:36px; margin-bottom:6px;">🔢</div>
+      <h2>Einmaleins-Übung</h2>
+      <p>Wähle eine Reihe zum Üben - gibt nur Aura, kein Level.</p>
+      <div class="times-table-grid" id="timesTableGrid"></div>
+      <button class="btn btn-ghost" id="closeTimesTablePicker" style="margin-top:16px;">Schließen</button>
+    </div>
+  </div>
+
   <div class="overlay" id="overlayAura">
     <div class="overlay-card" style="position:relative;">
       <div class="aura-particles" id="auraParticles"></div>
@@ -1448,6 +1489,13 @@
 <script>
 (function(){
   "use strict";
+
+  // iOS "Zum Home-Bildschirm hinzufügen"-Apps haben einen bekannten WebKit-Bug:
+  // der allererste Tap nach dem Start "weckt" nur die WebView, statt als Klick
+  // zu zählen - danach funktioniert alles normal. Da Home immer der erste
+  // Screen ist, wirkte es so, als sei NUR das Home-Menü betroffen. Ein früher
+  // registrierter (No-Op-)Touch-Listener behebt das zuverlässig.
+  document.addEventListener("touchstart", function(){}, { passive: true });
 
   /* ========================================================
      SUPER VERSION (5 VIP-UIDs HIER EINTRAGEN)
@@ -1522,6 +1570,7 @@
     lives: 5,
     lastLifeChangeAt: Date.now(),
     level: 1,
+    levelProgress: 0, // 0,1,2 von 3 - man braucht 3 Lektionen für ein volles Level
     totalAura: 0,
     lessonsCompleted: 0,
     theme: "black",
@@ -1931,6 +1980,49 @@
     lesson.duelStartedAt = performance.now();
     showScreen("lesson");
     renderQuestion();
+  }
+
+  // Einmaleins-Übung (NEU): eine frei wählbare Reihe (1-20) üben. Gibt bewusst
+  // nur Aura, kein Level (isMainProgression:false), damit man gezielt eine
+  // einzelne Reihe trainieren kann, ohne den normalen Stufen-Fortschritt zu
+  // beeinflussen.
+  function startTimesTablePractice(n){
+    const questions = [];
+    const seenTexts = new Set();
+    for(let i=0;i<QUESTIONS_PER_LESSON;i++){
+      let x = randInt(1,12);
+      let text = `${n} × ${x}`;
+      let attempts = 0;
+      while(seenTexts.has(text) && attempts < 25){
+        x = randInt(1,12);
+        text = `${n} × ${x}`;
+        attempts++;
+      }
+      seenTexts.add(text);
+      questions.push({ text, answer: n * x });
+    }
+    lesson = {
+      tier: { name: `🔢 ${n}er Reihe`, timeMs: 8000, normalAura: 2, editAura: 4 },
+      isMainProgression: false,
+      isTimesTablePractice: true,
+      questions, index: 0, correct: 0, aura: 0, answer: "", locked: false
+    };
+    lesson.startedAt = performance.now();
+    $("overlayTimesTablePicker").classList.remove("show");
+    showScreen("lesson");
+    renderQuestion();
+  }
+
+  function renderTimesTableGrid(){
+    const grid = $("timesTableGrid");
+    if(!grid || grid.children.length > 0) return; // nur einmalig aufbauen, ist statisch
+    for(let n=1;n<=20;n++){
+      const btn = document.createElement("button");
+      btn.className = "times-table-btn";
+      btn.textContent = n;
+      btn.addEventListener("click", () => startTimesTablePractice(n));
+      grid.appendChild(btn);
+    }
   }
 
   async function finishDuelLesson(){
@@ -2727,7 +2819,18 @@
     if(!localP) return cloudP;
     const merged = { ...localP };
 
-    merged.level = Math.max(localP.level || 1, cloudP.level || 1);
+    // Level und levelProgress gehören zusammen (3 Lektionen = 1 Level) - beim
+    // Abgleich als gemeinsame "Fortschrittseinheiten" vergleichen, statt Level
+    // von einer Seite mit levelProgress von der anderen zu vermischen.
+    const localUnits = (localP.level || 1) * 3 + (localP.levelProgress || 0);
+    const cloudUnits = (cloudP.level || 1) * 3 + (cloudP.levelProgress || 0);
+    if(cloudUnits > localUnits){
+      merged.level = cloudP.level || 1;
+      merged.levelProgress = cloudP.levelProgress || 0;
+    } else {
+      merged.level = localP.level || 1;
+      merged.levelProgress = localP.levelProgress || 0;
+    }
     merged.totalAura = Math.max(localP.totalAura || 0, cloudP.totalAura || 0);
     merged.lessonsCompleted = Math.max(localP.lessonsCompleted || 0, cloudP.lessonsCompleted || 0);
     merged.streak = Math.max(localP.streak || 0, cloudP.streak || 0);
@@ -3584,6 +3687,17 @@
     if(e.target.id === "overlayStreak") $("overlayStreak").classList.remove("show");
   });
 
+  $("timesTableBtn").addEventListener("click", () => {
+    renderTimesTableGrid();
+    $("overlayTimesTablePicker").classList.add("show");
+  });
+  $("closeTimesTablePicker").addEventListener("click", () => {
+    $("overlayTimesTablePicker").classList.remove("show");
+  });
+  $("overlayTimesTablePicker").addEventListener("click", (e) => {
+    if(e.target.id === "overlayTimesTablePicker") $("overlayTimesTablePicker").classList.remove("show");
+  });
+
   /* Truhen-Modal (Startdrop-Stil) */
   $("chestTapIcon").addEventListener("pointerdown", (e) => {
     e.preventDefault();
@@ -3646,6 +3760,7 @@
       hard: (TIERS.find(t => t.id === "gr_mult") || {}).from || 1
     };
     profile.level = startLevels[selectedDifficulty] || 1;
+    profile.levelProgress = 0;
     selectedTierIndex = null;
     saveProfile();
     closeAllOnboardingOverlays();
@@ -3860,6 +3975,7 @@
     renderHearts($("homeHearts"), profile.lives);
     $("homeLevel").textContent = profile.level;
     $("homeAura").textContent = profile.totalAura;
+    $("levelProgressFill").style.width = ((profile.levelProgress || 0) / LESSONS_PER_LEVEL * 100) + "%";
     renderStreak();
     updateMissionsBadge();
     const activeIdx = tierIndexForLevel(profile.level);
@@ -3954,6 +4070,7 @@
 
   function startLesson(){
     lesson = buildLesson();
+    lesson.startedAt = performance.now();
     showScreen("lesson");
     renderQuestion();
   }
@@ -4143,14 +4260,33 @@
     renderQuestion();
   }
 
+  const LESSONS_PER_LEVEL = 3;
+
+  function formatDuration(ms){
+    const totalSec = Math.max(0, Math.round(ms / 1000));
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return m > 0 ? `${m}:${String(s).padStart(2, "0")}` : `${s}s`;
+  }
+
+  let lastLessonGainedProgress = false; // steuert, ob nach "Weiter" der Level-Punkt-Flug gezeigt wird
+
   function finishLesson(passed){
     profile.lastLessonAt = Date.now();
     saveProfile();
     let title, sub, emoji;
+    lastLessonGainedProgress = false;
     if(passed){
       const pick = COMPLETE_LINES[randInt(0, COMPLETE_LINES.length-1)];
       title = pick.title; sub = pick.sub; emoji = pick.emoji;
-      if(lesson.isMainProgression) profile.level += 1;
+      if(lesson.isMainProgression){
+        profile.levelProgress = (profile.levelProgress || 0) + 1;
+        lastLessonGainedProgress = true;
+        if(profile.levelProgress >= LESSONS_PER_LEVEL){
+          profile.levelProgress = 0;
+          profile.level += 1;
+        }
+      }
       profile.lessonsCompleted += 1;
       registerStreakActivity();
       registerLessonForMissions();
@@ -4165,19 +4301,45 @@
     checkAchievements();
     saveProfile();
 
+    const elapsedMs = performance.now() - (lesson.startedAt || performance.now());
+
     $("resultEmoji").textContent = emoji;
     $("resultTitle").textContent = title;
     $("resultSub").textContent = sub;
     $("resCorrect").textContent = `${lesson.correct}/${QUESTIONS_PER_LESSON}`;
     $("resAura").textContent = `+${auraGained}`;
-    $("resLevel").textContent = profile.level;
+    $("resLevel").textContent = formatDuration(elapsedMs);
 
     showScreen("result");
   }
 
+  // Lässt einen kleinen "Level-Punkt" vom Ergebnis-Bildschirm nach oben fliegen,
+  // bevor zum Home-Menü gewechselt wird - visuelles Feedback dafür, dass ein
+  // Drittel Level in der Fortschrittsleiste angekommen ist.
+  function flyLevelPoint(callback){
+    const dot = document.createElement("div");
+    dot.className = "level-point-fly";
+    dot.textContent = "⭐";
+    document.body.appendChild(dot);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => dot.classList.add("flying"));
+    });
+    setTimeout(() => {
+      dot.remove();
+      callback();
+    }, 550);
+  }
+
   $("resultContinue").addEventListener("click", () => {
-    showScreen("home");
-    renderHome();
+    if(lastLessonGainedProgress){
+      flyLevelPoint(() => {
+        showScreen("home");
+        renderHome();
+      });
+    } else {
+      showScreen("home");
+      renderHome();
+    }
   });
 
   /* ========================================================

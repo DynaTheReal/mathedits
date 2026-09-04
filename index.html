@@ -1219,7 +1219,7 @@
       </div>
     </div>
 
-    <div class="settings-foot">MathEdits · Dein Fortschritt wird synchronisiert.</div>
+    <div class="settings-foot">MathEdits · Dein Fortschritt wird synchronisiert.<br>Build: 2026-09-loop-fix-v2</div>
   </section>
 
   <!-- ============ LOCKED (no lives) ============ -->
@@ -1535,6 +1535,7 @@
   // eines anderen, längst weiter fortgeschrittenen Geräts (z.B. Level 9 am Handy)
   // in der Cloud überschreibt, bevor der lokale Stand überhaupt abgeglichen wurde.
   let cloudSyncReady = false;
+  let hasAttemptedInitialDocCreation = false;
 
   try {
     if(firebaseConfig.apiKey !== "DEIN_API_KEY_HIER"){
@@ -3889,6 +3890,7 @@
       cloudSyncReady = false; // bei jedem Auth-Wechsel neu abgleichen, bevor wieder geschrieben wird
       usernamePromptDismissedThisSession = false;
       lastWrittenProfileJSON = null;
+      hasAttemptedInitialDocCreation = false;
       
       if(syncUnsubscribe){
         syncUnsubscribe();
@@ -3931,8 +3933,16 @@
             claimPendingReferralRewards();
           } else {
             cloudSyncReady = true;
-            profile.lastActiveAt = Date.now();
-            saveProfile();
+            // Nur EINMAL versuchen, das Dokument anzulegen - nicht bei jedem
+            // erneuten Aufruf. Sonst würde profile.lastActiveAt (das sich
+            // jedes Mal ändert) den Schreib-Dedupe umgehen und - falls das
+            // Dokument aus irgendeinem Grund nicht richtig ankommt/existiert -
+            // eine Endlosschleife auslösen.
+            if(!hasAttemptedInitialDocCreation){
+              hasAttemptedInitialDocCreation = true;
+              profile.lastActiveAt = Date.now();
+              saveProfile();
+            }
             claimPendingReferralRewards();
           }
         }, (err) => console.error("Firestore Sync Fehler:", err));

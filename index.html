@@ -160,6 +160,36 @@
     filter: drop-shadow(0 10px 22px rgba(255,255,255,.2));
   }
 
+  /* THEME: CUSTOM (Nutzer stellt Button-Farbe, Button-Transparenz und ein
+     Hintergrundbild selbst ein - siehe Einstellungen. Ohne Anpassung sieht es
+     wie das Standard-Design aus.) */
+  [data-theme="custom"]{
+    --bg: #0a0a10;
+    --bg-soft: #101018;
+    --card: #16161f;
+    --card-2: #1c1c28;
+    --border: #26263a;
+    --text: #ffffff;
+    --text-dim: #e2e8f0;
+    --accent: #c9ff52;
+    --accent-text: #0a0a10;
+    --accent-2: #8b5cf6;
+    --danger: #ff4d6d;
+    --success: #3ee08a;
+    --shadow: 0 20px 50px rgba(0,0,0,.45);
+    --overlay-bg: rgba(6,6,10,.94);
+    --rainbow-header: transparent;
+  }
+  [data-theme="custom"] .app{
+    background-size: cover !important;
+    background-position: center !important;
+  }
+  [data-theme="custom"] .btn-primary{
+    background: var(--custom-btn-bg, var(--accent)) !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0,0,0,.6);
+  }
+
   *{
     box-sizing:border-box; 
     -webkit-tap-highlight-color: transparent;
@@ -823,6 +853,22 @@
     margin: 2px 0 6px; cursor:pointer; user-select:none;
   }
 
+  /* ---------- Profilbild (NEU) ---------- */
+  .avatar-wrap{
+    width:84px; height:84px; border-radius:50%; margin:0 auto 10px;
+    position:relative; cursor:pointer; overflow:hidden;
+    background:var(--card-2); border:2px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .avatar-wrap-readonly{ cursor:default; }
+  .avatar-img{ width:100%; height:100%; object-fit:cover; }
+  .avatar-placeholder{ font-size:38px; opacity:.55; }
+  .avatar-edit-badge{
+    position:absolute; bottom:0; right:0; width:26px; height:26px; border-radius:50%;
+    background:var(--accent); color:var(--accent-text); display:flex; align-items:center; justify-content:center;
+    font-size:13px; border:2px solid var(--card);
+  }
+
   /* ---------- leaderboard tabs (NEU) ---------- */
   .lb-tabs{
     display:flex; gap:8px; background:var(--card); border:1px solid var(--border);
@@ -1059,6 +1105,15 @@
       <button class="buy-btn" id="buyGlassTheme">600 Aura</button>
     </div>
 
+    <div class="shop-item">
+      <div class="item-icon">🎨</div>
+      <div class="item-info">
+        <div class="item-title">Custom Theme</div>
+        <div class="item-desc">Eigene Button-Farbe, Transparenz und Hintergrundbild - einstellbar in den Einstellungen.</div>
+      </div>
+      <button class="buy-btn" id="buyCustomTheme">800 Aura</button>
+    </div>
+
     <div class="shop-section-title">Profilrahmen</div>
 
     <div class="shop-item">
@@ -1090,6 +1145,12 @@
     </div>
 
     <div class="shop-header" id="profileHeaderCard">
+      <div class="avatar-wrap" id="avatarWrap">
+        <img id="profileAvatarImg" class="avatar-img" style="display:none;" alt="Profilbild">
+        <div id="profileAvatarPlaceholder" class="avatar-placeholder">👤</div>
+        <div class="avatar-edit-badge">📷</div>
+      </div>
+      <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
       <h2 id="profileUsernameDisplay">Gast</h2>
       <div id="profileTitleDisplay" class="profile-title" style="display:none;"></div>
       <div class="shop-aura-badge"><span>⚡</span><span id="profileAuraVal">0</span> Aura</div>
@@ -1188,7 +1249,25 @@
         <option value="clean">Clean (🔒)</option>
         <option value="pink">Pink (🔒)</option>
         <option value="glass">Glass (🔒)</option>
+        <option value="custom">Custom (🔒)</option>
       </select>
+    </div>
+
+    <div class="settings-row" id="customThemeSettingsRow" style="display:none; flex-direction:column; align-items:stretch;">
+      <div class="t" style="margin-bottom:12px;">🎨 Custom-Design</div>
+      <div class="d" style="margin-bottom:6px;">Button-Transparenz</div>
+      <input type="range" id="customTransparencySlider" min="0" max="100" value="100" style="width:100%;">
+      <div class="d" style="display:flex; justify-content:space-between; margin-top:2px;">
+        <span>Glasklar</span><span>Undurchsichtig</span>
+      </div>
+      <div class="d" style="margin-bottom:6px; margin-top:16px;">Button-Farbe</div>
+      <input type="color" id="customColorPicker" value="#c9ff52" style="width:100%; height:42px; border:none; border-radius:10px; cursor:pointer;">
+      <div class="d" style="margin-bottom:6px; margin-top:16px;">Hintergrundbild</div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-ghost btn-small" id="customBgImageBtn" style="flex:1;">Bild auswählen</button>
+        <button class="btn btn-ghost btn-small" id="customBgImageClearBtn" style="flex:1;">Entfernen</button>
+      </div>
+      <input type="file" id="customBgImageInput" accept="image/*" style="display:none;">
     </div>
 
     <div class="settings-row">
@@ -1405,6 +1484,10 @@
 
   <div class="overlay" id="overlayFriendProfile">
     <div class="modal-card" id="friendProfileCard" style="max-width:380px;">
+      <div class="avatar-wrap avatar-wrap-readonly" id="friendAvatarWrap">
+        <img id="friendProfileAvatarImg" class="avatar-img" style="display:none;" alt="Profilbild">
+        <div id="friendProfileAvatarPlaceholder" class="avatar-placeholder">👤</div>
+      </div>
       <h2 id="friendProfileUsername">@user</h2>
       <div id="friendProfileTitle" class="profile-title" style="display:none;"></div>
 
@@ -1613,7 +1696,9 @@
     lastLessonAt: null, // Zeitstempel der letzten Lektion (für "zuletzt gelernt" im Profil)
     lastActiveAt: null, // Zeitstempel der letzten Aktivität in der App (für "online"-Punkt)
     dailyGoal: null, // tägliches Lernziel aus dem Onboarding (1/3/10 Lektionen)
-    friendUsernameCache: {} // uid -> zuletzt bekannter Benutzername (Fallback, falls das Live-Profil kurzzeitig nicht ladbar ist)
+    friendUsernameCache: {}, // uid -> zuletzt bekannter Benutzername (Fallback, falls das Live-Profil kurzzeitig nicht ladbar ist)
+    avatarData: null, // kleines, komprimiertes Profilbild als Base64-Data-URL
+    customTheme: { transparency: 100, color: "#c9ff52", bgImage: null }
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -1632,6 +1717,7 @@
           unlockedFrames: parsed.unlockedFrames || ["none"],
           achievements: parsed.achievements || {},
           friendUsernameCache: parsed.friendUsernameCache || {},
+          customTheme: { ...DEFAULT_PROFILE.customTheme, ...(parsed.customTheme || {}) },
           countedDuelWins: parsed.countedDuelWins || []
         };
       }
@@ -1860,6 +1946,15 @@
     $("profileLevel").textContent = profile.level;
     $("profileStreak").textContent = profile.streak || 0;
 
+    if(profile.avatarData){
+      $("profileAvatarImg").src = profile.avatarData;
+      $("profileAvatarImg").style.display = "block";
+      $("profileAvatarPlaceholder").style.display = "none";
+    } else {
+      $("profileAvatarImg").style.display = "none";
+      $("profileAvatarPlaceholder").style.display = "flex";
+    }
+
     const screenProfile = $("screen-profile");
     screenProfile.classList.remove("frame-pink", "frame-clean");
     if(profile.activeFrame === "pink") screenProfile.classList.add("frame-pink");
@@ -2005,6 +2100,14 @@
   // nur Aura, kein Level (isMainProgression:false), damit man gezielt eine
   // einzelne Reihe trainieren kann, ohne den normalen Stufen-Fortschritt zu
   // beeinflussen.
+  // Aura-Belohnung je Reihe: 1er-4er = 1 (Einsteiger), 5er-19er = 2 (Standard),
+  // 20er = 3 (am schwersten). editAura ist jeweils das Doppelte (schnelle Antwort).
+  function timesTableAuraFor(n){
+    if(n >= 20) return { normalAura: 3, editAura: 6 };
+    if(n >= 5) return { normalAura: 2, editAura: 4 };
+    return { normalAura: 1, editAura: 2 };
+  }
+
   function startTimesTablePractice(n){
     const questions = [];
     const seenTexts = new Set();
@@ -2020,8 +2123,9 @@
       seenTexts.add(text);
       questions.push({ text, answer: n * x });
     }
+    const auraVals = timesTableAuraFor(n);
     lesson = {
-      tier: { name: `🔢 ${n}er Reihe`, timeMs: 8000, normalAura: 2, editAura: 4 },
+      tier: { name: `🔢 ${n}er Reihe`, timeMs: 8000, normalAura: auraVals.normalAura, editAura: auraVals.editAura },
       isMainProgression: false,
       isTimesTablePractice: true,
       questions, index: 0, correct: 0, aura: 0, answer: "", locked: false
@@ -2389,6 +2493,15 @@
     card.classList.remove("frame-pink", "frame-clean");
     if(u.activeFrame === "pink") card.classList.add("frame-pink");
     if(u.activeFrame === "clean") card.classList.add("frame-clean");
+
+    if(u.avatarData){
+      $("friendProfileAvatarImg").src = u.avatarData;
+      $("friendProfileAvatarImg").style.display = "block";
+      $("friendProfileAvatarPlaceholder").style.display = "none";
+    } else {
+      $("friendProfileAvatarImg").style.display = "none";
+      $("friendProfileAvatarPlaceholder").style.display = "flex";
+    }
 
     $("friendProfileLevel").textContent = u.level || 1;
     $("friendProfileAura").textContent = u.totalAura || 0;
@@ -2890,6 +3003,10 @@
     merged.lastActiveAt = Math.max(localP.lastActiveAt || 0, cloudP.lastActiveAt || 0) || null;
     merged.friendUsernameCache = { ...(cloudP.friendUsernameCache || {}), ...(localP.friendUsernameCache || {}) };
     merged.dailyGoal = localP.dailyGoal || cloudP.dailyGoal || null;
+    merged.avatarData = localP.avatarData || cloudP.avatarData || null;
+    merged.customTheme = (localP.customTheme && (localP.customTheme.color !== DEFAULT_PROFILE.customTheme.color || localP.customTheme.bgImage || localP.customTheme.transparency !== 100))
+      ? localP.customTheme
+      : (cloudP.customTheme || localP.customTheme || DEFAULT_PROFILE.customTheme);
     merged.countedDuelWins = Array.from(new Set([
       ...(localP.countedDuelWins || []),
       ...(cloudP.countedDuelWins || [])
@@ -3362,6 +3479,52 @@
     renderProfile();
   });
 
+  /* Profilbild-Upload (NEU) - liest die Datei, verkleinert/komprimiert sie
+     clientseitig auf ein kleines quadratisches Vorschaubild (Base64-Data-URL)
+     und speichert das im eigenen Profil-Dokument, damit auch andere es sehen. */
+  function processImageFile(file, maxSize, quality){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const minSide = Math.min(img.width, img.height);
+          const sx = (img.width - minSide) / 2;
+          const sy = (img.height - minSide) / 2;
+          canvas.width = maxSize;
+          canvas.height = maxSize;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, maxSize, maxSize);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = () => reject(new Error("Bild konnte nicht geladen werden."));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  $("avatarWrap").addEventListener("click", () => {
+    $("avatarFileInput").click();
+  });
+  $("avatarFileInput").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if(!file) return;
+    try{
+      const dataUrl = await processImageFile(file, 128, 0.7);
+      profile.avatarData = dataUrl;
+      saveProfile();
+      renderProfile();
+      showToast("📸 Profilbild aktualisiert!");
+    }catch(err){
+      showToast("Bild konnte nicht verarbeitet werden.");
+      console.error(err);
+    }
+  });
+
   $("viewOwnStatsBtn").addEventListener("click", () => {
     openOwnStats();
   });
@@ -3474,6 +3637,15 @@
       bGlass.disabled = profile.totalAura < 600;
     }
 
+    const bCustom = $("buyCustomTheme");
+    if(unlocked.includes("custom")){
+      bCustom.textContent = "Freigeschaltet";
+      bCustom.disabled = true;
+    } else {
+      bCustom.textContent = "800 Aura";
+      bCustom.disabled = profile.totalAura < 800;
+    }
+
     const unlockedFrames = profile.unlockedFrames || ["none"];
     const bPinkFrame = $("buyPinkFrame");
     if(unlockedFrames.includes("pink")){
@@ -3569,6 +3741,7 @@
   $("buyWhiteTheme").addEventListener("click", () => buyTheme("white_clean", 500, "White Clean"));
   $("buyPinkTheme").addEventListener("click", () => buyTheme("pink", 500, "Pink"));
   $("buyGlassTheme").addEventListener("click", () => buyTheme("glass", 600, "Glass"));
+  $("buyCustomTheme").addEventListener("click", () => buyTheme("custom", 800, "Custom"));
 
   function buyFrame(frameKey, cost, name){
     if(profile.totalAura >= cost){
@@ -3587,9 +3760,49 @@
   /* ========================================================
      THEME SYSTEM
   ======================================================== */
+  // Wandelt einen Hex-Farbcode (#rrggbb) plus Alphawert (0-1) in einen
+  // rgba()-String um - für die einstellbare Button-Transparenz beim
+  // Custom-Theme.
+  function hexToRgba(hex, alpha){
+    const h = (hex || "#c9ff52").replace("#", "");
+    const r = parseInt(h.substring(0,2), 16) || 0;
+    const g = parseInt(h.substring(2,4), 16) || 0;
+    const b = parseInt(h.substring(4,6), 16) || 0;
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  // Setzt Button-Farbe/-Transparenz und Hintergrundbild für das Custom-Theme
+  // als Inline-Styles auf .app (überschreiben so die theme-eigenen CSS-Werte).
+  function applyCustomThemeStyles(){
+    const ct = profile.customTheme || DEFAULT_PROFILE.customTheme;
+    const transparency = ct.transparency != null ? ct.transparency : 100;
+    const alpha = Math.max(0.06, transparency / 100);
+    const color = ct.color || "#c9ff52";
+    app.style.setProperty("--accent", color);
+    app.style.setProperty("--custom-btn-bg", hexToRgba(color, alpha));
+    if(ct.bgImage){
+      app.style.backgroundImage = `url(${ct.bgImage})`;
+    } else {
+      app.style.backgroundImage = "";
+    }
+  }
+
+  // Setzt alle Custom-Theme-Overrides zurück, damit sie andere Themes nicht
+  // verfälschen, wenn man zu einem anderen Design wechselt.
+  function clearCustomThemeStyles(){
+    app.style.removeProperty("--accent");
+    app.style.removeProperty("--custom-btn-bg");
+    app.style.backgroundImage = "";
+  }
+
   function applyTheme(){
     const t = profile.theme || "black";
     app.setAttribute("data-theme", t);
+    if(t === "custom"){
+      applyCustomThemeStyles();
+    } else {
+      clearCustomThemeStyles();
+    }
     
     // Toggle-Icon für Schnellauswahl
     let icon = "🌙";
@@ -3597,6 +3810,7 @@
     if(t === "pink") icon = "🌸";
     if(t === "clean" || t === "light") icon = "🍃";
     if(t === "glass") icon = "🪟";
+    if(t === "custom") icon = "🎨";
     
     $("themeToggle").textContent = icon;
     $("themeToggleShop").textContent = icon;
@@ -3631,10 +3845,52 @@
       profile.theme = val;
       applyTheme();
       saveProfile();
+      renderSettings();
     } else {
       showToast("🔒 Kaufe dieses Theme zuerst im Shop!");
       e.target.value = profile.theme;
     }
+  });
+
+  $("customTransparencySlider").addEventListener("input", (e) => {
+    profile.customTheme = profile.customTheme || { ...DEFAULT_PROFILE.customTheme };
+    profile.customTheme.transparency = parseInt(e.target.value, 10);
+    applyCustomThemeStyles();
+    saveProfile();
+  });
+  $("customColorPicker").addEventListener("input", (e) => {
+    profile.customTheme = profile.customTheme || { ...DEFAULT_PROFILE.customTheme };
+    profile.customTheme.color = e.target.value;
+    applyCustomThemeStyles();
+    saveProfile();
+  });
+  $("customBgImageBtn").addEventListener("click", () => {
+    $("customBgImageInput").click();
+  });
+  $("customBgImageInput").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if(!file) return;
+    try{
+      // Hintergrundbilder dürfen etwas größer/hochwertiger sein als das
+      // kleine, quadratische Profilbild.
+      const dataUrl = await processImageFile(file, 800, 0.6);
+      profile.customTheme = profile.customTheme || { ...DEFAULT_PROFILE.customTheme };
+      profile.customTheme.bgImage = dataUrl;
+      applyCustomThemeStyles();
+      saveProfile();
+      showToast("🖼️ Hintergrundbild gesetzt!");
+    }catch(err){
+      showToast("Bild konnte nicht verarbeitet werden.");
+      console.error(err);
+    }
+  });
+  $("customBgImageClearBtn").addEventListener("click", () => {
+    profile.customTheme = profile.customTheme || { ...DEFAULT_PROFILE.customTheme };
+    profile.customTheme.bgImage = null;
+    applyCustomThemeStyles();
+    saveProfile();
+    showToast("Hintergrundbild entfernt.");
   });
 
   /* ========================================================
@@ -3656,7 +3912,19 @@
       select.options[2].text = "Clean " + (unlocked.includes("clean") ? "" : "(🔒)");
       select.options[3].text = "Pink " + (unlocked.includes("pink") ? "" : "(🔒)");
       select.options[4].text = "Glass " + (unlocked.includes("glass") ? "" : "(🔒)");
+      select.options[5].text = "Custom " + (unlocked.includes("custom") ? "" : "(🔒)");
       select.value = profile.theme || "black";
+    }
+
+    // Custom-Design-Regler nur anzeigen, wenn das Theme aktiv ist.
+    const customRow = $("customThemeSettingsRow");
+    if(profile.theme === "custom"){
+      customRow.style.display = "flex";
+      const ct = profile.customTheme || DEFAULT_PROFILE.customTheme;
+      $("customTransparencySlider").value = ct.transparency != null ? ct.transparency : 100;
+      $("customColorPicker").value = ct.color || "#c9ff52";
+    } else {
+      customRow.style.display = "none";
     }
 
     if(currentUser){
@@ -4267,7 +4535,7 @@
     } else if(isSlow){
       profile.totalMistakes = (profile.totalMistakes || 0) + 1;
       loseLife();
-      const showMs = profile.longMode ? 4000 : 1650;
+      const showMs = profile.longMode ? 2800 : 1100;
       delay = 150 + showMs + 100;
       setTimeout(() => showMemeOverlay(isCorrect, showMs), 150);
     } else {

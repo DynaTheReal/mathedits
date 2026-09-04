@@ -1383,7 +1383,8 @@
       <h2>Wähle deinen Benutzernamen</h2>
       <p>Dein Account wurde bisher nur über eine UID geführt. Wähle jetzt einen eindeutigen Benutzernamen — er ersetzt deine UID ab sofort überall in der App.</p>
       <input type="text" id="chooseUsernameInput" class="input-field" placeholder="Benutzername" maxlength="20">
-      <button class="btn btn-primary" id="chooseUsernameBtn">Bestätigen</button>
+      <button class="btn btn-primary" id="chooseUsernameBtn" style="margin-bottom:10px;">Bestätigen</button>
+      <button class="btn btn-ghost" id="skipUsernameBtn">Später</button>
     </div>
   </div>
 
@@ -1764,8 +1765,9 @@
     }
   }
 
+  let usernamePromptDismissedThisSession = false;
   function checkUsernameRequired(){
-    if(currentUser && !profile.username){
+    if(currentUser && !profile.username && !usernamePromptDismissedThisSession){
       $("chooseUsernameInput").value = "";
       $("overlayUsername").classList.add("show");
     } else {
@@ -3859,12 +3861,23 @@
       alert(err.message);
     }
   });
+  $("skipUsernameBtn").addEventListener("click", () => {
+    usernamePromptDismissedThisSession = true;
+    $("overlayUsername").classList.remove("show");
+  });
+  $("overlayUsername").addEventListener("click", (e) => {
+    if(e.target.id === "overlayUsername"){
+      usernamePromptDismissedThisSession = true;
+      $("overlayUsername").classList.remove("show");
+    }
+  });
 
   /* Firebase Auth & Realtime Synchronization Listener */
   if(firebaseInitialized){
     firebase.auth().onAuthStateChanged((user) => {
       currentUser = user;
       cloudSyncReady = false; // bei jedem Auth-Wechsel neu abgleichen, bevor wieder geschrieben wird
+      usernamePromptDismissedThisSession = false;
       
       if(syncUnsubscribe){
         syncUnsubscribe();

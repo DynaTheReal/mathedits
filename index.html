@@ -98,6 +98,47 @@
     --rainbow-header: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
   }
 
+  /* THEME: GLASS (schwarzer Hintergrund, durchscheinende "Glas"-Flächen) */
+  [data-theme="glass"]{
+    --bg: #030304;
+    --bg-soft: #0a0a0c;
+    --card: rgba(255,255,255,0.07);
+    --card-2: rgba(255,255,255,0.12);
+    --border: rgba(255,255,255,0.22);
+    --text: #ffffff;
+    --text-dim: #f1f1f1;
+    --accent: #ffffff;
+    --accent-text: #030304;
+    --accent-2: rgba(255,255,255,0.55);
+    --danger: #ff6b6b;
+    --success: #6bffb0;
+    --shadow: 0 20px 50px rgba(0,0,0,.65);
+    --overlay-bg: rgba(0,0,0,.85);
+    --rainbow-header: transparent;
+  }
+  [data-theme="glass"] .shop-item,
+  [data-theme="glass"] .mission-card,
+  [data-theme="glass"] .question-card,
+  [data-theme="glass"] .stat-pill,
+  [data-theme="glass"] .tier-card,
+  [data-theme="glass"] .friend-row,
+  [data-theme="glass"] .lb-row,
+  [data-theme="glass"] .settings-row,
+  [data-theme="glass"] .modal-card,
+  [data-theme="glass"] .mission-chest-icon,
+  [data-theme="glass"] .auth-box,
+  [data-theme="glass"] .referral-banner,
+  [data-theme="glass"] .lb-tabs,
+  [data-theme="glass"] .bottom-nav,
+  [data-theme="glass"] .theme-toggle,
+  [data-theme="glass"] .shop-aura-badge{
+    backdrop-filter: blur(16px) saturate(1.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  }
+  [data-theme="glass"] .referral-banner{
+    background: linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06));
+  }
+
   *{
     box-sizing:border-box; 
     -webkit-tap-highlight-color: transparent;
@@ -686,6 +727,25 @@
   .btn-duel *{ color:#fff !important; }
   .duel-outcome{font-size:11.5px; opacity:.85; line-height:1.4;}
 
+  /* ---------- Profilrahmen (NEU) ---------- */
+  #profileHeaderCard{ transition: box-shadow .3s, border-color .3s, background .3s; border-radius: var(--radius-card); }
+  .frame-pink #profileHeaderCard{
+    border: 3px solid #ec4899;
+    box-shadow: 0 0 26px rgba(236,72,153,.45);
+  }
+  .frame-clean #profileHeaderCard{
+    border: 2px solid rgba(255,255,255,.4);
+    background: rgba(255,255,255,.07);
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  }
+  .profile-title{
+    display:inline-block; font-size:12px; font-weight:800; letter-spacing:.3px;
+    background: linear-gradient(90deg, var(--accent-2), var(--accent));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    margin: 2px 0 6px; cursor:pointer; user-select:none;
+  }
+
   /* ---------- leaderboard tabs (NEU) ---------- */
   .lb-tabs{
     display:flex; gap:8px; background:var(--card); border:1px solid var(--border);
@@ -869,7 +929,17 @@
       <button class="buy-btn" id="buyDoubleAura">300 Aura</button>
     </div>
 
+    <div class="shop-item">
+      <div class="item-icon">🔁</div>
+      <div class="item-info">
+        <div class="item-title">Streak-Reparatur</div>
+        <div class="item-desc">Stellt deinen zuletzt verlorenen Streak wieder her.</div>
+      </div>
+      <button class="buy-btn" id="buyStreakRepair">10.000 Aura</button>
+    </div>
+
     <div class="shop-section-title">Designs</div>
+
 
     <div class="shop-item">
       <div class="item-icon">🍃</div>
@@ -897,6 +967,35 @@
       </div>
       <button class="buy-btn" id="buyPinkTheme">500 Aura</button>
     </div>
+
+    <div class="shop-item">
+      <div class="item-icon">🪟</div>
+      <div class="item-info">
+        <div class="item-title">Glass Theme</div>
+        <div class="item-desc">Dunkler Hintergrund, durchscheinende Glas-Flächen.</div>
+      </div>
+      <button class="buy-btn" id="buyGlassTheme">600 Aura</button>
+    </div>
+
+    <div class="shop-section-title">Profilrahmen</div>
+
+    <div class="shop-item">
+      <div class="item-icon">🌸</div>
+      <div class="item-info">
+        <div class="item-title">Pink-Rahmen</div>
+        <div class="item-desc">Ein pinker Rahmen für dein Profil.</div>
+      </div>
+      <button class="buy-btn" id="buyPinkFrame">300 Aura</button>
+    </div>
+
+    <div class="shop-item">
+      <div class="item-icon">🧊</div>
+      <div class="item-info">
+        <div class="item-title">Clean-Rahmen</div>
+        <div class="item-desc">Durchsichtig-cleaner Glas-Rahmen für dein Profil.</div>
+      </div>
+      <button class="buy-btn" id="buyCleanFrame">300 Aura</button>
+    </div>
   </section>
 
   <!-- ============ PROFIL (NEU) ============ -->
@@ -908,8 +1007,9 @@
       </div>
     </div>
 
-    <div class="shop-header">
+    <div class="shop-header" id="profileHeaderCard">
       <h2 id="profileUsernameDisplay">Gast</h2>
+      <div id="profileTitleDisplay" class="profile-title" style="display:none;"></div>
       <div class="shop-aura-badge"><span>⚡</span><span id="profileAuraVal">0</span> Aura</div>
     </div>
 
@@ -1003,6 +1103,7 @@
         <option value="white_clean">White Clean (🔒)</option>
         <option value="clean">Clean (🔒)</option>
         <option value="pink">Pink (🔒)</option>
+        <option value="glass">Glass (🔒)</option>
       </select>
     </div>
 
@@ -1285,6 +1386,7 @@
      ist, auch wenn der Link zuerst nur die Startseite ohne Login öffnet.
   ======================================================== */
   const REFERRAL_REWARD = 500;
+  const STREAK_REPAIR_COST = 10000;
   const PENDING_REF_KEY = "mathedits_pending_ref";
   let pendingReferralCode = null;
   try{
@@ -1327,7 +1429,17 @@
     dailyMissions: null, // wird von ensureDailyMissions() initialisiert/zurückgesetzt
     hasSeenReferralPromo: false,
     referredBy: null,
-    claimedReferralRewardIds: [] // welche referralRewards-Dokumente lokal schon gutgeschrieben wurden
+    claimedReferralRewardIds: [], // welche referralRewards-Dokumente lokal schon gutgeschrieben wurden
+    lastBrokenStreak: 0, // für die Streak-Reparatur im Shop
+    unlockedFrames: ["none"],
+    activeFrame: "none",
+    unlockedTitles: [],
+    activeTitle: null,
+    achievements: {}, // { achievementId: { claimed: bool, chest: {...} } }
+    totalMistakes: 0,
+    duelsPlayed: 0,
+    duelsWon: 0,
+    countedDuelWins: [] // welche Duell-IDs schon in duelsWon eingerechnet wurden
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -1342,7 +1454,10 @@
           unlockedThemes: parsed.unlockedThemes || ["black"],
           inventory: { ...DEFAULT_PROFILE.inventory, ...(parsed.inventory || {}) },
           following: parsed.following || [],
-          claimedReferralRewardIds: parsed.claimedReferralRewardIds || []
+          claimedReferralRewardIds: parsed.claimedReferralRewardIds || [],
+          unlockedFrames: parsed.unlockedFrames || ["none"],
+          achievements: parsed.achievements || {},
+          countedDuelWins: parsed.countedDuelWins || []
         };
       }
     }catch(e){
@@ -1538,6 +1653,19 @@
     $("profileLevel").textContent = profile.level;
     $("profileStreak").textContent = profile.streak || 0;
 
+    const screenProfile = $("screen-profile");
+    screenProfile.classList.remove("frame-pink", "frame-clean");
+    if(profile.activeFrame === "pink") screenProfile.classList.add("frame-pink");
+    if(profile.activeFrame === "clean") screenProfile.classList.add("frame-clean");
+
+    const titleEl = $("profileTitleDisplay");
+    if(profile.activeTitle){
+      titleEl.textContent = "🏅 " + profile.activeTitle;
+      titleEl.style.display = "inline-block";
+    } else {
+      titleEl.style.display = "none";
+    }
+
     if(!loggedIn){
       $("profileFriendsCount").textContent = "0";
       return;
@@ -1675,6 +1803,10 @@
       console.error("Duell-Ergebnis speichern Fehler:", err);
     }
 
+    profile.duelsPlayed = (profile.duelsPlayed || 0) + 1;
+    checkAchievements();
+    saveProfile();
+
     $("resultEmoji").textContent = "⚔️";
     $("resultTitle").textContent = "Duell gespielt!";
     $("resultSub").textContent = `${correct}/10 richtig in ${(elapsedMs/1000).toFixed(1)}s gegen @${oppUsername}. Ergebnis erscheint in deinem Profil, sobald er/sie auch fertig ist.`;
@@ -1741,6 +1873,12 @@
             outcome = myRes.timeMs < oppRes.timeMs ? "🏆 Gewonnen" : "❌ Verloren";
           } else {
             outcome = "🤝 Unentschieden";
+          }
+          if(outcome === "🏆 Gewonnen" && !(profile.countedDuelWins || []).includes(duel.id)){
+            profile.duelsWon = (profile.duelsWon || 0) + 1;
+            profile.countedDuelWins = [...(profile.countedDuelWins || []), duel.id];
+            checkAchievements();
+            saveProfile();
           }
           row.innerHTML = `<span class="name">⚔️ @${oppUsername}</span><span class="duel-outcome">${outcome} · ${myRes.correct}/10 in ${(myRes.timeMs/1000).toFixed(1)}s vs ${oppRes.correct}/10 in ${(oppRes.timeMs/1000).toFixed(1)}s</span>`;
         }
@@ -1876,9 +2014,25 @@
         profile.lastStreakDate = yesterday; // Setze den Tag zurück, als ob gestern gelernt wurde
         showToast("🧊 Icecube hat deinen Streak gerettet!");
       } else {
+        // Den verlorenen Stand merken, damit er per Streak-Reparatur (Shop)
+        // wiederhergestellt werden kann.
+        if(profile.streak > 0) profile.lastBrokenStreak = profile.streak;
         profile.streak = 0;
       }
     }
+  }
+
+  function repairStreak(){
+    if(!profile.lastBrokenStreak || profile.lastBrokenStreak <= 0) return;
+    if(profile.totalAura < STREAK_REPAIR_COST) return;
+    profile.totalAura -= STREAK_REPAIR_COST;
+    profile.streak = profile.lastBrokenStreak;
+    profile.lastStreakDate = yesterdayStr(); // heute noch eine Lektion machen setzt den Streak fort
+    profile.lastBrokenStreak = 0;
+    saveProfile();
+    renderShop();
+    renderHome();
+    showToast(`🔁 Streak repariert! Wieder bei ${profile.streak} Tagen.`);
   }
 
   function registerStreakActivity(){
@@ -2001,6 +2155,10 @@
       const chest = profile.dailyMissions.chests[m.id];
       if(done && chest && !chest.claimed) count++;
     });
+    ACHIEVEMENT_DEFS.forEach(a => {
+      const chest = profile.achievements[a.id];
+      if(chest && !chest.claimed) count++;
+    });
     return count;
   }
 
@@ -2023,22 +2181,36 @@
     return chest.tier !== "legendary" && chest.attemptsUsed < MAX_CHEST_ATTEMPTS;
   }
 
-  let activeChestMissionId = null;
+  // Liefert die Truhen-Referenz für eine Mission ODER ein Achievement, je nach
+  // Quelle - so nutzen beide dieselbe Tap/Upgrade/Abholen-Logik.
+  function getChestRef(sourceType, sourceId){
+    if(sourceType === "mission"){
+      ensureDailyMissions();
+      return profile.dailyMissions.chests[sourceId];
+    }
+    if(sourceType === "achievement"){
+      return profile.achievements[sourceId];
+    }
+    return null;
+  }
 
-  function openChestModal(missionId){
-    ensureDailyMissions();
-    const chest = profile.dailyMissions.chests[missionId];
+  let activeChestSource = null; // { type: 'mission'|'achievement', id }
+
+  function openChestModal(sourceType, sourceId){
+    const chest = getChestRef(sourceType, sourceId);
     if(!chest) return;
-    activeChestMissionId = missionId;
-    const missionDef = DAILY_MISSION_DEFS.find(m => m.id === missionId);
-    $("chestModalTitle").textContent = missionDef ? missionDef.label : "Truhe";
+    activeChestSource = { type: sourceType, id: sourceId };
+    const def = sourceType === "mission"
+      ? DAILY_MISSION_DEFS.find(m => m.id === sourceId)
+      : ACHIEVEMENT_DEFS.find(a => a.id === sourceId);
+    $("chestModalTitle").textContent = def ? def.label : "Truhe";
     renderChestModal();
     $("overlayChest").classList.add("show");
   }
 
   function renderChestModal(){
-    if(!activeChestMissionId) return;
-    const chest = profile.dailyMissions.chests[activeChestMissionId];
+    if(!activeChestSource) return;
+    const chest = getChestRef(activeChestSource.type, activeChestSource.id);
     if(!chest) return;
     const icon = $("chestTapIcon");
     icon.textContent = CHEST_TIER_ICON[chest.tier];
@@ -2066,8 +2238,8 @@
   }
 
   function tapChest(){
-    if(!activeChestMissionId) return;
-    const chest = profile.dailyMissions.chests[activeChestMissionId];
+    if(!activeChestSource) return;
+    const chest = getChestRef(activeChestSource.type, activeChestSource.id);
     if(!chest || chest.claimed || !chestCanTap(chest)) return;
 
     chest.attemptsUsed += 1;
@@ -2104,8 +2276,8 @@
     }
   }
 
-  function claimChest(missionId){
-    const chest = profile.dailyMissions.chests[missionId];
+  function claimChest(sourceType, sourceId){
+    const chest = getChestRef(sourceType, sourceId);
     if(!chest || chest.claimed) return;
     const reward = CHEST_REWARDS[chest.tier] || CHEST_REWARDS.standard;
     chest.claimed = true;
@@ -2123,6 +2295,17 @@
       bonusText = " + 2× Aura-Booster (15 Min)";
     }
 
+    // Bei Achievement-Truhen: falls das Achievement einen Titel freischaltet,
+    // jetzt freischalten (Truhe abholen bestätigt den Erfolg endgültig).
+    if(sourceType === "achievement"){
+      const def = ACHIEVEMENT_DEFS.find(a => a.id === sourceId);
+      if(def && def.title && !profile.unlockedTitles.includes(def.title)){
+        profile.unlockedTitles.push(def.title);
+        if(!profile.activeTitle) profile.activeTitle = def.title;
+        bonusText += ` + Titel "${def.title}"`;
+      }
+    }
+
     saveProfile();
     showToast(`⚡ +${reward} Aura${bonusText} eingesammelt!`);
     renderMissions();
@@ -2131,35 +2314,55 @@
   }
 
   function claimChestFromModal(){
-    if(!activeChestMissionId) return;
-    claimChest(activeChestMissionId);
+    if(!activeChestSource) return;
+    claimChest(activeChestSource.type, activeChestSource.id);
     closeChestModal();
   }
 
   function closeChestModal(){
     $("overlayChest").classList.remove("show");
-    activeChestMissionId = null;
+    activeChestSource = null;
     renderMissions();
+  }
+
+  // ---------- Langzeit-Erfolge / Achievements (NEU) ----------
+  // Erscheinen (bewusst KEIN eigener Tab) direkt unten in den Missionen, sobald
+  // sie freigeschaltet werden - mit derselben Truhen-Mechanik wie die Tagesmissionen.
+  const ACHIEVEMENT_DEFS = [
+    { id: "les10",     label: "Erste Schritte",       desc: "10 Lektionen abgeschlossen",  check: p => (p.lessonsCompleted||0) >= 10 },
+    { id: "les100",    label: "Fleißig",               desc: "100 Lektionen abgeschlossen", check: p => (p.lessonsCompleted||0) >= 100, title: "Fleißiges Mathe-Genie" },
+    { id: "les500",    label: "Unaufhaltsam",          desc: "500 Lektionen abgeschlossen", check: p => (p.lessonsCompleted||0) >= 500, title: "Math King" },
+    { id: "mist100",   label: "Aus Fehlern lernt man", desc: "100 Fehler gemacht",          check: p => (p.totalMistakes||0) >= 100 },
+    { id: "streak30",  label: "Streak-Legende",        desc: "30 Tage Streak",              check: p => (p.streak||0) >= 30, title: "Streak-Legende" },
+    { id: "duel10",    label: "Duellant",              desc: "10 Duelle gespielt",          check: p => (p.duelsPlayed||0) >= 10 },
+    { id: "duelwin10", label: "Champion",              desc: "10 Duelle gewonnen",          check: p => (p.duelsWon||0) >= 10, title: "Duell-Champion" }
+  ];
+
+  function checkAchievements(){
+    if(!profile.achievements) profile.achievements = {};
+    let unlocked = [];
+    ACHIEVEMENT_DEFS.forEach(a => {
+      if(!profile.achievements[a.id] && a.check(profile)){
+        profile.achievements[a.id] = freshChest();
+        unlocked.push(a);
+      }
+    });
+    if(unlocked.length > 0){
+      unlocked.forEach(a => showToast(`🏅 Erfolg freigeschaltet: "${a.label}" · Truhe wartet in den Missionen!`));
+      saveProfile();
+      updateMissionsBadge();
+    }
   }
 
   function renderMissions(){
     ensureDailyMissions();
+    checkAchievements();
     const wrap = $("missionsList");
     wrap.innerHTML = "";
 
-    DAILY_MISSION_DEFS.forEach(m => {
-      const progress = Math.min(profile.dailyMissions.lessonsCompletedToday, m.target);
-      const done = progress >= m.target;
-      const chest = profile.dailyMissions.chests[m.id];
-      const pct = Math.round((progress / m.target) * 100);
-
-      const card = document.createElement("div");
-      card.className = "mission-card";
-
-      let chestHtml = "";
-      if(!done){
-        chestHtml = `<div class="empty-hint" style="margin-top:0; text-align:left;">Schließe noch ${m.target - progress} Lektion(en) ab, um die Truhe freizuschalten.</div>`;
-      } else if(!chest.claimed){
+    function buildChestHtml(chest, sourceType, sourceId, notDoneHtml){
+      if(!chest) return notDoneHtml;
+      if(!chest.claimed){
         const icon = CHEST_TIER_ICON[chest.tier];
         const tierClass = chest.tier !== "standard" ? ` tier-${chest.tier}` : "";
         let label, btnLabel;
@@ -2173,24 +2376,35 @@
           label = `${CHEST_TIER_LABEL[chest.tier]} · bereit zum Abholen`;
           btnLabel = "Belohnung abholen";
         }
-        chestHtml = `
+        return `
           <div class="mission-chest-row">
             <div class="mission-chest-icon${tierClass}">${icon}</div>
             <div class="mission-chest-actions">
               <div class="mission-tier-label">${label}</div>
-              <button class="btn btn-primary btn-small chest-modal-open-btn" data-mission="${m.id}">${btnLabel}</button>
-            </div>
-          </div>`;
-      } else {
-        const icon = CHEST_TIER_ICON[chest.tier];
-        chestHtml = `
-          <div class="mission-chest-row">
-            <div class="mission-chest-icon">${icon}</div>
-            <div class="mission-chest-actions">
-              <div class="mission-tier-label">${CHEST_TIER_LABEL[chest.tier]} · abgeholt ✓</div>
+              <button class="btn btn-primary btn-small chest-modal-open-btn" data-source="${sourceType}" data-id="${sourceId}">${btnLabel}</button>
             </div>
           </div>`;
       }
+      const icon = CHEST_TIER_ICON[chest.tier];
+      return `
+        <div class="mission-chest-row">
+          <div class="mission-chest-icon">${icon}</div>
+          <div class="mission-chest-actions">
+            <div class="mission-tier-label">${CHEST_TIER_LABEL[chest.tier]} · abgeholt ✓</div>
+          </div>
+        </div>`;
+    }
+
+    DAILY_MISSION_DEFS.forEach(m => {
+      const progress = Math.min(profile.dailyMissions.lessonsCompletedToday, m.target);
+      const done = progress >= m.target;
+      const chest = profile.dailyMissions.chests[m.id];
+      const pct = Math.round((progress / m.target) * 100);
+
+      const card = document.createElement("div");
+      card.className = "mission-card";
+      const notDoneHtml = `<div class="empty-hint" style="margin-top:0; text-align:left;">Schließe noch ${m.target - progress} Lektion(en) ab, um die Truhe freizuschalten.</div>`;
+      const chestHtml = done ? buildChestHtml(chest, "mission", m.id, notDoneHtml) : notDoneHtml;
 
       card.innerHTML = `
         <div class="m-title">${m.label}</div>
@@ -2201,8 +2415,29 @@
       wrap.appendChild(card);
     });
 
+    const achHeader = document.createElement("div");
+    achHeader.className = "shop-section-title";
+    achHeader.style.margin = "18px 0 8px";
+    achHeader.textContent = "🏅 Erfolge";
+    wrap.appendChild(achHeader);
+
+    ACHIEVEMENT_DEFS.forEach(a => {
+      const chest = profile.achievements[a.id];
+      const card = document.createElement("div");
+      card.className = "mission-card";
+      const notDoneHtml = `<div class="empty-hint" style="margin-top:0; text-align:left;">Noch nicht erreicht.</div>`;
+      const chestHtml = buildChestHtml(chest, "achievement", a.id, notDoneHtml);
+      const titleHint = a.title ? ` · Titel "${a.title}"` : "";
+      card.innerHTML = `
+        <div class="m-title">${a.label}</div>
+        <div class="m-sub">${a.desc}${titleHint}</div>
+        ${chestHtml}
+      `;
+      wrap.appendChild(card);
+    });
+
     wrap.querySelectorAll(".chest-modal-open-btn").forEach(btn => {
-      btn.addEventListener("click", () => openChestModal(btn.dataset.mission));
+      btn.addEventListener("click", () => openChestModal(btn.dataset.source, btn.dataset.id));
     });
   }
 
@@ -2291,6 +2526,43 @@
     merged.username = localP.username || cloudP.username || null;
     merged.usernameLower = localP.usernameLower || cloudP.usernameLower || null;
 
+    // Statistik-Zähler für Achievements: immer der höhere Wert.
+    merged.totalMistakes = Math.max(localP.totalMistakes || 0, cloudP.totalMistakes || 0);
+    merged.duelsPlayed = Math.max(localP.duelsPlayed || 0, cloudP.duelsPlayed || 0);
+    merged.duelsWon = Math.max(localP.duelsWon || 0, cloudP.duelsWon || 0);
+    merged.lastBrokenStreak = Math.max(localP.lastBrokenStreak || 0, cloudP.lastBrokenStreak || 0);
+    merged.countedDuelWins = Array.from(new Set([
+      ...(localP.countedDuelWins || []),
+      ...(cloudP.countedDuelWins || [])
+    ]));
+
+    // Profilrahmen & Titel: Freigeschaltetes nie verlieren (Vereinigung), aktive
+    // Auswahl vom Gerät übernehmen, das schon eine getroffen hat.
+    merged.unlockedFrames = Array.from(new Set([
+      ...(localP.unlockedFrames || ["none"]),
+      ...(cloudP.unlockedFrames || ["none"])
+    ]));
+    merged.activeFrame = (localP.activeFrame && localP.activeFrame !== "none") ? localP.activeFrame : (cloudP.activeFrame || "none");
+    merged.unlockedTitles = Array.from(new Set([
+      ...(localP.unlockedTitles || []),
+      ...(cloudP.unlockedTitles || [])
+    ]));
+    merged.activeTitle = localP.activeTitle || cloudP.activeTitle || null;
+
+    // Achievements: je Erfolg die weiter fortgeschrittene Truhe behalten
+    // (dieselbe Logik wie bei Missions-Truhen - abgeholt schlägt offen).
+    const achIds = new Set([
+      ...Object.keys(localP.achievements || {}),
+      ...Object.keys(cloudP.achievements || {})
+    ]);
+    merged.achievements = {};
+    achIds.forEach(id => {
+      merged.achievements[id] = pickFurtherChest(
+        (localP.achievements || {})[id],
+        (cloudP.achievements || {})[id]
+      );
+    });
+
     // Leben hängen von der Zeit ab (regenerieren stündlich) - hier gewinnt daher
     // nicht der höhere, sondern der zuletzt aktualisierte Stand.
     if((cloudP.lastLifeChangeAt || 0) > (localP.lastLifeChangeAt || 0)){
@@ -2345,10 +2617,10 @@
   // Hinweis: Einmaleins-Aufgaben (mult/bigMult) gibt es NUR in den ersten Tiers.
   // Ab "Plus & Minus" sind es zufällig gemischte Aufgaben aus allen bis dahin
   // freigeschalteten Aufgabentypen (kein reines Einmaleins mehr).
-  // Viele, kleinschrittige Tiers (je 3 Level) statt weniger, großer Sprünge -
-  // dadurch fühlt sich das Leveln ausgewogener an, da man pro Lektion 1 Level
-  // aufsteigt.
-  const LEVELS_PER_TIER = 3;
+  // Level-Bedarf pro Stufe: die allererste Stufe braucht nur 5 Level, "Großes
+  // Einmaleins" braucht 10, danach braucht jede Stufe 20 Level.
+  const DEFAULT_LEVELS_PER_TIER = 20;
+  const TIER_LEVEL_OVERRIDES = { kl_mult: 5, gr_mult: 10 };
   const TIER_DEFS = [
     {id:"kl_mult",  name:"Kleines Einmaleins",        icon:"✖️",  timeMs: 8000,  normalAura: 1, editAura: 2, gen: () => multFewOnes(1,5)},
     {id:"mult",     name:"Einmaleins",                icon:"✳️",  timeMs: 8500,  normalAura: 1, editAura: 2, gen: () => mult(2,10)},
@@ -2366,17 +2638,21 @@
     {id:"mix_ad",   name:"Mix: Plus/Minus & Geteilt", icon:"🔀",  timeMs: 13000, normalAura: 3, editAura: 6, gen: () => weightedPick([[() => addSub(75), 1], [() => divide(2,15), 1]])},
     {id:"mix_fd",   name:"Mix: Brüche & Geteilt",     icon:"🔀",  timeMs: 14000, normalAura: 3, editAura: 6, gen: () => weightedPick([[() => fraction(), 1], [() => divide(2,15), 1]])},
     {id:"addsub_p", name:"Plus & Minus Profi",        icon:"🧮",  timeMs: 14000, normalAura: 3, editAura: 6, gen: () => weightedPick([[() => addSub(100), 3], [() => fraction(), 1], [() => divide(1,12), 1]])},
+    {id:"word_e",   name:"Textaufgaben",              icon:"📖",  timeMs: 17000, normalAura: 3, editAura: 6, gen: () => wordProblem()},
     {id:"gr_mix",   name:"Großer Mix",                icon:"🌀",  timeMs: 15000, normalAura: 3, editAura: 7, gen: () => mixedHard()},
     {id:"blitz_p",  name:"Blitz-Profi",               icon:"⚡",  timeMs: 10000, normalAura: 4, editAura: 7, gen: () => mixedHard()},
     {id:"frac_p",   name:"Bruch-Profi",               icon:"🍰",  timeMs: 16000, normalAura: 4, editAura: 8, gen: () => fractionHard()},
     {id:"kopf_m",   name:"Kopfrechnen-Meister",       icon:"🧠",  timeMs: 11000, normalAura: 4, editAura: 8, gen: () => mixedHard()},
     {id:"mix_p",    name:"Gemischt Profi",            icon:"🏆",  timeMs: 18000, normalAura: 4, editAura: 8, gen: () => mixedHard()}
   ];
-  const TIERS = TIER_DEFS.map((def, i) => ({
-    ...def,
-    from: i * LEVELS_PER_TIER + 1,
-    to: (i === TIER_DEFS.length - 1) ? Infinity : (i + 1) * LEVELS_PER_TIER
-  }));
+  let _tierLevelCursor = 1;
+  const TIERS = TIER_DEFS.map((def, i) => {
+    const span = TIER_LEVEL_OVERRIDES[def.id] || DEFAULT_LEVELS_PER_TIER;
+    const from = _tierLevelCursor;
+    const to = (i === TIER_DEFS.length - 1) ? Infinity : (from + span - 1);
+    _tierLevelCursor = (to === Infinity) ? Infinity : to + 1;
+    return { ...def, from, to };
+  });
 
   function tierIndexForLevel(level){
     for(let i=0;i<TIERS.length;i++){ if(level >= TIERS[i].from && level <= TIERS[i].to) return i; }
@@ -2462,8 +2738,89 @@
     return weightedPick([
       [() => addSub(100), 1],
       [() => divide(2,15), 1],
-      [() => fraction(), 1]
+      [() => fraction(), 1],
+      [() => wordProblem(), 1]
     ]);
+  }
+
+  // ---------- Textaufgaben (NEU) ----------
+  // Viele verschiedene Vorlagen mit zufälligen Namen/Gegenständen/Zahlen, damit
+  // sich nie dieselbe Textaufgabe mit derselben Lösung wiederholt.
+  const WP_NAMES = ["Anna","Ben","Lea","Tom","Mia","Finn","Emma","Paul","Lina","Max","Noah","Zoe","Elias","Ida","Lukas","Sara"];
+  const WP_ITEMS = ["Äpfel","Bonbons","Stifte","Sticker","Murmeln","Karten","Bälle","Kekse","Muscheln","Bücher","Luftballons","Legosteine"];
+  function wpName(){ return WP_NAMES[randInt(0, WP_NAMES.length-1)]; }
+  function wpItem(){ return WP_ITEMS[randInt(0, WP_ITEMS.length-1)]; }
+  function wpTwoNames(){
+    const n = wpName();
+    let n2 = wpName();
+    while(n2 === n) n2 = wpName();
+    return [n, n2];
+  }
+
+  const WORD_PROBLEM_TEMPLATES = [
+    () => {
+      const a = randInt(3,40), b = randInt(2,30), it = wpItem();
+      const [n, n2] = wpTwoNames();
+      return { text: `${n} hat ${a} ${it}. ${n2} schenkt ${n} noch ${b} weitere ${it}. Wie viele ${it} hat ${n} jetzt?`, answer: a+b };
+    },
+    () => {
+      const a = randInt(4,50), b = randInt(2,40), it = wpItem();
+      return { text: `Im Korb liegen ${a} ${it}. Es kommen noch ${b} ${it} dazu. Wie viele ${it} sind jetzt im Korb?`, answer: a+b };
+    },
+    () => {
+      const a = randInt(10,60), b = randInt(2,a-1), n = wpName(), it = wpItem();
+      return { text: `${n} hat ${a} ${it}. ${n} verschenkt ${b} davon. Wie viele ${it} bleiben ${n} übrig?`, answer: a-b };
+    },
+    () => {
+      const a = randInt(10,80), b = randInt(2,a-1);
+      return { text: `Im Zug sitzen ${a} Personen. An der nächsten Haltestelle steigen ${b} aus. Wie viele Personen sind noch im Zug?`, answer: a-b };
+    },
+    () => {
+      const a = randInt(2,9), b = randInt(3,12), n = wpName(), it = wpItem();
+      return { text: `${n} kauft ${a} Packungen mit je ${b} ${it}. Wie viele ${it} hat ${n} insgesamt?`, answer: a*b };
+    },
+    () => {
+      const a = randInt(3,8), b = randInt(4,15);
+      return { text: `Ein Regal hat ${a} Reihen mit je ${b} Büchern. Wie viele Bücher stehen insgesamt im Regal?`, answer: a*b };
+    },
+    () => {
+      const b = randInt(2,8), k = randInt(2,12), a = b*k, it = wpItem();
+      return { text: `${a} ${it} werden gleichmäßig auf ${b} Kinder verteilt. Wie viele ${it} bekommt jedes Kind?`, answer: k };
+    },
+    () => {
+      const b = randInt(2,9), k = randInt(2,10), a = b*k, n = wpName();
+      return { text: `${n} hat ${a} Euro und kauft Hefte für je ${b} Euro. Wie viele Hefte kann ${n} kaufen?`, answer: k };
+    },
+    () => {
+      const a = randInt(3,25), b = randInt(2,20), n = wpName();
+      return { text: `${n} kauft ein Buch für ${a} Euro und einen Stift für ${b} Euro. Wie viel bezahlt ${n} insgesamt?`, answer: a+b };
+    },
+    () => {
+      const a = randInt(30,180), b = randInt(5,a-5);
+      return { text: `Ein Film dauert ${a} Minuten. Er läuft schon ${b} Minuten. Wie viele Minuten dauert der Film noch?`, answer: a-b };
+    },
+    () => {
+      const a = randInt(10,90), b = randInt(10,90);
+      return { text: `Ein Auto fährt am Vormittag ${a} km und am Nachmittag ${b} km. Wie viele Kilometer sind das insgesamt?`, answer: a+b };
+    },
+    () => {
+      const a = randInt(2,10), b = randInt(3,15), n = wpName();
+      return { text: `${n} kauft ${a} Eintrittskarten für je ${b} Euro. Wie viel bezahlt ${n} insgesamt?`, answer: a*b };
+    },
+    () => {
+      const a = randInt(20,100), b = randInt(2,a-1);
+      const [n, n2] = wpTwoNames();
+      return { text: `${n} hat ${a} Punkte im Spiel. ${n2} zieht ${b} Punkte ab. Wie viele Punkte hat ${n} noch?`, answer: a-b };
+    },
+    () => {
+      const b = randInt(2,6), k = randInt(3,10), a = b*k;
+      return { text: `${a} Kinder sollen in ${b} gleich große Teams eingeteilt werden. Wie viele Kinder sind in jedem Team?`, answer: k };
+    }
+  ];
+
+  function wordProblem(){
+    const tpl = WORD_PROBLEM_TEMPLATES[randInt(0, WORD_PROBLEM_TEMPLATES.length-1)];
+    return tpl();
   }
 
   /* ========================================================
@@ -2646,6 +3003,17 @@
     renderProfile();
   });
 
+  $("profileTitleDisplay").addEventListener("click", () => {
+    const titles = profile.unlockedTitles || [];
+    if(titles.length === 0) return;
+    let idx = titles.indexOf(profile.activeTitle);
+    idx = (idx + 1) % titles.length;
+    profile.activeTitle = titles[idx];
+    saveProfile();
+    renderProfile();
+    showToast(`🏅 Titel: ${profile.activeTitle}`);
+  });
+
   $("addFriendBtn").addEventListener("click", () => {
     const val = $("addFriendInput").value;
     addFriendByUsername(val);
@@ -2734,6 +3102,33 @@
       bPink.disabled = profile.totalAura < 500;
     }
 
+    const bGlass = $("buyGlassTheme");
+    if(unlocked.includes("glass")){
+      bGlass.textContent = "Freigeschaltet";
+      bGlass.disabled = true;
+    } else {
+      bGlass.textContent = "600 Aura";
+      bGlass.disabled = profile.totalAura < 600;
+    }
+
+    const unlockedFrames = profile.unlockedFrames || ["none"];
+    const bPinkFrame = $("buyPinkFrame");
+    if(unlockedFrames.includes("pink")){
+      bPinkFrame.textContent = "Freigeschaltet";
+      bPinkFrame.disabled = true;
+    } else {
+      bPinkFrame.textContent = "300 Aura";
+      bPinkFrame.disabled = profile.totalAura < 300;
+    }
+    const bCleanFrame = $("buyCleanFrame");
+    if(unlockedFrames.includes("clean")){
+      bCleanFrame.textContent = "Freigeschaltet";
+      bCleanFrame.disabled = true;
+    } else {
+      bCleanFrame.textContent = "300 Aura";
+      bCleanFrame.disabled = profile.totalAura < 300;
+    }
+
     // Update Item Knöpfe
     $("buyIcecube").disabled = profile.totalAura < 150;
     $("buyLife").disabled = profile.totalAura < 100 || profile.lives >= MAX_LIVES;
@@ -2743,6 +3138,10 @@
     $("buyDoubleAura").disabled = profile.totalAura < 300 || doubleActive;
     if(doubleActive) $("buyDoubleAura").textContent = "Aktiv!";
     else $("buyDoubleAura").textContent = "300 Aura";
+
+    const canRepair = profile.lastBrokenStreak > 0;
+    $("buyStreakRepair").disabled = !canRepair || profile.totalAura < STREAK_REPAIR_COST;
+    $("buyStreakRepair").textContent = canRepair ? "10.000 Aura" : "Kein Streak verloren";
   }
 
   // SHOP EVENT LISTENERS
@@ -2776,6 +3175,10 @@
     }
   });
 
+  $("buyStreakRepair").addEventListener("click", () => {
+    repairStreak();
+  });
+
   $("buyDoubleAura").addEventListener("click", () => {
     if(profile.totalAura >= 300){
       profile.totalAura -= 300;
@@ -2802,6 +3205,21 @@
   $("buyCleanTheme").addEventListener("click", () => buyTheme("clean", 200, "Clean"));
   $("buyWhiteTheme").addEventListener("click", () => buyTheme("white_clean", 500, "White Clean"));
   $("buyPinkTheme").addEventListener("click", () => buyTheme("pink", 500, "Pink"));
+  $("buyGlassTheme").addEventListener("click", () => buyTheme("glass", 600, "Glass"));
+
+  function buyFrame(frameKey, cost, name){
+    if(profile.totalAura >= cost){
+      profile.totalAura -= cost;
+      if(!profile.unlockedFrames) profile.unlockedFrames = ["none"];
+      if(!profile.unlockedFrames.includes(frameKey)) profile.unlockedFrames.push(frameKey);
+      profile.activeFrame = frameKey;
+      saveProfile();
+      renderShop();
+      showToast(`🖼️ ${name}-Rahmen freigeschaltet und aktiviert!`);
+    }
+  }
+  $("buyPinkFrame").addEventListener("click", () => buyFrame("pink", 300, "Pink"));
+  $("buyCleanFrame").addEventListener("click", () => buyFrame("clean", 300, "Clean"));
 
   /* ========================================================
      THEME SYSTEM
@@ -2815,6 +3233,7 @@
     if(t === "white_clean") icon = "💜";
     if(t === "pink") icon = "🌸";
     if(t === "clean" || t === "light") icon = "🍃";
+    if(t === "glass") icon = "🪟";
     
     $("themeToggle").textContent = icon;
     $("themeToggleShop").textContent = icon;
@@ -2873,6 +3292,7 @@
       select.options[1].text = "White Clean " + (unlocked.includes("white_clean") ? "" : "(🔒)");
       select.options[2].text = "Clean " + (unlocked.includes("clean") ? "" : "(🔒)");
       select.options[3].text = "Pink " + (unlocked.includes("pink") ? "" : "(🔒)");
+      select.options[4].text = "Glass " + (unlocked.includes("glass") ? "" : "(🔒)");
       select.value = profile.theme || "black";
     }
 
@@ -3342,11 +3762,13 @@
         setTimeout(() => showAuraOverlay(false, currentNormalAura, showMs), 150);
       }
     } else if(isSlow){
+      profile.totalMistakes = (profile.totalMistakes || 0) + 1;
       loseLife();
       const showMs = profile.longMode ? 4000 : 1650;
       delay = 150 + showMs + 100;
       setTimeout(() => showMemeOverlay(isCorrect, showMs), 150);
     } else {
+      profile.totalMistakes = (profile.totalMistakes || 0) + 1;
       loseLife();
       flashScreen();
     }
@@ -3400,6 +3822,7 @@
     const auraGained = lesson.aura;
     profile.totalAura += auraGained;
     selectedTierIndex = null;
+    checkAchievements();
     saveProfile();
 
     $("resultEmoji").textContent = emoji;

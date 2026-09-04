@@ -482,8 +482,11 @@
   .hero{
     display:flex; flex-direction:column; align-items:center;
     text-align:center; gap:clamp(2px,0.6vh,4px); padding:clamp(0px,0.5vh,6px) 6px clamp(4px,1.5vh,14px);
-    position:relative;
   }
+  .hero-top-row{
+    display:flex; align-items:center; justify-content:center; gap:14px; width:100%;
+  }
+  .hero-top-spacer{ width:44px; flex-shrink:0; }
   .hero h1{
     font-family:'Baloo 2', sans-serif; font-size:clamp(17px,3.8vh,22px); font-weight:800; margin:0 0 4px;
     line-height:1.15; color: var(--text);
@@ -920,13 +923,16 @@
     </div>
 
     <div class="hero">
-      <button class="theme-toggle" id="timesTableBtn" title="Einmaleins-Übung" style="position:absolute; top:6px; right:6px;">🔢</button>
-      <div class="hero-flame" id="heroFlame">
-        <div class="flame-wrap">
-          <span class="flame-icon">🔥</span>
-          <span class="flame-num" id="heroStreakNum">0</span>
+      <div class="hero-top-row">
+        <div class="hero-top-spacer"></div>
+        <div class="hero-flame" id="heroFlame">
+          <div class="flame-wrap">
+            <span class="flame-icon">🔥</span>
+            <span class="flame-num" id="heroStreakNum">0</span>
+          </div>
+          <div class="flame-tap-hint">Tippen für Verlauf</div>
         </div>
-        <div class="flame-tap-hint">Tippen für Verlauf</div>
+        <button class="theme-toggle" id="timesTableBtn" title="Einmaleins-Übung">🔢</button>
       </div>
       <h1 id="heroTitle">Halte deinen<br>Streak am Leben!</h1>
       <p>Löse Aufgaben blitzschnell für ein Aura-Edit. Bist du zu langsam, gibt's ein Meme.</p>

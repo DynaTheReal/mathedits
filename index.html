@@ -758,6 +758,18 @@
   }
   .difficulty-btn span{ font-weight:500; font-size:10.5px; opacity:.7; display:block; margin-top:3px; }
   .difficulty-btn.active{ border-color:var(--accent); box-shadow:0 0 0 1.5px var(--accent) inset; }
+  .daily-goal-projection{
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:16px; margin-top:6px; font-size:13.5px; line-height:1.8; text-align:left;
+  }
+  .daily-goal-projection .dg-row{ display:flex; justify-content:space-between; align-items:center; }
+  .daily-goal-projection .dg-without b{ color:var(--danger); font-family:'Baloo 2',sans-serif; font-size:19px; }
+  .daily-goal-projection .dg-with b{ color:var(--success); font-family:'Baloo 2',sans-serif; font-size:19px; }
+  .daily-goal-projection .dg-grade{
+    margin-top:10px; padding-top:10px; border-top:1px solid var(--border);
+    text-align:center; font-size:13px;
+  }
+  .daily-goal-projection .dg-grade b{ color:var(--text); font-family:'Baloo 2',sans-serif; font-size:16px; }
 
   /* ---------- Profilrahmen (NEU) ---------- */
   #profileHeaderCard, #friendProfileCard{ transition: box-shadow .3s, border-color .3s, background .3s; border-radius: var(--radius-card); }
@@ -1092,8 +1104,8 @@
     </div>
 
     <div class="lb-tabs">
-      <div class="lb-tab active" id="lbTabFriends">👥 Freunde</div>
-      <div class="lb-tab" id="lbTabGlobal">🌍 Global</div>
+      <div class="lb-tab" id="lbTabFriends">👥 Freunde</div>
+      <div class="lb-tab active" id="lbTabGlobal">🌍 Global</div>
     </div>
 
     <div id="leaderboardLoggedOutMsg" class="empty-hint" style="display:none;">
@@ -1287,6 +1299,34 @@
         <button class="difficulty-btn" data-diff="hard">🔴 Schwer<span>Ab Großes Einmaleins</span></button>
       </div>
       <button class="btn btn-primary" id="difficultyContinueBtn" style="margin-top:16px;">Weiter</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlayDailyGoal">
+    <div class="modal-card">
+      <div id="dailyGoalPickerPhase">
+        <div style="font-size:42px; margin-bottom:8px;">🎯</div>
+        <h2>Dein tägliches Lernziel</h2>
+        <p>Wie viele Lektionen möchtest du dir jeden Tag vornehmen?</p>
+        <div class="difficulty-picker" id="dailyGoalPicker">
+          <button class="difficulty-btn" data-goal="1">1<span>Lektion / Tag</span></button>
+          <button class="difficulty-btn active" data-goal="3">3<span>Lektionen / Tag</span></button>
+          <button class="difficulty-btn" data-goal="10">10<span>Lektionen / Tag</span></button>
+        </div>
+        <button class="btn btn-primary" id="dailyGoalContinueBtn" style="margin-top:16px;">Weiter</button>
+      </div>
+
+      <div id="dailyGoalCalculatingPhase" style="display:none;">
+        <div style="font-size:42px; margin-bottom:8px;">⏳</div>
+        <h2>Dein Fortschritt wird berechnet …</h2>
+      </div>
+
+      <div id="dailyGoalResultPhase" style="display:none;">
+        <div style="font-size:42px; margin-bottom:8px;">📊</div>
+        <h2>Deine Prognose</h2>
+        <div class="daily-goal-projection" id="dailyGoalProjection"></div>
+        <button class="btn btn-primary" id="dailyGoalResultContinueBtn" style="margin-top:16px;">Weiter</button>
+      </div>
     </div>
   </div>
 
@@ -1515,7 +1555,9 @@
     duelsWon: 0,
     countedDuelWins: [], // welche Duell-IDs schon in duelsWon eingerechnet wurden
     lastLessonAt: null, // Zeitstempel der letzten Lektion (für "zuletzt gelernt" im Profil)
-    lastActiveAt: null // Zeitstempel der letzten Aktivität in der App (für "online"-Punkt)
+    lastActiveAt: null, // Zeitstempel der letzten Aktivität in der App (für "online"-Punkt)
+    dailyGoal: null, // tägliches Lernziel aus dem Onboarding (1/3/10 Lektionen)
+    friendUsernameCache: {} // uid -> zuletzt bekannter Benutzername (Fallback, falls das Live-Profil kurzzeitig nicht ladbar ist)
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -1533,6 +1575,7 @@
           claimedReferralRewardIds: parsed.claimedReferralRewardIds || [],
           unlockedFrames: parsed.unlockedFrames || ["none"],
           achievements: parsed.achievements || {},
+          friendUsernameCache: parsed.friendUsernameCache || {},
           countedDuelWins: parsed.countedDuelWins || []
         };
       }
@@ -1686,11 +1729,14 @@
     try{
       const unameDoc = await db().collection("usernames").doc(lower).get();
       if(!unameDoc.exists) return showToast("Benutzername nicht gefunden.");
-      const targetUid = unameDoc.data().uid;
+      const unameData = unameDoc.data();
+      const targetUid = unameData.uid;
       if(targetUid === currentUser.uid) return showToast("Das bist du selbst 🙂");
       profile.following = profile.following || [];
       if(profile.following.includes(targetUid)) return showToast("Du folgst dieser Person bereits.");
       profile.following.push(targetUid);
+      profile.friendUsernameCache = profile.friendUsernameCache || {};
+      profile.friendUsernameCache[targetUid] = unameData.username || rawUsername.trim();
       saveProfile();
       showToast("Freund hinzugefügt!");
       renderProfile();
@@ -1710,7 +1756,10 @@
   async function fetchFollowers(uid){
     try{
       const snap = await db().collection("users").where("following", "array-contains", uid).get();
-      return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+      const results = snap.docs.map(d => ({ ...d.data(), uid: d.id }));
+      profile.friendUsernameCache = profile.friendUsernameCache || {};
+      results.forEach(f => { if(f.username) profile.friendUsernameCache[f.uid] = f.username; });
+      return results;
     }catch(err){
       console.error("Follower Fehler:", err);
       return [];
@@ -1721,7 +1770,14 @@
     try{
       const doc = await db().collection("users").doc(uid).get();
       if(!doc.exists) return null;
-      return { uid, ...doc.data() };
+      const data = { ...doc.data(), uid };
+      if(data.username){
+        profile.friendUsernameCache = profile.friendUsernameCache || {};
+        if(profile.friendUsernameCache[uid] !== data.username){
+          profile.friendUsernameCache[uid] = data.username;
+        }
+      }
+      return data;
     }catch(err){
       return null;
     }
@@ -1770,7 +1826,7 @@
         const row = document.createElement("div");
         row.className = "friend-row";
         row.style.cursor = "pointer";
-        row.innerHTML = `<span class="name">${isOnline(f) ? '<span class="online-dot"></span>' : ""}@${f.username || "Unbekannt"}</span>`;
+        row.innerHTML = `<span class="name">${isOnline(f) ? '<span class="online-dot"></span>' : ""}@${f.username || (profile.friendUsernameCache || {})[f.uid] || "Unbekannt"}</span>`;
         const btn = document.createElement("button");
         btn.className = "btn btn-primary btn-small";
         btn.textContent = "Zurückfolgen";
@@ -1792,7 +1848,7 @@
         const row = document.createElement("div");
         row.className = "friend-row";
         row.style.cursor = "pointer";
-        const uname = u ? (u.username || "Unbekannt") : "Unbekannt";
+        const uname = u ? (u.username || "Unbekannt") : ((profile.friendUsernameCache || {})[uid] || "Unbekannt");
         row.innerHTML = `<span class="name">${u && isOnline(u) ? '<span class="online-dot"></span>' : ""}@${uname}</span><span>${mutual ? "🤝 gegenseitig" : "wartet auf Follow-back"}</span>`;
         const duelBtn = document.createElement("button");
         duelBtn.className = "btn btn-duel btn-small";
@@ -1978,7 +2034,7 @@
     }
   }
 
-  let leaderboardTab = "friends"; // "friends" | "global"
+  let leaderboardTab = "global"; // "friends" | "global"
   const GLOBAL_LEADERBOARD_LIMIT = 50;
 
   function renderLeaderboardRows(entries, meUid){
@@ -2043,7 +2099,7 @@
         .limit(GLOBAL_LEADERBOARD_LIMIT)
         .get();
       let entries = snap.docs
-        .map(d => ({ uid: d.id, ...d.data() }))
+        .map(d => ({ ...d.data(), uid: d.id }))
         .filter(e => !!e.username && (e.level || 0) > 1) // Level 1 wird in keiner Rangliste angezeigt
         .map(e => ({ uid: e.uid, username: e.username, level: e.level || 1 }));
 
@@ -2239,8 +2295,22 @@
   }
 
   async function openFriendProfile(uid){
-    const u = await fetchUserDoc(uid);
-    if(!u){ showToast("Profil konnte nicht geladen werden."); return; }
+    let u = await fetchUserDoc(uid);
+    if(!u){
+      // Kurzer Retry, falls es nur eine kurzzeitige Verzögerung war
+      await new Promise(r => setTimeout(r, 400));
+      u = await fetchUserDoc(uid);
+    }
+    if(!u){
+      const cachedName = (profile.friendUsernameCache || {})[uid];
+      if(cachedName){
+        renderFriendProfileCard({ username: cachedName });
+        showToast("Nur Basisdaten verfügbar - Profil konnte nicht vollständig geladen werden.");
+      } else {
+        showToast("Profil konnte nicht geladen werden.");
+      }
+      return;
+    }
     renderFriendProfileCard(u);
   }
 
@@ -2696,6 +2766,8 @@
     merged.lastBrokenStreak = Math.max(localP.lastBrokenStreak || 0, cloudP.lastBrokenStreak || 0);
     merged.lastLessonAt = Math.max(localP.lastLessonAt || 0, cloudP.lastLessonAt || 0) || null;
     merged.lastActiveAt = Math.max(localP.lastActiveAt || 0, cloudP.lastActiveAt || 0) || null;
+    merged.friendUsernameCache = { ...(cloudP.friendUsernameCache || {}), ...(localP.friendUsernameCache || {}) };
+    merged.dailyGoal = localP.dailyGoal || cloudP.dailyGoal || null;
     merged.countedDuelWins = Array.from(new Set([
       ...(localP.countedDuelWins || []),
       ...(cloudP.countedDuelWins || [])
@@ -3548,7 +3620,17 @@
     if(e.target.id === "overlayFriendProfile") $("overlayFriendProfile").classList.remove("show");
   });
 
-  /* Schwierigkeits-Auswahl (NEU) - erscheint vor dem Login-Fenster */
+  /* Onboarding-Kette (NEU): Schwierigkeit -> Tägliches Lernziel -> Login.
+     closeAllOnboardingOverlays() räumt vor jedem Schritt konsequent auf, damit
+     nie zwei Overlays gleichzeitig "show" haben (und so versehentlich Klicks
+     im Hintergrund blockieren könnten). */
+  function closeAllOnboardingOverlays(){
+    ["overlayDifficulty", "overlayDailyGoal", "overlayWelcome"].forEach(id => {
+      const el = $(id);
+      if(el) el.classList.remove("show");
+    });
+  }
+
   let selectedDifficulty = "beginner";
   $("difficultyPicker").querySelectorAll(".difficulty-btn").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -3566,7 +3648,62 @@
     profile.level = startLevels[selectedDifficulty] || 1;
     selectedTierIndex = null;
     saveProfile();
-    $("overlayDifficulty").classList.remove("show");
+    closeAllOnboardingOverlays();
+    // Immer frisch mit der Auswahl-Phase starten (falls das Onboarding aus
+    // irgendeinem Grund erneut durchlaufen wird).
+    $("dailyGoalPickerPhase").style.display = "block";
+    $("dailyGoalCalculatingPhase").style.display = "none";
+    $("dailyGoalResultPhase").style.display = "none";
+    $("overlayDailyGoal").classList.add("show");
+  });
+
+  /* Tägliches Lernziel (NEU) - erst nur die Auswahl, keine Zahlen. Nach "Weiter"
+     kommt kurz eine "wird berechnet"-Phase, danach der Vergleich ohne/mit
+     MathEdits (Dreisatz auf Basis der gewählten Lektionen/Tag) inkl. einer
+     beispielhaften Mathe-Noten-Verbesserung. */
+  let selectedDailyGoal = 3;
+  $("dailyGoalPicker").querySelectorAll(".difficulty-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      $("dailyGoalPicker").querySelectorAll(".difficulty-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedDailyGoal = parseInt(btn.dataset.goal, 10) || 1;
+    });
+  });
+
+  function computeDailyGoalProjection(){
+    // "Ohne MathEdits": fester Referenzwert für natürlichen Fortschritt ohne
+    // gezieltes Üben. "Mit MathEdits": Dreisatz auf Basis der Lektionen im
+    // Monat (Lektionen/Tag × 30) - je mehr geübt wird, desto höher der Wert.
+    const WITHOUT_POINTS = 10;
+    const POINTS_PER_LESSON = 3;
+    const days = 30;
+    const totalLessons = selectedDailyGoal * days;
+    const withPoints = WITHOUT_POINTS + totalLessons * POINTS_PER_LESSON;
+
+    const gradeMap = { 1: [4, 3], 3: [4, 2], 10: [4, 1] };
+    const [gradeBefore, gradeAfter] = gradeMap[selectedDailyGoal] || [4, 3];
+
+    $("dailyGoalProjection").innerHTML = `
+      <div class="dg-row dg-without"><span>📉 Ohne MathEdits</span><b>${WITHOUT_POINTS} Punkte</b></div>
+      <div class="dg-row dg-with"><span>📈 Mit MathEdits</span><b>${withPoints} Punkte</b></div>
+      <div class="dg-grade">🎓 Deine Mathe-Note könnte sich in einem Monat von <b>${gradeBefore}</b> auf <b>${gradeAfter}</b> verbessern!</div>
+    `;
+  }
+
+  $("dailyGoalContinueBtn").addEventListener("click", () => {
+    $("dailyGoalPickerPhase").style.display = "none";
+    $("dailyGoalCalculatingPhase").style.display = "block";
+    setTimeout(() => {
+      computeDailyGoalProjection();
+      $("dailyGoalCalculatingPhase").style.display = "none";
+      $("dailyGoalResultPhase").style.display = "block";
+    }, 2000);
+  });
+
+  $("dailyGoalResultContinueBtn").addEventListener("click", () => {
+    profile.dailyGoal = selectedDailyGoal;
+    saveProfile();
+    closeAllOnboardingOverlays();
     $("overlayWelcome").classList.add("show");
   });
 
@@ -3574,7 +3711,7 @@
   $("welcomeAuthBtn").addEventListener("click", () => {
     profile.hasSeenWelcome = true;
     saveProfile();
-    $("overlayWelcome").classList.remove("show");
+    closeAllOnboardingOverlays();
     renderSettings();
     showScreen("settings");
   });
@@ -3582,7 +3719,7 @@
   $("welcomeGuestBtn").addEventListener("click", () => {
     profile.hasSeenWelcome = true;
     saveProfile();
-    $("overlayWelcome").classList.remove("show");
+    closeAllOnboardingOverlays();
     showToast("Gastmodus: Fortschritt nicht gesichert");
     renderHome();
   });

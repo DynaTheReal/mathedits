@@ -501,6 +501,34 @@
   .duel-invite-banner.show{ transform:translate(-50%,0); }
   .duel-invite-icon{ font-size:24px; flex-shrink:0; }
   .duel-invite-text{ font-size:13px; color:var(--text); line-height:1.4; }
+
+  /* ---------- Combo-Verlust-Schreckmoment (NEU) ---------- */
+  .scare-overlay{
+    position:fixed; inset:0; background:#000; z-index:400;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .25s ease;
+  }
+  .scare-overlay.show{ opacity:1; pointer-events:auto; }
+  .scare-eyes{ display:flex; gap:44px; margin-bottom:26px; }
+  .scare-eye{
+    width:46px; height:64px; border-radius:50%; background:#ff1a1a;
+    box-shadow:0 0 30px 10px rgba(255,26,26,.75), 0 0 70px 24px rgba(255,26,26,.35);
+    animation: scareEyePulse 1.1s ease-in-out infinite;
+  }
+  @keyframes scareEyePulse{
+    0%,100%{ transform:scaleY(1); }
+    50%{ transform:scaleY(.12); }
+  }
+  .scare-text{
+    color:#ff1a1a; font-family:'Baloo 2', sans-serif; font-size:26px; font-weight:800;
+    text-shadow:0 0 22px rgba(255,26,26,.8); letter-spacing:.5px;
+    animation: scareTextShake .35s ease-in-out infinite alternate;
+  }
+  @keyframes scareTextShake{
+    0%{ transform:translateX(-4px) rotate(-1deg); }
+    100%{ transform:translateX(4px) rotate(1deg); }
+  }
+
   .hearts{display:flex; gap:3px;}
   .heart{font-size:15px; filter:grayscale(1); opacity:.25; transition: all .3s;}
   .heart.full{filter:none; opacity:1;}
@@ -1635,6 +1663,26 @@
     </div>
   </div>
 
+  <!-- Combo-Verlust-Schreckmoment (NEU) -->
+  <div class="scare-overlay" id="overlayComboScare">
+    <div class="scare-eyes">
+      <div class="scare-eye"></div>
+      <div class="scare-eye"></div>
+    </div>
+    <div class="scare-text">Dein Ernst?</div>
+  </div>
+
+  <!-- "Teile diese Website"-Hinweis nach der ersten Lektion (NEU) -->
+  <div class="overlay" id="overlayShareLesson">
+    <div class="modal-card">
+      <div style="font-size:42px; margin-bottom:8px;">📣</div>
+      <h2>Teile diese Website mit deinen Freunden!</h2>
+      <p>Zeig deinen Freunden MathEdits - als Dankeschön gibt's eine Truhe.</p>
+      <button class="btn btn-primary" id="shareLessonOkBtn" style="margin-bottom:10px;">Okay (Truhe)</button>
+      <button class="btn btn-ghost" id="shareLessonNoBtn">Nein danke</button>
+    </div>
+  </div>
+
   <div class="overlay" id="overlayAura">
     <div class="overlay-card" style="position:relative;">
       <div class="aura-particles" id="auraParticles"></div>
@@ -1829,6 +1877,9 @@
     friendUsernameCache: {}, // uid -> zuletzt bekannter Benutzername (Fallback, falls das Live-Profil kurzzeitig nicht ladbar ist)
     avatarData: null, // kleines, komprimiertes Profilbild als Base64-Data-URL
     comboCount: 0, // Aufgaben in Folge richtig am neuesten freigeschalteten Level (bleibt über Lektionen hinweg erhalten)
+    comboLossCount: 0, // zählt Combo-Verluste, steuert den Schreckmoment (jeder 5., inkl. dem ersten)
+    hasSeenSharePrompt: false, // "Teile diese Website"-Hinweis nach der ersten Lektion, erscheint nur einmal
+    shareChest: null,
     lastFirebaseUid: null, // erkennt einen Accountwechsel auf demselben Gerät, damit kein veralteter Benutzername hängen bleibt
     customTheme: { transparency: 100, color: "#c9ff52", bgImage: null, uiTransparency: 100, uiColor: "#16161f" }
   };
@@ -2968,6 +3019,7 @@
       const chest = profile.achievements[a.id];
       if(chest && !chest.claimed) count++;
     });
+    if(profile.shareChest && !profile.shareChest.claimed) count++;
     return count;
   }
 
@@ -3000,19 +3052,29 @@
     if(sourceType === "achievement"){
       return profile.achievements[sourceId];
     }
+    if(sourceType === "share"){
+      return profile.shareChest;
+    }
     return null;
   }
 
-  let activeChestSource = null; // { type: 'mission'|'achievement', id }
+  let activeChestSource = null; // { type: 'mission'|'achievement'|'share', id }
 
   function openChestModal(sourceType, sourceId){
     const chest = getChestRef(sourceType, sourceId);
     if(!chest) return;
     activeChestSource = { type: sourceType, id: sourceId };
-    const def = sourceType === "mission"
-      ? DAILY_MISSION_DEFS.find(m => m.id === sourceId)
-      : ACHIEVEMENT_DEFS.find(a => a.id === sourceId);
-    $("chestModalTitle").textContent = def ? def.label : "Truhe";
+    let title = "Truhe";
+    if(sourceType === "mission"){
+      const def = DAILY_MISSION_DEFS.find(m => m.id === sourceId);
+      title = def ? def.label : title;
+    } else if(sourceType === "achievement"){
+      const def = ACHIEVEMENT_DEFS.find(a => a.id === sourceId);
+      title = def ? def.label : title;
+    } else if(sourceType === "share"){
+      title = "Danke fürs Teilen!";
+    }
+    $("chestModalTitle").textContent = title;
     renderChestModal();
     $("overlayChest").classList.add("show");
   }
@@ -3246,6 +3308,18 @@
       wrap.appendChild(card);
     });
 
+    if(profile.shareChest){
+      const card = document.createElement("div");
+      card.className = "mission-card";
+      const chestHtml = buildChestHtml(profile.shareChest, "share", "share", "");
+      card.innerHTML = `
+        <div class="m-title">📣 Danke fürs Teilen!</div>
+        <div class="m-sub">Belohnung fürs Teilen der App</div>
+        ${chestHtml}
+      `;
+      wrap.appendChild(card);
+    }
+
     wrap.querySelectorAll(".chest-modal-open-btn").forEach(btn => {
       btn.addEventListener("click", () => openChestModal(btn.dataset.source, btn.dataset.id));
     });
@@ -3358,6 +3432,9 @@
     merged.dailyGoal = localP.dailyGoal || cloudP.dailyGoal || null;
     merged.avatarData = localP.avatarData || cloudP.avatarData || null;
     merged.comboCount = Math.max(localP.comboCount || 0, cloudP.comboCount || 0);
+    merged.comboLossCount = Math.max(localP.comboLossCount || 0, cloudP.comboLossCount || 0);
+    merged.hasSeenSharePrompt = !!(localP.hasSeenSharePrompt || cloudP.hasSeenSharePrompt);
+    merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.customTheme = (localP.customTheme && (
         localP.customTheme.color !== DEFAULT_PROFILE.customTheme.color ||
         localP.customTheme.bgImage ||
@@ -5176,6 +5253,44 @@
   // ANDERE, frisch generierte Frage vom selben Typ - benutzt bei einem
   // Fehler, damit man nicht die exakt gleiche Aufgabe nochmal sieht, der
   // Fortschritt in der Lektion aber trotzdem stehen bleibt.
+  // Kleiner Schreckmoment beim Combo-Verlust: alles auf dem Lektions-Screen
+  // fällt runter, der Bildschirm wird schwarz, zwei rote Augen erscheinen
+  // mit "Dein Ernst?" - danach geht's normal mit der nächsten Frage weiter.
+  function playComboLossScare(callback){
+    const targets = [
+      ...document.querySelectorAll("#screen-lesson .key"),
+      $("exitLesson"),
+      $("progressFill") ? $("progressFill").parentElement : null,
+      $("qText"),
+      $("answerDisplay"),
+      $("lessonHearts"),
+      $("qTier"),
+      $("submitBtn")
+    ].filter(Boolean);
+
+    targets.forEach((el, i) => {
+      const delay = i * 25;
+      const rot = (Math.random() * 60 - 30).toFixed(0);
+      el.style.transition = `transform .8s cubic-bezier(.55,0,1,.45) ${delay}ms, opacity .8s ease ${delay}ms`;
+      el.style.transform = `translateY(130vh) rotate(${rot}deg)`;
+      el.style.opacity = "0";
+    });
+
+    setTimeout(() => {
+      $("overlayComboScare").classList.add("show");
+      setTimeout(() => {
+        $("overlayComboScare").classList.remove("show");
+        // Zurückgesetzte Inline-Styles, bevor die nächste Frage gerendert wird
+        targets.forEach(el => {
+          el.style.transition = "";
+          el.style.transform = "";
+          el.style.opacity = "";
+        });
+        callback();
+      }, 1700);
+    }, 950);
+  }
+
   function regenerateCurrentQuestion(){
     if(!lesson) return;
     const idx = lesson.index;
@@ -5198,6 +5313,7 @@
     if(!lesson || lesson.locked) return;
     lesson.locked = true;
     stopTimer();
+    pendingComboScare = false;
     const elapsed = performance.now() - questionStartedAt;
     const timeLimitMs = lesson.tier.timeMs || 8000;
     const slowThresholdMs = timeLimitMs * 0.75;
@@ -5232,7 +5348,15 @@
         }
       } else {
         lesson.streakThisLesson = 0;
-        if(lesson.isMainProgression){
+        if(lesson.isMainProgression && profile.comboCount > 0){
+          // Combo-Verlust: jeden 5. Verlust (den ersten explizit mit
+          // eingerechnet) mit einem kleinen Schreckmoment quittieren.
+          profile.comboLossCount = (profile.comboLossCount || 0) + 1;
+          if(profile.comboLossCount % 5 === 1){
+            pendingComboScare = true;
+          }
+          profile.comboCount = 0;
+        } else if(lesson.isMainProgression){
           profile.comboCount = 0;
         }
       }
@@ -5311,6 +5435,7 @@
   // der Zeitpunkt eigentlich schon erreicht sein sollte.
   let pendingAdvanceAt = null;
   let pendingRetry = false; // true = die aktuelle Frage muss wiederholt werden statt weiterzugehen
+  let pendingComboScare = false; // true = vor der nächsten Frage kommt der Combo-Verlust-Schreckmoment
   function scheduleAdvance(delay){
     const targetAt = Date.now() + delay;
     pendingAdvanceAt = targetAt;
@@ -5346,9 +5471,14 @@
     }
     if(pendingRetry && (profile.lives > 0 || isSuperUser())){
       // Falsch geantwortet oder Zeit abgelaufen, aber noch Leben übrig -
-      // dieselbe Aufgabe nochmal versuchen, statt weiterzugehen.
+      // eine neue Aufgabe kommt, statt weiterzugehen.
       pendingRetry = false;
-      renderQuestion();
+      if(pendingComboScare){
+        pendingComboScare = false;
+        playComboLossScare(() => renderQuestion());
+      } else {
+        renderQuestion();
+      }
       return;
     }
     pendingRetry = false;
@@ -5425,11 +5555,51 @@
     }
 
     showScreen("result");
+    if(passed) maybeShowShareLessonPrompt();
   }
 
   // Lässt einen kleinen "Level-Punkt" vom Ergebnis-Bildschirm nach oben fliegen,
   // bevor zum Home-Menü gewechselt wird - visuelles Feedback dafür, dass ein
   // Drittel Level in der Fortschrittsleiste angekommen ist.
+  // "Teile diese Website"-Hinweis - erscheint genau einmal pro Account, direkt
+  // nach der ersten erfolgreich abgeschlossenen Lektion.
+  function maybeShowShareLessonPrompt(){
+    if(profile.hasSeenSharePrompt) return;
+    profile.hasSeenSharePrompt = true;
+    saveProfile();
+    setTimeout(() => {
+      $("overlayShareLesson").classList.add("show");
+    }, 600);
+  }
+
+  $("shareLessonNoBtn").addEventListener("click", () => {
+    $("overlayShareLesson").classList.remove("show");
+  });
+
+  $("shareLessonOkBtn").addEventListener("click", async () => {
+    $("overlayShareLesson").classList.remove("show");
+    const shareData = {
+      title: "MathEdits",
+      text: "Ich lerne gerade Mathe mit MathEdits - schau's dir an!",
+      url: window.location.href
+    };
+    try{
+      if(navigator.share){
+        await navigator.share(shareData);
+      } else if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(shareData.url);
+        showToast("🔗 Link kopiert!");
+      }
+    }catch(err){
+      // Abgebrochen oder nicht unterstützt - die Truhe gibt's trotzdem, wie angekündigt.
+    }
+    if(!profile.shareChest){
+      profile.shareChest = freshChest();
+      saveProfile();
+    }
+    openChestModal("share", "share");
+  });
+
   function flyLevelPoint(callback){
     const dot = document.createElement("div");
     dot.className = "level-point-fly";

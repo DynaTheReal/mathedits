@@ -892,6 +892,9 @@
   .lb-row.me{border-color:#22c55e; box-shadow:0 0 0 1.5px #22c55e inset; background: rgba(34,197,94,0.08);}
   .lb-rank{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:16px; width:28px; text-align:center; opacity:.85;}
   .lb-name{flex:1; font-weight:700; font-size:14px;}
+  .lb-avatar{ width:28px; height:28px; border-radius:50%; overflow:hidden; flex-shrink:0; background:var(--card-2); display:flex; align-items:center; justify-content:center; }
+  .lb-avatar-img{ width:100%; height:100%; object-fit:cover; }
+  .lb-avatar-placeholder{ font-size:15px; opacity:.5; }
   .lb-aura{font-weight:800; font-size:14px; color:var(--accent);}
   .empty-hint{text-align:center; opacity:.7; font-size:13px; margin-top:10px; line-height:1.5;}
   .add-friend-row{display:flex; gap:8px; align-items:flex-start;}
@@ -942,6 +945,53 @@
     backdrop-filter: blur(14px) saturate(1.4);
     -webkit-backdrop-filter: blur(14px) saturate(1.4);
   }
+  .frame-glow #profileHeaderCard,
+  #friendProfileCard.frame-glow{
+    border: 3px solid #a855f7;
+    box-shadow: 0 0 26px rgba(168,85,247,.55), 0 0 55px rgba(168,85,247,.25);
+    position: relative;
+  }
+  .frame-glow #profileHeaderCard::before, .frame-glow #profileHeaderCard::after,
+  #friendProfileCard.frame-glow::before, #friendProfileCard.frame-glow::after{
+    content:""; position:absolute; width:6px; height:6px; border-radius:50%;
+    background:#c084fc; box-shadow:0 0 10px 3px rgba(192,132,252,.9);
+    pointer-events:none;
+  }
+  .frame-glow #profileHeaderCard::before, #friendProfileCard.frame-glow::before{
+    top:-4px; left:15%;
+    animation: glowParticleFloat1 3s ease-in-out infinite;
+  }
+  .frame-glow #profileHeaderCard::after, #friendProfileCard.frame-glow::after{
+    bottom:-4px; right:20%;
+    animation: glowParticleFloat2 3.5s ease-in-out infinite;
+  }
+  @keyframes glowParticleFloat1{
+    0%,100%{ transform:translateY(0) translateX(0); opacity:.6; }
+    50%{ transform:translateY(-10px) translateX(8px); opacity:1; }
+  }
+  @keyframes glowParticleFloat2{
+    0%,100%{ transform:translateY(0) translateX(0); opacity:.6; }
+    50%{ transform:translateY(10px) translateX(-8px); opacity:1; }
+  }
+
+  /* ---------- Profil-Schriftarten (NEU) ---------- */
+  .font-glow{
+    color:#c084fc !important;
+    text-shadow: 0 0 8px rgba(192,132,252,.8), 0 0 16px rgba(192,132,252,.4);
+    display:inline-block;
+    animation: fontGlowWobble 2.2s ease-in-out infinite;
+  }
+  @keyframes fontGlowWobble{
+    0%,100%{ transform:rotate(0deg); }
+    25%{ transform:rotate(-2deg); }
+    75%{ transform:rotate(2deg); }
+  }
+  .font-pink{
+    color:#ec4899 !important;
+    font-family:'Baloo 2', cursive, sans-serif;
+    font-weight:800;
+  }
+
   .profile-title{
     display:inline-block; font-size:12px; font-weight:800; letter-spacing:.3px;
     background: linear-gradient(90deg, var(--accent-2), var(--accent));
@@ -1242,6 +1292,35 @@
         <div class="item-desc">Durchsichtig-cleaner Glas-Rahmen für dein Profil.</div>
       </div>
       <button class="buy-btn" id="buyCleanFrame">300 Aura</button>
+    </div>
+
+    <div class="shop-item">
+      <div class="item-icon">💜</div>
+      <div class="item-info">
+        <div class="item-title">Glow-Rahmen</div>
+        <div class="item-desc">Lilaner Glow-Rahmen mit leuchtenden Partikeln für dein Profil.</div>
+      </div>
+      <button class="buy-btn" id="buyGlowFrame">350 Aura</button>
+    </div>
+
+    <div class="shop-section-title">Profil-Schriftarten</div>
+
+    <div class="shop-item">
+      <div class="item-icon">✨</div>
+      <div class="item-info">
+        <div class="item-title">Glow-Schrift</div>
+        <div class="item-desc">Dein Profilname wackelt leicht und leuchtet lila.</div>
+      </div>
+      <button class="buy-btn" id="buyGlowFont">250 Aura</button>
+    </div>
+
+    <div class="shop-item">
+      <div class="item-icon">💗</div>
+      <div class="item-info">
+        <div class="item-title">Pink-Schrift</div>
+        <div class="item-desc">Dein Profilname in Pink.</div>
+      </div>
+      <button class="buy-btn" id="buyPinkFont">250 Aura</button>
     </div>
   </section>
 
@@ -1931,6 +2010,8 @@
     lastBrokenStreak: 0, // für die Streak-Reparatur im Shop
     unlockedFrames: ["none"],
     activeFrame: "none",
+    unlockedFonts: ["none"],
+    activeFont: "none",
     unlockedTitles: [],
     activeTitle: null,
     achievements: {}, // { achievementId: { claimed: bool, chest: {...} } }
@@ -1965,6 +2046,7 @@
           following: parsed.following || [],
           claimedReferralRewardIds: parsed.claimedReferralRewardIds || [],
           unlockedFrames: parsed.unlockedFrames || ["none"],
+          unlockedFonts: parsed.unlockedFonts || ["none"],
           achievements: parsed.achievements || {},
           friendUsernameCache: parsed.friendUsernameCache || {},
           customTheme: { ...DEFAULT_PROFILE.customTheme, ...(parsed.customTheme || {}) },
@@ -2194,6 +2276,9 @@
     $("profileUsernameDisplay").textContent = profile.username
       ? "@" + profile.username
       : (loggedIn ? "Angemeldet (noch kein Benutzername)" : "Gast");
+    $("profileUsernameDisplay").classList.remove("font-glow", "font-pink");
+    if(profile.activeFont === "glow") $("profileUsernameDisplay").classList.add("font-glow");
+    if(profile.activeFont === "pink") $("profileUsernameDisplay").classList.add("font-pink");
     $("profileAuraVal").textContent = profile.totalAura;
     $("profileLevel").textContent = profile.level;
     $("profileStreak").textContent = profile.streak || 0;
@@ -2208,9 +2293,10 @@
     }
 
     const screenProfile = $("screen-profile");
-    screenProfile.classList.remove("frame-pink", "frame-clean");
+    screenProfile.classList.remove("frame-pink", "frame-clean", "frame-glow");
     if(profile.activeFrame === "pink") screenProfile.classList.add("frame-pink");
     if(profile.activeFrame === "clean") screenProfile.classList.add("frame-clean");
+    if(profile.activeFrame === "glow") screenProfile.classList.add("frame-glow");
 
     const titleEl = $("profileTitleDisplay");
     if(profile.activeTitle){
@@ -2729,7 +2815,11 @@
       const row = document.createElement("div");
       row.className = "lb-row" + (e.uid === meUid ? " me" : "");
       row.style.cursor = "pointer";
-      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-name">@${e.username || "?"}</div><div class="lb-aura">🎯 Lvl ${e.level}</div>`;
+      const fontClass = e.activeFont === "glow" ? "font-glow" : (e.activeFont === "pink" ? "font-pink" : "");
+      const avatarHtml = e.avatarData
+        ? `<img src="${e.avatarData}" class="lb-avatar-img">`
+        : `<div class="lb-avatar-placeholder">👤</div>`;
+      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-avatar">${avatarHtml}</div><div class="lb-name ${fontClass}">@${e.username || "?"}</div><div class="lb-aura">🎯 Lvl ${e.level}</div>`;
       row.addEventListener("click", () => openFriendProfile(e.uid));
       list.appendChild(row);
     });
@@ -2753,10 +2843,10 @@
       return;
     }
 
-    const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 1 }];
+    const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 1, avatarData: profile.avatarData, activeFont: profile.activeFont }];
     for(const uid of mutualUids){
       const u = await fetchUserDoc(uid);
-      if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 1 });
+      if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 1, avatarData: u.avatarData, activeFont: u.activeFont });
     }
     const filtered = entries.filter(e => (e.level || 0) > 1); // Level 1 wird in keiner Rangliste angezeigt
     if(filtered.length === 0){
@@ -2786,7 +2876,7 @@
       let entries = snap.docs
         .map(d => ({ ...d.data(), uid: d.id }))
         .filter(e => !!e.username && (e.level || 0) > 1) // Level 1 wird in keiner Rangliste angezeigt
-        .map(e => ({ uid: e.uid, username: e.username, level: e.level || 1 }));
+        .map(e => ({ uid: e.uid, username: e.username, level: e.level || 1, avatarData: e.avatarData, activeFont: e.activeFont }));
 
       if(entries.length === 0){
         $("leaderboardEmptyMsg").textContent = "Noch niemand über Level 1 vorhanden.";
@@ -2952,6 +3042,9 @@
   // eigene Statistik (direkt aus dem lokalen Profil, auch als Gast).
   function renderFriendProfileCard(u){
     $("friendProfileUsername").textContent = u.username ? "@" + u.username : "Gast";
+    $("friendProfileUsername").classList.remove("font-glow", "font-pink");
+    if(u.activeFont === "glow") $("friendProfileUsername").classList.add("font-glow");
+    if(u.activeFont === "pink") $("friendProfileUsername").classList.add("font-pink");
     const titleEl = $("friendProfileTitle");
     if(u.activeTitle){
       titleEl.textContent = "🏅 " + u.activeTitle;
@@ -2960,9 +3053,10 @@
       titleEl.style.display = "none";
     }
     const card = $("friendProfileCard");
-    card.classList.remove("frame-pink", "frame-clean");
+    card.classList.remove("frame-pink", "frame-clean", "frame-glow");
     if(u.activeFrame === "pink") card.classList.add("frame-pink");
     if(u.activeFrame === "clean") card.classList.add("frame-clean");
+    if(u.activeFrame === "glow") card.classList.add("frame-glow");
 
     if(u.avatarData){
       $("friendProfileAvatarImg").src = u.avatarData;
@@ -3523,6 +3617,11 @@
       ...(cloudP.unlockedFrames || ["none"])
     ]));
     merged.activeFrame = (localP.activeFrame && localP.activeFrame !== "none") ? localP.activeFrame : (cloudP.activeFrame || "none");
+    merged.unlockedFonts = Array.from(new Set([
+      ...(localP.unlockedFonts || ["none"]),
+      ...(cloudP.unlockedFonts || ["none"])
+    ]));
+    merged.activeFont = (localP.activeFont && localP.activeFont !== "none") ? localP.activeFont : (cloudP.activeFont || "none");
     merged.unlockedTitles = Array.from(new Set([
       ...(localP.unlockedTitles || []),
       ...(cloudP.unlockedTitles || [])
@@ -4206,6 +4305,32 @@
       bCleanFrame.textContent = "300 Aura";
       bCleanFrame.disabled = profile.totalAura < 300;
     }
+    const bGlowFrame = $("buyGlowFrame");
+    if(unlockedFrames.includes("glow")){
+      bGlowFrame.textContent = "Freigeschaltet";
+      bGlowFrame.disabled = true;
+    } else {
+      bGlowFrame.textContent = "350 Aura";
+      bGlowFrame.disabled = profile.totalAura < 350;
+    }
+
+    const unlockedFonts = profile.unlockedFonts || ["none"];
+    const bGlowFont = $("buyGlowFont");
+    if(unlockedFonts.includes("glow")){
+      bGlowFont.textContent = "Freigeschaltet";
+      bGlowFont.disabled = true;
+    } else {
+      bGlowFont.textContent = "250 Aura";
+      bGlowFont.disabled = profile.totalAura < 250;
+    }
+    const bPinkFont = $("buyPinkFont");
+    if(unlockedFonts.includes("pink")){
+      bPinkFont.textContent = "Freigeschaltet";
+      bPinkFont.disabled = true;
+    } else {
+      bPinkFont.textContent = "250 Aura";
+      bPinkFont.disabled = profile.totalAura < 250;
+    }
 
     // Update Item Knöpfe
     $("buyIcecube").disabled = profile.totalAura < 150;
@@ -4299,6 +4424,22 @@
   }
   $("buyPinkFrame").addEventListener("click", () => buyFrame("pink", 300, "Pink"));
   $("buyCleanFrame").addEventListener("click", () => buyFrame("clean", 300, "Clean"));
+  $("buyGlowFrame").addEventListener("click", () => buyFrame("glow", 350, "Glow"));
+
+  function buyFont(fontKey, cost, name){
+    if(profile.totalAura >= cost){
+      profile.totalAura -= cost;
+      if(!profile.unlockedFonts) profile.unlockedFonts = ["none"];
+      if(!profile.unlockedFonts.includes(fontKey)) profile.unlockedFonts.push(fontKey);
+      profile.activeFont = fontKey;
+      saveProfile();
+      renderShop();
+      renderProfile();
+      showToast(`✒️ ${name}-Schrift freigeschaltet und aktiviert!`);
+    }
+  }
+  $("buyGlowFont").addEventListener("click", () => buyFont("glow", 250, "Glow"));
+  $("buyPinkFont").addEventListener("click", () => buyFont("pink", 250, "Pink"));
 
   /* ========================================================
      THEME SYSTEM

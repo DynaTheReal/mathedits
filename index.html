@@ -2641,6 +2641,7 @@
     const alreadyMarkedRead = new Set();
     openChatUnsubscribe = db().collection("messages")
       .where("chatId", "==", cid)
+      .where("participants", "array-contains", currentUser.uid)
       .onSnapshot((snap) => {
         console.log("[Chat] Snapshot erhalten, Anzahl Nachrichten:", snap.docs.length);
         const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (a.createdAt||0) - (b.createdAt||0));
@@ -2687,6 +2688,7 @@
     try{
       const ref = await db().collection("messages").add({
         chatId: cid,
+        participants: [currentUser.uid, openChatFriendUid],
         fromUid: currentUser.uid,
         fromUsername: profile.username,
         toUid: openChatFriendUid,
@@ -2719,6 +2721,7 @@
     unreadMessageUnsubscribe = db().collection("messages")
       .where("toUid", "==", currentUser.uid)
       .where("read", "==", false)
+      .where("participants", "array-contains", currentUser.uid)
       .onSnapshot((snap) => {
         const counts = {};
         snap.docs.forEach(d => {

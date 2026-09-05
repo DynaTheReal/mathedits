@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800&display=swap" rel="stylesheet">
 
 <!-- Firebase SDKs (Compat Version) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -527,6 +528,41 @@
   @keyframes scareTextShake{
     0%{ transform:translateX(-4px) rotate(-1deg); }
     100%{ transform:translateX(4px) rotate(1deg); }
+  }
+
+  /* ---------- App-Start-Intro (NEU) ---------- */
+  @keyframes fadeInText {
+    0% { opacity: 0; transform: translateX(-30px); }
+    100% { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes growDot {
+    0% { transform: scale(1); }
+    100% { transform: scale(150); }
+  }
+  @keyframes hideText {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes fadeOutIntro {
+    100% { opacity: 0; visibility: hidden; pointer-events: none; }
+  }
+
+  .gameover-heart{
+    font-size:100px; filter:drop-shadow(0 0 30px rgba(255,26,26,.85));
+  }
+  .gameover-heart.breaking{
+    animation: gameoverHeartBreak 2s cubic-bezier(.4,0,.6,1) forwards;
+  }
+  @keyframes gameoverHeartBreak{
+    0%{ transform:scale(1); opacity:1; }
+    15%{ transform:scale(1.2); }
+    30%{ transform:scale(.95); }
+    45%{ transform:scale(1.25); }
+    /* Herz "zerbricht" hier - Text wechselt via JS zu 💔 */
+    55%{ transform:scale(.85) rotate(-4deg); }
+    70%{ transform:scale(1.05) rotate(3deg); }
+    85%{ transform:scale(.6) rotate(-8deg); opacity:.7; }
+    100%{ transform:scale(.2) rotate(20deg); opacity:0; }
   }
 
   .hearts{display:flex; gap:3px;}
@@ -1670,6 +1706,22 @@
       <div class="scare-eye"></div>
     </div>
     <div class="scare-text">Dein Ernst?</div>
+  </div>
+
+  <!-- Letztes Leben verloren: Herz zerbricht (NEU) -->
+  <div class="scare-overlay" id="overlayGameOverScare">
+    <div class="gameover-heart" id="gameOverHeartIcon">❤️</div>
+  </div>
+
+  <!-- App-Start-Intro (NEU) -->
+  <div id="intro-screen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #121212; display: flex; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; animation: fadeOutIntro 0.4s forwards 2.3s;">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <!-- Der grüne Punkt -->
+      <div style="width: 45px; height: 45px; background-color: #d3fc55; border-radius: 50%; box-shadow: 0 0 20px rgba(211, 252, 85, 0.3); animation: growDot 0.8s cubic-bezier(0.8, 0, 0.2, 1) forwards 1.4s;"></div>
+
+      <!-- Der Text (hat jetzt zwei Animationen: reinkommen und später verschwinden) -->
+      <div style="font-family: 'Nunito', sans-serif; color: white; font-size: 4rem; font-weight: 800; opacity: 0; animation: fadeInText 0.8s forwards, hideText 0.2s forwards 1.3s;">MathEdits</div>
+    </div>
   </div>
 
   <!-- "Teile diese Website"-Hinweis nach der ersten Lektion (NEU) -->
@@ -5256,7 +5308,13 @@
   // Kleiner Schreckmoment beim Combo-Verlust: alles auf dem Lektions-Screen
   // fällt runter, der Bildschirm wird schwarz, zwei rote Augen erscheinen
   // mit "Dein Ernst?" - danach geht's normal mit der nächsten Frage weiter.
-  function playComboLossScare(callback){
+  // Lässt alle sichtbaren Elemente auf dem Lektions-Screen mit zufälliger
+  // Rotation nach unten aus dem Bildschirm fallen - wird sowohl beim
+  // Combo-Verlust als auch beim Verlieren des letzten Lebens benutzt.
+  // callback(targets) wird aufgerufen, sobald die Fall-Animation läuft
+  // (nach ~800ms); die Elemente bleiben unsichtbar/verschoben, bis
+  // resetFallenElements(targets) aufgerufen wird.
+  function fallEverythingOnLessonScreen(onFallen){
     const targets = [
       ...document.querySelectorAll("#screen-lesson .key"),
       $("exitLesson"),
@@ -5276,19 +5334,48 @@
       el.style.opacity = "0";
     });
 
-    setTimeout(() => {
+    setTimeout(() => onFallen(targets), 950);
+    return targets;
+  }
+
+  function resetFallenElements(targets){
+    targets.forEach(el => {
+      el.style.transition = "";
+      el.style.transform = "";
+      el.style.opacity = "";
+    });
+  }
+
+  function playComboLossScare(callback){
+    fallEverythingOnLessonScreen((targets) => {
       $("overlayComboScare").classList.add("show");
       setTimeout(() => {
         $("overlayComboScare").classList.remove("show");
-        // Zurückgesetzte Inline-Styles, bevor die nächste Frage gerendert wird
-        targets.forEach(el => {
-          el.style.transition = "";
-          el.style.transform = "";
-          el.style.opacity = "";
-        });
+        resetFallenElements(targets);
         callback();
       }, 1700);
-    }, 950);
+    });
+  }
+
+  // Wird ausgelöst, wenn genau der Fehler passiert, der das letzte Leben
+  // kostet: alles fällt runter, der Bildschirm wird schwarz, ein einzelnes
+  // rot leuchtendes Herz zerbricht - danach wird man aus der Lektion
+  // geworfen (callback ruft finishLesson(false) auf).
+  function playGameOverScare(callback){
+    fallEverythingOnLessonScreen((targets) => {
+      $("overlayGameOverScare").classList.add("show");
+      const heartEl = $("gameOverHeartIcon");
+      heartEl.textContent = "❤️";
+      heartEl.classList.remove("breaking");
+      void heartEl.offsetWidth; // Reflow erzwingen, damit die Animation sicher neu startet
+      heartEl.classList.add("breaking");
+      setTimeout(() => { heartEl.textContent = "💔"; }, 900);
+      setTimeout(() => {
+        $("overlayGameOverScare").classList.remove("show");
+        resetFallenElements(targets);
+        callback();
+      }, 2000);
+    });
   }
 
   function regenerateCurrentQuestion(){
@@ -5314,6 +5401,7 @@
     lesson.locked = true;
     stopTimer();
     pendingComboScare = false;
+    pendingGameOverScare = false;
     const elapsed = performance.now() - questionStartedAt;
     const timeLimitMs = lesson.tier.timeMs || 8000;
     const slowThresholdMs = timeLimitMs * 0.75;
@@ -5408,6 +5496,7 @@
     } else if(isSlow){
       profile.totalMistakes = (profile.totalMistakes || 0) + 1;
       loseLife();
+      if(profile.lives <= 0 && !isSuperUser()) pendingGameOverScare = true;
       lesson.missedCurrentQuestion = true;
       pendingRetry = true;
       regenerateCurrentQuestion();
@@ -5417,6 +5506,7 @@
     } else {
       profile.totalMistakes = (profile.totalMistakes || 0) + 1;
       loseLife();
+      if(profile.lives <= 0 && !isSuperUser()) pendingGameOverScare = true;
       lesson.missedCurrentQuestion = true;
       pendingRetry = true;
       regenerateCurrentQuestion();
@@ -5436,6 +5526,7 @@
   let pendingAdvanceAt = null;
   let pendingRetry = false; // true = die aktuelle Frage muss wiederholt werden statt weiterzugehen
   let pendingComboScare = false; // true = vor der nächsten Frage kommt der Combo-Verlust-Schreckmoment
+  let pendingGameOverScare = false; // true = das war das letzte Leben - Herz-zerbricht-Animation vor finishLesson(false)
   function scheduleAdvance(delay){
     const targetAt = Date.now() + delay;
     pendingAdvanceAt = targetAt;
@@ -5459,6 +5550,19 @@
 
   function advance(){
     if(!lesson) return;
+    if(pendingGameOverScare){
+      // Das war das letzte Leben - erst die Fall-/Herz-zerbricht-Animation
+      // abspielen, bevor die Lektion offiziell als verloren endet (die kleine
+      // Herzenreihe ist Teil der fallenden Elemente und verschwindet dabei
+      // mit, das große Herz im Overlay steht für das letzte verbliebene Leben).
+      pendingGameOverScare = false;
+      pendingRetry = false;
+      playGameOverScare(() => {
+        renderHearts($("lessonHearts"), profile.lives);
+        finishLesson(false);
+      });
+      return;
+    }
     renderHearts($("lessonHearts"), profile.lives);
     if(lesson.isDuel){
       lesson.index++;
@@ -5673,6 +5777,16 @@
   /* ========================================================
      INIT
   ======================================================== */
+  // App-Start-Intro: die gruselige "rote Augen"-Animation läuft einmal beim
+  // Öffnen der App, bevor es zum Home-Menü geht (bzw. zur Schwierigkeits-
+  // auswahl, falls die App zum allerersten Mal geöffnet wird). Das
+  // #intro-screen-Element spielt seine eigene CSS-Animation ab (Text rein,
+  // Punkt wächst riesig, alles blendet bei 2.3s+0.4s=2.7s aus) - hier wird
+  // nur noch passend zu dieser Dauer gewartet, bevor es weitergeht.
+  function playStartupIntro(callback){
+    setTimeout(callback, 2750);
+  }
+
   function init(){
     loadProfile();
     refillLives();
@@ -5683,9 +5797,11 @@
     renderHome();
     updateMissionsBadge();
 
-    if(!profile.hasSeenWelcome && !currentUser){
-      $("overlayDifficulty").classList.add("show");
-    }
+    playStartupIntro(() => {
+      if(!profile.hasSeenWelcome && !currentUser){
+        $("overlayDifficulty").classList.add("show");
+      }
+    });
   }
   init();
 

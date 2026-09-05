@@ -1339,9 +1339,16 @@
     <div class="danger-zone">
       <div class="t" style="color:#ff4d6d; font-weight:800; margin-bottom:4px;">⚠️ Danger Zone</div>
       <div class="d" style="margin-bottom:14px;">Diese Aktionen lassen sich nicht rückgängig machen.</div>
+
+      <button class="btn btn-ghost btn-small" id="changeUsernameBtn" style="width:100%; margin-bottom:10px; border-color:#ff4d6d; color:#ff4d6d;">✏️ Benutzernamen ändern</button>
+
       <button class="btn btn-ghost btn-small" id="reloadPageBtn" style="width:100%; margin-bottom:10px; border-color:#ff4d6d; color:#ff4d6d;">🔄 Seite neu laden</button>
+
+      <button class="btn btn-ghost btn-small" id="deleteAppBtn" style="width:100%; margin-bottom:10px; border-color:#ff4d6d; color:#ff4d6d;">📱 App löschen (nur dieses Gerät)</button>
+      <div class="d" style="margin-bottom:14px; font-size:11px;">Löscht die App-Daten nur auf diesem Gerät und meldet dich ab. Bist du angemeldet, bleiben deine Daten sicher in der Cloud - einfach neu einloggen, um weiterzumachen.</div>
+
       <button class="btn btn-small" id="resetDataBtn" style="width:100%; background:#ff4d6d; color:#fff; border:none;">🗑️ Zurücksetzen (Fortschritt löschen)</button>
-      <div class="d" style="margin-top:8px; font-size:11px;">Löscht deinen gesamten Fortschritt (Level, Aura, Streak, Erfolge, Käufe ...). Dein Account/Login bleibt bestehen - die App startet danach wieder von vorne.</div>
+      <div class="d" style="margin-top:8px; font-size:11px;">Löscht deinen gesamten Fortschritt (Level, Aura, Streak, Erfolge, Käufe ...) - auch in der Cloud. Dein Account/Login bleibt bestehen - die App startet danach wieder von vorne.</div>
     </div>
 
     <div class="settings-foot">MathEdits · Dein Fortschritt wird synchronisiert.<br>Build: 2026-09-loop-fix-v2</div>
@@ -1679,6 +1686,7 @@
   let cloudSyncReady = false;
   let hasAttemptedInitialDocCreation = false;
   let registrationInProgress = false; // verhindert eine Race-Condition zwischen der automatischen Erst-Anlage des Dokuments und reserveUsername()
+  const JUST_RESET_KEY = "mathedits_just_reset"; // Flag: nächster Sync-Zyklus soll den Reset erzwingen statt abzugleichen
 
   try {
     if(firebaseConfig.apiKey !== "DEIN_API_KEY_HIER"){
@@ -4367,24 +4375,42 @@
               inventory: { ...DEFAULT_PROFILE.inventory, ...(cloudData.inventory || {}) },
               following: cloudData.following || []
             };
-            // Wenn sich der eingeloggte Account seit dem letzten Mal auf
-            // diesem Gerät geändert hat (anderer Account, gemeinsam genutztes
-            // Gerät/Browser), darf der lokal zwischengespeicherte
-            // Benutzername NICHT einfach weiterverwendet werden - er würde
-            // sonst fälschlich für den neuen Account übernommen (zeigt z.B.
-            // den alten Testnamen statt des echten). In diesem Fall muss der
-            // Cloud-Benutzername gewinnen.
-            if(profile.lastFirebaseUid && profile.lastFirebaseUid !== user.uid){
-              profile.username = null;
-              profile.usernameLower = null;
+
+            let justReset = false;
+            try{ justReset = localStorage.getItem(JUST_RESET_KEY) === "1"; }catch(e){}
+
+            if(justReset){
+              // Direkt nach einem Reset NICHT normal abgleichen - die übliche
+              // "höherer Wert gewinnt"-Logik würde sonst einen eventuell noch
+              // vorhandenen alten Cloud-Stand zurückholen und den Reset damit
+              // faktisch rückgängig machen. Stattdessen den frischen (schon
+              // zurückgesetzten) lokalen Stand einmalig direkt zurückschreiben.
+              try{ localStorage.removeItem(JUST_RESET_KEY); }catch(e){}
+              profile.lastFirebaseUid = user.uid;
+              cloudSyncReady = true;
+              lastWrittenProfileJSON = null; // erzwingt den Schreibvorgang unten
+              saveProfile();
+            } else {
+              // Wenn sich der eingeloggte Account seit dem letzten Mal auf
+              // diesem Gerät geändert hat (anderer Account, gemeinsam genutztes
+              // Gerät/Browser), darf der lokal zwischengespeicherte
+              // Benutzername NICHT einfach weiterverwendet werden - er würde
+              // sonst fälschlich für den neuen Account übernommen (zeigt z.B.
+              // den alten Testnamen statt des echten). In diesem Fall muss der
+              // Cloud-Benutzername gewinnen.
+              if(profile.lastFirebaseUid && profile.lastFirebaseUid !== user.uid){
+                profile.username = null;
+                profile.usernameLower = null;
+              }
+              // Wichtig gegen Mehrgeräte-Konflikte: nie blind übernehmen, sondern
+              // den lokalen Stand mit dem Cloud-Stand abgleichen (höhere Werte
+              // gewinnen). Erst danach dürfen wieder eigene Änderungen in die
+              // Cloud geschrieben werden (cloudSyncReady).
+              profile = reconcileProfiles(profile, normalizedCloud);
+              profile.lastFirebaseUid = user.uid;
+              cloudSyncReady = true;
             }
-            // Wichtig gegen Mehrgeräte-Konflikte: nie blind übernehmen, sondern
-            // den lokalen Stand mit dem Cloud-Stand abgleichen (höhere Werte
-            // gewinnen). Erst danach dürfen wieder eigene Änderungen in die
-            // Cloud geschrieben werden (cloudSyncReady).
-            profile = reconcileProfiles(profile, normalizedCloud);
-            profile.lastFirebaseUid = user.uid;
-            cloudSyncReady = true;
+
             checkStreakDecay();
             ensureDailyMissions();
             applyTheme();
@@ -4479,6 +4505,70 @@
     location.reload();
   });
 
+  // Benutzernamen ändern: alte Reservierung freigeben, neue anlegen.
+  $("changeUsernameBtn").addEventListener("click", async () => {
+    if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
+    const input = prompt("Neuer Benutzername (3-20 Zeichen: a-z, 0-9, _):", profile.username || "");
+    if(input === null) return; // abgebrochen
+    const lower = normalizeUsername(input);
+    if(!isValidUsername(lower)){
+      return alert("Bitte gib einen gültigen Benutzernamen ein (3-20 Zeichen: a-z, 0-9, _).");
+    }
+    if(lower === profile.usernameLower){
+      return showToast("Das ist bereits dein Benutzername.");
+    }
+    try{
+      const existing = await db().collection("usernames").doc(lower).get();
+      if(existing.exists && existing.data().uid !== currentUser.uid){
+        return alert("Dieser Benutzername ist bereits vergeben.");
+      }
+      const oldLower = profile.usernameLower;
+      await db().collection("usernames").doc(lower).set({ uid: currentUser.uid, username: input.trim() });
+      if(oldLower && oldLower !== lower){
+        try{ await db().collection("usernames").doc(oldLower).delete(); }catch(e){ /* alter Name kann notfalls stehen bleiben */ }
+      }
+      profile.username = input.trim();
+      profile.usernameLower = lower;
+      saveProfile();
+      showToast("✅ Benutzername geändert!");
+      renderSettings();
+      renderProfile();
+    }catch(err){
+      alert(err.message);
+      console.error(err);
+    }
+  });
+
+  // App löschen (nur dieses Gerät): löscht NUR die lokalen Daten und meldet
+  // ab. Die Cloud-Daten werden dabei absichtlich NICHT angerührt - ist man
+  // angemeldet, bleibt der Fortschritt sicher und kommt nach erneutem Login
+  // ganz normal zurück.
+  $("deleteAppBtn").addEventListener("click", async () => {
+    const sure = confirm(
+      "App auf diesem Gerät löschen? Das entfernt alle lokal gespeicherten Daten und meldet dich ab. Bist du angemeldet, bleiben deine Daten in der Cloud sicher - melde dich einfach wieder an, um weiterzumachen."
+    );
+    if(!sure) return;
+
+    try{
+      if(syncUnsubscribe){
+        syncUnsubscribe();
+        syncUnsubscribe = null;
+      }
+      if(firebaseInitialized && currentUser){
+        await firebase.auth().signOut();
+      }
+    }catch(err){
+      console.error("Fehler beim Abmelden:", err);
+    }
+
+    try{
+      localStorage.removeItem(PROFILE_KEY);
+      localStorage.removeItem(JUST_RESET_KEY);
+    }catch(e){}
+
+    location.reload();
+  });
+
   $("resetDataBtn").addEventListener("click", async () => {
     const sure = confirm(
       "Bist du sicher? Das löscht deinen gesamten Fortschritt (Level, Aura, Streak, Erfolge, Käufe, Freunde ...) unwiderruflich. Dein Account/Login bleibt bestehen, aber die App startet danach komplett von vorne."
@@ -4495,18 +4585,32 @@
       hasSeenWelcome: false
     };
 
+    let cloudWriteFailed = false;
     try{
       if(firebaseInitialized && currentUser){
         // Bewusst OHNE {merge:true} - ersetzt das gesamte Cloud-Dokument,
-        // damit wirklich kein alter Stand übrig bleibt und beim nächsten
-        // Sync nicht einfach wieder zurückkommt.
+        // damit wirklich kein alter Stand übrig bleibt.
         await db().collection("users").doc(currentUser.uid).set(freshProfile);
       }
     }catch(err){
+      cloudWriteFailed = true;
       console.error("Reset Fehler:", err);
     }
 
-    try{ localStorage.setItem(PROFILE_KEY, JSON.stringify(freshProfile)); }catch(e){}
+    try{
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(freshProfile));
+      // Markiert, dass der NÄCHSTE Sync-Zyklus (nach dem Neuladen) den
+      // zurückgesetzten Stand erzwingen soll, statt ihn mit einem eventuell
+      // noch alten Cloud-Stand abzugleichen. Ohne das würde die normale
+      // "höherer Wert gewinnt"-Abgleichlogik den Reset sonst rückgängig
+      // machen, sobald wieder synchronisiert wird (z.B. nach erneutem Login).
+      localStorage.setItem(JUST_RESET_KEY, "1");
+    }catch(e){}
+
+    if(cloudWriteFailed && firebaseInitialized && currentUser){
+      alert("Achtung: Der Fortschritt wurde lokal zurückgesetzt, aber das Speichern in der Cloud ist fehlgeschlagen. Die App versucht es nach dem Neuladen erneut.");
+    }
+
     location.reload();
   });
 

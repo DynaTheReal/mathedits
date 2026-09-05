@@ -489,6 +489,18 @@
     color:var(--text) !important; cursor:pointer;
   }
   .times-table-btn:active{ transform:scale(.94); }
+
+  .duel-invite-banner{
+    position:fixed; top:calc(10px + env(safe-area-inset-top)); left:50%;
+    transform:translate(-50%,-140%); width:calc(100% - 32px); max-width:428px;
+    background:var(--card); border:1.5px solid var(--accent); border-radius:16px;
+    padding:12px 14px; display:flex; align-items:center; gap:10px;
+    box-shadow:0 12px 30px rgba(0,0,0,.35); z-index:250; cursor:pointer;
+    transition:transform .35s cubic-bezier(.34,1.4,.64,1);
+  }
+  .duel-invite-banner.show{ transform:translate(-50%,0); }
+  .duel-invite-icon{ font-size:24px; flex-shrink:0; }
+  .duel-invite-text{ font-size:13px; color:var(--text); line-height:1.4; }
   .hearts{display:flex; gap:3px;}
   .heart{font-size:15px; filter:grayscale(1); opacity:.25; transition: all .3s;}
   .heart.full{filter:none; opacity:1;}
@@ -1185,9 +1197,6 @@
 
       <div class="shop-section-title">Du folgst</div>
       <div id="followingList"></div>
-
-      <div class="shop-section-title">⚔️ Deine Duelle</div>
-      <div id="duelsList"></div>
     </div>
   </section>
 
@@ -1570,6 +1579,33 @@
       <p>Wähle eine Reihe zum Üben - gibt nur Aura, kein Level.</p>
       <div class="times-table-grid" id="timesTableGrid"></div>
       <button class="btn btn-ghost" id="closeTimesTablePicker" style="margin-top:16px;">Schließen</button>
+    </div>
+  </div>
+
+  <!-- Live-Duell: eingehende Einladung (Benachrichtigung von oben) -->
+  <div class="duel-invite-banner" id="duelInviteBanner">
+    <div class="duel-invite-icon">⚔️</div>
+    <div class="duel-invite-text" id="duelInviteText">Duell-Einladung</div>
+  </div>
+
+  <!-- Live-Duell: warten auf Antwort des Eingeladenen -->
+  <div class="overlay" id="overlayDuelWaiting">
+    <div class="modal-card">
+      <div style="font-size:36px; margin-bottom:6px;">⏳</div>
+      <h2>Warte auf Antwort …</h2>
+      <p id="duelWaitingText">Einladung wurde gesendet.</p>
+      <button class="btn btn-ghost" id="cancelDuelInviteBtn">Abbrechen</button>
+    </div>
+  </div>
+
+  <!-- Live-Duell: Abstimmung über die Stufe -->
+  <div class="overlay" id="overlayDuelVote">
+    <div class="modal-card" style="max-width:380px;">
+      <div style="font-size:36px; margin-bottom:6px;">⚔️</div>
+      <h2>Was wollt ihr spielen?</h2>
+      <p id="duelVoteSub">Wähle eine Stufe.</p>
+      <div class="times-table-grid" id="duelVoteOptions" style="grid-template-columns:1fr;"></div>
+      <div class="d" id="duelVoteStatus" style="margin-top:10px;"></div>
     </div>
   </div>
 
@@ -2094,24 +2130,233 @@
         followingListEl.appendChild(row);
       }
     }
-
-    renderDuels();
   }
 
   /* ========================================================
-     1vs1 DUELLE (NEU)
-     Beide Spieler schreiben NUR in ihre eigenen Dokumente (nie ins Konto
-     des anderen) - genau wie beim Einladungslink, um Firestore-Regeln
-     sauber einzuhalten. Der Duell-Datensatz selbst (Fragen, Zeitlimit) wird
-     einmalig vom Herausforderer angelegt und danach nie mehr verändert;
-     jeder Spieler legt sein eigenes Ergebnis in einem eigenen, an seine UID
-     gebundenen Dokument ab.
+     1vs1 DUELLE - ECHTZEIT (NEU)
+     Ablauf: Online-Check -> Einladung (duelInvites) -> Empfänger bekommt
+     eine Benachrichtigung oben und tippt zum Annehmen -> beide stimmen über
+     die Stufe ab (nur Stufen, die BEIDE freigeschaltet haben) -> gemeinsames
+     Live-Dokument (liveDuels) mit denselben 10 Fragen für beide -> wer eine
+     Frage zuerst richtig löst, bekommt den Punkt und beide gehen gemeinsam
+     zur nächsten Frage weiter.
   ======================================================== */
+  let activeSentInviteId = null;
+  let sentInviteUnsubscribe = null;
+  let incomingInviteUnsubscribe = null;
+  let activeLiveDuelId = null;
+  let liveDuelUnsubscribe = null;
+  let hasResolvedDuelVote = false;
+  let lastSeenDuelIndex = -1;
+  let pendingIncomingInvite = null;
+
   async function startDuel(opponentUid, opponentUsername){
     if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
     if(opponentUid === currentUser.uid) return showToast("Das bist du selbst 🙂");
-    const activeIdx = tierIndexForLevel(profile.level);
-    const tier = TIERS[activeIdx];
+    const oppDoc = await fetchUserDoc(opponentUid);
+    if(!oppDoc || !isOnline(oppDoc)){
+      showToast("⚠️ Gegner ist nicht online.");
+      return;
+    }
+    try{
+      const inviteRef = await db().collection("duelInvites").add({
+        fromUid: currentUser.uid,
+        fromUsername: profile.username,
+        fromLevel: profile.level,
+        toUid: opponentUid,
+        toUsername: opponentUsername,
+        status: "pending",
+        createdAt: Date.now()
+      });
+      activeSentInviteId = inviteRef.id;
+      $("duelWaitingText").textContent = `@${opponentUsername} wurde eingeladen …`;
+      $("overlayDuelWaiting").classList.add("show");
+      watchSentInvite(inviteRef.id);
+    }catch(err){
+      console.error("Duell-Einladung Fehler:", err);
+      showToast("Duell-Einladung konnte nicht gesendet werden.");
+    }
+  }
+
+  function watchSentInvite(inviteId){
+    if(sentInviteUnsubscribe){ sentInviteUnsubscribe(); sentInviteUnsubscribe = null; }
+    sentInviteUnsubscribe = db().collection("duelInvites").doc(inviteId).onSnapshot((doc) => {
+      if(!doc.exists) return;
+      const data = doc.data();
+      if(data.status === "accepted"){
+        sentInviteUnsubscribe();
+        sentInviteUnsubscribe = null;
+        $("overlayDuelWaiting").classList.remove("show");
+        watchLiveDuel(inviteId);
+      } else if(data.status === "declined"){
+        sentInviteUnsubscribe();
+        sentInviteUnsubscribe = null;
+        $("overlayDuelWaiting").classList.remove("show");
+        showToast(`@${data.toUsername} hat die Einladung abgelehnt.`);
+      }
+    }, (err) => console.error("Einladung beobachten Fehler:", err));
+  }
+
+  async function cancelDuelInvite(){
+    $("overlayDuelWaiting").classList.remove("show");
+    if(sentInviteUnsubscribe){ sentInviteUnsubscribe(); sentInviteUnsubscribe = null; }
+    if(activeSentInviteId){
+      try{ await db().collection("duelInvites").doc(activeSentInviteId).update({ status: "declined" }); }catch(e){}
+      activeSentInviteId = null;
+    }
+  }
+
+  // Live-Benachrichtigung für eingehende Einladungen - läuft dauerhaft im
+  // Hintergrund, sobald man angemeldet ist (siehe onAuthStateChanged).
+  function watchIncomingDuelInvites(){
+    if(incomingInviteUnsubscribe){ incomingInviteUnsubscribe(); incomingInviteUnsubscribe = null; }
+    if(!firebaseInitialized || !currentUser) return;
+    incomingInviteUnsubscribe = db().collection("duelInvites")
+      .where("toUid", "==", currentUser.uid)
+      .onSnapshot((snap) => {
+        snap.docChanges().forEach(change => {
+          if(change.type === "added"){
+            const data = change.doc.data();
+            if(data.status === "pending"){
+              showDuelInviteBanner({ id: change.doc.id, ...data });
+            }
+          }
+        });
+      }, (err) => console.error("Einladungen beobachten Fehler:", err));
+  }
+
+  function showDuelInviteBanner(invite){
+    pendingIncomingInvite = invite;
+    $("duelInviteText").innerHTML = `<b>@${invite.fromUsername}</b> hat dich zu einem Duell eingeladen.<br>Tippe zum Annehmen.`;
+    $("duelInviteBanner").classList.add("show");
+  }
+
+  async function acceptDuelInvite(){
+    if(!pendingIncomingInvite) return;
+    const invite = pendingIncomingInvite;
+    $("duelInviteBanner").classList.remove("show");
+    pendingIncomingInvite = null;
+    try{
+      await db().collection("duelInvites").doc(invite.id).update({ status: "accepted" });
+      await db().collection("liveDuels").doc(invite.id).set({
+        player1Uid: invite.fromUid, player1Username: invite.fromUsername, player1Level: invite.fromLevel,
+        player2Uid: currentUser.uid, player2Username: profile.username, player2Level: profile.level,
+        status: "voting",
+        votes: {},
+        finalTierId: null, finalTierName: null, finalTierTimeMs: null,
+        questions: null,
+        currentIndex: 0,
+        scores: { [invite.fromUid]: 0, [currentUser.uid]: 0 },
+        questionWinnerUid: null,
+        createdAt: Date.now()
+      });
+      watchLiveDuel(invite.id);
+    }catch(err){
+      console.error("Duell annehmen Fehler:", err);
+      showToast("Duell konnte nicht gestartet werden.");
+    }
+  }
+
+  function watchLiveDuel(duelId){
+    activeLiveDuelId = duelId;
+    hasResolvedDuelVote = false;
+    lastSeenDuelIndex = -1;
+    if(liveDuelUnsubscribe){ liveDuelUnsubscribe(); liveDuelUnsubscribe = null; }
+    liveDuelUnsubscribe = db().collection("liveDuels").doc(duelId).onSnapshot((doc) => {
+      if(!doc.exists) return;
+      const data = doc.data();
+
+      if(data.status === "voting"){
+        renderDuelVoteScreen(data);
+        const voteCount = Object.keys(data.votes || {}).length;
+        if(voteCount >= 2 && !data.finalTierId && !hasResolvedDuelVote && currentUser.uid === data.player1Uid){
+          hasResolvedDuelVote = true;
+          resolveDuelVote(duelId, data);
+        }
+        return;
+      }
+
+      if(data.status === "active"){
+        if(!lesson || !lesson.isLiveDuel || lesson.liveDuelId !== duelId){
+          beginLiveDuelLesson(data);
+          lastSeenDuelIndex = data.currentIndex;
+          return;
+        }
+        if(data.currentIndex !== lastSeenDuelIndex){
+          const iWon = data.questionWinnerUid === currentUser.uid;
+          lastSeenDuelIndex = data.currentIndex;
+          if(data.currentIndex >= QUESTIONS_PER_LESSON){
+            finishLiveDuel(data);
+          } else {
+            if(!iWon) showToast("💨 Gegner war schneller!");
+            lesson.index = data.currentIndex;
+            lesson.locked = false;
+            renderQuestion();
+          }
+        }
+      }
+    }, (err) => console.error("Live-Duell Fehler:", err));
+  }
+
+  // Zeigt die Abstimmungs-Auswahl: nur Stufen, die BEIDE Spieler bereits
+  // freigeschaltet haben (Minimum aus beiden Leveln).
+  function renderDuelVoteScreen(data){
+    const oppUsername = (data.player1Uid === currentUser.uid) ? data.player2Username : data.player1Username;
+    const oppLevel = (data.player1Uid === currentUser.uid) ? data.player2Level : data.player1Level;
+    const minLevel = Math.min(profile.level, oppLevel || 1);
+    const eligibleCount = tierIndexForLevel(minLevel) + 1;
+
+    $("duelVoteSub").textContent = `Wähle eine Stufe, die du und @${oppUsername} bereits freigeschaltet habt.`;
+
+    const myVote = (data.votes || {})[currentUser.uid];
+    const box = $("duelVoteOptions");
+    // Nur einmalig aufbauen (gleiche Anzahl Optionen bleibt für die Dauer der Abstimmung gleich)
+    if(box.children.length !== eligibleCount){
+      box.innerHTML = "";
+      for(let i=0;i<eligibleCount;i++){
+        const btn = document.createElement("button");
+        btn.className = "difficulty-btn";
+        btn.textContent = TIERS[i].name;
+        btn.dataset.tierIdx = i;
+        btn.addEventListener("click", () => castDuelVote(i));
+        box.appendChild(btn);
+      }
+    }
+    [...box.children].forEach(btn => {
+      btn.classList.toggle("active", myVote === parseInt(btn.dataset.tierIdx, 10));
+    });
+
+    const voteCount = Object.keys(data.votes || {}).length;
+    $("duelVoteStatus").textContent = myVote != null
+      ? (voteCount >= 2 ? "Beide haben abgestimmt - Duell startet …" : "Warte auf die Wahl von @" + oppUsername + " …")
+      : "";
+
+    $("overlayDuelVote").classList.add("show");
+  }
+
+  async function castDuelVote(tierIdx){
+    if(!activeLiveDuelId) return;
+    try{
+      await db().collection("liveDuels").doc(activeLiveDuelId).update({
+        [`votes.${currentUser.uid}`]: tierIdx
+      });
+    }catch(err){ console.error("Abstimmen Fehler:", err); }
+  }
+
+  // Nur Spieler 1 (der Herausforderer) löst die Abstimmung auf - so kann es
+  // nie zu widersprüchlichen, unabhängig "zufällig" gewählten Ergebnissen auf
+  // beiden Geräten kommen. Bei Gleichstand gewinnt die gemeinsame Wahl,
+  // sonst entscheidet ein Münzwurf.
+  async function resolveDuelVote(duelId, data){
+    const votes = data.votes || {};
+    const uids = Object.keys(votes);
+    let chosenIdx;
+    if(uids.length >= 2 && votes[uids[0]] === votes[uids[1]]){
+      chosenIdx = votes[uids[0]];
+    } else {
+      chosenIdx = votes[uids[Math.random() < 0.5 ? 0 : 1]];
+    }
+    const tier = TIERS[chosenIdx];
     const questions = [];
     const seenTexts = new Set();
     for(let i=0;i<QUESTIONS_PER_LESSON;i++){
@@ -2122,207 +2367,124 @@
       questions.push(q);
     }
     try{
-      const duelRef = await db().collection("duels").add({
-        challengerUid: currentUser.uid,
-        challengerUsername: profile.username,
-        opponentUid,
-        opponentUsername,
-        tierName: tier.name,
-        timeMs: tier.timeMs,
-        questions,
-        createdAt: Date.now()
+      await db().collection("liveDuels").doc(duelId).update({
+        finalTierId: chosenIdx, finalTierName: tier.name, finalTierTimeMs: tier.timeMs,
+        questions, status: "active"
       });
-      showToast(`⚔️ Duell gegen @${opponentUsername} gestartet!`);
-      beginDuelLesson({
-        id: duelRef.id, timeMs: tier.timeMs, tierName: tier.name, questions,
-        opponentUid, opponentUsername
-      });
-    }catch(err){
-      console.error("Duell erstellen Fehler:", err);
-      showToast("Duell konnte nicht erstellt werden.");
-    }
+    }catch(err){ console.error("Abstimmung auflösen Fehler:", err); }
   }
 
-  function playDuel(duel){
-    const isChallenger = duel.challengerUid === currentUser.uid;
-    beginDuelLesson({
-      id: duel.id, timeMs: duel.timeMs, tierName: duel.tierName, questions: duel.questions,
-      opponentUid: isChallenger ? duel.opponentUid : duel.challengerUid,
-      opponentUsername: isChallenger ? duel.opponentUsername : duel.challengerUsername
-    });
-  }
-
-  function beginDuelLesson(duelCtx){
+  function beginLiveDuelLesson(data){
+    $("overlayDuelVote").classList.remove("show");
     lesson = {
-      tier: { name: "⚔️ Duell: " + duelCtx.tierName, timeMs: duelCtx.timeMs, normalAura: 0, editAura: 0 },
+      tier: { name: "⚔️ Duell: " + data.finalTierName, timeMs: data.finalTierTimeMs, normalAura: 0, editAura: 0 },
       isMainProgression: false,
       isDuel: true,
-      duelId: duelCtx.id,
-      duelOpponentUid: duelCtx.opponentUid,
-      duelOpponentUsername: duelCtx.opponentUsername,
-      questions: duelCtx.questions,
-      index: 0, correct: 0, aura: 0, answer: "", locked: false
+      isLiveDuel: true,
+      liveDuelId: activeLiveDuelId,
+      questions: data.questions,
+      index: data.currentIndex, correct: 0, aura: 0, answer: "", locked: false
     };
-    lesson.duelStartedAt = performance.now();
     $("progressFill").classList.remove("combo-active");
     showScreen("lesson");
     renderQuestion();
   }
 
-  // Einmaleins-Übung (NEU): eine frei wählbare Reihe (1-20) üben. Gibt bewusst
-  // nur Aura, kein Level (isMainProgression:false), damit man gezielt eine
-  // einzelne Reihe trainieren kann, ohne den normalen Stufen-Fortschritt zu
-  // beeinflussen.
-  // Aura-Belohnung je Reihe: 1er, 5er, 10er und 20er geben keine Aura,
-  // 2er-4er/6er-9er/11er-19er geben 2 (Standard). editAura ist jeweils das
-  // Doppelte (schnelle Antwort).
-  function timesTableAuraFor(n){
-    if(n === 1 || n === 5 || n === 10 || n === 20) return { normalAura: 0, editAura: 0 };
-    if(n >= 5) return { normalAura: 2, editAura: 4 };
-    return { normalAura: 1, editAura: 2 };
-  }
-
-  function startTimesTablePractice(n){
-    const questions = [];
-    const seenTexts = new Set();
-    for(let i=0;i<QUESTIONS_PER_LESSON;i++){
-      let x = randInt(1,12);
-      let text = `${n} × ${x}`;
-      let attempts = 0;
-      while(seenTexts.has(text) && attempts < 25){
-        x = randInt(1,12);
-        text = `${n} × ${x}`;
-        attempts++;
-      }
-      seenTexts.add(text);
-      questions.push({ text, answer: n * x });
-    }
-    const auraVals = timesTableAuraFor(n);
-    lesson = {
-      tier: { name: `🔢 ${n}er Reihe`, timeMs: 8000, normalAura: auraVals.normalAura, editAura: auraVals.editAura },
-      isMainProgression: false,
-      isTimesTablePractice: true,
-      questions, index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false
-    };
-    lesson.startedAt = performance.now();
-    $("overlayTimesTablePicker").classList.remove("show");
-    $("progressFill").classList.remove("combo-active");
-    showScreen("lesson");
-    renderQuestion();
-  }
-
-  function renderTimesTableGrid(){
-    const grid = $("timesTableGrid");
-    if(!grid || grid.children.length > 0) return; // nur einmalig aufbauen, ist statisch
-    for(let n=1;n<=20;n++){
-      const btn = document.createElement("button");
-      btn.className = "times-table-btn";
-      btn.textContent = n;
-      btn.addEventListener("click", () => startTimesTablePractice(n));
-      grid.appendChild(btn);
-    }
-  }
-
-  async function finishDuelLesson(){
-    const elapsedMs = Math.max(1, Math.round(performance.now() - lesson.duelStartedAt));
-    const correct = lesson.correct;
-    const duelId = lesson.duelId;
-    const oppUsername = lesson.duelOpponentUsername;
+  // Trägt via Transaktion ein, WER die aktuelle Frage zuerst richtig gelöst
+  // hat - der erste Schreibversuch gewinnt, alle danach kommen zu spät
+  // (currentIndex hat sich dann schon geändert).
+  async function tryWinLiveDuelQuestion(duelId, index){
     try{
-      await db().collection("duelResults").doc(`${duelId}_${currentUser.uid}`).set({
-        duelId, uid: currentUser.uid, username: profile.username,
-        correct, timeMs: elapsedMs, finishedAt: Date.now()
+      return await db().runTransaction(async (t) => {
+        const ref = db().collection("liveDuels").doc(duelId);
+        const doc = await t.get(ref);
+        const data = doc.data();
+        if(!data || data.currentIndex !== index) return false;
+        const scores = { ...(data.scores || {}) };
+        scores[currentUser.uid] = (scores[currentUser.uid] || 0) + 1;
+        t.update(ref, {
+          scores,
+          currentIndex: data.currentIndex + 1,
+          questionWinnerUid: currentUser.uid,
+          questionWinnerAt: Date.now()
+        });
+        return true;
       });
     }catch(err){
-      console.error("Duell-Ergebnis speichern Fehler:", err);
+      console.error("Punktevergabe Fehler:", err);
+      return false;
     }
+  }
+
+  async function handleLiveDuelAnswer(isTimeout){
+    if(!lesson || lesson.locked) return;
+    lesson.locked = true;
+    stopTimer();
+    const q = lesson.questions[lesson.index];
+    const given = isTimeout ? null : parseInt(lesson.answer, 10);
+    const isCorrect = !isTimeout && given === q.answer;
+
+    const el = $("answerDisplay");
+    el.textContent = isCorrect ? lesson.answer : (isTimeout ? "Zeit abgelaufen" : lesson.answer);
+    el.classList.remove("empty");
+    el.classList.add(isCorrect ? "right" : "wrong");
+
+    if(isCorrect){
+      const myIndex = lesson.index;
+      const won = await tryWinLiveDuelQuestion(lesson.liveDuelId, myIndex);
+      // Wichtig: lesson kann in der Zwischenzeit durch den onSnapshot-Handler
+      // bereits auf null gesetzt worden sein (z.B. wenn das Duell durch genau
+      // diese letzte richtige Antwort beendet wurde) - deshalb hier erneut
+      // prüfen, bevor weiter darauf zugegriffen wird.
+      if(won && lesson){
+        lesson.correct++;
+        showToast("⚡ Du warst schneller!");
+      }
+      // Der gemeinsame Fortschritt (currentIndex) kommt in beiden Fällen über
+      // den onSnapshot-Listener von watchLiveDuel zurück und schaltet weiter.
+    } else {
+      // Falsch oder Zeit abgelaufen: nach kurzer Pause dieselbe Frage nochmal
+      // versuchen, ohne die Lösung zu verraten - der Gegner hat parallel
+      // weiterhin die Chance, zuerst richtig zu antworten.
+      flashScreen();
+      setTimeout(() => {
+        if(lesson && lesson.isLiveDuel){
+          lesson.locked = false;
+          renderQuestion();
+        }
+      }, 700);
+    }
+  }
+
+  function finishLiveDuel(data){
+    if(liveDuelUnsubscribe){ liveDuelUnsubscribe(); liveDuelUnsubscribe = null; }
+    activeLiveDuelId = null;
+    const oppUid = data.player1Uid === currentUser.uid ? data.player2Uid : data.player1Uid;
+    const oppUsername = data.player1Uid === currentUser.uid ? data.player2Username : data.player1Username;
+    const myScore = (data.scores && data.scores[currentUser.uid]) || 0;
+    const oppScore = (data.scores && data.scores[oppUid]) || 0;
 
     profile.duelsPlayed = (profile.duelsPlayed || 0) + 1;
+    let outcome = "🤝 Unentschieden";
+    if(myScore > oppScore){
+      outcome = "🏆 Gewonnen";
+      profile.duelsWon = (profile.duelsWon || 0) + 1;
+    } else if(myScore < oppScore){
+      outcome = "❌ Verloren";
+    }
     checkAchievements();
     saveProfile();
 
+    lesson = null;
     $("resultEmoji").textContent = "⚔️";
-    $("resultTitle").textContent = "Duell gespielt!";
-    $("resultSub").textContent = `${correct}/10 richtig in ${(elapsedMs/1000).toFixed(1)}s gegen @${oppUsername}. Ergebnis erscheint in deinem Profil, sobald er/sie auch fertig ist.`;
-    $("resCorrect").textContent = `${correct}/${QUESTIONS_PER_LESSON}`;
-    $("resAura").textContent = `+0`;
-    $("resLevel").textContent = profile.level;
+    $("resultTitle").textContent = outcome;
+    $("resultSub").textContent = `${myScore} : ${oppScore} gegen @${oppUsername}`;
+    $("resCorrect").textContent = `${myScore}/${QUESTIONS_PER_LESSON}`;
+    $("resAura").textContent = "+0";
+    $("resLevel").textContent = "0:00";
     showScreen("result");
   }
 
-  async function renderDuels(){
-    const wrap = $("duelsList");
-    if(!wrap) return;
-    wrap.innerHTML = "";
-    if(!firebaseInitialized || !currentUser) return;
-
-    try{
-      const [sentSnap, receivedSnap] = await Promise.all([
-        db().collection("duels").where("challengerUid", "==", currentUser.uid).get(),
-        db().collection("duels").where("opponentUid", "==", currentUser.uid).get()
-      ]);
-      const seen = new Set();
-      const duels = [];
-      [...sentSnap.docs, ...receivedSnap.docs].forEach(d => {
-        if(seen.has(d.id)) return;
-        seen.add(d.id);
-        duels.push({ id: d.id, ...d.data() });
-      });
-      duels.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-      if(duels.length === 0){
-        wrap.innerHTML = "<div class='empty-hint'>Noch keine Duelle. Fordere oben einen Freund heraus!</div>";
-        return;
-      }
-
-      for(const duel of duels.slice(0, 15)){
-        const isChallenger = duel.challengerUid === currentUser.uid;
-        const oppUid = isChallenger ? duel.opponentUid : duel.challengerUid;
-        const oppUsername = isChallenger ? duel.opponentUsername : duel.challengerUsername;
-
-        const [myResSnap, oppResSnap] = await Promise.all([
-          db().collection("duelResults").doc(`${duel.id}_${currentUser.uid}`).get(),
-          db().collection("duelResults").doc(`${duel.id}_${oppUid}`).get()
-        ]);
-        const myRes = myResSnap.exists ? myResSnap.data() : null;
-        const oppRes = oppResSnap.exists ? oppResSnap.data() : null;
-
-        const row = document.createElement("div");
-        row.className = "friend-row";
-
-        if(!myRes){
-          row.innerHTML = `<span class="name">⚔️ @${oppUsername}</span>`;
-          const btn = document.createElement("button");
-          btn.className = "btn btn-duel btn-small";
-          btn.textContent = "Annehmen";
-          btn.addEventListener("click", () => playDuel(duel));
-          row.appendChild(btn);
-        } else if(!oppRes){
-          row.innerHTML = `<span class="name">⚔️ @${oppUsername}</span><span class="duel-outcome">Wartet auf Gegner …</span>`;
-        } else {
-          let outcome;
-          if(myRes.correct !== oppRes.correct){
-            outcome = myRes.correct > oppRes.correct ? "🏆 Gewonnen" : "❌ Verloren";
-          } else if(myRes.timeMs !== oppRes.timeMs){
-            outcome = myRes.timeMs < oppRes.timeMs ? "🏆 Gewonnen" : "❌ Verloren";
-          } else {
-            outcome = "🤝 Unentschieden";
-          }
-          if(outcome === "🏆 Gewonnen" && !(profile.countedDuelWins || []).includes(duel.id)){
-            profile.duelsWon = (profile.duelsWon || 0) + 1;
-            profile.countedDuelWins = [...(profile.countedDuelWins || []), duel.id];
-            checkAchievements();
-            saveProfile();
-          }
-          row.innerHTML = `<span class="name">⚔️ @${oppUsername}</span><span class="duel-outcome">${outcome} · ${myRes.correct}/10 in ${(myRes.timeMs/1000).toFixed(1)}s vs ${oppRes.correct}/10 in ${(oppRes.timeMs/1000).toFixed(1)}s</span>`;
-        }
-        wrap.appendChild(row);
-      }
-    }catch(err){
-      console.error("Duelle laden Fehler:", err);
-      wrap.innerHTML = "<div class='empty-hint'>Duelle konnten nicht geladen werden.</div>";
-    }
-  }
 
   let leaderboardTab = "global"; // "friends" | "global"
   const GLOBAL_LEADERBOARD_LIMIT = 50;
@@ -4174,6 +4336,10 @@
     if(e.target.id === "overlayTimesTablePicker") $("overlayTimesTablePicker").classList.remove("show");
   });
 
+  /* Live-Duell: Einladungs-Banner & Warte-Overlay */
+  $("duelInviteBanner").addEventListener("click", acceptDuelInvite);
+  $("cancelDuelInviteBtn").addEventListener("click", cancelDuelInvite);
+
   /* Truhen-Modal (Startdrop-Stil) */
   $("chestTapIcon").addEventListener("pointerdown", (e) => {
     e.preventDefault();
@@ -4353,8 +4519,13 @@
         syncUnsubscribe();
         syncUnsubscribe = null;
       }
+      if(incomingInviteUnsubscribe){
+        incomingInviteUnsubscribe();
+        incomingInviteUnsubscribe = null;
+      }
 
       if(user){
+        watchIncomingDuelInvites();
         syncUnsubscribe = db().collection("users").doc(user.uid).onSnapshot((doc) => {
           // Sehr wichtig gegen eine Rückkopplungsschleife: jeder eigene
           // Schreibvorgang (saveProfile) löst diesen Listener selbst wieder
@@ -4719,6 +4890,11 @@
   $("exitLesson").addEventListener("click", () => {
     stopTimer();
     pendingAdvanceAt = null;
+    if(lesson && lesson.isLiveDuel && liveDuelUnsubscribe){
+      liveDuelUnsubscribe();
+      liveDuelUnsubscribe = null;
+      activeLiveDuelId = null;
+    }
     lesson = null;
     showScreen("home");
     renderHome();
@@ -4782,7 +4958,7 @@
       numEl.textContent = Math.ceil(remaining/1000);
       circle.style.stroke = frac < 0.25 ? "var(--danger)" : "var(--accent)";
       if(remaining <= 0){
-        handleAnswer(true);
+        triggerAnswer(true);
         return;
       }
       timerRAF = requestAnimationFrame(tick);
@@ -4790,6 +4966,17 @@
     tick();
   }
   function stopTimer(){ cancelAnimationFrame(timerRAF); }
+
+  // Live-Duelle brauchen einen eigenen Antwort-Pfad (Punktvergabe per
+  // Firestore-Transaktion) - dieser Wrapper leitet an die richtige Funktion
+  // weiter, je nachdem ob gerade ein Live-Duell läuft oder nicht.
+  function triggerAnswer(isTimeout){
+    if(lesson && lesson.isLiveDuel){
+      handleLiveDuelAnswer(isTimeout);
+    } else {
+      handleAnswer(isTimeout);
+    }
+  }
 
   function handleKeyPress(k){
     if(!lesson || lesson.locked) return;
@@ -4821,14 +5008,14 @@
     } else if(e.key === "-"){
       handleKeyPress("minus");
     } else if(e.key === "Enter"){
-      if(lesson.answer !== "") handleAnswer(false);
+      if(lesson.answer !== "") triggerAnswer(false);
     }
   });
 
   $("submitBtn").addEventListener("pointerdown", (e) => {
     e.preventDefault();
     if(!lesson || lesson.locked || lesson.answer === "") return;
-    handleAnswer(false);
+    triggerAnswer(false);
   });
 
   function handleAnswer(isTimeout){

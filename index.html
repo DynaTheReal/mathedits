@@ -1666,6 +1666,7 @@
   // in der Cloud überschreibt, bevor der lokale Stand überhaupt abgeglichen wurde.
   let cloudSyncReady = false;
   let hasAttemptedInitialDocCreation = false;
+  let registrationInProgress = false; // verhindert eine Race-Condition zwischen der automatischen Erst-Anlage des Dokuments und reserveUsername()
 
   try {
     if(firebaseConfig.apiKey !== "DEIN_API_KEY_HIER"){
@@ -1746,6 +1747,7 @@
     friendUsernameCache: {}, // uid -> zuletzt bekannter Benutzername (Fallback, falls das Live-Profil kurzzeitig nicht ladbar ist)
     avatarData: null, // kleines, komprimiertes Profilbild als Base64-Data-URL
     comboCount: 0, // Aufgaben in Folge richtig am neuesten freigeschalteten Level (bleibt über Lektionen hinweg erhalten)
+    lastFirebaseUid: null, // erkennt einen Accountwechsel auf demselben Gerät, damit kein veralteter Benutzername hängen bleibt
     customTheme: { transparency: 100, color: "#c9ff52", bgImage: null, uiTransparency: 100, uiColor: "#16161f" }
   };
   let profile = { ...DEFAULT_PROFILE };
@@ -4353,11 +4355,23 @@
               inventory: { ...DEFAULT_PROFILE.inventory, ...(cloudData.inventory || {}) },
               following: cloudData.following || []
             };
+            // Wenn sich der eingeloggte Account seit dem letzten Mal auf
+            // diesem Gerät geändert hat (anderer Account, gemeinsam genutztes
+            // Gerät/Browser), darf der lokal zwischengespeicherte
+            // Benutzername NICHT einfach weiterverwendet werden - er würde
+            // sonst fälschlich für den neuen Account übernommen (zeigt z.B.
+            // den alten Testnamen statt des echten). In diesem Fall muss der
+            // Cloud-Benutzername gewinnen.
+            if(profile.lastFirebaseUid && profile.lastFirebaseUid !== user.uid){
+              profile.username = null;
+              profile.usernameLower = null;
+            }
             // Wichtig gegen Mehrgeräte-Konflikte: nie blind übernehmen, sondern
             // den lokalen Stand mit dem Cloud-Stand abgleichen (höhere Werte
             // gewinnen). Erst danach dürfen wieder eigene Änderungen in die
             // Cloud geschrieben werden (cloudSyncReady).
             profile = reconcileProfiles(profile, normalizedCloud);
+            profile.lastFirebaseUid = user.uid;
             cloudSyncReady = true;
             checkStreakDecay();
             ensureDailyMissions();
@@ -4372,8 +4386,12 @@
             // erneuten Aufruf. Sonst würde profile.lastActiveAt (das sich
             // jedes Mal ändert) den Schreib-Dedupe umgehen und - falls das
             // Dokument aus irgendeinem Grund nicht richtig ankommt/existiert -
-            // eine Endlosschleife auslösen.
-            if(!hasAttemptedInitialDocCreation){
+            // eine Endlosschleife auslösen. Während einer laufenden
+            // Registrierung (registrationInProgress) NICHT automatisch
+            // schreiben - sonst kann dieser Schreibvorgang (noch ohne
+            // Benutzername) den Schreibvorgang von reserveUsername() überholen
+            // und den gerade gewählten Namen wieder überschreiben.
+            if(!hasAttemptedInitialDocCreation && !registrationInProgress){
               hasAttemptedInitialDocCreation = true;
               profile.lastActiveAt = Date.now();
               saveProfile();
@@ -4405,6 +4423,7 @@
     if(!isValidUsername(normalizeUsername(uname))){
       return alert("Bitte gib einen gültigen Benutzernamen ein (3-20 Zeichen: a-z, 0-9, _).");
     }
+    registrationInProgress = true;
     firebase.auth().createUserWithEmailAndPassword(email, pass)
       .then(async (cred) => {
         try{
@@ -4414,9 +4433,11 @@
           processPendingReferral(cred.user.uid, uname, normalizeUsername(uname));
         }catch(err){
           alert(err.message);
+        } finally {
+          registrationInProgress = false;
         }
       })
-      .catch((err) => alert(err.message));
+      .catch((err) => { alert(err.message); registrationInProgress = false; });
   });
 
   $("logoutBtn").addEventListener("click", () => {

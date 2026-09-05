@@ -2632,16 +2632,21 @@
 
     if(openChatUnsubscribe){ openChatUnsubscribe(); openChatUnsubscribe = null; }
     const cid = chatIdFor(currentUser.uid, friendUid);
+    // Verhindert, dass dieselbe Nachricht bei jedem erneuten Auslösen des
+    // Snapshots (z.B. durch die eigene Als-gelesen-Markierung selbst) immer
+    // wieder neu beschrieben wird - das hat vorher eine Endlosschleife aus
+    // Schreiben -> Snapshot kommt zurück -> erneut schreiben ausgelöst, die
+    // sich wie ein dauerhaftes Laden angefühlt hat.
+    const alreadyMarkedRead = new Set();
     openChatUnsubscribe = db().collection("messages")
       .where("chatId", "==", cid)
       .onSnapshot((snap) => {
         const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (a.createdAt||0) - (b.createdAt||0));
         renderChatMessages(msgs);
-        // Eingehende, noch ungelesene Nachrichten sofort als gelesen markieren,
-        // solange der Chat offen ist.
         msgs.forEach(m => {
-          if(m.toUid === currentUser.uid && !m.read){
-            db().collection("messages").doc(m.id).update({ read: true }).catch(() => {});
+          if(m.toUid === currentUser.uid && !m.read && !alreadyMarkedRead.has(m.id)){
+            alreadyMarkedRead.add(m.id);
+            db().collection("messages").doc(m.id).update({ read: true }).catch(() => { alreadyMarkedRead.delete(m.id); });
           }
         });
         delete unreadCountsByFriend[friendUid];
@@ -2718,9 +2723,12 @@
         snap.docChanges().forEach(change => {
           if(change.type === "added"){
             const data = change.doc.data();
-            if(openChatFriendUid === data.fromUid){
-              db().collection("messages").doc(change.doc.id).update({ read: true }).catch(() => {});
-            } else {
+            // Ist der betreffende Chat gerade offen, kümmert sich bereits
+            // dessen eigener Listener (openChat) ums Als-gelesen-Markieren -
+            // hier NICHT nochmal schreiben, sonst lösen sich beide
+            // Listener gegenseitig immer wieder neu aus (fühlte sich wie
+            // dauerhaftes Laden an).
+            if(openChatFriendUid !== data.fromUid){
               showMessageNotifyBanner(data);
             }
           }

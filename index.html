@@ -2632,6 +2632,7 @@
 
     if(openChatUnsubscribe){ openChatUnsubscribe(); openChatUnsubscribe = null; }
     const cid = chatIdFor(currentUser.uid, friendUid);
+    console.log("[Chat] Öffne Chat. eigene uid=" + currentUser.uid + ", friendUid=" + friendUid + ", chatId=" + cid);
     // Verhindert, dass dieselbe Nachricht bei jedem erneuten Auslösen des
     // Snapshots (z.B. durch die eigene Als-gelesen-Markierung selbst) immer
     // wieder neu beschrieben wird - das hat vorher eine Endlosschleife aus
@@ -2641,6 +2642,7 @@
     openChatUnsubscribe = db().collection("messages")
       .where("chatId", "==", cid)
       .onSnapshot((snap) => {
+        console.log("[Chat] Snapshot erhalten, Anzahl Nachrichten:", snap.docs.length);
         const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (a.createdAt||0) - (b.createdAt||0));
         renderChatMessages(msgs);
         msgs.forEach(m => {
@@ -2651,7 +2653,10 @@
         });
         delete unreadCountsByFriend[friendUid];
         updateMessagesBadge();
-      }, (err) => console.error("Chat beobachten Fehler:", err));
+      }, (err) => {
+        console.error("[Chat] Fehler beim Beobachten des Chats:", err);
+        $("chatMessagesList").innerHTML = "<div class='empty-hint'>⚠️ Nachrichten konnten nicht geladen werden (" + (err && err.code ? err.code : "Fehler") + "). Sind die Firestore-Regeln aktuell?</div>";
+      });
   }
 
   function renderChatMessages(msgs){
@@ -2677,9 +2682,11 @@
     const text = input.value.trim();
     if(!text || !openChatFriendUid || !firebaseInitialized || !currentUser) return;
     input.value = "";
+    const cid = chatIdFor(currentUser.uid, openChatFriendUid);
+    console.log("[Chat] Sende Nachricht. chatId=" + cid + ", von=" + currentUser.uid + ", an=" + openChatFriendUid);
     try{
-      await db().collection("messages").add({
-        chatId: chatIdFor(currentUser.uid, openChatFriendUid),
+      const ref = await db().collection("messages").add({
+        chatId: cid,
         fromUid: currentUser.uid,
         fromUsername: profile.username,
         toUid: openChatFriendUid,
@@ -2687,9 +2694,10 @@
         createdAt: Date.now(),
         read: false
       });
+      console.log("[Chat] Nachricht erfolgreich angelegt, id=" + (ref && ref.id));
     }catch(err){
       showToast("Nachricht konnte nicht gesendet werden.");
-      console.error(err);
+      console.error("[Chat] Fehler beim Senden:", err);
     }
   }
 

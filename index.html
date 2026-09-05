@@ -1785,7 +1785,8 @@
       <div class="levels-heading" style="text-align:left;">Diese Woche</div>
       <div class="week-grid" id="friendProfileWeekGrid"></div>
 
-      <button class="btn btn-ghost" id="closeFriendProfile" style="margin-top:18px;">Schließen</button>
+      <button class="btn btn-primary" id="friendProfileAddBtn" style="margin-top:18px; display:none;">➕ Freund hinzufügen</button>
+      <button class="btn btn-ghost" id="closeFriendProfile" style="margin-top:10px;">Schließen</button>
     </div>
   </div>
 
@@ -1928,6 +1929,17 @@
   // registrierter (No-Op-)Touch-Listener behebt das zuverlässig.
   document.addEventListener("touchstart", function(){}, { passive: true });
 
+  // Verhindert zuverlässig das Reinzoomen bei schnellem Doppel-Tippen -
+  // touch-action:manipulation allein reicht in manchen Browsern nicht aus.
+  let lastTouchEndTime = 0;
+  document.addEventListener("touchend", function(e){
+    const now = Date.now();
+    if(now - lastTouchEndTime <= 300){
+      e.preventDefault();
+    }
+    lastTouchEndTime = now;
+  }, { passive: false });
+
   /* ========================================================
      SUPER VERSION (5 VIP-UIDs HIER EINTRAGEN)
   ======================================================== */
@@ -2061,7 +2073,8 @@
     comboLossCount: 0, // zählt Combo-Verluste, steuert den Schreckmoment (jeder 5., inkl. dem ersten)
     hasSeenSharePrompt: false, // "Teile diese Website"-Hinweis nach der ersten Lektion, erscheint nur einmal
     shareChest: null,
-    lastFirebaseUid: null // erkennt einen Accountwechsel auf demselben Gerät, damit kein veralteter Benutzername hängen bleibt
+    lastFirebaseUid: null, // erkennt einen Accountwechsel auf demselben Gerät, damit kein veralteter Benutzername hängen bleibt
+    hasEverSetUsername: false // Absicherung gegen wiederholte Benutzername-Abfrage bei kurzzeitigen Sync-/Speicher-Aussetzern (z.B. iOS)
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -2155,6 +2168,7 @@
     await ref.set({ uid, username: rawUsername.trim() });
     profile.username = rawUsername.trim();
     profile.usernameLower = lower;
+    profile.hasEverSetUsername = true;
     saveProfile();
   }
 
@@ -2264,7 +2278,7 @@
 
   let usernamePromptDismissedThisSession = false;
   function checkUsernameRequired(){
-    if(currentUser && !profile.username && !usernamePromptDismissedThisSession){
+    if(currentUser && !profile.username && !profile.hasEverSetUsername && !usernamePromptDismissedThisSession){
       $("chooseUsernameInput").value = "";
       $("overlayUsername").classList.add("show");
     } else {
@@ -2396,7 +2410,12 @@
       friendsListEl.innerHTML = "<div class='empty-hint'>Noch keine Freunde. Füge welche über \"Freund hinzufügen\" hinzu!</div>";
     } else {
       const friendDocs = await Promise.all(mutualUids.map(async uid => ({ uid, u: await fetchUserDoc(uid) })));
-      friendDocs.sort((a, b) => (isOnline(b.u) ? 1 : 0) - (isOnline(a.u) ? 1 : 0));
+      friendDocs.sort((a, b) => {
+        const aOnline = isOnline(a.u) ? 1 : 0;
+        const bOnline = isOnline(b.u) ? 1 : 0;
+        if(bOnline !== aOnline) return bOnline - aOnline;
+        return (b.u && b.u.lastActiveAt || 0) - (a.u && a.u.lastActiveAt || 0);
+      });
       friendDocs.forEach(({ uid, u }) => {
         const uname = u ? (u.username || "Unbekannt") : ((profile.friendUsernameCache || {})[uid] || "Unbekannt");
         const row = document.createElement("div");
@@ -3112,7 +3131,7 @@
   // Füllt die Profil-Detailkarte (Level/Aura/Streak/Lektionen/Wochenübersicht)
   // mit beliebigen Nutzerdaten - für Freunde (aus Firestore) UND für die
   // eigene Statistik (direkt aus dem lokalen Profil, auch als Gast).
-  function renderFriendProfileCard(u){
+  function renderFriendProfileCard(u, isOwnProfile){
     $("friendProfileUsername").textContent = u.username ? "@" + u.username : "Gast";
     $("friendProfileUsername").classList.remove("font-glow", "font-pink", "font-gold");
     if(u.activeFont === "glow") $("friendProfileUsername").classList.add("font-glow");
@@ -3153,6 +3172,21 @@
 
     $("friendProfileWeekGrid").innerHTML = buildWeekGridHtml(u.streakDates || []);
 
+    // "Freund hinzufügen"-Button: nur bei fremden Profilen mit bekanntem
+    // Benutzernamen zeigen, und nur solange man ihnen noch nicht folgt.
+    const addBtn = $("friendProfileAddBtn");
+    const alreadyFollowing = (profile.following || []).includes(u.uid);
+    if(!isOwnProfile && u.username && !alreadyFollowing){
+      addBtn.style.display = "block";
+      addBtn.onclick = () => {
+        addFriendByUsername(u.username);
+        $("overlayFriendProfile").classList.remove("show");
+      };
+    } else {
+      addBtn.style.display = "none";
+      addBtn.onclick = null;
+    }
+
     $("overlayFriendProfile").classList.add("show");
   }
 
@@ -3179,7 +3213,7 @@
   // Zeigt die eigene Statistik in derselben Ansicht - direkt aus dem lokalen
   // Profil, funktioniert also auch als Gast ohne Cloud-Zugriff.
   function openOwnStats(){
-    renderFriendProfileCard(profile);
+    renderFriendProfileCard(profile, true);
   }
 
 
@@ -3669,6 +3703,7 @@
     merged.comboCount = Math.max(localP.comboCount || 0, cloudP.comboCount || 0);
     merged.comboLossCount = Math.max(localP.comboLossCount || 0, cloudP.comboLossCount || 0);
     merged.hasSeenSharePrompt = !!(localP.hasSeenSharePrompt || cloudP.hasSeenSharePrompt);
+    merged.hasEverSetUsername = !!(localP.hasEverSetUsername || cloudP.hasEverSetUsername || cloudP.username);
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.countedDuelWins = Array.from(new Set([
       ...(localP.countedDuelWins || []),
@@ -4649,9 +4684,30 @@
       await db().collection("users").doc(ownerEditingUid).set({
         totalAura: newAura,
         level: newLevel,
+        levelProgress: 0,
         streak: newStreak,
         unlockedThemes: checkedThemes
       }, { merge: true });
+
+      // Bearbeitet der Owner sein EIGENES Profil, muss der lokale Stand
+      // SOFORT mit angepasst werden - sonst überschreibt der eigene
+      // "höherer Wert gewinnt"-Abgleich (reconcileProfiles) eine gewollte
+      // VERRINGERUNG (z.B. Level oder Aura runtersetzen) direkt wieder mit
+      // dem alten, höheren lokalen Wert. Das war der Grund, warum sich nur
+      // Erhöhungen dauerhaft angefühlt haben.
+      if(currentUser && ownerEditingUid === currentUser.uid){
+        profile.totalAura = newAura;
+        profile.level = newLevel;
+        profile.levelProgress = 0;
+        profile.streak = newStreak;
+        profile.unlockedThemes = checkedThemes;
+        lastWrittenProfileJSON = JSON.stringify(profile);
+        saveProfile();
+        renderHome();
+        renderProfile();
+        renderShop();
+      }
+
       showToast("✅ Änderungen gespeichert!");
     }catch(err){
       showToast("Fehler beim Speichern - Firestore-Regeln geändert?");
@@ -4975,6 +5031,7 @@
               if(profile.lastFirebaseUid && profile.lastFirebaseUid !== user.uid){
                 profile.username = null;
                 profile.usernameLower = null;
+                profile.hasEverSetUsername = false;
               }
               // Wichtig gegen Mehrgeräte-Konflikte: nie blind übernehmen, sondern
               // den lokalen Stand mit dem Cloud-Stand abgleichen (höhere Werte
@@ -5324,8 +5381,12 @@
   function startLesson(){
     lesson = buildLesson();
     lesson.startedAt = performance.now();
-    lesson.streakThisLesson = 0;
-    $("progressFill").classList.remove("combo-active");
+    // Der Combo-Zähler läuft über Lektionen hinweg weiter (siehe handleAnswer) -
+    // damit die blaue Leiste das korrekt widerspiegelt, startet der
+    // Lektions-lokale Streak hier mit dem aktuellen Combo-Stand, statt immer
+    // bei 0 anzufangen.
+    lesson.streakThisLesson = lesson.isMainProgression ? (profile.comboCount || 0) : 0;
+    $("progressFill").classList.toggle("combo-active", lesson.streakThisLesson > 5);
     showScreen("lesson");
     renderQuestion();
   }

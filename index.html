@@ -639,7 +639,8 @@
     flex-shrink:0;
   }
   .progress-track{flex:1; height:12px; background:var(--card); border:1px solid var(--border); border-radius:99px; overflow:hidden;}
-  .progress-fill{height:100%; background:var(--accent); width:0%; transition:width .35s ease;}
+  .progress-fill{height:100%; background:var(--accent); width:0%; transition:width .35s ease, background .3s ease;}
+  .progress-fill.combo-active{ background:#3b82f6; box-shadow:0 0 10px 1px rgba(59,130,246,.6); }
   .lesson-hearts{display:flex; gap:3px; flex-shrink:0;}
 
   .timer-wrap{display:flex; justify-content:center; margin-bottom:4px;}
@@ -1698,6 +1699,7 @@
     dailyGoal: null, // tägliches Lernziel aus dem Onboarding (1/3/10 Lektionen)
     friendUsernameCache: {}, // uid -> zuletzt bekannter Benutzername (Fallback, falls das Live-Profil kurzzeitig nicht ladbar ist)
     avatarData: null, // kleines, komprimiertes Profilbild als Base64-Data-URL
+    comboCount: 0, // Aufgaben in Folge richtig am neuesten freigeschalteten Level (bleibt über Lektionen hinweg erhalten)
     customTheme: { transparency: 100, color: "#c9ff52", bgImage: null }
   };
   let profile = { ...DEFAULT_PROFILE };
@@ -1941,7 +1943,9 @@
     const loggedIn = !!(firebaseInitialized && currentUser);
     $("profileLoggedOutMsg").style.display = loggedIn ? "none" : "block";
     $("profileLoggedInContent").style.display = loggedIn ? "block" : "none";
-    $("profileUsernameDisplay").textContent = profile.username ? "@" + profile.username : "Gast";
+    $("profileUsernameDisplay").textContent = profile.username
+      ? "@" + profile.username
+      : (loggedIn ? "Angemeldet (noch kein Benutzername)" : "Gast");
     $("profileAuraVal").textContent = profile.totalAura;
     $("profileLevel").textContent = profile.level;
     $("profileStreak").textContent = profile.streak || 0;
@@ -2092,6 +2096,7 @@
       index: 0, correct: 0, aura: 0, answer: "", locked: false
     };
     lesson.duelStartedAt = performance.now();
+    $("progressFill").classList.remove("combo-active");
     showScreen("lesson");
     renderQuestion();
   }
@@ -2100,10 +2105,11 @@
   // nur Aura, kein Level (isMainProgression:false), damit man gezielt eine
   // einzelne Reihe trainieren kann, ohne den normalen Stufen-Fortschritt zu
   // beeinflussen.
-  // Aura-Belohnung je Reihe: 1er-4er = 1 (Einsteiger), 5er-19er = 2 (Standard),
-  // 20er = 3 (am schwersten). editAura ist jeweils das Doppelte (schnelle Antwort).
+  // Aura-Belohnung je Reihe: 1er, 5er, 10er und 20er geben keine Aura,
+  // 2er-4er/6er-9er/11er-19er geben 2 (Standard). editAura ist jeweils das
+  // Doppelte (schnelle Antwort).
   function timesTableAuraFor(n){
-    if(n >= 20) return { normalAura: 3, editAura: 6 };
+    if(n === 1 || n === 5 || n === 10 || n === 20) return { normalAura: 0, editAura: 0 };
     if(n >= 5) return { normalAura: 2, editAura: 4 };
     return { normalAura: 1, editAura: 2 };
   }
@@ -2128,10 +2134,11 @@
       tier: { name: `🔢 ${n}er Reihe`, timeMs: 8000, normalAura: auraVals.normalAura, editAura: auraVals.editAura },
       isMainProgression: false,
       isTimesTablePractice: true,
-      questions, index: 0, correct: 0, aura: 0, answer: "", locked: false
+      questions, index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false
     };
     lesson.startedAt = performance.now();
     $("overlayTimesTablePicker").classList.remove("show");
+    $("progressFill").classList.remove("combo-active");
     showScreen("lesson");
     renderQuestion();
   }
@@ -2792,7 +2799,8 @@
     { id: "mist100",   label: "Aus Fehlern lernt man", desc: "100 Fehler gemacht",          check: p => (p.totalMistakes||0) >= 100 },
     { id: "streak30",  label: "Streak-Legende",        desc: "30 Tage Streak",              check: p => (p.streak||0) >= 30, title: "Streak-Legende" },
     { id: "duel10",    label: "Duellant",              desc: "10 Duelle gespielt",          check: p => (p.duelsPlayed||0) >= 10 },
-    { id: "duelwin10", label: "Champion",              desc: "10 Duelle gewonnen",          check: p => (p.duelsWon||0) >= 10, title: "Duell-Champion" }
+    { id: "duelwin10", label: "Champion",              desc: "10 Duelle gewonnen",          check: p => (p.duelsWon||0) >= 10, title: "Duell-Champion" },
+    { id: "combo100",  label: "Combo-Meister",         desc: "100 Aufgaben in Folge richtig (am neuesten Level)", check: p => (p.comboCount||0) >= 100 }
   ];
 
   function checkAchievements(){
@@ -3004,6 +3012,7 @@
     merged.friendUsernameCache = { ...(cloudP.friendUsernameCache || {}), ...(localP.friendUsernameCache || {}) };
     merged.dailyGoal = localP.dailyGoal || cloudP.dailyGoal || null;
     merged.avatarData = localP.avatarData || cloudP.avatarData || null;
+    merged.comboCount = Math.max(localP.comboCount || 0, cloudP.comboCount || 0);
     merged.customTheme = (localP.customTheme && (localP.customTheme.color !== DEFAULT_PROFILE.customTheme.color || localP.customTheme.bgImage || localP.customTheme.transparency !== 100))
       ? localP.customTheme
       : (cloudP.customTheme || localP.customTheme || DEFAULT_PROFILE.customTheme);
@@ -3398,7 +3407,7 @@
       seenTexts.add(q.text);
       questions.push(q);
     }
-    return { tier, isMainProgression: (idx === activeIdx), questions, index:0, correct:0, aura:0, answer:"", locked:false };
+    return { tier, isMainProgression: (idx === activeIdx), questions, index:0, correct:0, aura:0, answer:"", locked:false, missedCurrentQuestion:false };
   }
 
   /* ========================================================
@@ -3900,7 +3909,7 @@
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
     const displayName = profile.username
       ? "@" + profile.username + (isSuperUser() ? " ⭐" : "")
-      : "Nicht angemeldet / Gast";
+      : (currentUser ? "Angemeldet (noch kein Benutzername)" : "Nicht angemeldet / Gast");
     $("usernameTextDisplay").textContent = displayName;
     
     // Update Theme Dropdown mit Schloss-Symbolen
@@ -4373,6 +4382,8 @@
 
   $("exitLesson").addEventListener("click", () => {
     stopTimer();
+    pendingAdvanceAt = null;
+    lesson = null;
     showScreen("home");
     renderHome();
   });
@@ -4387,6 +4398,8 @@
   function startLesson(){
     lesson = buildLesson();
     lesson.startedAt = performance.now();
+    lesson.streakThisLesson = 0;
+    $("progressFill").classList.remove("combo-active");
     showScreen("lesson");
     renderQuestion();
   }
@@ -4496,56 +4509,121 @@
     const isFastCorrect = isCorrect && elapsed <= AURA_THRESHOLD_MS;
 
     const el = $("answerDisplay");
-    if(isTimeout){
-      el.textContent = "Zeit abgelaufen · " + q.answer;
+    if(isCorrect){
+      el.textContent = lesson.answer;
     } else {
-      el.textContent = isCorrect ? lesson.answer : `${lesson.answer} · richtig: ${q.answer}`;
+      // Absichtlich NICHT die richtige Lösung anzeigen - man muss die exakt
+      // gleiche Aufgabe nochmal versuchen, ohne die Antwort zu kennen.
+      el.textContent = isTimeout ? "Zeit abgelaufen" : lesson.answer;
     }
     el.classList.remove("empty");
     el.classList.add(isCorrect ? "right" : "wrong");
 
+    // Combo-System: zählt nur bei normalen Lektionen (nicht bei Duellen
+    // oder der Einmaleins-Übung). Der Lektions-lokale Streak steuert die blaue
+    // Leiste, der dauerhafte Combo-Zähler läuft nur am neuesten freigeschalteten
+    // Level (isMainProgression) weiter und wird sonst bei einem Fehler zurückgesetzt.
+    if(!lesson.isDuel && !lesson.isTimesTablePractice){
+      if(isCorrect){
+        lesson.streakThisLesson = (lesson.streakThisLesson || 0) + 1;
+        if(lesson.isMainProgression){
+          profile.comboCount = (profile.comboCount || 0) + 1;
+          checkAchievements();
+        }
+      } else {
+        lesson.streakThisLesson = 0;
+        if(lesson.isMainProgression){
+          profile.comboCount = 0;
+        }
+      }
+      $("progressFill").classList.toggle("combo-active", (lesson.streakThisLesson || 0) > 5);
+    }
+
     let delay = 650;
+    pendingRetry = false;
 
     if(lesson.isDuel){
-      // Im Duell zählt nur Tempo & Richtigkeit - keine Leben, keine
-      // Aura-/Meme-Overlays, die das Rennen ausbremsen würden.
+      // Im Duell zählt nur Tempo & Richtigkeit - es geht immer weiter zur
+      // nächsten Frage, kein Wiederholen (sonst würde das Rennen ausgebremst).
       if(isCorrect) lesson.correct++;
       delay = 250;
     } else if(isCorrect){
-      lesson.correct++;
-      
+      // Nur beim allerersten Versuch dieser Frage zählt es für die
+      // "X/10 richtig"-Statistik und die "perfekte Lektion"-Bonus-Aura.
+      if(!lesson.missedCurrentQuestion){
+        lesson.correct++;
+      }
+      lesson.missedCurrentQuestion = false;
+
       // Multiplikator für 2x Aura Prüfen
       const hasDoubleAura = profile.inventory && profile.inventory.doubleAuraUntil > Date.now();
       const multiplier = hasDoubleAura ? 2 : 1;
 
-      let currentNormalAura = (lesson.tier.normalAura || 2) * multiplier;
-      let currentEditAura = (lesson.tier.editAura || 5) * multiplier;
+      let currentNormalAura = (lesson.tier.normalAura ?? 2) * multiplier;
+      let currentEditAura = (lesson.tier.editAura ?? 5) * multiplier;
 
       if(isFastCorrect){
         lesson.aura += currentEditAura; 
-        const showMs = profile.longMode ? 4000 : 1250;
-        delay = 150 + showMs + 100;
-        setTimeout(() => showAuraOverlay(true, currentEditAura, showMs), 150);
+        if(currentEditAura > 0){
+          const showMs = profile.longMode ? 4000 : 1250;
+          delay = 150 + showMs + 100;
+          setTimeout(() => showAuraOverlay(true, currentEditAura, showMs), 150);
+        } else {
+          delay = 450; // 0 Aura bei dieser Reihe - kein Overlay, kurze Pause
+        }
       } else {
         lesson.aura += currentNormalAura; 
-        const showMs = profile.longMode ? 3000 : 1000;
-        delay = 150 + showMs + 100;
-        setTimeout(() => showAuraOverlay(false, currentNormalAura, showMs), 150);
+        if(currentNormalAura > 0){
+          const showMs = profile.longMode ? 3000 : 1000;
+          delay = 150 + showMs + 100;
+          setTimeout(() => showAuraOverlay(false, currentNormalAura, showMs), 150);
+        } else {
+          delay = 450;
+        }
       }
     } else if(isSlow){
       profile.totalMistakes = (profile.totalMistakes || 0) + 1;
       loseLife();
+      lesson.missedCurrentQuestion = true;
+      pendingRetry = true;
       const showMs = profile.longMode ? 2800 : 1100;
       delay = 150 + showMs + 100;
       setTimeout(() => showMemeOverlay(isCorrect, showMs), 150);
     } else {
       profile.totalMistakes = (profile.totalMistakes || 0) + 1;
       loseLife();
+      lesson.missedCurrentQuestion = true;
+      pendingRetry = true;
       flashScreen();
     }
 
-    setTimeout(() => advance(), delay);
+    scheduleAdvance(delay);
   }
+
+  // Browser drosseln/pausieren setTimeout-Timer oft, wenn der Tab/die App in
+  // den Hintergrund geht (Bildschirm sperren, App wechseln). Ein normaler
+  // setTimeout(() => advance(), delay) könnte dadurch erst viel später (oder
+  // gefühlt "nie") feuern - genau das kann sich wie eine hängende Lektion
+  // anfühlen. Diese Funktion merkt sich den geplanten Zeitpunkt und holt das
+  // Weiterschalten sofort nach, sobald die Seite wieder sichtbar wird, falls
+  // der Zeitpunkt eigentlich schon erreicht sein sollte.
+  let pendingAdvanceAt = null;
+  let pendingRetry = false; // true = die aktuelle Frage muss wiederholt werden statt weiterzugehen
+  function scheduleAdvance(delay){
+    const targetAt = Date.now() + delay;
+    pendingAdvanceAt = targetAt;
+    setTimeout(() => {
+      if(pendingAdvanceAt !== targetAt) return; // wurde bereits anderweitig ausgelöst
+      pendingAdvanceAt = null;
+      advance();
+    }, delay);
+  }
+  document.addEventListener("visibilitychange", () => {
+    if(!document.hidden && pendingAdvanceAt !== null && Date.now() >= pendingAdvanceAt){
+      pendingAdvanceAt = null;
+      advance();
+    }
+  });
 
   function flashScreen(){
     const f = $("flash");
@@ -4553,6 +4631,7 @@
   }
 
   function advance(){
+    if(!lesson) return;
     renderHearts($("lessonHearts"), profile.lives);
     if(lesson.isDuel){
       lesson.index++;
@@ -4563,6 +4642,14 @@
       renderQuestion();
       return;
     }
+    if(pendingRetry && (profile.lives > 0 || isSuperUser())){
+      // Falsch geantwortet oder Zeit abgelaufen, aber noch Leben übrig -
+      // dieselbe Aufgabe nochmal versuchen, statt weiterzugehen.
+      pendingRetry = false;
+      renderQuestion();
+      return;
+    }
+    pendingRetry = false;
     lesson.index++;
     $("progressFill").style.width = (lesson.index / QUESTIONS_PER_LESSON * 100) + "%";
     if(profile.lives <= 0 && !isSuperUser()){
@@ -4592,6 +4679,7 @@
     saveProfile();
     let title, sub, emoji;
     lastLessonGainedProgress = false;
+    let perfectBonus = 0;
     if(passed){
       const pick = COMPLETE_LINES[randInt(0, COMPLETE_LINES.length-1)];
       title = pick.title; sub = pick.sub; emoji = pick.emoji;
@@ -4602,6 +4690,11 @@
           profile.levelProgress = 0;
           profile.level += 1;
         }
+        // Perfekte Lektion (alle richtig) am neuesten Level = +10 Bonus-Aura,
+        // Teil des Combo-Systems.
+        if(lesson.correct === QUESTIONS_PER_LESSON){
+          perfectBonus = 10;
+        }
       }
       profile.lessonsCompleted += 1;
       registerStreakActivity();
@@ -4611,7 +4704,7 @@
       const pick = FAIL_LINES[0];
       title = pick.title; sub = pick.sub; emoji = pick.emoji;
     }
-    const auraGained = lesson.aura;
+    const auraGained = lesson.aura + perfectBonus;
     profile.totalAura += auraGained;
     selectedTierIndex = null;
     checkAchievements();
@@ -4625,6 +4718,9 @@
     $("resCorrect").textContent = `${lesson.correct}/${QUESTIONS_PER_LESSON}`;
     $("resAura").textContent = `+${auraGained}`;
     $("resLevel").textContent = formatDuration(elapsedMs);
+    if(perfectBonus > 0){
+      showToast(`✨ Perfekte Lektion! +${perfectBonus} Bonus-Aura`);
+    }
 
     showScreen("result");
   }

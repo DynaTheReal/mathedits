@@ -706,6 +706,10 @@
     background:var(--card); border:1px solid var(--border); border-radius:20px;
     padding:18px; margin-top:14px; text-align:left;
   }
+  .danger-zone{
+    background:rgba(255,77,109,0.08); border:1.5px solid #ff4d6d; border-radius:20px;
+    padding:18px; margin-top:14px; text-align:left;
+  }
 
   /* ---------- welcome modal ---------- */
   .modal-card{
@@ -1330,6 +1334,14 @@
         <button class="btn btn-ghost btn-small" id="registerBtn">Registrieren</button>
         <button class="btn btn-ghost btn-small" id="logoutBtn" style="display:none;">Ausloggen</button>
       </div>
+    </div>
+
+    <div class="danger-zone">
+      <div class="t" style="color:#ff4d6d; font-weight:800; margin-bottom:4px;">⚠️ Danger Zone</div>
+      <div class="d" style="margin-bottom:14px;">Diese Aktionen lassen sich nicht rückgängig machen.</div>
+      <button class="btn btn-ghost btn-small" id="reloadPageBtn" style="width:100%; margin-bottom:10px; border-color:#ff4d6d; color:#ff4d6d;">🔄 Seite neu laden</button>
+      <button class="btn btn-small" id="resetDataBtn" style="width:100%; background:#ff4d6d; color:#fff; border:none;">🗑️ Zurücksetzen (Fortschritt löschen)</button>
+      <div class="d" style="margin-top:8px; font-size:11px;">Löscht deinen gesamten Fortschritt (Level, Aura, Streak, Erfolge, Käufe ...). Dein Account/Login bleibt bestehen - die App startet danach wieder von vorne.</div>
     </div>
 
     <div class="settings-foot">MathEdits · Dein Fortschritt wird synchronisiert.<br>Build: 2026-09-loop-fix-v2</div>
@@ -4455,6 +4467,47 @@
       renderSettings();
       renderHome();
     });
+  });
+
+  /* ========================================================
+     DANGER ZONE (NEU) - Seite neu laden & Fortschritt zurücksetzen.
+     Der Reset löscht alle Spieldaten, behält aber den Account/Login -
+     die App verhält sich danach wie ein brandneuer Start (Onboarding
+     erscheint wieder).
+  ======================================================== */
+  $("reloadPageBtn").addEventListener("click", () => {
+    location.reload();
+  });
+
+  $("resetDataBtn").addEventListener("click", async () => {
+    const sure = confirm(
+      "Bist du sicher? Das löscht deinen gesamten Fortschritt (Level, Aura, Streak, Erfolge, Käufe, Freunde ...) unwiderruflich. Dein Account/Login bleibt bestehen, aber die App startet danach komplett von vorne."
+    );
+    if(!sure) return;
+
+    // Fortschritt zurücksetzen, aber Benutzername/Login-Identität behalten -
+    // "Account löschen" ist explizit NICHT gewünscht.
+    const freshProfile = {
+      ...DEFAULT_PROFILE,
+      uid: profile.uid,
+      username: profile.username,
+      usernameLower: profile.usernameLower,
+      hasSeenWelcome: false
+    };
+
+    try{
+      if(firebaseInitialized && currentUser){
+        // Bewusst OHNE {merge:true} - ersetzt das gesamte Cloud-Dokument,
+        // damit wirklich kein alter Stand übrig bleibt und beim nächsten
+        // Sync nicht einfach wieder zurückkommt.
+        await db().collection("users").doc(currentUser.uid).set(freshProfile);
+      }
+    }catch(err){
+      console.error("Reset Fehler:", err);
+    }
+
+    try{ localStorage.setItem(PROFILE_KEY, JSON.stringify(freshProfile)); }catch(e){}
+    location.reload();
   });
 
   /* ========================================================

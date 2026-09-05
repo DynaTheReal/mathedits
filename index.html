@@ -900,6 +900,20 @@
     background:var(--accent); color:var(--accent-text) !important; opacity:1;
   }
 
+  /* ---------- profil social tabs (NEU) ---------- */
+  .social-tabs{
+    display:flex; gap:6px; background:var(--card); border:1px solid var(--border);
+    border-radius:14px; padding:4px; margin-bottom:14px;
+  }
+  .social-tab{
+    flex:1; text-align:center; padding:9px 2px; border-radius:11px; cursor:pointer;
+    font-weight:700; font-size:11.5px; color:var(--text); opacity:.6; user-select:none;
+    transition: background .15s, opacity .15s;
+  }
+  .social-tab.active{
+    background:var(--accent); color:var(--accent-text) !important; opacity:1;
+  }
+
   /* ---------- missions & nav badge (NEU) ---------- */
   .icon-wrap{position:relative; display:inline-flex;}
   .nav-badge{
@@ -1186,17 +1200,29 @@
     </div>
 
     <div id="profileLoggedInContent">
-      <div class="shop-section-title">Freund hinzufügen</div>
-      <div class="add-friend-row">
-        <input type="text" id="addFriendInput" class="input-field" placeholder="Benutzername">
-        <button class="btn btn-primary btn-small" id="addFriendBtn">Adden</button>
+      <div class="social-tabs">
+        <div class="social-tab active" id="socialTabFriends">Freunde</div>
+        <div class="social-tab" id="socialTabAdd">Freund hinzufügen</div>
+        <div class="social-tab" id="socialTabRequests">Freundschaftsanfragen</div>
       </div>
 
-      <div class="shop-section-title">Folgt dir</div>
-      <div id="followBackList"></div>
+      <div class="social-tab-content" id="socialContentFriends">
+        <div id="friendsList"></div>
+      </div>
 
-      <div class="shop-section-title">Du folgst</div>
-      <div id="followingList"></div>
+      <div class="social-tab-content" id="socialContentAdd" style="display:none;">
+        <div class="add-friend-row">
+          <input type="text" id="addFriendInput" class="input-field" placeholder="Benutzername">
+          <button class="btn btn-primary btn-small" id="addFriendBtn">Adden</button>
+        </div>
+      </div>
+
+      <div class="social-tab-content" id="socialContentRequests" style="display:none;">
+        <div class="shop-section-title">Anfragen an dich</div>
+        <div id="followBackList"></div>
+        <div class="shop-section-title">Gesendete Anfragen</div>
+        <div id="sentRequestsList"></div>
+      </div>
     </div>
   </section>
 
@@ -2082,16 +2108,42 @@
     }
 
     const following = profile.following || [];
-    $("profileFriendsCount").textContent = following.length;
-
     const followersData = await fetchFollowers(currentUser.uid);
     const followerUids = followersData.map(f => f.uid);
+    const mutualUids = following.filter(uid => followerUids.includes(uid));
 
+    $("profileFriendsCount").textContent = mutualUids.length;
+
+    // Tab "Freunde": NUR gegenseitige Freundschaften, keine Anfragen.
+    const friendsListEl = $("friendsList");
+    friendsListEl.innerHTML = "";
+    if(mutualUids.length === 0){
+      friendsListEl.innerHTML = "<div class='empty-hint'>Noch keine Freunde. Füge welche über \"Freund hinzufügen\" hinzu!</div>";
+    } else {
+      for(const uid of mutualUids){
+        const u = await fetchUserDoc(uid);
+        const uname = u ? (u.username || "Unbekannt") : ((profile.friendUsernameCache || {})[uid] || "Unbekannt");
+        const row = document.createElement("div");
+        row.className = "friend-row";
+        row.style.cursor = "pointer";
+        row.innerHTML = `<span class="name">${u && isOnline(u) ? '<span class="online-dot"></span>' : ""}@${uname}</span>`;
+        const duelBtn = document.createElement("button");
+        duelBtn.className = "btn btn-duel btn-small";
+        duelBtn.textContent = "⚔️ 1vs1";
+        duelBtn.addEventListener("click", (e) => { e.stopPropagation(); startDuel(uid, uname); });
+        row.appendChild(duelBtn);
+        row.addEventListener("click", () => openFriendProfile(uid));
+        friendsListEl.appendChild(row);
+      }
+    }
+
+    // Tab "Freundschaftsanfragen": eingehend (jemand folgt dir, du ihm noch
+    // nicht) und gesendet (du folgst jemandem, der dir noch nicht folgt).
     const followBackListEl = $("followBackList");
     const notFollowedBack = followersData.filter(f => !following.includes(f.uid));
     followBackListEl.innerHTML = "";
     if(notFollowedBack.length === 0){
-      followBackListEl.innerHTML = "<div class='empty-hint'>Niemand wartet gerade auf ein Follow-back.</div>";
+      followBackListEl.innerHTML = "<div class='empty-hint'>Keine offenen Anfragen.</div>";
     } else {
       notFollowedBack.forEach(f => {
         const row = document.createElement("div");
@@ -2108,28 +2160,32 @@
       });
     }
 
-    const followingListEl = $("followingList");
-    followingListEl.innerHTML = "";
-    if(following.length === 0){
-      followingListEl.innerHTML = "<div class='empty-hint'>Du folgst noch niemandem.</div>";
+    const sentRequestsListEl = $("sentRequestsList");
+    const pendingSent = following.filter(uid => !followerUids.includes(uid));
+    sentRequestsListEl.innerHTML = "";
+    if(pendingSent.length === 0){
+      sentRequestsListEl.innerHTML = "<div class='empty-hint'>Keine ausstehenden Anfragen.</div>";
     } else {
-      for(const uid of following){
+      for(const uid of pendingSent){
         const u = await fetchUserDoc(uid);
-        const mutual = followerUids.includes(uid);
+        const uname = u ? (u.username || "Unbekannt") : ((profile.friendUsernameCache || {})[uid] || "Unbekannt");
         const row = document.createElement("div");
         row.className = "friend-row";
-        row.style.cursor = "pointer";
-        const uname = u ? (u.username || "Unbekannt") : ((profile.friendUsernameCache || {})[uid] || "Unbekannt");
-        row.innerHTML = `<span class="name">${u && isOnline(u) ? '<span class="online-dot"></span>' : ""}@${uname}</span><span>${mutual ? "🤝 gegenseitig" : "wartet auf Follow-back"}</span>`;
-        const duelBtn = document.createElement("button");
-        duelBtn.className = "btn btn-duel btn-small";
-        duelBtn.textContent = "⚔️ 1vs1";
-        duelBtn.addEventListener("click", (e) => { e.stopPropagation(); startDuel(uid, uname); });
-        row.appendChild(duelBtn);
-        row.addEventListener("click", () => openFriendProfile(uid));
-        followingListEl.appendChild(row);
+        row.innerHTML = `<span class="name">@${uname}</span><span class="duel-outcome">Wartet auf Bestätigung …</span>`;
+        sentRequestsListEl.appendChild(row);
       }
     }
+  }
+
+  let profileSocialTab = "friends"; // "friends" | "add" | "requests"
+  function switchSocialTab(tab){
+    profileSocialTab = tab;
+    $("socialTabFriends").classList.toggle("active", tab === "friends");
+    $("socialTabAdd").classList.toggle("active", tab === "add");
+    $("socialTabRequests").classList.toggle("active", tab === "requests");
+    $("socialContentFriends").style.display = tab === "friends" ? "block" : "none";
+    $("socialContentAdd").style.display = tab === "add" ? "block" : "none";
+    $("socialContentRequests").style.display = tab === "requests" ? "block" : "none";
   }
 
   /* ========================================================
@@ -2149,6 +2205,56 @@
   let hasResolvedDuelVote = false;
   let lastSeenDuelIndex = -1;
   let pendingIncomingInvite = null;
+
+  // Einmaleins-Übung: eine frei wählbare Reihe (1-20) üben. Gibt bewusst
+  // WEDER Aura NOCH Level (isMainProgression:false) - reines Üben ohne
+  // Belohnung, damit man gezielt eine einzelne Reihe trainieren kann.
+  function genTimesTableQuestion(n, avoidTexts){
+    const avoid = avoidTexts || new Set();
+    let x = randInt(1,12);
+    let text = `${n} × ${x}`;
+    let attempts = 0;
+    while(avoid.has(text) && attempts < 25){
+      x = randInt(1,12);
+      text = `${n} × ${x}`;
+      attempts++;
+    }
+    return { text, answer: n * x };
+  }
+
+  function startTimesTablePractice(n){
+    const questions = [];
+    const seenTexts = new Set();
+    for(let i=0;i<QUESTIONS_PER_LESSON;i++){
+      const q = genTimesTableQuestion(n, seenTexts);
+      seenTexts.add(q.text);
+      questions.push(q);
+    }
+    lesson = {
+      tier: { name: `🔢 ${n}er Reihe`, timeMs: 8000, normalAura: 0, editAura: 0 },
+      isMainProgression: false,
+      isTimesTablePractice: true,
+      timesTableN: n,
+      questions, index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false
+    };
+    lesson.startedAt = performance.now();
+    $("overlayTimesTablePicker").classList.remove("show");
+    $("progressFill").classList.remove("combo-active");
+    showScreen("lesson");
+    renderQuestion();
+  }
+
+  function renderTimesTableGrid(){
+    const grid = $("timesTableGrid");
+    if(!grid || grid.children.length > 0) return; // nur einmalig aufbauen, ist statisch
+    for(let n=1;n<=20;n++){
+      const btn = document.createElement("button");
+      btn.className = "times-table-btn";
+      btn.textContent = n;
+      btn.addEventListener("click", () => startTimesTablePractice(n));
+      grid.appendChild(btn);
+    }
+  }
 
   async function startDuel(opponentUid, opponentUsername){
     if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
@@ -2376,8 +2482,9 @@
 
   function beginLiveDuelLesson(data){
     $("overlayDuelVote").classList.remove("show");
+    const tier = TIERS[data.finalTierId] || {};
     lesson = {
-      tier: { name: "⚔️ Duell: " + data.finalTierName, timeMs: data.finalTierTimeMs, normalAura: 0, editAura: 0 },
+      tier: { name: "⚔️ Duell: " + data.finalTierName, timeMs: data.finalTierTimeMs, normalAura: tier.normalAura ?? 2, editAura: tier.editAura ?? 5 },
       isMainProgression: false,
       isDuel: true,
       isLiveDuel: true,
@@ -2431,14 +2538,20 @@
 
     if(isCorrect){
       const myIndex = lesson.index;
+      const elapsed = performance.now() - questionStartedAt;
+      const isFastCorrect = elapsed <= AURA_THRESHOLD_MS;
       const won = await tryWinLiveDuelQuestion(lesson.liveDuelId, myIndex);
       // Wichtig: lesson kann in der Zwischenzeit durch den onSnapshot-Handler
       // bereits auf null gesetzt worden sein (z.B. wenn das Duell durch genau
       // diese letzte richtige Antwort beendet wurde) - deshalb hier erneut
       // prüfen, bevor weiter darauf zugegriffen wird.
       if(won && lesson){
+        const hasDoubleAura = profile.inventory && profile.inventory.doubleAuraUntil > Date.now();
+        const multiplier = hasDoubleAura ? 2 : 1;
+        const gained = (isFastCorrect ? (lesson.tier.editAura ?? 5) : (lesson.tier.normalAura ?? 2)) * multiplier;
+        lesson.aura += gained;
         lesson.correct++;
-        showToast("⚡ Du warst schneller!");
+        showToast(`⚡ Du warst schneller! +${gained} Aura`);
       }
       // Der gemeinsame Fortschritt (currentIndex) kommt in beiden Fällen über
       // den onSnapshot-Listener von watchLiveDuel zurück und schaltet weiter.
@@ -2463,8 +2576,10 @@
     const oppUsername = data.player1Uid === currentUser.uid ? data.player2Username : data.player1Username;
     const myScore = (data.scores && data.scores[currentUser.uid]) || 0;
     const oppScore = (data.scores && data.scores[oppUid]) || 0;
+    const auraGained = (lesson && lesson.aura) || 0;
 
     profile.duelsPlayed = (profile.duelsPlayed || 0) + 1;
+    profile.totalAura += auraGained;
     let outcome = "🤝 Unentschieden";
     if(myScore > oppScore){
       outcome = "🏆 Gewonnen";
@@ -2480,7 +2595,7 @@
     $("resultTitle").textContent = outcome;
     $("resultSub").textContent = `${myScore} : ${oppScore} gegen @${oppUsername}`;
     $("resCorrect").textContent = `${myScore}/${QUESTIONS_PER_LESSON}`;
-    $("resAura").textContent = "+0";
+    $("resAura").textContent = `+${auraGained}`;
     $("resLevel").textContent = "0:00";
     showScreen("result");
   }
@@ -3751,6 +3866,41 @@
     });
   }
 
+  // Für Hintergrundbilder (anders als beim Profilbild) wird NICHT quadratisch
+  // zugeschnitten - das komplette Bild bleibt erhalten, nur die Auflösung
+  // wird bei Bedarf verkleinert. Die Anzeige übernimmt background-size:cover,
+  // das passt es dann an jeden Bildschirm an.
+  function processBackgroundImageFile(file, maxDimension, quality){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width, height = img.height;
+          if(width > maxDimension || height > maxDimension){
+            if(width >= height){
+              height = Math.round(height * (maxDimension / width));
+              width = maxDimension;
+            } else {
+              width = Math.round(width * (maxDimension / height));
+              height = maxDimension;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = () => reject(new Error("Bild konnte nicht geladen werden."));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
+      reader.readAsDataURL(file);
+    });
+  }
+
   $("avatarWrap").addEventListener("click", () => {
     $("avatarFileInput").click();
   });
@@ -3790,6 +3940,10 @@
     addFriendByUsername(val);
     $("addFriendInput").value = "";
   });
+
+  $("socialTabFriends").addEventListener("click", () => switchSocialTab("friends"));
+  $("socialTabAdd").addEventListener("click", () => switchSocialTab("add"));
+  $("socialTabRequests").addEventListener("click", () => switchSocialTab("requests"));
 
   function showToast(msg){
     const t = $("toast");
@@ -4142,9 +4296,9 @@
     e.target.value = "";
     if(!file) return;
     try{
-      // Hintergrundbilder dürfen etwas größer/hochwertiger sein als das
-      // kleine, quadratische Profilbild.
-      const dataUrl = await processImageFile(file, 800, 0.6);
+      // Hintergrundbilder werden NICHT quadratisch zugeschnitten (anders als
+      // das Profilbild) - das komplette Bild bleibt erhalten.
+      const dataUrl = await processBackgroundImageFile(file, 900, 0.65);
       profile.customTheme = profile.customTheme || { ...DEFAULT_PROFILE.customTheme };
       profile.customTheme.bgImage = dataUrl;
       applyCustomThemeStyles();
@@ -5018,6 +5172,28 @@
     triggerAnswer(false);
   });
 
+  // Ersetzt die aktuelle Frage (gleicher Platz in der Lektion) durch eine
+  // ANDERE, frisch generierte Frage vom selben Typ - benutzt bei einem
+  // Fehler, damit man nicht die exakt gleiche Aufgabe nochmal sieht, der
+  // Fortschritt in der Lektion aber trotzdem stehen bleibt.
+  function regenerateCurrentQuestion(){
+    if(!lesson) return;
+    const idx = lesson.index;
+    const seenTexts = new Set(lesson.questions.map(q => q.text));
+    let newQ;
+    if(lesson.isTimesTablePractice){
+      newQ = genTimesTableQuestion(lesson.timesTableN, seenTexts);
+    } else if(lesson.tier && typeof lesson.tier.gen === "function"){
+      let q = lesson.tier.gen();
+      let attempts = 0;
+      while(seenTexts.has(q.text) && attempts < 25){ q = lesson.tier.gen(); attempts++; }
+      newQ = q;
+    } else {
+      return; // z.B. Duelle - dort wird diese Funktion ohnehin nicht aufgerufen
+    }
+    lesson.questions[idx] = newQ;
+  }
+
   function handleAnswer(isTimeout){
     if(!lesson || lesson.locked) return;
     lesson.locked = true;
@@ -5035,9 +5211,10 @@
     if(isCorrect){
       el.textContent = lesson.answer;
     } else {
-      // Absichtlich NICHT die richtige Lösung anzeigen - man muss die exakt
-      // gleiche Aufgabe nochmal versuchen, ohne die Antwort zu kennen.
-      el.textContent = isTimeout ? "Zeit abgelaufen" : lesson.answer;
+      // Löst die Frage auf (zeigt die richtige Antwort), damit man daraus
+      // lernen kann - aber die nächste Frage ist eine ANDERE (nicht dieselbe
+      // nochmal) und der Fortschritt in der Lektion bleibt trotzdem stehen.
+      el.textContent = isTimeout ? `Zeit abgelaufen · richtig: ${q.answer}` : `${lesson.answer} · richtig: ${q.answer}`;
     }
     el.classList.remove("empty");
     el.classList.add(isCorrect ? "right" : "wrong");
@@ -5109,6 +5286,7 @@
       loseLife();
       lesson.missedCurrentQuestion = true;
       pendingRetry = true;
+      regenerateCurrentQuestion();
       const showMs = profile.longMode ? 2800 : 1100;
       delay = 150 + showMs + 100;
       setTimeout(() => showMemeOverlay(isCorrect, showMs), 150);
@@ -5117,6 +5295,7 @@
       loseLife();
       lesson.missedCurrentQuestion = true;
       pendingRetry = true;
+      regenerateCurrentQuestion();
       flashScreen();
     }
 

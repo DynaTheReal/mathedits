@@ -2170,14 +2170,43 @@
     const code = pendingReferralCode;
     pendingReferralCode = null;
     try{ localStorage.removeItem(PENDING_REF_KEY); }catch(e){ }
-    if(!code || !firebaseInitialized) return;
+    console.log("[Einladung] processPendingReferral gestartet. code=", code, "newUid=", newUid, "newUsernameLower=", newUsernameLower);
+    if(!code){
+      console.log("[Einladung] Kein Einladungscode vorhanden - nichts zu tun.");
+      return;
+    }
+    if(!firebaseInitialized){
+      console.warn("[Einladung] Firebase nicht initialisiert - Einladung kann nicht verarbeitet werden.");
+      return;
+    }
     const refLower = normalizeUsername(code);
-    if(!refLower || refLower === newUsernameLower) return;
+    if(!refLower){
+      console.warn("[Einladung] Einladungscode nach Normalisierung leer:", code);
+      return;
+    }
+    if(refLower === newUsernameLower){
+      console.log("[Einladung] Selbst-Einladung erkannt (gleicher Benutzername) - wird ignoriert.");
+      return;
+    }
     try{
+      console.log("[Einladung] Suche Benutzernamen-Dokument: usernames/" + refLower);
       const refDoc = await db().collection("usernames").doc(refLower).get();
-      if(!refDoc.exists) return;
+      if(!refDoc.exists){
+        console.warn("[Einladung] Benutzername '" + refLower + "' wurde in der 'usernames'-Sammlung NICHT gefunden. Einladung kann nicht gutgeschrieben werden.");
+        showToast(`⚠️ Benutzername "@${code}" aus dem Einladungslink wurde nicht gefunden.`);
+        return;
+      }
       const referrerUid = refDoc.data().uid;
-      if(referrerUid === newUid) return; // Selbst-Invite über eine andere UID-Konstellation ausschließen
+      console.log("[Einladung] Gefunden, referrerUid=", referrerUid);
+      if(!referrerUid){
+        console.warn("[Einladung] Das usernames-Dokument hat kein 'uid'-Feld:", refDoc.data());
+        return;
+      }
+      if(referrerUid === newUid){
+        console.log("[Einladung] Selbst-Einladung erkannt (gleiche UID) - wird ignoriert.");
+        return;
+      }
+      console.log("[Einladung] Lege referralRewards-Dokument an: toUid=" + referrerUid + ", fromUid=" + newUid);
       await db().collection("referralRewards").add({
         toUid: referrerUid,
         amount: REFERRAL_REWARD,
@@ -2185,11 +2214,13 @@
         fromUsername: newUsername,
         createdAt: Date.now()
       });
+      console.log("[Einladung] referralRewards-Dokument erfolgreich angelegt!");
       profile.referredBy = refLower;
       saveProfile();
       showToast(`🎉 Willkommen! @${code} hat dich eingeladen und bekommt 500 Aura.`);
     }catch(err){
-      console.error("Einladungs-Bonus Fehler:", err);
+      console.error("[Einladung] Fehler beim Verarbeiten:", err);
+      showToast("⚠️ Einladungs-Bonus konnte nicht verarbeitet werden (siehe Konsole).");
     }
   }
 
@@ -2198,11 +2229,16 @@
   // ausgestellt wurden, schreibt sie der eigenen Aura gut und merkt sich lokal,
   // welche IDs bereits verrechnet wurden (damit nichts doppelt gezählt wird).
   async function claimPendingReferralRewards(){
-    if(!firebaseInitialized || !currentUser) return;
+    if(!firebaseInitialized || !currentUser){
+      console.log("[Einladung] claimPendingReferralRewards übersprungen (nicht angemeldet).");
+      return;
+    }
     try{
+      console.log("[Einladung] Suche offene Belohnungen für UID:", currentUser.uid);
       const snap = await db().collection("referralRewards")
         .where("toUid", "==", currentUser.uid)
         .get();
+      console.log("[Einladung] Gefundene Belohnungs-Dokumente:", snap.empty ? 0 : snap.docs.length);
       if(snap.empty) return;
       const already = new Set(profile.claimedReferralRewardIds || []);
       let totalCredit = 0;
@@ -2213,6 +2249,7 @@
         totalCredit += data.amount || 0;
         newIds.push(doc.id);
       });
+      console.log("[Einladung] Neue, noch nicht abgeholte Belohnungen:", newIds.length, "| Gesamt-Aura:", totalCredit);
       if(newIds.length === 0) return;
       profile.totalAura += totalCredit;
       profile.claimedReferralRewardIds = [...(profile.claimedReferralRewardIds || []), ...newIds];

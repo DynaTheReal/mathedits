@@ -907,6 +907,45 @@
     font-size:13.5px;
   }
   .friend-row .name{font-weight:700;}
+
+  /* ---------- Nachrichten (NEU) ---------- */
+  .msg-friend-row{
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:10px 12px; margin-bottom:8px; display:flex; align-items:center; gap:10px;
+    cursor:pointer; text-align:left;
+  }
+  .msg-friend-row .name{ flex:1; font-weight:700; font-size:13.5px; }
+  .msg-friend-row .msg-unread-badge{
+    background:var(--danger); color:#fff; font-size:11px; font-weight:800;
+    min-width:20px; height:20px; border-radius:999px; display:flex; align-items:center; justify-content:center; padding:0 5px;
+  }
+  .chat-card{
+    max-width:420px; height:78vh; display:flex; flex-direction:column; padding:14px; text-align:left;
+  }
+  .chat-header{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding-bottom:10px; border-bottom:1px solid var(--border); margin-bottom:10px;
+  }
+  .chat-header-name{ font-weight:800; font-size:15px; flex:1; text-align:center; }
+  .chat-messages{
+    flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    display:flex; flex-direction:column; gap:8px; padding:4px 2px;
+  }
+  .chat-bubble{
+    max-width:75%; padding:9px 13px; border-radius:16px; font-size:13.5px; line-height:1.4; word-break:break-word;
+  }
+  .chat-bubble.mine{
+    align-self:flex-end; background:var(--accent); color:var(--accent-text); border-bottom-right-radius:4px;
+  }
+  .chat-bubble.theirs{
+    align-self:flex-start; background:var(--card-2); border:1px solid var(--border); border-bottom-left-radius:4px;
+  }
+  .chat-bubble-time{ font-size:10px; opacity:.6; margin-top:3px; }
+  .chat-input-row{
+    display:flex; gap:8px; padding-top:10px; border-top:1px solid var(--border); margin-top:10px;
+  }
+  .chat-input-row .input-field{ flex:1; }
+
   .lb-row{
     background:var(--card); border:1px solid var(--border); border-radius:16px;
     padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px;
@@ -1413,7 +1452,8 @@
       <div class="stat-pill"><div class="val" id="profileFriendsCount">0</div><div class="lbl">Freunde</div></div>
     </div>
 
-    <button class="btn btn-ghost btn-small" id="viewOwnStatsBtn" style="margin-bottom:14px;">📊 Meine Statistik ansehen</button>
+    <button class="btn btn-ghost btn-small" id="viewOwnStatsBtn" style="margin-bottom:10px;">📊 Meine Statistik ansehen</button>
+    <button class="btn btn-primary btn-small" id="openMessagesBtn" style="margin-bottom:14px; position:relative;">💬 Nachrichten<span class="nav-badge" id="messagesBadge" style="display:none;">1</span></button>
 
     <div id="profileLoggedOutMsg" class="empty-hint" style="display:none;">
       Melde dich in den Einstellungen an, um Freunde hinzuzufügen und am Leaderboard teilzunehmen.
@@ -1786,8 +1826,42 @@
       <div class="week-grid" id="friendProfileWeekGrid"></div>
 
       <button class="btn btn-primary" id="friendProfileAddBtn" style="margin-top:18px; display:none;">➕ Freund hinzufügen</button>
+      <button class="btn btn-primary" id="friendProfileMessageBtn" style="margin-top:10px; display:none;">💬 Nachrichten</button>
       <button class="btn btn-ghost" id="closeFriendProfile" style="margin-top:10px;">Schließen</button>
     </div>
+  </div>
+
+  <!-- Nachrichten: Übersicht der Freunde mit ungelesenen Nachrichten (NEU) -->
+  <div class="overlay" id="overlayMessagesList">
+    <div class="modal-card" style="max-width:400px;">
+      <div style="font-size:36px; margin-bottom:6px;">💬</div>
+      <h2>Nachrichten</h2>
+      <p>Wähle einen Freund, um zu chatten.</p>
+      <div id="messagesFriendsList" style="max-height:50vh; overflow-y:auto; margin-top:6px;"></div>
+      <button class="btn btn-ghost" id="closeMessagesList" style="margin-top:16px;">Schließen</button>
+    </div>
+  </div>
+
+  <!-- Nachrichten: Chat mit einem Freund (NEU) -->
+  <div class="overlay" id="overlayChat">
+    <div class="modal-card chat-card">
+      <div class="chat-header">
+        <button class="btn btn-ghost btn-small" id="backFromChat">←</button>
+        <div class="chat-header-name" id="chatFriendName">@user</div>
+        <div style="width:40px;"></div>
+      </div>
+      <div class="chat-messages" id="chatMessagesList"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" class="input-field" placeholder="Nachricht schreiben..." maxlength="500">
+        <button class="btn btn-primary btn-small" id="chatSendBtn">Senden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Neue-Nachricht-Benachrichtigung (NEU, wie Duell-Einladung) -->
+  <div class="duel-invite-banner" id="messageNotifyBanner">
+    <div class="duel-invite-icon">💬</div>
+    <div class="duel-invite-text" id="messageNotifyText">Neue Nachricht</div>
   </div>
 
   <div class="overlay" id="overlayTimesTablePicker">
@@ -2501,6 +2575,184 @@
   let lastSeenDuelIndex = -1;
   let pendingIncomingInvite = null;
 
+  /* ========================================================
+     NACHRICHTEN (NEU) - 1:1-Chat zwischen gegenseitigen Freunden.
+     Jede Nachricht ist ein eigenes Dokument in der "messages"-Sammlung mit
+     einer deterministischen chatId (beide UIDs sortiert & verbunden), damit
+     beide Seiten dieselbe Unterhaltung finden, ohne vorher ein gemeinsames
+     "Chat"-Dokument anlegen zu müssen.
+  ======================================================== */
+  let unreadMessageUnsubscribe = null;
+  let openChatUnsubscribe = null;
+  let openChatFriendUid = null;
+  let openChatFriendUsername = null;
+  let unreadCountsByFriend = {}; // { friendUid: anzahlUngelesen }
+
+  function chatIdFor(uidA, uidB){
+    return [uidA, uidB].sort().join("_");
+  }
+
+  // Übersicht: listet alle gegenseitigen Freunde auf, mit Badge für
+  // ungelesene Nachrichten pro Person.
+  async function openMessagesList(){
+    if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
+    $("overlayMessagesList").classList.add("show");
+    const listEl = $("messagesFriendsList");
+    listEl.innerHTML = "<div class='empty-hint'>Lade Freunde …</div>";
+    const following = profile.following || [];
+    const followers = await fetchFollowers(currentUser.uid);
+    const mutualUids = following.filter(uid => followers.some(f => f.uid === uid));
+    if(mutualUids.length === 0){
+      listEl.innerHTML = "<div class='empty-hint'>Noch keine gegenseitigen Freunde zum Chatten.</div>";
+      return;
+    }
+    const friendDocs = await Promise.all(mutualUids.map(async uid => ({ uid, u: await fetchUserDoc(uid) })));
+    listEl.innerHTML = "";
+    friendDocs.forEach(({ uid, u }) => {
+      const uname = u ? (u.username || "Unbekannt") : ((profile.friendUsernameCache || {})[uid] || "Unbekannt");
+      const row = document.createElement("div");
+      row.className = "msg-friend-row";
+      const unread = unreadCountsByFriend[uid] || 0;
+      row.innerHTML = `<span class="name">@${uname}</span>` + (unread > 0 ? `<span class="msg-unread-badge">${unread}</span>` : "");
+      row.addEventListener("click", () => openChat(uid, uname));
+      listEl.appendChild(row);
+    });
+  }
+
+  // Öffnet den Chat mit einem bestimmten Freund, hört in Echtzeit auf neue
+  // Nachrichten und markiert eingehende Nachrichten sofort als gelesen.
+  async function openChat(friendUid, friendUsername){
+    if(!firebaseInitialized || !currentUser) return;
+    openChatFriendUid = friendUid;
+    openChatFriendUsername = friendUsername;
+    $("chatFriendName").textContent = "@" + friendUsername;
+    $("overlayMessagesList").classList.remove("show");
+    $("overlayChat").classList.add("show");
+    $("chatMessagesList").innerHTML = "<div class='empty-hint'>Lade Nachrichten …</div>";
+
+    if(openChatUnsubscribe){ openChatUnsubscribe(); openChatUnsubscribe = null; }
+    const cid = chatIdFor(currentUser.uid, friendUid);
+    openChatUnsubscribe = db().collection("messages")
+      .where("chatId", "==", cid)
+      .onSnapshot((snap) => {
+        const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (a.createdAt||0) - (b.createdAt||0));
+        renderChatMessages(msgs);
+        // Eingehende, noch ungelesene Nachrichten sofort als gelesen markieren,
+        // solange der Chat offen ist.
+        msgs.forEach(m => {
+          if(m.toUid === currentUser.uid && !m.read){
+            db().collection("messages").doc(m.id).update({ read: true }).catch(() => {});
+          }
+        });
+        delete unreadCountsByFriend[friendUid];
+        updateMessagesBadge();
+      }, (err) => console.error("Chat beobachten Fehler:", err));
+  }
+
+  function renderChatMessages(msgs){
+    const el = $("chatMessagesList");
+    el.innerHTML = "";
+    msgs.forEach(m => {
+      const bubble = document.createElement("div");
+      bubble.className = "chat-bubble " + (m.fromUid === currentUser.uid ? "mine" : "theirs");
+      const textDiv = document.createElement("div");
+      textDiv.textContent = m.text || "";
+      bubble.appendChild(textDiv);
+      const timeDiv = document.createElement("div");
+      timeDiv.className = "chat-bubble-time";
+      timeDiv.textContent = formatRelativeTime(m.createdAt);
+      bubble.appendChild(timeDiv);
+      el.appendChild(bubble);
+    });
+    el.scrollTop = el.scrollHeight;
+  }
+
+  async function sendChatMessage(){
+    const input = $("chatInput");
+    const text = input.value.trim();
+    if(!text || !openChatFriendUid || !firebaseInitialized || !currentUser) return;
+    input.value = "";
+    try{
+      await db().collection("messages").add({
+        chatId: chatIdFor(currentUser.uid, openChatFriendUid),
+        fromUid: currentUser.uid,
+        fromUsername: profile.username,
+        toUid: openChatFriendUid,
+        text: text.slice(0, 500),
+        createdAt: Date.now(),
+        read: false
+      });
+    }catch(err){
+      showToast("Nachricht konnte nicht gesendet werden.");
+      console.error(err);
+    }
+  }
+
+  function closeChat(){
+    if(openChatUnsubscribe){ openChatUnsubscribe(); openChatUnsubscribe = null; }
+    openChatFriendUid = null;
+    openChatFriendUsername = null;
+    $("overlayChat").classList.remove("show");
+  }
+
+  // Läuft dauerhaft im Hintergrund (wie watchIncomingDuelInvites): hört auf
+  // ALLE ungelesenen Nachrichten an mich, hält den Badge-Zähler aktuell und
+  // zeigt bei neu eintreffenden Nachrichten ein Banner an - außer der
+  // betreffende Chat ist gerade schon offen (dann direkt in den Chat
+  // einsortieren statt zu unterbrechen).
+  function watchIncomingMessages(){
+    if(unreadMessageUnsubscribe){ unreadMessageUnsubscribe(); unreadMessageUnsubscribe = null; }
+    if(!firebaseInitialized || !currentUser) return;
+    unreadMessageUnsubscribe = db().collection("messages")
+      .where("toUid", "==", currentUser.uid)
+      .where("read", "==", false)
+      .onSnapshot((snap) => {
+        const counts = {};
+        snap.docs.forEach(d => {
+          const data = d.data();
+          counts[data.fromUid] = (counts[data.fromUid] || 0) + 1;
+        });
+        unreadCountsByFriend = counts;
+        updateMessagesBadge();
+
+        snap.docChanges().forEach(change => {
+          if(change.type === "added"){
+            const data = change.doc.data();
+            if(openChatFriendUid === data.fromUid){
+              db().collection("messages").doc(change.doc.id).update({ read: true }).catch(() => {});
+            } else {
+              showMessageNotifyBanner(data);
+            }
+          }
+        });
+      }, (err) => console.error("Nachrichten beobachten Fehler:", err));
+  }
+
+  let pendingMessageNotify = null;
+  function showMessageNotifyBanner(data){
+    pendingMessageNotify = data;
+    $("messageNotifyText").innerHTML = `<b>@${data.fromUsername || "Jemand"}</b> hat dir geschrieben:<br>${(data.text || "").slice(0, 60)}`;
+    $("messageNotifyBanner").classList.add("show");
+    setTimeout(() => { $("messageNotifyBanner").classList.remove("show"); }, 5000);
+  }
+
+  function totalUnreadMessages(){
+    return Object.values(unreadCountsByFriend).reduce((a,b) => a+b, 0);
+  }
+
+  function updateMessagesBadge(){
+    const badge = $("messagesBadge");
+    if(!badge) return;
+    const n = totalUnreadMessages();
+    if(n > 0){
+      badge.textContent = n;
+      badge.style.display = "flex";
+    } else {
+      badge.style.display = "none";
+    }
+  }
+
+
   // Einmaleins-Übung: eine frei wählbare Reihe (1-20) üben. Gibt bewusst
   // WEDER Aura NOCH Level (isMainProgression:false) - reines Üben ohne
   // Belohnung, damit man gezielt eine einzelne Reihe trainieren kann.
@@ -3185,6 +3437,21 @@
     } else {
       addBtn.style.display = "none";
       addBtn.onclick = null;
+    }
+
+    // "Nachrichten"-Button: nur bei GEGENSEITIGER Freundschaft (beide folgen
+    // sich) - man kann anderen ja nicht einfach ungefragt schreiben.
+    const msgBtn = $("friendProfileMessageBtn");
+    const theyFollowMe = Array.isArray(u.following) && currentUser && u.following.includes(currentUser.uid);
+    if(!isOwnProfile && u.username && alreadyFollowing && theyFollowMe){
+      msgBtn.style.display = "block";
+      msgBtn.onclick = () => {
+        $("overlayFriendProfile").classList.remove("show");
+        openChat(u.uid, u.username);
+      };
+    } else {
+      msgBtn.style.display = "none";
+      msgBtn.onclick = null;
     }
 
     $("overlayFriendProfile").classList.add("show");
@@ -4835,6 +5102,19 @@
     if(e.target.id === "overlayFriendProfile") $("overlayFriendProfile").classList.remove("show");
   });
 
+  $("openMessagesBtn").addEventListener("click", openMessagesList);
+  $("closeMessagesList").addEventListener("click", () => $("overlayMessagesList").classList.remove("show"));
+  $("backFromChat").addEventListener("click", () => { closeChat(); $("overlayMessagesList").classList.add("show"); });
+  $("chatSendBtn").addEventListener("click", sendChatMessage);
+  $("chatInput").addEventListener("keydown", (e) => { if(e.key === "Enter") sendChatMessage(); });
+  $("messageNotifyBanner").addEventListener("click", () => {
+    $("messageNotifyBanner").classList.remove("show");
+    if(pendingMessageNotify){
+      openChat(pendingMessageNotify.fromUid, pendingMessageNotify.fromUsername);
+      pendingMessageNotify = null;
+    }
+  });
+
   /* Onboarding-Kette (NEU): Schwierigkeit -> Tägliches Lernziel -> Login.
      closeAllOnboardingOverlays() räumt vor jedem Schritt konsequent auf, damit
      nie zwei Overlays gleichzeitig "show" haben (und so versehentlich Klicks
@@ -4982,9 +5262,14 @@
         incomingInviteUnsubscribe();
         incomingInviteUnsubscribe = null;
       }
+      if(unreadMessageUnsubscribe){
+        unreadMessageUnsubscribe();
+        unreadMessageUnsubscribe = null;
+      }
 
       if(user){
         watchIncomingDuelInvites();
+        watchIncomingMessages();
         syncUnsubscribe = db().collection("users").doc(user.uid).onSnapshot((doc) => {
           // Sehr wichtig gegen eine Rückkopplungsschleife: jeder eigene
           // Schreibvorgang (saveProfile) löst diesen Listener selbst wieder

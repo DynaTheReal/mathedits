@@ -161,34 +161,26 @@
     filter: drop-shadow(0 10px 22px rgba(255,255,255,.2));
   }
 
-  /* THEME: CUSTOM (Nutzer stellt Button-Farbe, Button-Transparenz und ein
-     Hintergrundbild selbst ein - siehe Einstellungen. Ohne Anpassung sieht es
-     wie das Standard-Design aus.) */
-  [data-theme="custom"]{
-    --bg: #0a0a10;
-    --bg-soft: #101018;
-    --card: #16161f;
-    --card-2: #1c1c28;
-    --border: #26263a;
-    --text: #ffffff;
-    --text-dim: #e2e8f0;
-    --accent: #c9ff52;
-    --accent-text: #0a0a10;
-    --accent-2: #8b5cf6;
+  /* THEME: GLOW (dunkles, lilanes Design mit violettem Akzent) */
+  [data-theme="glow"]{
+    --bg: #14071f;
+    --bg-soft: #1c0f2a;
+    --card: #221030;
+    --card-2: #2a1638;
+    --border: #3d2050;
+    --text: #f3e8ff;
+    --text-dim: #d8c2f0;
+    --accent: #a855f7;
+    --accent-text: #ffffff;
+    --accent-2: #ec4899;
     --danger: #ff4d6d;
     --success: #3ee08a;
-    --shadow: 0 20px 50px rgba(0,0,0,.45);
-    --overlay-bg: rgba(6,6,10,.94);
-    --rainbow-header: transparent;
+    --shadow: 0 20px 50px rgba(0,0,0,.5);
+    --overlay-bg: rgba(10,4,18,.94);
+    --rainbow-header: linear-gradient(90deg, #a855f7, #ec4899, #a855f7);
   }
-  [data-theme="custom"] .app{
-    background-size: cover !important;
-    background-position: center !important;
-  }
-  [data-theme="custom"] .btn-primary{
-    background: var(--custom-btn-bg, var(--accent)) !important;
-    color: #ffffff !important;
-    text-shadow: 0 1px 3px rgba(0,0,0,.6);
+  [data-theme="glow"] .flame-icon{
+    filter: drop-shadow(0 10px 22px rgba(168,85,247,.4));
   }
 
   *{
@@ -895,6 +887,18 @@
   .lb-avatar{ width:28px; height:28px; border-radius:50%; overflow:hidden; flex-shrink:0; background:var(--card-2); display:flex; align-items:center; justify-content:center; }
   .lb-avatar-img{ width:100%; height:100%; object-fit:cover; }
   .lb-avatar-placeholder{ font-size:15px; opacity:.5; }
+  .lb-row-glow{
+    position:relative;
+    border-color:#a855f7 !important;
+    box-shadow:0 0 16px rgba(168,85,247,.4), inset 0 0 0 1px rgba(168,85,247,.3);
+  }
+  .lb-row-glow::before, .lb-row-glow::after{
+    content:""; position:absolute; width:5px; height:5px; border-radius:50%;
+    background:#c084fc; box-shadow:0 0 8px 2px rgba(192,132,252,.85);
+    pointer-events:none;
+  }
+  .lb-row-glow::before{ top:-3px; left:20%; animation: glowParticleFloat1 3s ease-in-out infinite; }
+  .lb-row-glow::after{ bottom:-3px; right:25%; animation: glowParticleFloat2 3.4s ease-in-out infinite; }
   .lb-aura{font-weight:800; font-size:14px; color:var(--accent);}
   .empty-hint{text-align:center; opacity:.7; font-size:13px; margin-top:10px; line-height:1.5;}
   .add-friend-row{display:flex; gap:8px; align-items:flex-start;}
@@ -973,6 +977,11 @@
     0%,100%{ transform:translateY(0) translateX(0); opacity:.6; }
     50%{ transform:translateY(10px) translateX(-8px); opacity:1; }
   }
+  .frame-gold #profileHeaderCard,
+  #friendProfileCard.frame-gold{
+    border: 3px solid #ffd700;
+    box-shadow: 0 0 26px rgba(255,215,0,.5);
+  }
 
   /* ---------- Profil-Schriftarten (NEU) ---------- */
   .font-glow{
@@ -989,6 +998,11 @@
   .font-pink{
     color:#ec4899 !important;
     font-family:'Baloo 2', cursive, sans-serif;
+    font-weight:800;
+  }
+  .font-gold{
+    color:#ffd700 !important;
+    text-shadow: 0 0 6px rgba(255,215,0,.6);
     font-weight:800;
   }
 
@@ -1266,12 +1280,12 @@
     </div>
 
     <div class="shop-item">
-      <div class="item-icon">🎨</div>
+      <div class="item-icon">💜</div>
       <div class="item-info">
-        <div class="item-title">Custom Theme</div>
-        <div class="item-desc">Eigene Button-Farbe, Transparenz und Hintergrundbild - einstellbar in den Einstellungen.</div>
+        <div class="item-title">Glow Theme</div>
+        <div class="item-desc">Ein dunkles, lilanes Design mit violettem Akzent für die ganze App.</div>
       </div>
-      <button class="buy-btn" id="buyCustomTheme">800 Aura</button>
+      <button class="buy-btn" id="buyGlowTheme">600 Aura</button>
     </div>
 
     <div class="shop-section-title">Profilrahmen</div>
@@ -1300,7 +1314,16 @@
         <div class="item-title">Glow-Rahmen</div>
         <div class="item-desc">Lilaner Glow-Rahmen mit leuchtenden Partikeln für dein Profil.</div>
       </div>
-      <button class="buy-btn" id="buyGlowFrame">350 Aura</button>
+      <button class="buy-btn" id="buyGlowFrame">1500 Aura</button>
+    </div>
+
+    <div class="shop-item">
+      <div class="item-icon">🏆</div>
+      <div class="item-info">
+        <div class="item-title">Gold-Rahmen</div>
+        <div class="item-desc">Goldener Rahmen für dein Profil.</div>
+      </div>
+      <button class="buy-btn" id="buyGoldFrame">700 Aura</button>
     </div>
 
     <div class="shop-section-title">Profil-Schriftarten</div>
@@ -1311,7 +1334,7 @@
         <div class="item-title">Glow-Schrift</div>
         <div class="item-desc">Dein Profilname wackelt leicht und leuchtet lila.</div>
       </div>
-      <button class="buy-btn" id="buyGlowFont">250 Aura</button>
+      <button class="buy-btn" id="buyGlowFont">2000 Aura</button>
     </div>
 
     <div class="shop-item">
@@ -1320,7 +1343,16 @@
         <div class="item-title">Pink-Schrift</div>
         <div class="item-desc">Dein Profilname in Pink.</div>
       </div>
-      <button class="buy-btn" id="buyPinkFont">250 Aura</button>
+      <button class="buy-btn" id="buyPinkFont">500 Aura</button>
+    </div>
+
+    <div class="shop-item">
+      <div class="item-icon">🌟</div>
+      <div class="item-info">
+        <div class="item-title">Gold-Schrift</div>
+        <div class="item-desc">Dein Profilname in glänzendem Gold.</div>
+      </div>
+      <button class="buy-btn" id="buyGoldFont">1000 Aura</button>
     </div>
   </section>
 
@@ -1447,37 +1479,8 @@
         <option value="clean">Clean (🔒)</option>
         <option value="pink">Pink (🔒)</option>
         <option value="glass">Glass (🔒)</option>
-        <option value="custom">Custom (🔒)</option>
+        <option value="glow">Glow (🔒)</option>
       </select>
-    </div>
-
-    <div class="settings-row" id="customThemeSettingsRow" style="display:none; flex-direction:column; align-items:stretch;">
-      <div class="t" style="margin-bottom:12px;">🎨 Custom-Design</div>
-
-      <div class="d" style="margin-bottom:6px; font-weight:700;">Buttons</div>
-      <div class="d" style="margin-bottom:6px;">Button-Transparenz</div>
-      <input type="range" id="customTransparencySlider" min="0" max="100" value="100" style="width:100%;">
-      <div class="d" style="display:flex; justify-content:space-between; margin-top:2px;">
-        <span>Glasklar</span><span>Undurchsichtig</span>
-      </div>
-      <div class="d" style="margin-bottom:6px; margin-top:16px;">Button-Farbe</div>
-      <input type="color" id="customColorPicker" value="#c9ff52" style="width:100%; height:42px; border:none; border-radius:10px; cursor:pointer;">
-
-      <div class="d" style="margin-bottom:6px; margin-top:22px; font-weight:700;">Restliche Oberfläche (Navigation, Karten, Kacheln, Fenster)</div>
-      <div class="d" style="margin-bottom:6px;">Transparenz</div>
-      <input type="range" id="customUiTransparencySlider" min="0" max="100" value="100" style="width:100%;">
-      <div class="d" style="display:flex; justify-content:space-between; margin-top:2px;">
-        <span>Glasklar</span><span>Undurchsichtig</span>
-      </div>
-      <div class="d" style="margin-bottom:6px; margin-top:16px;">Farbe</div>
-      <input type="color" id="customUiColorPicker" value="#16161f" style="width:100%; height:42px; border:none; border-radius:10px; cursor:pointer;">
-
-      <div class="d" style="margin-bottom:6px; margin-top:22px; font-weight:700;">Hintergrundbild</div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn btn-ghost btn-small" id="customBgImageBtn" style="flex:1;">Bild auswählen</button>
-        <button class="btn btn-ghost btn-small" id="customBgImageClearBtn" style="flex:1;">Entfernen</button>
-      </div>
-      <input type="file" id="customBgImageInput" accept="image/*" style="display:none;">
     </div>
 
     <div class="settings-row" id="ownerPanelRow" style="display:none; flex-direction:column; align-items:stretch;">
@@ -2028,8 +2031,7 @@
     comboLossCount: 0, // zählt Combo-Verluste, steuert den Schreckmoment (jeder 5., inkl. dem ersten)
     hasSeenSharePrompt: false, // "Teile diese Website"-Hinweis nach der ersten Lektion, erscheint nur einmal
     shareChest: null,
-    lastFirebaseUid: null, // erkennt einen Accountwechsel auf demselben Gerät, damit kein veralteter Benutzername hängen bleibt
-    customTheme: { transparency: 100, color: "#c9ff52", bgImage: null, uiTransparency: 100, uiColor: "#16161f" }
+    lastFirebaseUid: null // erkennt einen Accountwechsel auf demselben Gerät, damit kein veralteter Benutzername hängen bleibt
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -2049,7 +2051,6 @@
           unlockedFonts: parsed.unlockedFonts || ["none"],
           achievements: parsed.achievements || {},
           friendUsernameCache: parsed.friendUsernameCache || {},
-          customTheme: { ...DEFAULT_PROFILE.customTheme, ...(parsed.customTheme || {}) },
           countedDuelWins: parsed.countedDuelWins || []
         };
       }
@@ -2276,9 +2277,10 @@
     $("profileUsernameDisplay").textContent = profile.username
       ? "@" + profile.username
       : (loggedIn ? "Angemeldet (noch kein Benutzername)" : "Gast");
-    $("profileUsernameDisplay").classList.remove("font-glow", "font-pink");
+    $("profileUsernameDisplay").classList.remove("font-glow", "font-pink", "font-gold");
     if(profile.activeFont === "glow") $("profileUsernameDisplay").classList.add("font-glow");
     if(profile.activeFont === "pink") $("profileUsernameDisplay").classList.add("font-pink");
+    if(profile.activeFont === "gold") $("profileUsernameDisplay").classList.add("font-gold");
     $("profileAuraVal").textContent = profile.totalAura;
     $("profileLevel").textContent = profile.level;
     $("profileStreak").textContent = profile.streak || 0;
@@ -2293,10 +2295,11 @@
     }
 
     const screenProfile = $("screen-profile");
-    screenProfile.classList.remove("frame-pink", "frame-clean", "frame-glow");
+    screenProfile.classList.remove("frame-pink", "frame-clean", "frame-glow", "frame-gold");
     if(profile.activeFrame === "pink") screenProfile.classList.add("frame-pink");
     if(profile.activeFrame === "clean") screenProfile.classList.add("frame-clean");
     if(profile.activeFrame === "glow") screenProfile.classList.add("frame-glow");
+    if(profile.activeFrame === "gold") screenProfile.classList.add("frame-gold");
 
     const titleEl = $("profileTitleDisplay");
     if(profile.activeTitle){
@@ -2813,9 +2816,9 @@
     list.innerHTML = "";
     entries.forEach((e, i) => {
       const row = document.createElement("div");
-      row.className = "lb-row" + (e.uid === meUid ? " me" : "");
+      row.className = "lb-row" + (e.uid === meUid ? " me" : "") + (e.activeFont === "glow" ? " lb-row-glow" : "");
       row.style.cursor = "pointer";
-      const fontClass = e.activeFont === "glow" ? "font-glow" : (e.activeFont === "pink" ? "font-pink" : "");
+      const fontClass = e.activeFont === "glow" ? "font-glow" : (e.activeFont === "pink" ? "font-pink" : (e.activeFont === "gold" ? "font-gold" : ""));
       const avatarHtml = e.avatarData
         ? `<img src="${e.avatarData}" class="lb-avatar-img">`
         : `<div class="lb-avatar-placeholder">👤</div>`;
@@ -3042,9 +3045,10 @@
   // eigene Statistik (direkt aus dem lokalen Profil, auch als Gast).
   function renderFriendProfileCard(u){
     $("friendProfileUsername").textContent = u.username ? "@" + u.username : "Gast";
-    $("friendProfileUsername").classList.remove("font-glow", "font-pink");
+    $("friendProfileUsername").classList.remove("font-glow", "font-pink", "font-gold");
     if(u.activeFont === "glow") $("friendProfileUsername").classList.add("font-glow");
     if(u.activeFont === "pink") $("friendProfileUsername").classList.add("font-pink");
+    if(u.activeFont === "gold") $("friendProfileUsername").classList.add("font-gold");
     const titleEl = $("friendProfileTitle");
     if(u.activeTitle){
       titleEl.textContent = "🏅 " + u.activeTitle;
@@ -3053,10 +3057,11 @@
       titleEl.style.display = "none";
     }
     const card = $("friendProfileCard");
-    card.classList.remove("frame-pink", "frame-clean", "frame-glow");
+    card.classList.remove("frame-pink", "frame-clean", "frame-glow", "frame-gold");
     if(u.activeFrame === "pink") card.classList.add("frame-pink");
     if(u.activeFrame === "clean") card.classList.add("frame-clean");
     if(u.activeFrame === "glow") card.classList.add("frame-glow");
+    if(u.activeFrame === "gold") card.classList.add("frame-gold");
 
     if(u.avatarData){
       $("friendProfileAvatarImg").src = u.avatarData;
@@ -3596,15 +3601,6 @@
     merged.comboLossCount = Math.max(localP.comboLossCount || 0, cloudP.comboLossCount || 0);
     merged.hasSeenSharePrompt = !!(localP.hasSeenSharePrompt || cloudP.hasSeenSharePrompt);
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
-    merged.customTheme = (localP.customTheme && (
-        localP.customTheme.color !== DEFAULT_PROFILE.customTheme.color ||
-        localP.customTheme.bgImage ||
-        localP.customTheme.transparency !== 100 ||
-        localP.customTheme.uiColor !== DEFAULT_PROFILE.customTheme.uiColor ||
-        localP.customTheme.uiTransparency !== 100
-      ))
-      ? localP.customTheme
-      : (cloudP.customTheme || localP.customTheme || DEFAULT_PROFILE.customTheme);
     merged.countedDuelWins = Array.from(new Set([
       ...(localP.countedDuelWins || []),
       ...(cloudP.countedDuelWins || [])
@@ -4279,13 +4275,13 @@
       bGlass.disabled = profile.totalAura < 600;
     }
 
-    const bCustom = $("buyCustomTheme");
-    if(unlocked.includes("custom")){
-      bCustom.textContent = "Freigeschaltet";
-      bCustom.disabled = true;
+    const bGlowTheme = $("buyGlowTheme");
+    if(unlocked.includes("glow")){
+      bGlowTheme.textContent = "Freigeschaltet";
+      bGlowTheme.disabled = true;
     } else {
-      bCustom.textContent = "800 Aura";
-      bCustom.disabled = profile.totalAura < 800;
+      bGlowTheme.textContent = "600 Aura";
+      bGlowTheme.disabled = profile.totalAura < 600;
     }
 
     const unlockedFrames = profile.unlockedFrames || ["none"];
@@ -4310,8 +4306,16 @@
       bGlowFrame.textContent = "Freigeschaltet";
       bGlowFrame.disabled = true;
     } else {
-      bGlowFrame.textContent = "350 Aura";
-      bGlowFrame.disabled = profile.totalAura < 350;
+      bGlowFrame.textContent = "1500 Aura";
+      bGlowFrame.disabled = profile.totalAura < 1500;
+    }
+    const bGoldFrame = $("buyGoldFrame");
+    if(unlockedFrames.includes("gold")){
+      bGoldFrame.textContent = "Freigeschaltet";
+      bGoldFrame.disabled = true;
+    } else {
+      bGoldFrame.textContent = "700 Aura";
+      bGoldFrame.disabled = profile.totalAura < 700;
     }
 
     const unlockedFonts = profile.unlockedFonts || ["none"];
@@ -4320,16 +4324,24 @@
       bGlowFont.textContent = "Freigeschaltet";
       bGlowFont.disabled = true;
     } else {
-      bGlowFont.textContent = "250 Aura";
-      bGlowFont.disabled = profile.totalAura < 250;
+      bGlowFont.textContent = "2000 Aura";
+      bGlowFont.disabled = profile.totalAura < 2000;
     }
     const bPinkFont = $("buyPinkFont");
     if(unlockedFonts.includes("pink")){
       bPinkFont.textContent = "Freigeschaltet";
       bPinkFont.disabled = true;
     } else {
-      bPinkFont.textContent = "250 Aura";
-      bPinkFont.disabled = profile.totalAura < 250;
+      bPinkFont.textContent = "500 Aura";
+      bPinkFont.disabled = profile.totalAura < 500;
+    }
+    const bGoldFont = $("buyGoldFont");
+    if(unlockedFonts.includes("gold")){
+      bGoldFont.textContent = "Freigeschaltet";
+      bGoldFont.disabled = true;
+    } else {
+      bGoldFont.textContent = "1000 Aura";
+      bGoldFont.disabled = profile.totalAura < 1000;
     }
 
     // Update Item Knöpfe
@@ -4409,7 +4421,7 @@
   $("buyWhiteTheme").addEventListener("click", () => buyTheme("white_clean", 500, "White Clean"));
   $("buyPinkTheme").addEventListener("click", () => buyTheme("pink", 500, "Pink"));
   $("buyGlassTheme").addEventListener("click", () => buyTheme("glass", 600, "Glass"));
-  $("buyCustomTheme").addEventListener("click", () => buyTheme("custom", 800, "Custom"));
+  $("buyGlowTheme").addEventListener("click", () => buyTheme("glow", 600, "Glow"));
 
   function buyFrame(frameKey, cost, name){
     if(profile.totalAura >= cost){
@@ -4424,7 +4436,8 @@
   }
   $("buyPinkFrame").addEventListener("click", () => buyFrame("pink", 300, "Pink"));
   $("buyCleanFrame").addEventListener("click", () => buyFrame("clean", 300, "Clean"));
-  $("buyGlowFrame").addEventListener("click", () => buyFrame("glow", 350, "Glow"));
+  $("buyGlowFrame").addEventListener("click", () => buyFrame("glow", 1500, "Glow"));
+  $("buyGoldFrame").addEventListener("click", () => buyFrame("gold", 700, "Gold"));
 
   function buyFont(fontKey, cost, name){
     if(profile.totalAura >= cost){
@@ -4438,68 +4451,22 @@
       showToast(`✒️ ${name}-Schrift freigeschaltet und aktiviert!`);
     }
   }
-  $("buyGlowFont").addEventListener("click", () => buyFont("glow", 250, "Glow"));
-  $("buyPinkFont").addEventListener("click", () => buyFont("pink", 250, "Pink"));
+  $("buyGlowFont").addEventListener("click", () => buyFont("glow", 2000, "Glow"));
+  $("buyPinkFont").addEventListener("click", () => buyFont("pink", 500, "Pink"));
+  $("buyGoldFont").addEventListener("click", () => buyFont("gold", 1000, "Gold"));
 
   /* ========================================================
      THEME SYSTEM
   ======================================================== */
-  // Wandelt einen Hex-Farbcode (#rrggbb) plus Alphawert (0-1) in einen
-  // rgba()-String um - für die einstellbare Button-Transparenz beim
-  // Custom-Theme.
-  function hexToRgba(hex, alpha){
-    const h = (hex || "#c9ff52").replace("#", "");
-    const r = parseInt(h.substring(0,2), 16) || 0;
-    const g = parseInt(h.substring(2,4), 16) || 0;
-    const b = parseInt(h.substring(4,6), 16) || 0;
-    return `rgba(${r},${g},${b},${alpha})`;
-  }
-
-  // Setzt Button-Farbe/-Transparenz und Hintergrundbild für das Custom-Theme
-  // als Inline-Styles auf .app (überschreiben so die theme-eigenen CSS-Werte).
-  function applyCustomThemeStyles(){
-    const ct = profile.customTheme || DEFAULT_PROFILE.customTheme;
-    const transparency = ct.transparency != null ? ct.transparency : 100;
-    const alpha = Math.max(0.06, transparency / 100);
-    const color = ct.color || "#c9ff52";
-    app.style.setProperty("--accent", color);
-    app.style.setProperty("--custom-btn-bg", hexToRgba(color, alpha));
-
-    // Allgemeine GUI-Oberflächen (Navigationsleiste, Karten, Stat-Kacheln,
-    // Fenster usw.) hängen fast alle an --card/--card-2 - durch das
-    // Überschreiben dieser beiden Variablen lässt sich Farbe/Durchsichtigkeit
-    // für praktisch die gesamte Oberfläche auf einmal einstellen.
-    const uiTransparency = ct.uiTransparency != null ? ct.uiTransparency : 100;
-    const uiAlpha = Math.max(0.06, uiTransparency / 100);
-    const uiColor = ct.uiColor || "#16161f";
-    app.style.setProperty("--card", hexToRgba(uiColor, uiAlpha));
-    app.style.setProperty("--card-2", hexToRgba(uiColor, Math.min(1, uiAlpha + 0.08)));
-
-    if(ct.bgImage){
-      app.style.backgroundImage = `url(${ct.bgImage})`;
-    } else {
-      app.style.backgroundImage = "";
-    }
-  }
-
-  // Setzt alle Custom-Theme-Overrides zurück, damit sie andere Themes nicht
-  // verfälschen, wenn man zu einem anderen Design wechselt.
-  function clearCustomThemeStyles(){
-    app.style.removeProperty("--accent");
-    app.style.removeProperty("--custom-btn-bg");
-    app.style.removeProperty("--card");
-    app.style.removeProperty("--card-2");
-    app.style.backgroundImage = "";
-  }
-
   function applyTheme(){
+    // Absicherung: falls ein Konto noch auf das entfernte Custom-Theme
+    // eingestellt war, sauber auf Black zurückfallen statt unstyled zu bleiben.
+    if(profile.theme === "custom"){
+      profile.theme = "black";
+      saveProfile();
+    }
     const t = profile.theme || "black";
     app.setAttribute("data-theme", t);
-    if(t === "custom"){
-      applyCustomThemeStyles();
-    } else {
-      clearCustomThemeStyles();
-    }
     
     // Toggle-Icon für Schnellauswahl
     let icon = "🌙";
@@ -4507,7 +4474,7 @@
     if(t === "pink") icon = "🌸";
     if(t === "clean" || t === "light") icon = "🍃";
     if(t === "glass") icon = "🪟";
-    if(t === "custom") icon = "🎨";
+    if(t === "glow") icon = "🔮";
     
     $("themeToggle").textContent = icon;
     $("themeToggleShop").textContent = icon;
@@ -4549,65 +4516,12 @@
     }
   });
 
-  $("customTransparencySlider").addEventListener("input", (e) => {
-    profile.customTheme = profile.customTheme || { ...DEFAULT_PROFILE.customTheme };
-    profile.customTheme.transparency = parseInt(e.target.value, 10);
-    applyCustomThemeStyles();
-    saveProfile();
-  });
-  $("customColorPicker").addEventListener("input", (e) => {
-    profile.customTheme = profile.customTheme || { ...DEFAULT_PROFILE.customTheme };
-    profile.customTheme.color = e.target.value;
-    applyCustomThemeStyles();
-    saveProfile();
-  });
-  $("customUiTransparencySlider").addEventListener("input", (e) => {
-    profile.customTheme = profile.customTheme || { ...DEFAULT_PROFILE.customTheme };
-    profile.customTheme.uiTransparency = parseInt(e.target.value, 10);
-    applyCustomThemeStyles();
-    saveProfile();
-  });
-  $("customUiColorPicker").addEventListener("input", (e) => {
-    profile.customTheme = profile.customTheme || { ...DEFAULT_PROFILE.customTheme };
-    profile.customTheme.uiColor = e.target.value;
-    applyCustomThemeStyles();
-    saveProfile();
-  });
-  $("customBgImageBtn").addEventListener("click", () => {
-    $("customBgImageInput").click();
-  });
-  $("customBgImageInput").addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    e.target.value = "";
-    if(!file) return;
-    try{
-      // Hintergrundbilder werden NICHT quadratisch zugeschnitten (anders als
-      // das Profilbild) - das komplette Bild bleibt erhalten.
-      const dataUrl = await processBackgroundImageFile(file, 900, 0.65);
-      profile.customTheme = profile.customTheme || { ...DEFAULT_PROFILE.customTheme };
-      profile.customTheme.bgImage = dataUrl;
-      applyCustomThemeStyles();
-      saveProfile();
-      showToast("🖼️ Hintergrundbild gesetzt!");
-    }catch(err){
-      showToast("Bild konnte nicht verarbeitet werden.");
-      console.error(err);
-    }
-  });
-  $("customBgImageClearBtn").addEventListener("click", () => {
-    profile.customTheme = profile.customTheme || { ...DEFAULT_PROFILE.customTheme };
-    profile.customTheme.bgImage = null;
-    applyCustomThemeStyles();
-    saveProfile();
-    showToast("Hintergrundbild entfernt.");
-  });
-
   /* ========================================================
      OWNER-BEREICH (NEU) - nur für OWNER_USERNAME sichtbar. Sucht einen
      Nutzer per Benutzername und erlaubt, dessen Aura/Level/Streak/
      freigeschaltete Designs direkt in dessen Firestore-Dokument zu setzen.
   ======================================================== */
-  const ALL_THEME_IDS = ["black", "white_clean", "clean", "pink", "glass", "custom"];
+  const ALL_THEME_IDS = ["black", "white_clean", "clean", "pink", "glass", "glow"];
   let ownerEditingUid = null;
 
   async function ownerSearchUser(){
@@ -4698,21 +4612,8 @@
       select.options[2].text = "Clean " + (unlocked.includes("clean") ? "" : "(🔒)");
       select.options[3].text = "Pink " + (unlocked.includes("pink") ? "" : "(🔒)");
       select.options[4].text = "Glass " + (unlocked.includes("glass") ? "" : "(🔒)");
-      select.options[5].text = "Custom " + (unlocked.includes("custom") ? "" : "(🔒)");
+      select.options[5].text = "Glow " + (unlocked.includes("glow") ? "" : "(🔒)");
       select.value = profile.theme || "black";
-    }
-
-    // Custom-Design-Regler nur anzeigen, wenn das Theme aktiv ist.
-    const customRow = $("customThemeSettingsRow");
-    if(profile.theme === "custom"){
-      customRow.style.display = "flex";
-      const ct = profile.customTheme || DEFAULT_PROFILE.customTheme;
-      $("customTransparencySlider").value = ct.transparency != null ? ct.transparency : 100;
-      $("customColorPicker").value = ct.color || "#c9ff52";
-      $("customUiTransparencySlider").value = ct.uiTransparency != null ? ct.uiTransparency : 100;
-      $("customUiColorPicker").value = ct.uiColor || "#16161f";
-    } else {
-      customRow.style.display = "none";
     }
 
     $("ownerPanelRow").style.display = isOwner() ? "flex" : "none";

@@ -263,6 +263,24 @@
     background: radial-gradient(circle at 50% -10%, var(--bg-soft), var(--bg) 55%);
     overflow:hidden;
   }
+  /* Windows-PCs und iPads (siehe shouldUseWideLayout): deutlich breiteres,
+     ans Querformat angepasstes Fenster statt einer schmalen Hochformat-
+     Spalte in der Mitte eines breiten Bildschirms. Normale Handys bekommen
+     diese Klasse nie und bleiben unverändert. */
+  body.wide-layout{
+    background: radial-gradient(circle at 50% -10%, var(--bg-soft), var(--bg) 120%);
+  }
+  body.wide-layout .app{
+    max-width: 760px;
+    height: 94vh;
+    height: 94dvh;
+    margin: 3vh auto;
+    border-radius: 28px;
+    box-shadow: 0 30px 90px rgba(0,0,0,.55);
+  }
+  @media (min-width: 900px){
+    body.wide-layout .app{ max-width: 860px; }
+  }
   .app::before {
     content: "";
     position: absolute;
@@ -6503,6 +6521,25 @@
   function isAndroidDevice(){
     return /Android/.test(navigator.userAgent);
   }
+  // iPad speziell (nicht iPhone) - auch iPadOS, das sich als Mac ausgibt.
+  function isIPadDevice(){
+    return /iPad/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+  function isWindowsDevice(){
+    return /Windows/.test(navigator.userAgent) && !/Windows Phone/.test(navigator.userAgent);
+  }
+  // Windows-PCs und iPads bekommen ein breiteres, ans Querformat angepasstes
+  // Layout - normale Handys (iPhone, Android) bleiben unverändert im
+  // gewohnten schmalen Hochformat-Design.
+  function shouldUseWideLayout(){
+    return isWindowsDevice() || isIPadDevice();
+  }
+  function applyWideLayoutIfNeeded(){
+    if(shouldUseWideLayout()){
+      document.body.classList.add("wide-layout");
+    }
+  }
 
   // Erzeugt ein einfaches App-Icon als SVG-Data-URI (grüner Punkt auf
   // dunklem Grund, passend zum Start-Intro) - ohne separate Bilddatei.
@@ -6586,6 +6623,7 @@
   });
 
   function init(){
+    applyWideLayoutIfNeeded();
     loadProfile();
     refillLives();
     checkStreakDecay();

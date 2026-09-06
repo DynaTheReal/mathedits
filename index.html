@@ -187,9 +187,9 @@
   [data-theme="glow"] .flame-icon{
     filter: drop-shadow(0 10px 22px rgba(168,85,247,.4));
   }
-  /* Leuchtende Ecken für Karten/Kacheln/Fenster im Glow-Theme, mit kleinen
-     Mini-Punkten NUR direkt um den leuchtenden Rand herum (kein Hintergrund-
-     Partikelfeld, keine frei herumschwebende Deko mehr). */
+  /* Leuchtende lilane Umrandung für Karten/Kacheln/Fenster im Glow-Theme,
+     mit ein paar echten kleinen Partikel-Punkten (keine Linie/Kontur mehr)
+     nur an den Ecken. */
   [data-theme="glow"] .shop-item,
   [data-theme="glow"] .settings-row,
   [data-theme="glow"] .modal-card,
@@ -201,8 +201,35 @@
   [data-theme="glow"] #profileHeaderCard,
   [data-theme="glow"] .mission-card{
     box-shadow: 0 0 22px rgba(168,85,247,.42), inset 0 0 0 1px rgba(168,85,247,.3);
-    outline: 2px dotted rgba(255,255,255,.5);
-    outline-offset: 3px;
+    position: relative;
+  }
+  [data-theme="glow"] .shop-item::before, [data-theme="glow"] .shop-item::after,
+  [data-theme="glow"] .settings-row::before, [data-theme="glow"] .settings-row::after,
+  [data-theme="glow"] .modal-card::before, [data-theme="glow"] .modal-card::after,
+  [data-theme="glow"] .stat-pill::before, [data-theme="glow"] .stat-pill::after,
+  [data-theme="glow"] .tier-card::before, [data-theme="glow"] .tier-card::after,
+  [data-theme="glow"] .friend-row::before, [data-theme="glow"] .friend-row::after,
+  [data-theme="glow"] .lb-row::before, [data-theme="glow"] .lb-row::after,
+  [data-theme="glow"] .auth-box::before, [data-theme="glow"] .auth-box::after,
+  [data-theme="glow"] #profileHeaderCard::before, [data-theme="glow"] #profileHeaderCard::after,
+  [data-theme="glow"] .mission-card::before, [data-theme="glow"] .mission-card::after{
+    content:""; position:absolute; width:5px; height:5px; border-radius:50%;
+    background:#c084fc; box-shadow:0 0 8px 2px rgba(192,132,252,.85);
+    pointer-events:none;
+  }
+  [data-theme="glow"] .shop-item::before, [data-theme="glow"] .settings-row::before,
+  [data-theme="glow"] .modal-card::before, [data-theme="glow"] .stat-pill::before,
+  [data-theme="glow"] .tier-card::before, [data-theme="glow"] .friend-row::before,
+  [data-theme="glow"] .lb-row::before, [data-theme="glow"] .auth-box::before,
+  [data-theme="glow"] #profileHeaderCard::before, [data-theme="glow"] .mission-card::before{
+    top:-3px; left:12%; animation: glowParticleFloat1 3s ease-in-out infinite;
+  }
+  [data-theme="glow"] .shop-item::after, [data-theme="glow"] .settings-row::after,
+  [data-theme="glow"] .modal-card::after, [data-theme="glow"] .stat-pill::after,
+  [data-theme="glow"] .tier-card::after, [data-theme="glow"] .friend-row::after,
+  [data-theme="glow"] .lb-row::after, [data-theme="glow"] .auth-box::after,
+  [data-theme="glow"] #profileHeaderCard::after, [data-theme="glow"] .mission-card::after{
+    bottom:-3px; right:15%; animation: glowParticleFloat2 3.4s ease-in-out infinite;
   }
   [data-theme="glow"] .btn-primary{
     box-shadow: 0 0 20px rgba(168,85,247,.6), 0 4px 14px rgba(0,0,0,.3);
@@ -5315,12 +5342,35 @@
     if(pendingReferralCode && !currentUser){
       $("welcomeEmoji").textContent = "🎁";
       $("welcomeMessageText").innerHTML = `Wenn du dich jetzt registrierst, bekommt <b>@${pendingReferralCode}</b> (die Person, die dich eingeladen hat) <b>500 Aura</b>!`;
+      startWelcomeGuestBtnLock();
     } else {
       $("welcomeEmoji").textContent = "👋";
       $("welcomeMessageText").textContent = "Möchtest du dich direkt einloggen, um deine Aura, dein Level und deinen Fortschritt sicher zu speichern?";
+      $("welcomeGuestBtn").disabled = false;
+      $("welcomeGuestBtn").textContent = "Erstmal als Gast spielen";
     }
     $("overlayWelcome").classList.add("show");
   });
+
+  // Sperrt den "Erstmal als Gast spielen"-Button 5 Sekunden lang, wenn der
+  // Einladungs-Bonus angezeigt wird - damit die Person die Nachricht nicht
+  // einfach sofort wegklickt, ohne sie gelesen zu haben.
+  function startWelcomeGuestBtnLock(){
+    const btn = $("welcomeGuestBtn");
+    let secondsLeft = 5;
+    btn.disabled = true;
+    btn.textContent = `Warte … (${secondsLeft})`;
+    const interval = setInterval(() => {
+      secondsLeft--;
+      if(secondsLeft <= 0){
+        clearInterval(interval);
+        btn.disabled = false;
+        btn.textContent = "Erstmal als Gast spielen";
+      } else {
+        btn.textContent = `Warte … (${secondsLeft})`;
+      }
+    }, 1000);
+  }
 
   /* Welcome Modal Event Listeners */
   $("welcomeAuthBtn").addEventListener("click", () => {

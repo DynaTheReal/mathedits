@@ -7,6 +7,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="MathEdits">
+<meta name="theme-color" content="#0a0a10">
+<link rel="manifest" id="pwaManifestLink">
+<link rel="apple-touch-icon" id="appleTouchIconLink">
 <title>MathEdits</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -524,6 +529,26 @@
   .duel-invite-banner.show{ transform:translate(-50%,0); }
   .duel-invite-icon{ font-size:24px; flex-shrink:0; }
   .duel-invite-text{ font-size:13px; color:var(--text); line-height:1.4; }
+
+  /* ---------- PWA-Installationshinweis (NEU) ---------- */
+  .pwa-install-banner{
+    position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom));
+    transform:translate(-50%, 160%); width:calc(100% - 28px); max-width:428px;
+    background:var(--card); border:1.5px solid var(--border); border-radius:18px;
+    padding:14px; display:flex; align-items:flex-start; gap:10px;
+    box-shadow:0 -8px 30px rgba(0,0,0,.35); z-index:260;
+    transition:transform .4s cubic-bezier(.34,1.2,.64,1);
+  }
+  .pwa-install-banner.show{ transform:translate(-50%,0); }
+  .pwa-install-icon{ font-size:26px; flex-shrink:0; margin-top:2px; }
+  .pwa-install-text{ flex:1; min-width:0; }
+  .pwa-install-title{ font-weight:800; font-size:14px; margin-bottom:3px; }
+  .pwa-install-desc{ font-size:12px; color:var(--text-dim); line-height:1.4; }
+  .pwa-install-dismiss{
+    background:none; border:none; color:var(--text-dim); font-size:12px;
+    font-weight:700; cursor:pointer; padding:6px 4px; flex-shrink:0;
+  }
+  .pwa-install-actions{ display:flex; flex-direction:column; gap:6px; align-items:stretch; flex-shrink:0; }
 
   /* ---------- Combo-Verlust-Schreckmoment (NEU) ---------- */
   .scare-overlay{
@@ -1862,6 +1887,29 @@
   <div class="duel-invite-banner" id="messageNotifyBanner">
     <div class="duel-invite-icon">💬</div>
     <div class="duel-invite-text" id="messageNotifyText">Neue Nachricht</div>
+  </div>
+
+  <!-- PWA: iOS "Zum Home-Bildschirm hinzufügen"-Hinweis (NEU) -->
+  <div class="pwa-install-banner" id="iosInstallBanner">
+    <div class="pwa-install-icon">📲</div>
+    <div class="pwa-install-text">
+      <div class="pwa-install-title">MathEdits installieren?</div>
+      <div class="pwa-install-desc">Tippe unten auf <b>Teilen</b> ⬆️ und dann auf <b>„Zum Home-Bildschirm"</b>, um MathEdits wie eine App zu nutzen.</div>
+    </div>
+    <button class="pwa-install-dismiss" id="iosInstallDismiss">Später</button>
+  </div>
+
+  <!-- PWA: Android "App installieren"-Hinweis (NEU) -->
+  <div class="pwa-install-banner" id="androidInstallBanner">
+    <div class="pwa-install-icon">📲</div>
+    <div class="pwa-install-text">
+      <div class="pwa-install-title">MathEdits installieren?</div>
+      <div class="pwa-install-desc">Installiere MathEdits als App - ganz ohne Browser-Leiste.</div>
+    </div>
+    <div class="pwa-install-actions">
+      <button class="btn btn-primary btn-small" id="androidInstallBtn">Installieren</button>
+      <button class="pwa-install-dismiss" id="androidInstallDismiss">Später</button>
+    </div>
   </div>
 
   <div class="overlay" id="overlayTimesTablePicker">
@@ -6292,6 +6340,111 @@
     dot.style.boxShadow = `0 0 20px ${accent}88`;
   }
 
+  /* ========================================================
+     PWA-INSTALLATION (NEU) - erkennt iPhone/Android und zeigt jeweils einen
+     passenden Hinweis, die Website zum Home-Bildschirm hinzuzufügen. Damit
+     das auf Android WIRKLICH als eigenständige App ohne Browser-Leiste
+     startet, braucht Chrome ein Web-App-Manifest (display:"standalone")
+     UND einen registrierten Service Worker - da diese App eine einzelne
+     HTML-Datei ist, werden beide hier zur Laufzeit als Blob erzeugt statt
+     als separate Dateien auf dem Server zu liegen.
+  ======================================================== */
+  function isRunningStandalone(){
+    try{
+      return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+    }catch(e){
+      return false;
+    }
+  }
+  function isIOSDevice(){
+    return /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPadOS meldet sich als Mac
+  }
+  function isAndroidDevice(){
+    return /Android/.test(navigator.userAgent);
+  }
+
+  // Erzeugt ein einfaches App-Icon als SVG-Data-URI (grüner Punkt auf
+  // dunklem Grund, passend zum Start-Intro) - ohne separate Bilddatei.
+  function generateAppIconDataUri(){
+    const accent = getComputedStyle(app).getPropertyValue("--accent").trim() || "#c9ff52";
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="42" fill="#0a0a10"/><circle cx="96" cy="72" r="28" fill="${accent}"/><text x="96" y="156" font-family="Arial, sans-serif" font-size="64" font-weight="900" fill="#ffffff" text-anchor="middle">M</text></svg>`;
+    return "data:image/svg+xml," + encodeURIComponent(svg);
+  }
+
+  function setupPwaManifestAndServiceWorker(){
+    try{
+      const iconUri = generateAppIconDataUri();
+      const manifest = {
+        name: "MathEdits",
+        short_name: "MathEdits",
+        start_url: location.pathname,
+        scope: location.pathname,
+        display: "standalone",
+        background_color: "#0a0a10",
+        theme_color: "#0a0a10",
+        icons: [
+          { src: iconUri, sizes: "192x192", type: "image/svg+xml" },
+          { src: iconUri, sizes: "512x512", type: "image/svg+xml" }
+        ]
+      };
+      const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/json" });
+      $("pwaManifestLink").setAttribute("href", URL.createObjectURL(manifestBlob));
+      $("appleTouchIconLink").setAttribute("href", iconUri);
+
+      // Minimaler Service Worker (reine Pass-Through-Fetches) - für Chrome
+      // auf Android eine Voraussetzung, damit die Seite überhaupt als
+      // "installierbare" PWA erkannt wird und beforeinstallprompt feuert.
+      if("serviceWorker" in navigator){
+        const swCode = `self.addEventListener('fetch', function(e){ e.respondWith(fetch(e.request).catch(function(){ return caches.match(e.request); })); });`;
+        const swBlob = new Blob([swCode], { type: "application/javascript" });
+        navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(err => console.warn("Service Worker Registrierung fehlgeschlagen:", err));
+      }
+    }catch(err){
+      console.warn("PWA-Setup fehlgeschlagen:", err);
+    }
+  }
+
+  const PWA_IOS_DISMISS_KEY = "mathedits_ios_install_dismissed";
+  const PWA_ANDROID_DISMISS_KEY = "mathedits_android_install_dismissed";
+  let deferredAndroidInstallPrompt = null;
+
+  function maybeShowIOSInstallBanner(){
+    if(isRunningStandalone()) return;
+    if(!isIOSDevice()) return;
+    let dismissed = false;
+    try{ dismissed = localStorage.getItem(PWA_IOS_DISMISS_KEY) === "1"; }catch(e){ }
+    if(dismissed) return;
+    setTimeout(() => { $("iosInstallBanner").classList.add("show"); }, 1200);
+  }
+
+  $("iosInstallDismiss").addEventListener("click", () => {
+    $("iosInstallBanner").classList.remove("show");
+    try{ localStorage.setItem(PWA_IOS_DISMISS_KEY, "1"); }catch(e){ }
+  });
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredAndroidInstallPrompt = e;
+    if(isRunningStandalone()) return;
+    let dismissed = false;
+    try{ dismissed = localStorage.getItem(PWA_ANDROID_DISMISS_KEY) === "1"; }catch(err){ }
+    if(dismissed) return;
+    setTimeout(() => { $("androidInstallBanner").classList.add("show"); }, 1200);
+  });
+
+  $("androidInstallBtn").addEventListener("click", async () => {
+    $("androidInstallBanner").classList.remove("show");
+    if(!deferredAndroidInstallPrompt) return;
+    deferredAndroidInstallPrompt.prompt();
+    try{ await deferredAndroidInstallPrompt.userChoice; }catch(e){ }
+    deferredAndroidInstallPrompt = null;
+  });
+  $("androidInstallDismiss").addEventListener("click", () => {
+    $("androidInstallBanner").classList.remove("show");
+    try{ localStorage.setItem(PWA_ANDROID_DISMISS_KEY, "1"); }catch(e){ }
+  });
+
   function init(){
     loadProfile();
     refillLives();
@@ -6300,6 +6453,7 @@
     saveProfile();
     applyTheme();
     applyIntroThemeColor();
+    setupPwaManifestAndServiceWorker();
     renderHome();
     updateMissionsBadge();
 
@@ -6307,6 +6461,7 @@
       if(!profile.hasSeenWelcome && !currentUser){
         $("overlayDifficulty").classList.add("show");
       }
+      maybeShowIOSInstallBanner();
     });
   }
   init();

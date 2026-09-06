@@ -1674,6 +1674,14 @@
 
     <div class="settings-row">
       <div class="info">
+        <div class="t">🔔 Streak-Erinnerung</div>
+        <div class="d">Erinnert dich um 20 Uhr, falls du deinen Streak an dem Tag noch nicht gemacht hast.</div>
+      </div>
+      <div class="switch" id="streakReminderSwitch"><div class="knob"></div></div>
+    </div>
+
+    <div class="settings-row">
+      <div class="info">
         <div class="t">Benutzername</div>
         <div class="d" id="usernameTextDisplay">Nicht angemeldet / Gast</div>
       </div>
@@ -1939,7 +1947,7 @@
     <div class="modal-card" style="max-width:420px;">
       <div style="font-size:36px; margin-bottom:6px;">🏆</div>
       <h2>Invite Leaderboard</h2>
-      <p>Lade Freunde ein - wer die meisten wirbt, gewinnt! 🥇 Platz 1: legendäre Truhe · 🥈 Platz 2: epische Truhe · 🥉 Platz 3: eine Truhe.</p>
+      <p>Jeden Sonntag um 22 Uhr endet die Woche: 🥇 Platz 1 bekommt 1000 Aura · 🥈 Platz 2 bekommt 2 Truhen · 🥉 Platz 3 bekommt eine Truhe. War niemand aktiv, gibt's auch keine Belohnung.</p>
 
       <div class="referral-banner" style="margin-top:10px;">
         <div class="referral-banner-title">🎁 500 Aura gratis!</div>
@@ -2300,9 +2308,13 @@
     shareChest: null,
     lastFirebaseUid: null, // erkennt einen Accountwechsel auf demselben Gerät, damit kein veralteter Benutzername hängen bleibt
     hasEverSetUsername: false, // Absicherung gegen wiederholte Benutzername-Abfrage bei kurzzeitigen Sync-/Speicher-Aussetzern (z.B. iOS)
-    referralCount: 0, // Anzahl erfolgreich geworbener Freunde - Basis für das Invite Leaderboard
-    inviteChests: { rank1: null, rank2: null, rank3: null }, // Truhen für Platz 1-3 im Invite Leaderboard
-    claimedInviteRanks: [] // welche Platzierungs-Truhen (1/2/3) schon jemals vergeben wurden
+    weeklyReferralCount: 0, // Erfolgreiche Einladungen seit dem letzten wöchentlichen Reset (Sonntag 22 Uhr)
+    lastWeekReferralCount: 0, // Stabiler Schnappschuss der zuletzt abgeschlossenen Woche - Basis für Rangliste + Belohnung
+    lastWeeklyRolloverAt: null, // Zeitstempel (ms) des zuletzt verarbeiteten Sonntag-22-Uhr-Grenzwerts
+    claimedWeeklyInviteRewardAt: null, // Zeitstempel (ms) des Grenzwerts, für den die Belohnung schon vergeben wurde
+    inviteChests: { rank2a: null, rank2b: null, rank3: null }, // Platz 2 = zwei Truhen, Platz 3 = eine Truhe (Platz 1 bekommt direkt Aura)
+    streakReminderEnabled: true, // Erinnerung um 20 Uhr, falls der Streak noch nicht gemacht wurde
+    lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -2320,8 +2332,7 @@
           claimedReferralRewardIds: parsed.claimedReferralRewardIds || [],
           unlockedFrames: parsed.unlockedFrames || ["none"],
           unlockedFonts: parsed.unlockedFonts || ["none"],
-          inviteChests: parsed.inviteChests || { rank1: null, rank2: null, rank3: null },
-          claimedInviteRanks: parsed.claimedInviteRanks || [],
+          inviteChests: parsed.inviteChests || { rank2a: null, rank2b: null, rank3: null },
           achievements: parsed.achievements || {},
           friendUsernameCache: parsed.friendUsernameCache || {},
           countedDuelWins: parsed.countedDuelWins || []
@@ -2497,7 +2508,7 @@
       if(newIds.length === 0) return;
       profile.totalAura += totalCredit;
       profile.claimedReferralRewardIds = [...(profile.claimedReferralRewardIds || []), ...newIds];
-      profile.referralCount = (profile.referralCount || 0) + newIds.length;
+      profile.weeklyReferralCount = (profile.weeklyReferralCount || 0) + newIds.length;
       saveProfile();
       showToast(`🎉 +${totalCredit} Aura durch Einladungen erhalten!`);
       renderShop();
@@ -3468,6 +3479,89 @@
     }
   }
 
+  /* ========================================================
+     INVITE LEADERBOARD - WÖCHENTLICHE BELOHNUNG (NEU)
+     Jeden Sonntag um 22 Uhr (lokale Zeit) endet die Woche: Platz 1 bekommt
+     1000 Aura, Platz 2 zwei Truhen, Platz 3 eine Truhe - nur falls in dieser
+     Woche überhaupt jemand eingeladen hat. War man offline, wird beim
+     nächsten Einloggen alles nachgeholt.
+  ======================================================== */
+  // Liefert den Zeitstempel (ms) des letzten bereits vergangenen
+  // Sonntag-22-Uhr-Grenzwerts, bezogen auf "now".
+  function getLastWeeklyBoundary(now){
+    const d = new Date(now);
+    const boundary = new Date(d);
+    boundary.setHours(22, 0, 0, 0);
+    boundary.setDate(d.getDate() - d.getDay()); // d.getDay(): Sonntag = 0
+    if(boundary.getTime() > now.getTime()){
+      boundary.setDate(boundary.getDate() - 7);
+    }
+    return boundary.getTime();
+  }
+
+  // Rein lokal (kein Netzwerk nötig): erkennt, ob seit dem letzten Mal ein
+  // neuer wöchentlicher Grenzwert vergangen ist, und schnappt den aktuellen
+  // Wochen-Stand als "lastWeekReferralCount" fest, bevor der neue Zähler bei
+  // 0 startet.
+  function processWeeklyInviteRollover(){
+    const boundary = getLastWeeklyBoundary(new Date());
+    if((profile.lastWeeklyRolloverAt || 0) >= boundary) return;
+    profile.lastWeekReferralCount = profile.weeklyReferralCount || 0;
+    profile.weeklyReferralCount = 0;
+    profile.lastWeeklyRolloverAt = boundary;
+  }
+
+  // Braucht Netzwerk: prüft, ob die Belohnung für den zuletzt abgeschlossenen
+  // Grenzwert schon vergeben wurde - falls nicht, wird die Rangliste nach
+  // lastWeekReferralCount abgefragt und bei Platz 1-3 (mit >0 Einladungen)
+  // die passende Belohnung vergeben.
+  async function checkAndGrantWeeklyInviteReward(){
+    if(!firebaseInitialized || !currentUser) return;
+    const boundary = profile.lastWeeklyRolloverAt;
+    if(!boundary) return;
+    if((profile.claimedWeeklyInviteRewardAt || 0) >= boundary) return;
+    if((profile.lastWeekReferralCount || 0) <= 0){
+      // Ich selbst hatte diese Woche keine Einladungen - kann also nicht auf
+      // Platz 1-3 stehen, aber trotzdem als "geprüft" markieren.
+      profile.claimedWeeklyInviteRewardAt = boundary;
+      saveProfile();
+      return;
+    }
+    try{
+      const snap = await db().collection("users")
+        .orderBy("lastWeekReferralCount", "desc")
+        .limit(10)
+        .get();
+      const entries = snap.docs
+        .map(d => ({ ...d.data(), uid: d.id }))
+        .filter(e => (e.lastWeekReferralCount || 0) > 0);
+      const myRank = entries.findIndex(e => e.uid === currentUser.uid) + 1;
+      profile.claimedWeeklyInviteRewardAt = boundary;
+      if(myRank === 1){
+        profile.totalAura += 1000;
+        saveProfile();
+        showToast("🏆 Platz 1 im Invite Leaderboard! +1000 Aura");
+      } else if(myRank === 2){
+        profile.inviteChests = profile.inviteChests || { rank2a: null, rank2b: null, rank3: null };
+        profile.inviteChests.rank2a = freshChest();
+        profile.inviteChests.rank2b = freshChest();
+        saveProfile();
+        showToast("🏆 Platz 2 im Invite Leaderboard! 2 Truhen warten in den Missionen.");
+      } else if(myRank === 3){
+        profile.inviteChests = profile.inviteChests || { rank2a: null, rank2b: null, rank3: null };
+        profile.inviteChests.rank3 = freshChest();
+        saveProfile();
+        showToast("🏆 Platz 3 im Invite Leaderboard! Eine Truhe wartet in den Missionen.");
+      } else {
+        saveProfile();
+      }
+      updateMissionsBadge();
+      renderMissions();
+    }catch(err){
+      console.error("Wöchentliche Invite-Belohnung Fehler:", err);
+    }
+  }
+
   function repairStreak(){
     if(!profile.lastBrokenStreak || profile.lastBrokenStreak <= 0) return;
     if(profile.totalAura < STREAK_REPAIR_COST) return;
@@ -3733,7 +3827,7 @@
     });
     if(profile.shareChest && !profile.shareChest.claimed) count++;
     if(profile.inviteChests){
-      ["rank1","rank2","rank3"].forEach(k => {
+      ["rank2a","rank2b","rank3"].forEach(k => {
         const c = profile.inviteChests[k];
         if(c && !c.claimed) count++;
       });
@@ -3795,7 +3889,7 @@
     } else if(sourceType === "share"){
       title = "Danke fürs Teilen!";
     } else if(sourceType === "invite"){
-      title = sourceId === "rank1" ? "🥇 Platz 1 im Invite Leaderboard" : sourceId === "rank2" ? "🥈 Platz 2 im Invite Leaderboard" : "🥉 Platz 3 im Invite Leaderboard";
+      title = (sourceId === "rank2a" || sourceId === "rank2b") ? "🥈 Platz 2 im Invite Leaderboard" : "🥉 Platz 3 im Invite Leaderboard";
     }
     $("chestModalTitle").textContent = title;
     renderChestModal();
@@ -3965,50 +4059,30 @@
     }
     try{
       const snap = await db().collection("users")
-        .orderBy("referralCount", "desc")
+        .orderBy("weeklyReferralCount", "desc")
         .limit(20)
         .get();
       const entries = snap.docs
         .map(d => ({ ...d.data(), uid: d.id }))
-        .filter(e => !!e.username && (e.referralCount || 0) > 0);
+        .filter(e => !!e.username && (e.weeklyReferralCount || 0) > 0);
 
       listEl.innerHTML = "";
       if(entries.length === 0){
-        listEl.innerHTML = "<div class='empty-hint'>Noch niemand hat Freunde eingeladen. Sei die/der Erste!</div>";
+        listEl.innerHTML = "<div class='empty-hint'>Diese Woche hat noch niemand Freunde eingeladen. Sei die/der Erste!</div>";
         return;
       }
       entries.forEach((e, i) => {
         const row = document.createElement("div");
         row.className = "lb-row" + (currentUser && e.uid === currentUser.uid ? " me" : "");
-        row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-name">@${e.username}</div><div class="lb-aura">👥 ${e.referralCount}</div>`;
+        row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-name">@${e.username}</div><div class="lb-aura">👥 ${e.weeklyReferralCount}</div>`;
         listEl.appendChild(row);
       });
-
-      if(currentUser){
-        const myRank = entries.findIndex(e => e.uid === currentUser.uid) + 1; // 0, falls nicht gefunden
-        if(myRank >= 1 && myRank <= 3){
-          grantInviteRankReward(myRank);
-        }
-      }
     }catch(err){
       console.error("Invite Leaderboard Fehler:", err);
       listEl.innerHTML = "<div class='empty-hint'>Rangliste konnte nicht geladen werden.</div>";
     }
   }
 
-  function grantInviteRankReward(rank){
-    const claimed = profile.claimedInviteRanks || [];
-    if(claimed.includes(rank)) return;
-    const rankKey = "rank" + rank;
-    const tier = rank === 1 ? "legendary" : rank === 2 ? "epic" : "standard";
-    profile.inviteChests = profile.inviteChests || { rank1: null, rank2: null, rank3: null };
-    profile.inviteChests[rankKey] = { tier, attemptsUsed: 0, claimed: false };
-    profile.claimedInviteRanks = [...claimed, rank];
-    saveProfile();
-    updateMissionsBadge();
-    renderMissions();
-    showToast(`🏆 Platz ${rank} beim Einladen! Eine Truhe wartet in den Missionen.`);
-  }
 
   function renderMissions(){
     ensureDailyMissions();
@@ -4104,9 +4178,9 @@
       wrap.appendChild(card);
     }
 
-    const INVITE_RANK_LABELS = { rank1: "🥇 Platz 1 im Invite Leaderboard", rank2: "🥈 Platz 2 im Invite Leaderboard", rank3: "🥉 Platz 3 im Invite Leaderboard" };
+    const INVITE_RANK_LABELS = { rank2a: "🥈 Platz 2 im Invite Leaderboard (1/2)", rank2b: "🥈 Platz 2 im Invite Leaderboard (2/2)", rank3: "🥉 Platz 3 im Invite Leaderboard" };
     if(profile.inviteChests){
-      ["rank1","rank2","rank3"].forEach(rankKey => {
+      ["rank2a","rank2b","rank3"].forEach(rankKey => {
         const chest = profile.inviteChests[rankKey];
         if(!chest) return;
         const card = document.createElement("div");
@@ -4236,17 +4310,27 @@
     merged.comboLossCount = Math.max(localP.comboLossCount || 0, cloudP.comboLossCount || 0);
     merged.hasSeenSharePrompt = !!(localP.hasSeenSharePrompt || cloudP.hasSeenSharePrompt);
     merged.hasEverSetUsername = !!(localP.hasEverSetUsername || cloudP.hasEverSetUsername || cloudP.username);
-    merged.referralCount = Math.max(localP.referralCount || 0, cloudP.referralCount || 0);
-    merged.claimedInviteRanks = Array.from(new Set([
-      ...(localP.claimedInviteRanks || []),
-      ...(cloudP.claimedInviteRanks || [])
-    ]));
+    // Wöchentlicher Rollover: die Seite mit dem NEUEREN Grenzwert gewinnt als
+    // konsistentes Paar (weeklyReferralCount + lastWeekReferralCount gehören
+    // zusammen und dürfen nicht von unterschiedlichen Seiten gemischt werden).
+    if((localP.lastWeeklyRolloverAt || 0) >= (cloudP.lastWeeklyRolloverAt || 0)){
+      merged.weeklyReferralCount = localP.weeklyReferralCount || 0;
+      merged.lastWeekReferralCount = localP.lastWeekReferralCount || 0;
+      merged.lastWeeklyRolloverAt = localP.lastWeeklyRolloverAt || null;
+    } else {
+      merged.weeklyReferralCount = cloudP.weeklyReferralCount || 0;
+      merged.lastWeekReferralCount = cloudP.lastWeekReferralCount || 0;
+      merged.lastWeeklyRolloverAt = cloudP.lastWeeklyRolloverAt || null;
+    }
+    merged.claimedWeeklyInviteRewardAt = Math.max(localP.claimedWeeklyInviteRewardAt || 0, cloudP.claimedWeeklyInviteRewardAt || 0) || null;
     const lic = localP.inviteChests || {}, cic = cloudP.inviteChests || {};
     merged.inviteChests = {
-      rank1: lic.rank1 || cic.rank1 || null,
-      rank2: lic.rank2 || cic.rank2 || null,
+      rank2a: lic.rank2a || cic.rank2a || null,
+      rank2b: lic.rank2b || cic.rank2b || null,
       rank3: lic.rank3 || cic.rank3 || null
     };
+    merged.streakReminderEnabled = (typeof localP.streakReminderEnabled === "boolean") ? localP.streakReminderEnabled : (typeof cloudP.streakReminderEnabled === "boolean" ? cloudP.streakReminderEnabled : true);
+    merged.lastStreakReminderShownDate = maxDateStr(localP.lastStreakReminderShownDate, cloudP.lastStreakReminderShownDate);
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.countedDuelWins = Array.from(new Set([
       ...(localP.countedDuelWins || []),
@@ -5282,6 +5366,7 @@
   ======================================================== */
   function renderSettings(){
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
+    $("streakReminderSwitch").classList.toggle("on", profile.streakReminderEnabled !== false);
     const displayName = profile.username
       ? "@" + profile.username + (isSuperUser() ? " ⭐" : "")
       : (currentUser ? "Angemeldet (noch kein Benutzername)" : "Nicht angemeldet / Gast");
@@ -5345,6 +5430,13 @@
     profile.longMode = !profile.longMode;
     saveProfile();
     renderSettings();
+  });
+
+  $("streakReminderSwitch").addEventListener("click", () => {
+    profile.streakReminderEnabled = !profile.streakReminderEnabled;
+    saveProfile();
+    renderSettings();
+    if(profile.streakReminderEnabled) requestNotificationPermissionIfNeeded();
   });
 
   $("heroFlame").addEventListener("click", () => {
@@ -5684,6 +5776,7 @@
             updateMissionsBadge();
             checkUsernameRequired();
             claimPendingReferralRewards();
+            checkAndGrantWeeklyInviteReward();
           } else {
             cloudSyncReady = true;
             // Nur EINMAL versuchen, das Dokument anzulegen - nicht bei jedem
@@ -6715,6 +6808,65 @@
     return "data:image/svg+xml," + encodeURIComponent(svg);
   }
 
+  /* ========================================================
+     STREAK-ERINNERUNG UM 20 UHR (NEU)
+     Läuft, solange die App geöffnet/geladen ist (Tab im Vordergrund oder
+     Hintergrund, bzw. als installierte App vom Home-Bildschirm) - prüft
+     einmal pro Minute, ob es schon 20 Uhr ist und der heutige Streak noch
+     fehlt. Echte Push-Benachrichtigungen bei komplett geschlossener App
+     würden einen eigenen Push-Server erfordern, den es hier nicht gibt -
+     das hier deckt den Fall ab, dass die Seite/App irgendwann offen ist.
+  ======================================================== */
+  function requestNotificationPermissionIfNeeded(){
+    if(!("Notification" in window)) return;
+    if(Notification.permission === "default"){
+      Notification.requestPermission().catch(() => {});
+    }
+  }
+
+  function hasCompletedStreakToday(){
+    return profile.lastStreakDate === todayStr();
+  }
+
+  async function showStreakReminderNotification(){
+    const title = "Mach einen Streak! 🔥";
+    const options = {
+      body: "Du hast heute noch keine Lektion gemacht - hol dir deinen Streak, bevor der Tag vorbei ist!",
+      icon: generateAppIconDataUri(),
+      tag: "streak-reminder"
+    };
+    try{
+      if(navigator.serviceWorker){
+        const reg = await navigator.serviceWorker.getRegistration();
+        if(reg && reg.showNotification){
+          reg.showNotification(title, options);
+          return;
+        }
+      }
+    }catch(e){ }
+    try{ new Notification(title, options); }catch(e){ }
+  }
+
+  function checkStreakReminderTime(){
+    if(!("Notification" in window)) return;
+    if(profile.streakReminderEnabled === false) return;
+    if(Notification.permission !== "granted") return;
+    if(new Date().getHours() < 20) return;
+    if(hasCompletedStreakToday()) return;
+    const today = todayStr();
+    if(profile.lastStreakReminderShownDate === today) return;
+    profile.lastStreakReminderShownDate = today;
+    saveProfile();
+    showStreakReminderNotification();
+  }
+
+  let streakReminderInterval = null;
+  function startStreakReminderScheduler(){
+    if(streakReminderInterval) clearInterval(streakReminderInterval);
+    checkStreakReminderTime(); // sofort prüfen, falls die App schon nach 20 Uhr geöffnet wird
+    streakReminderInterval = setInterval(checkStreakReminderTime, 60000);
+  }
+
   function setupPwaManifestAndServiceWorker(){
     try{
       const iconUri = generateAppIconDataUri();
@@ -6793,11 +6945,14 @@
     loadProfile();
     refillLives();
     checkStreakDecay();
+    processWeeklyInviteRollover();
     ensureDailyMissions();
     saveProfile();
     applyTheme();
     applyIntroThemeColor();
     setupPwaManifestAndServiceWorker();
+    startStreakReminderScheduler();
+    if(profile.streakReminderEnabled !== false) requestNotificationPermissionIfNeeded();
     renderHome();
     updateMissionsBadge();
 

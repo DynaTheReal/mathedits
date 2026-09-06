@@ -187,9 +187,7 @@
   [data-theme="glow"] .flame-icon{
     filter: drop-shadow(0 10px 22px rgba(168,85,247,.4));
   }
-  /* Leuchtende lilane Umrandung für Karten/Kacheln/Fenster im Glow-Theme,
-     mit ein paar echten kleinen Partikel-Punkten (keine Linie/Kontur mehr)
-     nur an den Ecken. */
+  /* Leuchtende lilane Umrandung für Karten/Kacheln/Fenster im Glow-Theme. */
   [data-theme="glow"] .shop-item,
   [data-theme="glow"] .settings-row,
   [data-theme="glow"] .modal-card,
@@ -203,34 +201,24 @@
     box-shadow: 0 0 22px rgba(168,85,247,.42), inset 0 0 0 1px rgba(168,85,247,.3);
     position: relative;
   }
-  [data-theme="glow"] .shop-item::before, [data-theme="glow"] .shop-item::after,
-  [data-theme="glow"] .settings-row::before, [data-theme="glow"] .settings-row::after,
+  /* Kleine Partikel-Punkte NUR an ein paar wenigen, einzeln vorkommenden
+     Fenstern (nicht an sich wiederholenden Listen-Zeilen wie Shop-Items
+     oder Einstellungs-Zeilen, sonst wirkt es überladen). Jedes bekommt eine
+     eigene, unterschiedliche Geschwindigkeit/Verzögerung, damit sie sich
+     nicht alle im selben Rhythmus bewegen. */
   [data-theme="glow"] .modal-card::before, [data-theme="glow"] .modal-card::after,
-  [data-theme="glow"] .stat-pill::before, [data-theme="glow"] .stat-pill::after,
-  [data-theme="glow"] .tier-card::before, [data-theme="glow"] .tier-card::after,
-  [data-theme="glow"] .friend-row::before, [data-theme="glow"] .friend-row::after,
-  [data-theme="glow"] .lb-row::before, [data-theme="glow"] .lb-row::after,
-  [data-theme="glow"] .auth-box::before, [data-theme="glow"] .auth-box::after,
   [data-theme="glow"] #profileHeaderCard::before, [data-theme="glow"] #profileHeaderCard::after,
-  [data-theme="glow"] .mission-card::before, [data-theme="glow"] .mission-card::after{
+  [data-theme="glow"] .auth-box::before, [data-theme="glow"] .auth-box::after{
     content:""; position:absolute; width:5px; height:5px; border-radius:50%;
     background:#c084fc; box-shadow:0 0 8px 2px rgba(192,132,252,.85);
     pointer-events:none;
   }
-  [data-theme="glow"] .shop-item::before, [data-theme="glow"] .settings-row::before,
-  [data-theme="glow"] .modal-card::before, [data-theme="glow"] .stat-pill::before,
-  [data-theme="glow"] .tier-card::before, [data-theme="glow"] .friend-row::before,
-  [data-theme="glow"] .lb-row::before, [data-theme="glow"] .auth-box::before,
-  [data-theme="glow"] #profileHeaderCard::before, [data-theme="glow"] .mission-card::before{
-    top:-3px; left:12%; animation: glowParticleFloat1 3s ease-in-out infinite;
-  }
-  [data-theme="glow"] .shop-item::after, [data-theme="glow"] .settings-row::after,
-  [data-theme="glow"] .modal-card::after, [data-theme="glow"] .stat-pill::after,
-  [data-theme="glow"] .tier-card::after, [data-theme="glow"] .friend-row::after,
-  [data-theme="glow"] .lb-row::after, [data-theme="glow"] .auth-box::after,
-  [data-theme="glow"] #profileHeaderCard::after, [data-theme="glow"] .mission-card::after{
-    bottom:-3px; right:15%; animation: glowParticleFloat2 3.4s ease-in-out infinite;
-  }
+  [data-theme="glow"] .modal-card::before{ top:-3px; left:12%; animation: glowParticleFloat1 3s ease-in-out infinite; }
+  [data-theme="glow"] .modal-card::after{ bottom:-3px; right:15%; animation: glowParticleFloat2 3.4s ease-in-out infinite; }
+  [data-theme="glow"] #profileHeaderCard::before{ top:-3px; left:18%; animation: glowParticleFloat2 4.1s ease-in-out infinite .6s; }
+  [data-theme="glow"] #profileHeaderCard::after{ bottom:-3px; right:10%; animation: glowParticleFloat1 3.7s ease-in-out infinite 1.1s; }
+  [data-theme="glow"] .auth-box::before{ top:-3px; left:8%; animation: glowParticleFloat1 3.9s ease-in-out infinite 1.8s; }
+  [data-theme="glow"] .auth-box::after{ bottom:-3px; right:22%; animation: glowParticleFloat2 3.2s ease-in-out infinite .3s; }
   [data-theme="glow"] .btn-primary{
     box-shadow: 0 0 20px rgba(168,85,247,.6), 0 4px 14px rgba(0,0,0,.3);
   }
@@ -4184,8 +4172,12 @@
   // freigeschalteten Aufgabentypen (kein reines Einmaleins mehr).
   // Level-Bedarf pro Stufe: die allererste Stufe braucht nur 5 Level, "Großes
   // Einmaleins" braucht 10, danach braucht jede Stufe 20 Level.
-  const DEFAULT_LEVELS_PER_TIER = 20;
-  const TIER_LEVEL_OVERRIDES = { kl_mult: 5, mult: 10, mult_m: 10, gr_mult: 10 };
+  const DEFAULT_LEVELS_PER_TIER = 17;
+  // kl_mult/mult/mult_m/gr_mult sind jetzt "kostenlos" (siehe FREE_TIER_COUNT
+  // unten) und dienen nur noch als grobe Einstufung für die ersten Level -
+  // deshalb stark verkürzt, damit Blitz-Einmaleins schon bei Level 10 statt
+  // erst bei ~36 beginnt.
+  const TIER_LEVEL_OVERRIDES = { kl_mult: 2, mult: 2, mult_m: 3, gr_mult: 2 };
   const TIER_DEFS = [
     {id:"kl_mult",  name:"Kleines Einmaleins",        icon:"✖️",  timeMs: 8000,  normalAura: 1, editAura: 2, gen: () => multFewOnes(1,5)},
     {id:"mult",     name:"Einmaleins",                icon:"✳️",  timeMs: 8500,  normalAura: 1, editAura: 2, gen: () => mult(2,10)},
@@ -4222,6 +4214,14 @@
   function tierIndexForLevel(level){
     for(let i=0;i<TIERS.length;i++){ if(level >= TIERS[i].from && level <= TIERS[i].to) return i; }
     return TIERS.length - 1;
+  }
+
+  // Die ersten vier Stufen (Kleines Einmaleins, Einmaleins, Mittleres
+  // Einmaleins, Großes Einmaleins) sind komplett kostenlos wählbar, egal
+  // welches Level man gerade hat - man braucht dafür kein Level-Freischalten.
+  const FREE_TIER_COUNT = 4;
+  function isTierSelectable(i, activeIdx){
+    return i < FREE_TIER_COUNT || i <= activeIdx;
   }
 
   // Wählt zufällig (gewichtet) einen Aufgaben-Generator aus einer Liste von
@@ -4464,7 +4464,7 @@
 
   function buildLesson(){
     const activeIdx = tierIndexForLevel(profile.level);
-    const idx = (selectedTierIndex !== null && selectedTierIndex <= activeIdx) ? selectedTierIndex : activeIdx;
+    const idx = (selectedTierIndex !== null && isTierSelectable(selectedTierIndex, activeIdx)) ? selectedTierIndex : activeIdx;
     const tier = { ...TIERS[idx] };
     
     // Verbrauche Zeit-Booster falls vorhanden
@@ -5270,14 +5270,14 @@
     });
   });
   $("difficultyContinueBtn").addEventListener("click", () => {
-    const startLevels = {
-      beginner: 1,
-      medium: (TIERS.find(t => t.id === "mult") || {}).from || 1,
-      hard: (TIERS.find(t => t.id === "gr_mult") || {}).from || 1
-    };
-    profile.level = startLevels[selectedDifficulty] || 1;
+    // Level bleibt immer bei 1 - die Schwierigkeitswahl legt nur fest, mit
+    // welcher (ohnehin kostenlosen) Einmaleins-Stufe man startet.
+    const tierIdForDifficulty = { beginner: "kl_mult", medium: "mult_m", hard: "gr_mult" };
+    const tierId = tierIdForDifficulty[selectedDifficulty] || "kl_mult";
+    const tierIdx = TIERS.findIndex(t => t.id === tierId);
+    profile.level = 1;
     profile.levelProgress = 0;
-    selectedTierIndex = null;
+    selectedTierIndex = tierIdx >= 0 ? tierIdx : null;
     saveProfile();
     closeAllOnboardingOverlays();
     // Immer frisch mit der Auswahl-Phase starten (falls das Onboarding aus
@@ -5736,7 +5736,7 @@
     const activeIdx = tierIndexForLevel(profile.level);
     wrap.innerHTML = "";
     TIERS.forEach((tier, i) => {
-      const locked = i > activeIdx;
+      const locked = !isTierSelectable(i, activeIdx);
       const card = document.createElement("div");
       card.className = "tier-card" + (i === selectedTierIndex ? " active" : "") + (locked ? " locked" : "");
       card.innerHTML = `

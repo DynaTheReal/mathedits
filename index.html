@@ -1616,7 +1616,7 @@
       <div style="font-size:12px; opacity:.75;">Jeden Tag neu · Lektionen abschließen für Truhen</div>
     </div>
 
-    <button class="btn btn-primary" id="openInviteLeaderboardBtn" style="width:100%; margin-bottom:16px; font-size:15.5px; padding:15px;">🏆 Invite Leaderboard</button>
+    <button class="btn btn-primary" id="openInviteLeaderboardBtn" style="width:100%; margin-bottom:16px; font-size:15.5px; padding:15px; position:relative;">🏆 Invite Leaderboard<span class="nav-badge" id="inviteLbHintBadge" style="display:none; top:-6px; right:-6px;">1</span></button>
 
     <div id="missionsList"></div>
   </section>
@@ -1836,7 +1836,10 @@
       <span class="label">Missionen</span>
     </button>
     <button class="nav-item" id="navProfile">
-      <span class="icon">👤</span>
+      <span class="icon-wrap">
+        <span class="icon">👤</span>
+        <span class="nav-badge" id="profileNavBadge" style="display:none;">1</span>
+      </span>
       <span class="label">Profil</span>
     </button>
   </nav>
@@ -2333,6 +2336,8 @@
     inviteChests: { rank2a: null, rank2b: null, rank3: null }, // Platz 2 = zwei Truhen, Platz 3 = eine Truhe (Platz 1 bekommt direkt Aura)
     streakReminderEnabled: true, // Erinnerung, falls der Streak an dem Tag noch nicht gemacht wurde
     streakReminderTime: "20:00", // einstellbare Uhrzeit dafür (HH:MM)
+    hasSeenMissionsTab: false, // Entdeckungs-Hinweis (rote 1) im Missionen-Tab bis zum ersten Besuch
+    hasSeenInviteLeaderboard: false, // Entdeckungs-Hinweis (rote 1) am Invite-Leaderboard-Button bis zum ersten Öffnen
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
   };
   let profile = { ...DEFAULT_PROFILE };
@@ -2928,6 +2933,7 @@
             // dauerhaftes Laden an).
             if(openChatFriendUid !== data.fromUid){
               showMessageNotifyBanner(data);
+              if(document.hidden) showMessageSystemNotification(data);
             }
           }
         });
@@ -2939,7 +2945,23 @@
     pendingMessageNotify = data;
     $("messageNotifyText").innerHTML = `<b>@${data.fromUsername || "Jemand"}</b> hat dir geschrieben:<br>${(data.text || "").slice(0, 60)}`;
     $("messageNotifyBanner").classList.add("show");
-    setTimeout(() => { $("messageNotifyBanner").classList.remove("show"); }, 5000);
+    // Bleibt bewusst stehen, bis man draufklickt - verschwindet NICHT mehr
+    // automatisch, damit man sie auch dann noch sieht, wenn man die App
+    // erst später wieder öffnet (fühlt sich dann an, als wäre sie gerade
+    // erst angekommen).
+  }
+
+  // System-Benachrichtigung (wie die Streak-Erinnerung) für eingehende
+  // Nachrichten, wenn die Seite gerade nicht im Vordergrund ist.
+  async function showMessageSystemNotification(data){
+    if(!("Notification" in window) || Notification.permission !== "granted") return;
+    const title = `Neue Nachricht von @${data.fromUsername || "jemandem"}`;
+    const options = { body: (data.text || "").slice(0, 100), icon: generateAppIconDataUri(), tag: "chat-message-" + data.fromUid };
+    try{
+      const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+      if(reg && reg.showNotification){ reg.showNotification(title, options); return; }
+    }catch(e){ }
+    try{ new Notification(title, options); }catch(e){ }
   }
 
   function totalUnreadMessages(){
@@ -2948,13 +2970,23 @@
 
   function updateMessagesBadge(){
     const badge = $("messagesBadge");
-    if(!badge) return;
+    const navBadge = $("profileNavBadge");
     const n = totalUnreadMessages();
-    if(n > 0){
-      badge.textContent = n;
-      badge.style.display = "flex";
-    } else {
-      badge.style.display = "none";
+    if(badge){
+      if(n > 0){
+        badge.textContent = n;
+        badge.style.display = "flex";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+    if(navBadge){
+      if(n > 0){
+        navBadge.textContent = n;
+        navBadge.style.display = "flex";
+      } else {
+        navBadge.style.display = "none";
+      }
     }
   }
 
@@ -3857,6 +3889,14 @@
   function updateMissionsBadge(){
     const badge = $("missionsBadge");
     if(!badge) return;
+    // Solange die Person die Missionen noch nie besucht hat, steht dort
+    // standardmäßig eine rote 1 als Entdeckungs-Hinweis - unabhängig davon,
+    // ob es schon "echte" fällige Missionen gibt.
+    if(!profile.hasSeenMissionsTab){
+      badge.textContent = "1";
+      badge.style.display = "flex";
+      return;
+    }
     const n = pendingMissionsCount();
     if(n > 0){
       badge.textContent = n;
@@ -4069,6 +4109,11 @@
   async function openInviteLeaderboard(){
     $("overlayInviteLeaderboard").classList.add("show");
     renderReferralUI($("inviteLbLinkRow"), $("inviteLbLinkInput"), $("inviteLbLoggedOutMsg"));
+    if(!profile.hasSeenInviteLeaderboard){
+      profile.hasSeenInviteLeaderboard = true;
+      saveProfile();
+      $("inviteLbHintBadge").style.display = "none";
+    }
 
     const listEl = $("inviteLeaderboardList");
     listEl.innerHTML = "<div class='empty-hint'>Lade Rangliste …</div>";
@@ -4106,6 +4151,7 @@
   function renderMissions(){
     ensureDailyMissions();
     checkAchievements();
+    $("inviteLbHintBadge").style.display = profile.hasSeenInviteLeaderboard ? "none" : "flex";
     const wrap = $("missionsList");
     wrap.innerHTML = "";
 
@@ -4350,6 +4396,8 @@
     };
     merged.streakReminderEnabled = (typeof localP.streakReminderEnabled === "boolean") ? localP.streakReminderEnabled : (typeof cloudP.streakReminderEnabled === "boolean" ? cloudP.streakReminderEnabled : true);
     merged.streakReminderTime = localP.streakReminderTime || cloudP.streakReminderTime || "20:00";
+    merged.hasSeenMissionsTab = !!(localP.hasSeenMissionsTab || cloudP.hasSeenMissionsTab);
+    merged.hasSeenInviteLeaderboard = !!(localP.hasSeenInviteLeaderboard || cloudP.hasSeenInviteLeaderboard);
     merged.lastStreakReminderShownDate = maxDateStr(localP.lastStreakReminderShownDate, cloudP.lastStreakReminderShownDate);
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.countedDuelWins = Array.from(new Set([
@@ -4834,6 +4882,11 @@
   $("navMissions").addEventListener("click", () => {
     showScreen("missions");
     renderMissions();
+    if(!profile.hasSeenMissionsTab){
+      profile.hasSeenMissionsTab = true;
+      saveProfile();
+      updateMissionsBadge();
+    }
   });
 
   $("goToProfileBtn").addEventListener("click", () => {
@@ -6925,6 +6978,16 @@
     if(streakReminderInterval) clearInterval(streakReminderInterval);
     checkStreakReminderTime(); // sofort prüfen, falls die App schon nach 20 Uhr geöffnet wird
     streakReminderInterval = setInterval(checkStreakReminderTime, 60000);
+    // Wichtig gegen "App war zu, keine Erinnerung bekommen": eine echte
+    // Push-Benachrichtigung bei komplett geschlossener App würde einen
+    // eigenen Push-Server erfordern (technisch mit einer reinen Client-
+    // Website nicht möglich) - das hier fängt zumindest den häufigen Fall
+    // ab, dass die App zwischendurch geschlossen/im Hintergrund war und
+    // jetzt wieder geöffnet/sichtbar wird, sodass die Erinnerung nachgeholt
+    // wird statt komplett auszubleiben.
+    document.addEventListener("visibilitychange", () => {
+      if(document.visibilityState === "visible") checkStreakReminderTime();
+    });
   }
 
   function setupPwaManifestAndServiceWorker(){

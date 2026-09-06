@@ -705,12 +705,40 @@
     color:#ffb46b; font-size:14px; margin-top:8px; font-weight:700;
     min-height:18px;
   }
-  /* "Verbrennen" der Home-Elemente im Hintergrund, während die Flamme wächst */
-  .fsa-burning{
-    transition: filter .6s ease, transform .9s cubic-bezier(.55,0,1,.45), opacity .9s ease;
+  /* Die ECHTE Streak-Flamme im Home-Hero wächst über 5 Sekunden riesig. */
+  .fsa-real-flame-grow{
+    display:inline-block;
+    animation: fsaRealFlameGrow 5s ease-in-out forwards;
+    filter: drop-shadow(0 0 30px rgba(255,120,0,.9));
   }
-  .fsa-burning.charred{ filter: brightness(0) saturate(0); }
-  .fsa-burning.fallen{ opacity:0; }
+  @keyframes fsaRealFlameGrow{
+    0%{ transform:scale(1); }
+    100%{ transform:scale(7); }
+  }
+  /* Kleine, flackernde Feuer-Icons obendrauf für GUI-Elemente, die gerade
+     brennen (Phase 1, 0-5s). */
+  .fsa-fire-lick{
+    position:absolute; top:-16px; left:50%; transform:translateX(-50%);
+    font-size:22px; pointer-events:none; z-index:50;
+    animation: fsaFireLickFlicker .35s ease-in-out infinite alternate;
+  }
+  @keyframes fsaFireLickFlicker{
+    0%{ transform:translateX(-50%) scale(1) rotate(-6deg); }
+    100%{ transform:translateX(-50%) scale(1.2) rotate(6deg); }
+  }
+  /* Phase 2 (5-7s): schwarz/verkohlt */
+  .fsa-gui-charred{
+    filter: brightness(0) !important;
+    transition: filter 1s ease;
+  }
+  /* Phase 3 (7-8s): wackeln */
+  .fsa-gui-wobble{
+    animation: fsaGuiWobble .14s ease-in-out infinite;
+  }
+  @keyframes fsaGuiWobble{
+    0%,100%{ transform:translateX(-3px) rotate(-1.5deg); }
+    50%{ transform:translateX(3px) rotate(1.5deg); }
+  }
 
   .hearts{display:flex; gap:3px;}
   .heart{font-size:15px; filter:grayscale(1); opacity:.25; transition: all .3s;}
@@ -6510,11 +6538,14 @@
   // Erster-Streak-Feiermoment: läuft nur EINMAL pro Account, direkt nach der
   // allerersten abgeschlossenen Lektion.
   // Ablauf: sofort schwarzer Bildschirm mit einer erloschenen Flamme zum
-  // Antippen -> Flamme entfacht sich -> der schwarze Hintergrund wird
-  // durchsichtig, man landet sichtbar im echten Home-Menü -> DORT wächst
-  // die Flamme riesig und die Home-Elemente dahinter verbrennen sichtbar
-  // und fallen ab -> zurück zu Schwarz für "Dein erster Tag" -> Flamme
-  // steigt klein wieder auf -> "Führe deinen Streak fort" + Weiter-Button.
+  // Antippen ("Tippe, um deinen Streak zu starten") -> Antippen macht Schwarz
+  // + Flamme sofort weg, man ist normal im Home-Menü -> DORT wächst die
+  // ECHTE Streak-Flamme immer größer, während die GUI-Elemente drumherum
+  // (Level-Kästchen, Herzen, Start-Button, Navigation, Topbar) 5 Sekunden
+  // lang wirklich Feuer fangen -> werden 2 Sekunden lang schwarz/verkohlt ->
+  // wackeln 1 Sekunde -> fallen über 2 Sekunden alle herunter -> Text
+  // "Das ist dein Streak, beschütze ihn." -> Weiter-Button bringt alles
+  // wieder normal zurück.
   function playFirstStreakCelebration(){
     showScreen("home");
     renderHome();
@@ -6527,9 +6558,10 @@
     const btn = $("fsaContinueBtn");
 
     flame.className = "fsa-flame";
+    flame.style.display = "";
     flame.style.opacity = "1";
     flame.style.transform = "";
-    textEl.textContent = "Tippe, um einen Streak zu starten";
+    textEl.textContent = "Tippe, um deinen Streak zu starten";
     textEl.style.opacity = "1";
     textEl.style.fontSize = "20px";
     subEl.textContent = "";
@@ -6545,72 +6577,102 @@
 
     function onIgnite(){
       flame.removeEventListener("click", onIgnite);
-      flame.classList.add("lit");
-      textEl.style.opacity = "0";
-
-      setTimeout(() => {
-        // Hintergrund wird durchsichtig - man landet sichtbar im Home-Menü.
-        bgFade.classList.remove("show");
-      }, 900);
-
-      setTimeout(() => {
-        // Jetzt, sichtbar im echten Home-Menü, wächst die Flamme riesig und
-        // verbrennt alle GUI-Elemente dahinter.
-        flame.classList.remove("lit");
-        flame.classList.add("huge");
-        burnAwayHomeElements();
-      }, 1900);
-
-      setTimeout(() => {
-        // Alles verbrannt - zurück zu Schwarz für den Text-Moment.
-        bgFade.classList.add("show");
-      }, 4200);
-
-      setTimeout(() => {
-        textEl.textContent = "Dein erster Tag 🔥";
-        textEl.style.fontSize = "28px";
-        textEl.style.opacity = "1";
-      }, 5000);
-
-      setTimeout(() => {
-        flame.classList.remove("huge");
-        flame.classList.add("rise");
-        subEl.textContent = "Führe deinen Streak fort";
-        btn.style.display = "inline-block";
-      }, 8000);
+      // Antippen: schwarzer Hintergrund und graue Flamme verschwinden sofort,
+      // man ist ganz normal im Home-Menü.
+      overlay.classList.remove("show");
+      bgFade.classList.remove("show");
+      startRealFlameBurnSequence();
     }
     flame.addEventListener("click", onIgnite);
 
     btn.onclick = () => {
-      overlay.classList.remove("show");
-      // Verbrannte Home-Elemente wieder normal herstellen, bevor Home
-      // regulär (mit frischen Werten) neu gerendert wird.
-      document.querySelectorAll(".fsa-burning").forEach(el => {
-        el.classList.remove("fsa-burning", "charred", "fallen");
-        el.style.transform = "";
-      });
+      cleanupBurnSequence();
       goHomeWithTransition();
     };
   }
 
-  function burnAwayHomeElements(){
-    const targets = [
+  // Lässt die ECHTE Streak-Flamme im Home-Hero-Bereich größer werden und die
+  // umliegenden GUI-Elemente in vier zeitlich genauen Phasen reagieren:
+  // 5s wirklich brennen -> 2s schwarz/verkohlt -> 1s wackeln -> 2s abfallen.
+  function startRealFlameBurnSequence(){
+    const realFlame = document.querySelector("#heroFlame .flame-icon");
+    const guiTargets = [
+      ...document.querySelectorAll("#screen-home .stat-pill"),
       document.querySelector("#screen-home .topbar"),
-      document.querySelector("#screen-home .stats-row"),
-      document.querySelector("#screen-home .hero"),
       $("startBtn"),
       $("bottomNav")
     ].filter(Boolean);
-    targets.forEach((el, i) => {
-      el.classList.add("fsa-burning");
-      setTimeout(() => {
-        el.classList.add("charred");
-        setTimeout(() => {
-          el.style.transform = `translateY(120vh) rotate(${(Math.random()*40-20).toFixed(0)}deg)`;
-          el.classList.add("fallen");
-        }, 500);
-      }, i * 150);
+
+    if(realFlame) realFlame.classList.add("fsa-real-flame-grow");
+
+    // Phase 1 (0-5s): GUI-Elemente fangen sichtbar Feuer (kleine Flammen-Icons
+    // obendrauf, die flackern).
+    guiTargets.forEach(el => {
+      const cs = getComputedStyle(el);
+      if(cs.position === "static") el.style.position = "relative";
+      const lick = document.createElement("div");
+      lick.className = "fsa-fire-lick fsa-fire-lick-temp";
+      lick.textContent = "🔥";
+      el.appendChild(lick);
     });
+
+    // Phase 2 (5-7s): schwarz/verkohlt
+    setTimeout(() => {
+      guiTargets.forEach(el => el.classList.add("fsa-gui-charred"));
+    }, 5000);
+
+    // Phase 3 (7-8s): wackeln
+    setTimeout(() => {
+      guiTargets.forEach(el => el.classList.add("fsa-gui-wobble"));
+    }, 7000);
+
+    // Phase 4 (8-10s): alle fallen herunter
+    setTimeout(() => {
+      guiTargets.forEach((el, i) => {
+        el.classList.remove("fsa-gui-wobble");
+        const delay = i * 100;
+        el.style.transition = `transform 1.7s cubic-bezier(.55,0,1,.45) ${delay}ms, opacity 1.7s ease ${delay}ms`;
+        el.style.transform = `translateY(120vh) rotate(${(Math.random()*40-20).toFixed(0)}deg)`;
+        el.style.opacity = "0";
+      });
+    }, 8000);
+
+    // Nach 10s: Textmoment
+    setTimeout(() => {
+      const overlay = $("overlayFirstStreak");
+      const bgFade = $("fsaBgFade");
+      const flame = $("fsaFlame");
+      const textEl = $("fsaText");
+      const subEl = $("fsaSubtext");
+      const btn = $("fsaContinueBtn");
+      flame.style.display = "none";
+      bgFade.style.transition = "none";
+      bgFade.classList.add("show");
+      void bgFade.offsetWidth;
+      bgFade.style.transition = "";
+      overlay.classList.add("show");
+      textEl.textContent = "Das ist dein Streak, beschütze ihn.";
+      textEl.style.fontSize = "22px";
+      textEl.style.opacity = "1";
+      subEl.textContent = "";
+      btn.style.display = "inline-block";
+    }, 10000);
+  }
+
+  // Setzt alle durch die Brenn-Sequenz veränderten Elemente wieder zurück,
+  // bevor es normal zum Home-Menü weitergeht.
+  function cleanupBurnSequence(){
+    document.querySelectorAll(".fsa-fire-lick-temp").forEach(el => el.remove());
+    document.querySelectorAll(".fsa-gui-charred, .fsa-gui-wobble").forEach(el => {
+      el.classList.remove("fsa-gui-charred", "fsa-gui-wobble");
+      el.style.transition = "";
+      el.style.transform = "";
+      el.style.opacity = "";
+    });
+    const realFlame = document.querySelector("#heroFlame .flame-icon");
+    if(realFlame) realFlame.classList.remove("fsa-real-flame-grow");
+    $("overlayFirstStreak").classList.remove("show");
+    $("fsaBgFade").classList.remove("show");
   }
 
   $("resultContinue").addEventListener("click", () => {

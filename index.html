@@ -2056,6 +2056,12 @@
     <div class="duel-invite-text" id="messageNotifyText">Neue Nachricht</div>
   </div>
 
+  <!-- Owner-only: Banner bei neuer Registrierung (NEU) -->
+  <div class="duel-invite-banner" id="ownerRegNotifyBanner">
+    <div class="duel-invite-icon">👑</div>
+    <div class="duel-invite-text" id="ownerRegNotifyBannerText">Neue Registrierung</div>
+  </div>
+
   <!-- PWA: iOS "Zum Home-Bildschirm hinzufügen"-Hinweis (NEU) -->
   <div class="pwa-install-banner" id="iosInstallBanner">
     <div class="pwa-install-icon">📲</div>
@@ -2374,6 +2380,7 @@
     hasSeenMissionsTab: false, // Entdeckungs-Hinweis (rote 1) im Missionen-Tab bis zum ersten Besuch
     hasSeenInviteLeaderboard: false, // Entdeckungs-Hinweis (rote 1) am Invite-Leaderboard-Button bis zum ersten Öffnen
     lastSeenRegistrationEventAt: 0, // nur für den Owner relevant: bis wann Registrierungs-Benachrichtigungen schon gesehen wurden
+    dismissedRegistrationEventIds: [], // nur für den Owner relevant: einzeln weggeklickte Registrierungs-Einträge
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
   };
   let profile = { ...DEFAULT_PROFILE };
@@ -4452,6 +4459,10 @@
     merged.hasSeenMissionsTab = !!(localP.hasSeenMissionsTab || cloudP.hasSeenMissionsTab);
     merged.hasSeenInviteLeaderboard = !!(localP.hasSeenInviteLeaderboard || cloudP.hasSeenInviteLeaderboard);
     merged.lastSeenRegistrationEventAt = Math.max(localP.lastSeenRegistrationEventAt || 0, cloudP.lastSeenRegistrationEventAt || 0);
+    merged.dismissedRegistrationEventIds = Array.from(new Set([
+      ...(localP.dismissedRegistrationEventIds || []),
+      ...(cloudP.dismissedRegistrationEventIds || [])
+    ]));
     merged.lastStreakReminderShownDate = maxDateStr(localP.lastStreakReminderShownDate, cloudP.lastStreakReminderShownDate);
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.countedDuelWins = Array.from(new Set([
@@ -5410,6 +5421,41 @@
   // Zeigt dem Owner, wer sich seit dem letzten Besuch neu registriert hat -
   // mit E-Mail und Benutzername. Nur der Owner darf registrationEvents
   // überhaupt lesen (siehe Firestore-Regeln).
+  // Läuft dauerhaft im Hintergrund, sobald der OWNER angemeldet ist (wie
+  // watchIncomingMessages) - zeigt ein Banner oben, sowohl live während man
+  // die App gerade nutzt, als auch beim Öffnen der App, falls in der
+  // Zwischenzeit jemand registriert hat.
+  let ownerRegNotifyUnsubscribe = null;
+  let pendingOwnerRegNotify = null;
+  function watchOwnerRegistrationNotifications(){
+    if(ownerRegNotifyUnsubscribe){ ownerRegNotifyUnsubscribe(); ownerRegNotifyUnsubscribe = null; }
+    if(!firebaseInitialized || !currentUser || !isOwner()) return;
+    ownerRegNotifyUnsubscribe = db().collection("registrationEvents")
+      .orderBy("createdAt", "desc")
+      .limit(30)
+      .onSnapshot((snap) => {
+        const dismissed = new Set(profile.dismissedRegistrationEventIds || []);
+        const lastSeen = profile.lastSeenRegistrationEventAt || 0;
+        const unseen = snap.docs
+          .filter(d => !dismissed.has(d.id))
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(e => e.createdAt > lastSeen)
+          .sort((a, b) => b.createdAt - a.createdAt);
+        if(unseen.length > 0){
+          showOwnerRegNotifyBanner(unseen[0]);
+        }
+        if($("screen-settings").classList.contains("active")) renderOwnerRegistrationNotifications();
+      }, (err) => console.error("Owner-Registrierungs-Live-Benachrichtigung Fehler:", err));
+  }
+
+  function showOwnerRegNotifyBanner(data){
+    pendingOwnerRegNotify = data;
+    $("ownerRegNotifyBannerText").innerHTML = `<b>@${data.username || "Jemand"}</b> hat sich registriert<br>${data.email || ""}`;
+    $("ownerRegNotifyBanner").classList.add("show");
+    // Bleibt bewusst stehen (wie die Nachrichten-Benachrichtigung), bis man
+    // draufklickt - damit sie auch beim späteren Öffnen der App noch da ist.
+  }
+
   async function renderOwnerRegistrationNotifications(){
     if(!isOwner() || !firebaseInitialized) return;
     const box = $("ownerRegNotifyBox");
@@ -5419,7 +5465,9 @@
         .orderBy("createdAt", "desc")
         .limit(30)
         .get();
-      if(snap.empty){
+      const dismissed = new Set(profile.dismissedRegistrationEventIds || []);
+      const docs = snap.docs.filter(d => !dismissed.has(d.id));
+      if(docs.length === 0){
         box.style.display = "none";
         return;
       }
@@ -5427,14 +5475,27 @@
       listEl.innerHTML = "";
       const lastSeen = profile.lastSeenRegistrationEventAt || 0;
       let newest = lastSeen;
-      snap.docs.forEach(d => {
+      docs.forEach(d => {
         const data = d.data();
         if(data.createdAt > newest) newest = data.createdAt;
         const isNew = data.createdAt > lastSeen;
         const row = document.createElement("div");
-        row.style.cssText = "padding:8px 0; border-bottom:1px solid rgba(236,72,153,.2); font-size:12.5px;" + (isNew ? " font-weight:800;" : " opacity:.65;");
-        row.innerHTML = `${isNew ? "🆕 " : ""}<b>@${data.username || "?"}</b> · ${data.email || "?"}<br><span style="opacity:.6; font-size:11px;">${formatRelativeTime(data.createdAt)}</span>`;
+        row.className = "owner-reg-row";
+        row.style.cssText = "padding:8px 0; border-bottom:1px solid rgba(236,72,153,.2); font-size:12.5px; display:flex; align-items:flex-start; gap:8px;";
+        row.innerHTML = `
+          <div style="flex:1;${isNew ? " font-weight:800;" : " opacity:.65;"}">${isNew ? "🆕 " : ""}<b>@${data.username || "?"}</b> · ${data.email || "?"}<br><span style="opacity:.6; font-size:11px;">${formatRelativeTime(data.createdAt)}</span></div>
+          <button class="owner-reg-dismiss-btn" data-id="${d.id}" style="background:none; border:none; color:var(--text-dim); font-size:16px; font-weight:800; cursor:pointer; padding:2px 6px; flex-shrink:0;">✕</button>
+        `;
         listEl.appendChild(row);
+      });
+      listEl.querySelectorAll(".owner-reg-dismiss-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          profile.dismissedRegistrationEventIds = [...(profile.dismissedRegistrationEventIds || []), id];
+          saveProfile();
+          btn.closest(".owner-reg-row").remove();
+          if(listEl.children.length === 0) box.style.display = "none";
+        });
       });
       if(newest > lastSeen){
         profile.lastSeenRegistrationEventAt = newest;
@@ -5729,6 +5790,13 @@
     }
   });
 
+  $("ownerRegNotifyBanner").addEventListener("click", () => {
+    $("ownerRegNotifyBanner").classList.remove("show");
+    pendingOwnerRegNotify = null;
+    showScreen("settings");
+    renderSettings();
+  });
+
   /* Onboarding-Kette (NEU): Schwierigkeit -> Tägliches Lernziel -> Login.
      closeAllOnboardingOverlays() räumt vor jedem Schritt konsequent auf, damit
      nie zwei Overlays gleichzeitig "show" haben (und so versehentlich Klicks
@@ -5919,6 +5987,10 @@
         unreadMessageUnsubscribe();
         unreadMessageUnsubscribe = null;
       }
+      if(ownerRegNotifyUnsubscribe){
+        ownerRegNotifyUnsubscribe();
+        ownerRegNotifyUnsubscribe = null;
+      }
 
       if(user){
         watchIncomingDuelInvites();
@@ -5988,6 +6060,7 @@
             checkUsernameRequired();
             claimPendingReferralRewards();
             checkAndGrantWeeklyInviteReward();
+            watchOwnerRegistrationNotifications();
           } else {
             cloudSyncReady = true;
             // Nur EINMAL versuchen, das Dokument anzulegen - nicht bei jedem

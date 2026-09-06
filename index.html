@@ -353,6 +353,10 @@
     z-index: 90;
     backdrop-filter: blur(10px);
   }
+  body.is-android .bottom-nav{
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
   .nav-item {
     display: flex;
     flex-direction: column;
@@ -647,6 +651,24 @@
   .gameover-heart{
     font-size:100px; filter:drop-shadow(0 0 30px rgba(255,26,26,.85));
   }
+
+  /* ---------- Owner-Broadcast (NEU) ---------- */
+  .broadcast-card{
+    border: 2.5px solid #ffd700;
+    box-shadow: 0 0 40px rgba(255,215,0,.4), 0 20px 60px rgba(0,0,0,.5);
+  }
+  .broadcast-avatar-wrap{ display:flex; justify-content:center; margin-bottom:10px; }
+  .broadcast-avatar, .broadcast-avatar-placeholder{
+    width:76px; height:76px; border-radius:50%; object-fit:cover;
+    border:3px solid #ffd700; box-shadow:0 0 24px rgba(255,215,0,.5);
+  }
+  .broadcast-avatar-placeholder{
+    display:flex; align-items:center; justify-content:center; font-size:34px; background:var(--card-2);
+  }
+  .broadcast-from{ font-weight:800; color:#ffd700; margin-bottom:10px; font-size:14px; }
+  .broadcast-message{
+    font-size:17px; font-weight:700; line-height:1.5; white-space:pre-wrap;
+  }
   .gameover-heart.breaking{
     animation: gameoverHeartBreak 2s cubic-bezier(.4,0,.6,1) forwards;
   }
@@ -906,6 +928,14 @@
     background:var(--overlay-bg); backdrop-filter: blur(2px) saturate(.4);
     opacity:0; pointer-events:none; transition:opacity .25s ease;
     padding:26px;
+  }
+  /* Android Chrome flackert bekanntermaßen, wenn backdrop-filter mit einer
+     Opacity-Transition kombiniert wird (iOS Safari/PWA ist davon nicht
+     betroffen) - auf Android daher deaktivieren, der abdunkelnde Hintergrund
+     bleibt trotzdem erhalten, nur ohne den Weichzeichner. */
+  body.is-android .overlay{
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   .overlay.show{opacity:1; pointer-events:auto;}
   .overlay-card{text-align:center; max-width:340px; width:100%;}
@@ -1538,7 +1568,7 @@
         <div class="item-title">Pink Glow-Schrift</div>
         <div class="item-desc">Dein Profilname wackelt leicht und leuchtet pink - mit Blütenpartikeln in der Rangliste.</div>
       </div>
-      <button class="buy-btn" id="buyPinkGlowFont">1800 Aura</button>
+      <button class="buy-btn" id="buyPinkGlowFont">1000 Aura</button>
     </div>
   </section>
 
@@ -1678,6 +1708,12 @@
       <div id="ownerRegNotifyBox" style="display:none; background:rgba(236,72,153,.1); border:1.5px solid #ec4899; border-radius:14px; padding:12px; margin-bottom:16px;">
         <div style="font-weight:800; margin-bottom:8px;">🔔 Neue Registrierungen</div>
         <div id="ownerRegNotifyList" style="max-height:220px; overflow-y:auto;"></div>
+      </div>
+
+      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:16px;">
+        <div style="font-weight:800; margin-bottom:8px;">📢 Nachricht an alle senden</div>
+        <textarea id="ownerBroadcastInput" class="input-field" rows="3" placeholder="Nachricht an alle Nutzer weltweit..." style="width:100%; resize:vertical; font-family:inherit;"></textarea>
+        <button class="btn btn-primary btn-small" id="ownerSendBroadcastBtn" style="margin-top:8px; width:100%;">Senden</button>
       </div>
 
       <div class="d" style="margin-bottom:6px;">Benutzername suchen</div>
@@ -2136,6 +2172,19 @@
     <div class="gameover-heart" id="gameOverHeartIcon">❤️</div>
   </div>
 
+  <!-- Owner-Broadcast: Nachricht an alle Nutzer, groß in der Mitte (NEU) -->
+  <div class="overlay" id="overlayBroadcast">
+    <div class="modal-card broadcast-card">
+      <div class="broadcast-avatar-wrap">
+        <img id="broadcastAvatarImg" class="broadcast-avatar" style="display:none;">
+        <div id="broadcastAvatarPlaceholder" class="broadcast-avatar-placeholder">👑</div>
+      </div>
+      <div class="broadcast-from" id="broadcastFrom">@DynaTheReal</div>
+      <div class="broadcast-message" id="broadcastMessage"></div>
+      <button class="btn btn-primary" id="broadcastCloseBtn" style="margin-top:18px;">Verstanden</button>
+    </div>
+  </div>
+
   <!-- App-Start-Intro (NEU) -->
   <div id="intro-screen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #121212; display: flex; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; animation: fadeOutIntro 0.4s forwards 2.4s;">
     <div style="display: flex; align-items: center; gap: 15px;">
@@ -2381,6 +2430,7 @@
     hasSeenInviteLeaderboard: false, // Entdeckungs-Hinweis (rote 1) am Invite-Leaderboard-Button bis zum ersten Öffnen
     lastSeenRegistrationEventAt: 0, // nur für den Owner relevant: bis wann Registrierungs-Benachrichtigungen schon gesehen wurden
     dismissedRegistrationEventIds: [], // nur für den Owner relevant: einzeln weggeklickte Registrierungs-Einträge
+    lastSeenBroadcastAt: 0, // bis wann Owner-Broadcasts schon gesehen wurden
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
   };
   let profile = { ...DEFAULT_PROFILE };
@@ -2491,6 +2541,61 @@
       });
     }catch(err){
       console.error("Registrierungs-Log Fehler:", err);
+    }
+  }
+
+  // Owner-Broadcast (NEU): der Owner schreibt eine Nachricht, die ALLE
+  // Nutzer weltweit beim nächsten Öffnen (bzw. sofort, falls die App gerade
+  // läuft) groß in der Mitte zu sehen bekommen, mit dem Profilbild des
+  // Owners. Nur der Owner darf einen Eintrag anlegen (siehe Firestore-
+  // Regeln), aber JEDER darf die Sammlung lesen.
+  async function sendOwnerBroadcast(message){
+    if(!isOwner() || !firebaseInitialized || !currentUser) return;
+    const text = (message || "").trim();
+    if(!text) return;
+    try{
+      await db().collection("broadcasts").add({
+        message: text.slice(0, 500),
+        ownerAvatarData: profile.avatarData || null,
+        ownerUsername: profile.username || OWNER_USERNAME,
+        createdAt: Date.now()
+      });
+      showToast("📢 Broadcast an alle gesendet!");
+    }catch(err){
+      showToast("Broadcast konnte nicht gesendet werden.");
+      console.error("Broadcast senden Fehler:", err);
+    }
+  }
+
+  // Läuft für JEDEN eingeloggten Nutzer: holt den neuesten Broadcast und
+  // zeigt ihn groß an, falls er neuer ist als das, was diese Person schon
+  // gesehen hat.
+  async function checkForNewBroadcast(){
+    if(!firebaseInitialized || !currentUser) return;
+    try{
+      const snap = await db().collection("broadcasts")
+        .orderBy("createdAt", "desc")
+        .limit(1)
+        .get();
+      if(snap.empty) return;
+      const doc = snap.docs[0];
+      const data = doc.data();
+      if((data.createdAt || 0) <= (profile.lastSeenBroadcastAt || 0)) return;
+      $("broadcastFrom").textContent = "@" + (data.ownerUsername || OWNER_USERNAME);
+      $("broadcastMessage").textContent = data.message || "";
+      if(data.ownerAvatarData){
+        $("broadcastAvatarImg").src = data.ownerAvatarData;
+        $("broadcastAvatarImg").style.display = "block";
+        $("broadcastAvatarPlaceholder").style.display = "none";
+      } else {
+        $("broadcastAvatarImg").style.display = "none";
+        $("broadcastAvatarPlaceholder").style.display = "flex";
+      }
+      $("overlayBroadcast").classList.add("show");
+      profile.lastSeenBroadcastAt = data.createdAt;
+      saveProfile();
+    }catch(err){
+      console.error("Broadcast abrufen Fehler:", err);
     }
   }
 
@@ -4463,6 +4568,7 @@
       ...(localP.dismissedRegistrationEventIds || []),
       ...(cloudP.dismissedRegistrationEventIds || [])
     ]));
+    merged.lastSeenBroadcastAt = Math.max(localP.lastSeenBroadcastAt || 0, cloudP.lastSeenBroadcastAt || 0);
     merged.lastStreakReminderShownDate = maxDateStr(localP.lastStreakReminderShownDate, cloudP.lastStreakReminderShownDate);
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.countedDuelWins = Array.from(new Set([
@@ -5229,8 +5335,8 @@
       bPinkGlowFont.textContent = "Freigeschaltet";
       bPinkGlowFont.disabled = true;
     } else {
-      bPinkGlowFont.textContent = "1800 Aura";
-      bPinkGlowFont.disabled = profile.totalAura < 1800;
+      bPinkGlowFont.textContent = "1000 Aura";
+      bPinkGlowFont.disabled = profile.totalAura < 1000;
     }
 
     // Update Item Knöpfe
@@ -5343,7 +5449,7 @@
   $("buyGlowFont").addEventListener("click", () => buyFont("glow", 2000, "Glow"));
   $("buyPinkFont").addEventListener("click", () => buyFont("pink", 500, "Pink"));
   $("buyGoldFont").addEventListener("click", () => buyFont("gold", 1000, "Gold"));
-  $("buyPinkGlowFont").addEventListener("click", () => buyFont("pinkglow", 1800, "Pink Glow"));
+  $("buyPinkGlowFont").addEventListener("click", () => buyFont("pinkglow", 1000, "Pink Glow"));
 
   /* ========================================================
      THEME SYSTEM
@@ -5595,6 +5701,14 @@
 
   $("ownerSearchBtn").addEventListener("click", ownerSearchUser);
   $("ownerSaveBtn").addEventListener("click", ownerSaveChanges);
+  $("ownerSendBroadcastBtn").addEventListener("click", () => {
+    const input = $("ownerBroadcastInput");
+    sendOwnerBroadcast(input.value);
+    input.value = "";
+  });
+  $("broadcastCloseBtn").addEventListener("click", () => {
+    $("overlayBroadcast").classList.remove("show");
+  });
 
   /* ========================================================
      SETTINGS & FIREBASE USER UI
@@ -6061,6 +6175,7 @@
             claimPendingReferralRewards();
             checkAndGrantWeeklyInviteReward();
             watchOwnerRegistrationNotifications();
+            checkForNewBroadcast();
           } else {
             cloudSyncReady = true;
             // Nur EINMAL versuchen, das Dokument anzulegen - nicht bei jedem
@@ -7082,6 +7197,12 @@
     }
     if(isWindowsDevice()){
       document.body.classList.add("pc-layout");
+    }
+    // Android Chrome hat bekannte Render-Probleme mit backdrop-filter
+    // kombiniert mit Opacity-Übergängen (führt zu Flackern bei Overlays,
+    // während iOS Safari/PWA davon nicht betroffen ist) - siehe CSS unten.
+    if(isAndroidDevice()){
+      document.body.classList.add("is-android");
     }
   }
 

@@ -671,7 +671,7 @@
   .fsa-overlay.show{ display:flex; }
   .fsa-bg-fade{
     position:absolute; inset:0; background:#000; opacity:0;
-    transition:opacity 1.1s ease; pointer-events:none; z-index:-1;
+    transition:opacity 1.1s ease; pointer-events:none;
   }
   .fsa-bg-fade.show{ opacity:1; }
   .fsa-flame{
@@ -6508,11 +6508,13 @@
   }
 
   // Erster-Streak-Feiermoment: läuft nur EINMAL pro Account, direkt nach der
-  // allerersten abgeschlossenen Lektion. Zeigt zuerst eine erloschene Flamme
-  // zum Antippen, die dann entfacht wird, riesig wächst und dabei die
-  // sichtbaren Home-Elemente dahinter "verbrennt" und abfallen lässt, bevor
-  // der Text "Dein erster Tag" erscheint und die Flamme klein von unten
-  // wieder aufsteigt.
+  // allerersten abgeschlossenen Lektion.
+  // Ablauf: sofort schwarzer Bildschirm mit einer erloschenen Flamme zum
+  // Antippen -> Flamme entfacht sich -> der schwarze Hintergrund wird
+  // durchsichtig, man landet sichtbar im echten Home-Menü -> DORT wächst
+  // die Flamme riesig und die Home-Elemente dahinter verbrennen sichtbar
+  // und fallen ab -> zurück zu Schwarz für "Dein erster Tag" -> Flamme
+  // steigt klein wieder auf -> "Führe deinen Streak fort" + Weiter-Button.
   function playFirstStreakCelebration(){
     showScreen("home");
     renderHome();
@@ -6527,7 +6529,6 @@
     flame.className = "fsa-flame";
     flame.style.opacity = "1";
     flame.style.transform = "";
-    bgFade.classList.remove("show");
     textEl.textContent = "Tippe, um einen Streak zu starten";
     textEl.style.opacity = "1";
     textEl.style.fontSize = "20px";
@@ -6535,30 +6536,48 @@
     btn.style.display = "none";
     overlay.classList.add("show");
 
+    // Sofort schwarz, ohne Einblenden - man soll das Home-Menü hier noch
+    // NICHT sehen, nur die erloschene Flamme auf schwarzem Grund.
+    bgFade.style.transition = "none";
+    bgFade.classList.add("show");
+    void bgFade.offsetWidth; // Reflow erzwingen, damit die Transition danach wieder greift
+    bgFade.style.transition = "";
+
     function onIgnite(){
       flame.removeEventListener("click", onIgnite);
       flame.classList.add("lit");
       textEl.style.opacity = "0";
 
       setTimeout(() => {
+        // Hintergrund wird durchsichtig - man landet sichtbar im Home-Menü.
+        bgFade.classList.remove("show");
+      }, 900);
+
+      setTimeout(() => {
+        // Jetzt, sichtbar im echten Home-Menü, wächst die Flamme riesig und
+        // verbrennt alle GUI-Elemente dahinter.
         flame.classList.remove("lit");
         flame.classList.add("huge");
         burnAwayHomeElements();
+      }, 1900);
+
+      setTimeout(() => {
+        // Alles verbrannt - zurück zu Schwarz für den Text-Moment.
         bgFade.classList.add("show");
-      }, 900);
+      }, 4200);
 
       setTimeout(() => {
         textEl.textContent = "Dein erster Tag 🔥";
         textEl.style.fontSize = "28px";
         textEl.style.opacity = "1";
-      }, 2700);
+      }, 5000);
 
       setTimeout(() => {
         flame.classList.remove("huge");
         flame.classList.add("rise");
         subEl.textContent = "Führe deinen Streak fort";
         btn.style.display = "inline-block";
-      }, 5700);
+      }, 8000);
     }
     flame.addEventListener("click", onIgnite);
 

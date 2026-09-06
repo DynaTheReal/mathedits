@@ -281,6 +281,17 @@
   @media (min-width: 900px){
     body.wide-layout .app{ max-width: 860px; }
   }
+  /* PC-Monitore sitzt man weiter weg von als von einem Tablet - eine reine
+     Verbreiterung wirkt darauf trotzdem viel zu klein. "zoom" vergrößert
+     hier zusätzlich ALLES proportional (Text, Buttons, Icons, Abstände),
+     nicht nur den Rahmen. */
+  body.pc-layout .app{
+    max-width: 640px;
+    zoom: 1.55;
+  }
+  @media (min-width: 1400px){
+    body.pc-layout .app{ zoom: 1.75; }
+  }
   .app::before {
     content: "";
     position: absolute;
@@ -6538,6 +6549,9 @@
   function applyWideLayoutIfNeeded(){
     if(shouldUseWideLayout()){
       document.body.classList.add("wide-layout");
+    }
+    if(isWindowsDevice()){
+      document.body.classList.add("pc-layout");
     }
   }
 

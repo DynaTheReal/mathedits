@@ -1098,6 +1098,7 @@
   #friendProfileCard.frame-pink{
     border: 3px solid #ec4899;
     box-shadow: 0 0 26px rgba(236,72,153,.45);
+    background: linear-gradient(160deg, rgba(236,72,153,.32), rgba(236,72,153,.1) 55%, var(--card) 90%);
   }
   .frame-clean #profileHeaderCard,
   #friendProfileCard.frame-clean{
@@ -1162,6 +1163,25 @@
     text-shadow: 0 0 6px rgba(255,215,0,.6);
     font-weight:800;
   }
+  .font-pinkglow{
+    color:#ff5fa2 !important;
+    text-shadow: 0 0 8px rgba(255,95,162,.85), 0 0 16px rgba(255,95,162,.45);
+    display:inline-block;
+    animation: fontGlowWobble 2.2s ease-in-out infinite;
+  }
+  /* Rangliste: Blütenpartikel um die Zeile, wenn die Person Pink Glow trägt -
+     wie der lila Glow-Effekt, nur pink und mit Blüten statt Punkten. */
+  .lb-row-pinkglow{
+    position:relative;
+    border-color:#ff5fa2 !important;
+    box-shadow:0 0 16px rgba(255,95,162,.4), inset 0 0 0 1px rgba(255,95,162,.3);
+  }
+  .lb-row-pinkglow::before, .lb-row-pinkglow::after{
+    content:"🌸"; position:absolute; font-size:13px; line-height:1;
+    pointer-events:none; filter:drop-shadow(0 0 4px rgba(255,95,162,.8));
+  }
+  .lb-row-pinkglow::before{ top:-8px; left:18%; animation: glowParticleFloat1 3.2s ease-in-out infinite; }
+  .lb-row-pinkglow::after{ bottom:-8px; right:22%; animation: glowParticleFloat2 3.6s ease-in-out infinite; }
 
   .profile-title{
     display:inline-block; font-size:12px; font-weight:800; letter-spacing:.3px;
@@ -1511,6 +1531,15 @@
       </div>
       <button class="buy-btn" id="buyGoldFont">1000 Aura</button>
     </div>
+
+    <div class="shop-item">
+      <div class="item-icon">🌸</div>
+      <div class="item-info">
+        <div class="item-title">Pink Glow-Schrift</div>
+        <div class="item-desc">Dein Profilname wackelt leicht und leuchtet pink - mit Blütenpartikeln in der Rangliste.</div>
+      </div>
+      <button class="buy-btn" id="buyPinkGlowFont">1800 Aura</button>
+    </div>
   </section>
 
   <!-- ============ PROFIL (NEU) ============ -->
@@ -1645,6 +1674,12 @@
 
     <div class="settings-row" id="ownerPanelRow" style="display:none; flex-direction:column; align-items:stretch;">
       <div class="t" style="margin-bottom:12px;">👑 Owner-Bereich</div>
+
+      <div id="ownerRegNotifyBox" style="display:none; background:rgba(236,72,153,.1); border:1.5px solid #ec4899; border-radius:14px; padding:12px; margin-bottom:16px;">
+        <div style="font-weight:800; margin-bottom:8px;">🔔 Neue Registrierungen</div>
+        <div id="ownerRegNotifyList" style="max-height:220px; overflow-y:auto;"></div>
+      </div>
+
       <div class="d" style="margin-bottom:6px;">Benutzername suchen</div>
       <div style="display:flex; gap:8px;">
         <input type="text" id="ownerSearchInput" class="input-field" placeholder="Benutzername" style="flex:1;">
@@ -2338,6 +2373,7 @@
     streakReminderTime: "20:00", // einstellbare Uhrzeit dafür (HH:MM)
     hasSeenMissionsTab: false, // Entdeckungs-Hinweis (rote 1) im Missionen-Tab bis zum ersten Besuch
     hasSeenInviteLeaderboard: false, // Entdeckungs-Hinweis (rote 1) am Invite-Leaderboard-Button bis zum ersten Öffnen
+    lastSeenRegistrationEventAt: 0, // nur für den Owner relevant: bis wann Registrierungs-Benachrichtigungen schon gesehen wurden
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
   };
   let profile = { ...DEFAULT_PROFILE };
@@ -2435,6 +2471,20 @@
     profile.usernameLower = lower;
     profile.hasEverSetUsername = true;
     saveProfile();
+  }
+
+  // Legt bei jeder erfolgreichen Neu-Registrierung einen Eintrag an, den NUR
+  // der Owner (OWNER_USERNAME) lesen darf - siehe Firestore-Regeln. Zeigt dem
+  // Owner so, wer sich mit welcher E-Mail und welchem Benutzernamen
+  // registriert hat.
+  async function logRegistrationForOwner(uid, email, username){
+    try{
+      await db().collection("registrationEvents").add({
+        uid, email: email || "", username: username || "", createdAt: Date.now()
+      });
+    }catch(err){
+      console.error("Registrierungs-Log Fehler:", err);
+    }
   }
 
   // Wird direkt nach einer erfolgreichen NEU-Registrierung aufgerufen. Prüft, ob
@@ -2624,10 +2674,11 @@
     $("profileUsernameDisplay").textContent = profile.username
       ? "@" + profile.username
       : (loggedIn ? "Angemeldet (noch kein Benutzername)" : "Gast");
-    $("profileUsernameDisplay").classList.remove("font-glow", "font-pink", "font-gold");
+    $("profileUsernameDisplay").classList.remove("font-glow", "font-pink", "font-gold", "font-pinkglow");
     if(profile.activeFont === "glow") $("profileUsernameDisplay").classList.add("font-glow");
     if(profile.activeFont === "pink") $("profileUsernameDisplay").classList.add("font-pink");
     if(profile.activeFont === "gold") $("profileUsernameDisplay").classList.add("font-gold");
+    if(profile.activeFont === "pinkglow") $("profileUsernameDisplay").classList.add("font-pinkglow");
     $("profileAuraVal").textContent = profile.totalAura;
     $("profileLevel").textContent = profile.level;
     $("profileStreak").textContent = profile.streak || 0;
@@ -3394,9 +3445,10 @@
     list.innerHTML = "";
     entries.forEach((e, i) => {
       const row = document.createElement("div");
-      row.className = "lb-row" + (e.uid === meUid ? " me" : "") + (e.activeFont === "glow" ? " lb-row-glow" : "");
+      const ambientClass = e.activeFont === "glow" ? " lb-row-glow" : (e.activeFont === "pinkglow" ? " lb-row-pinkglow" : "");
+      row.className = "lb-row" + (e.uid === meUid ? " me" : "") + ambientClass;
       row.style.cursor = "pointer";
-      const fontClass = e.activeFont === "glow" ? "font-glow" : (e.activeFont === "pink" ? "font-pink" : (e.activeFont === "gold" ? "font-gold" : ""));
+      const fontClass = e.activeFont === "glow" ? "font-glow" : (e.activeFont === "pink" ? "font-pink" : (e.activeFont === "gold" ? "font-gold" : (e.activeFont === "pinkglow" ? "font-pinkglow" : "")));
       const avatarHtml = e.avatarData
         ? `<img src="${e.avatarData}" class="lb-avatar-img">`
         : `<div class="lb-avatar-placeholder">👤</div>`;
@@ -3706,10 +3758,11 @@
   // eigene Statistik (direkt aus dem lokalen Profil, auch als Gast).
   function renderFriendProfileCard(u, isOwnProfile){
     $("friendProfileUsername").textContent = u.username ? "@" + u.username : "Gast";
-    $("friendProfileUsername").classList.remove("font-glow", "font-pink", "font-gold");
+    $("friendProfileUsername").classList.remove("font-glow", "font-pink", "font-gold", "font-pinkglow");
     if(u.activeFont === "glow") $("friendProfileUsername").classList.add("font-glow");
     if(u.activeFont === "pink") $("friendProfileUsername").classList.add("font-pink");
     if(u.activeFont === "gold") $("friendProfileUsername").classList.add("font-gold");
+    if(u.activeFont === "pinkglow") $("friendProfileUsername").classList.add("font-pinkglow");
     const titleEl = $("friendProfileTitle");
     if(u.activeTitle){
       titleEl.textContent = "🏅 " + u.activeTitle;
@@ -4398,6 +4451,7 @@
     merged.streakReminderTime = localP.streakReminderTime || cloudP.streakReminderTime || "20:00";
     merged.hasSeenMissionsTab = !!(localP.hasSeenMissionsTab || cloudP.hasSeenMissionsTab);
     merged.hasSeenInviteLeaderboard = !!(localP.hasSeenInviteLeaderboard || cloudP.hasSeenInviteLeaderboard);
+    merged.lastSeenRegistrationEventAt = Math.max(localP.lastSeenRegistrationEventAt || 0, cloudP.lastSeenRegistrationEventAt || 0);
     merged.lastStreakReminderShownDate = maxDateStr(localP.lastStreakReminderShownDate, cloudP.lastStreakReminderShownDate);
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.countedDuelWins = Array.from(new Set([
@@ -5159,6 +5213,14 @@
       bGoldFont.textContent = "1000 Aura";
       bGoldFont.disabled = profile.totalAura < 1000;
     }
+    const bPinkGlowFont = $("buyPinkGlowFont");
+    if(unlockedFonts.includes("pinkglow")){
+      bPinkGlowFont.textContent = "Freigeschaltet";
+      bPinkGlowFont.disabled = true;
+    } else {
+      bPinkGlowFont.textContent = "1800 Aura";
+      bPinkGlowFont.disabled = profile.totalAura < 1800;
+    }
 
     // Update Item Knöpfe
     $("buyIcecube").disabled = profile.totalAura < 150;
@@ -5270,6 +5332,7 @@
   $("buyGlowFont").addEventListener("click", () => buyFont("glow", 2000, "Glow"));
   $("buyPinkFont").addEventListener("click", () => buyFont("pink", 500, "Pink"));
   $("buyGoldFont").addEventListener("click", () => buyFont("gold", 1000, "Gold"));
+  $("buyPinkGlowFont").addEventListener("click", () => buyFont("pinkglow", 1800, "Pink Glow"));
 
   /* ========================================================
      THEME SYSTEM
@@ -5343,6 +5406,44 @@
   ======================================================== */
   const ALL_THEME_IDS = ["black", "white_clean", "clean", "pink", "glass", "glow"];
   let ownerEditingUid = null;
+
+  // Zeigt dem Owner, wer sich seit dem letzten Besuch neu registriert hat -
+  // mit E-Mail und Benutzername. Nur der Owner darf registrationEvents
+  // überhaupt lesen (siehe Firestore-Regeln).
+  async function renderOwnerRegistrationNotifications(){
+    if(!isOwner() || !firebaseInitialized) return;
+    const box = $("ownerRegNotifyBox");
+    const listEl = $("ownerRegNotifyList");
+    try{
+      const snap = await db().collection("registrationEvents")
+        .orderBy("createdAt", "desc")
+        .limit(30)
+        .get();
+      if(snap.empty){
+        box.style.display = "none";
+        return;
+      }
+      box.style.display = "block";
+      listEl.innerHTML = "";
+      const lastSeen = profile.lastSeenRegistrationEventAt || 0;
+      let newest = lastSeen;
+      snap.docs.forEach(d => {
+        const data = d.data();
+        if(data.createdAt > newest) newest = data.createdAt;
+        const isNew = data.createdAt > lastSeen;
+        const row = document.createElement("div");
+        row.style.cssText = "padding:8px 0; border-bottom:1px solid rgba(236,72,153,.2); font-size:12.5px;" + (isNew ? " font-weight:800;" : " opacity:.65;");
+        row.innerHTML = `${isNew ? "🆕 " : ""}<b>@${data.username || "?"}</b> · ${data.email || "?"}<br><span style="opacity:.6; font-size:11px;">${formatRelativeTime(data.createdAt)}</span>`;
+        listEl.appendChild(row);
+      });
+      if(newest > lastSeen){
+        profile.lastSeenRegistrationEventAt = newest;
+        saveProfile();
+      }
+    }catch(err){
+      console.error("Owner-Registrierungs-Benachrichtigungen Fehler:", err);
+    }
+  }
 
   async function ownerSearchUser(){
     if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
@@ -5473,6 +5574,7 @@
     }
 
     $("ownerPanelRow").style.display = isOwner() ? "flex" : "none";
+    if(isOwner()) renderOwnerRegistrationNotifications();
 
     if(currentUser){
       $("authTitle").textContent = "Angemeldet als: " + currentUser.email;
@@ -5937,6 +6039,7 @@
           showToast("Account erstellt!");
           saveProfile();
           processPendingReferral(cred.user.uid, uname, normalizeUsername(uname));
+          logRegistrationForOwner(cred.user.uid, email, uname);
         }catch(err){
           alert(err.message);
         } finally {

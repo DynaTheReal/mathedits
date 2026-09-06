@@ -662,84 +662,6 @@
     100%{ transform:scale(.2) rotate(20deg); opacity:0; }
   }
 
-  /* ---------- Erster-Streak-Feiermoment (NEU) ---------- */
-  .fsa-overlay{
-    display:none; position:fixed; inset:0; z-index:500;
-    flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; padding:24px; overflow:hidden;
-  }
-  .fsa-overlay.show{ display:flex; }
-  .fsa-bg-fade{
-    position:absolute; inset:0; background:#000; opacity:0;
-    transition:opacity 1.1s ease; pointer-events:none;
-  }
-  .fsa-bg-fade.show{ opacity:1; }
-  .fsa-flame{
-    font-size:80px; cursor:pointer; user-select:none;
-    filter:grayscale(1) brightness(.5);
-    transition: filter 1s ease, font-size 1.4s cubic-bezier(.34,1.1,.5,1),
-                transform 1.4s cubic-bezier(.34,1.1,.5,1), opacity .8s ease;
-  }
-  .fsa-flame.lit{
-    filter:grayscale(0) brightness(1) drop-shadow(0 0 40px rgba(255,140,0,.9)) drop-shadow(0 0 90px rgba(255,70,0,.55));
-    animation: fsaFlameFlicker 1.1s ease-in-out infinite;
-  }
-  .fsa-flame.huge{
-    font-size:280px;
-    filter:grayscale(0) brightness(1.15) drop-shadow(0 0 100px rgba(255,140,0,1)) drop-shadow(0 0 180px rgba(255,60,0,.85));
-  }
-  .fsa-flame.rise{
-    font-size:72px;
-    filter:grayscale(0) brightness(1) drop-shadow(0 0 34px rgba(255,140,0,.85));
-    animation: fsaFlameFlicker 1.1s ease-in-out infinite;
-  }
-  @keyframes fsaFlameFlicker{
-    0%,100%{ transform:scale(1) rotate(-2deg); }
-    50%{ transform:scale(1.07) rotate(2deg); }
-  }
-  .fsa-text{
-    color:#fff; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:20px;
-    margin-top:22px; transition:opacity .6s ease, font-size .6s ease;
-  }
-  .fsa-subtext{
-    color:#ffb46b; font-size:14px; margin-top:8px; font-weight:700;
-    min-height:18px;
-  }
-  /* Die ECHTE Streak-Flamme im Home-Hero wächst über 5 Sekunden riesig. */
-  .fsa-real-flame-grow{
-    display:inline-block;
-    animation: fsaRealFlameGrow 5s ease-in-out forwards;
-    filter: drop-shadow(0 0 30px rgba(255,120,0,.9));
-  }
-  @keyframes fsaRealFlameGrow{
-    0%{ transform:scale(1); }
-    100%{ transform:scale(7); }
-  }
-  /* Kleine, flackernde Feuer-Icons obendrauf für GUI-Elemente, die gerade
-     brennen (Phase 1, 0-5s). */
-  .fsa-fire-lick{
-    position:absolute; top:-16px; left:50%; transform:translateX(-50%);
-    font-size:22px; pointer-events:none; z-index:50;
-    animation: fsaFireLickFlicker .35s ease-in-out infinite alternate;
-  }
-  @keyframes fsaFireLickFlicker{
-    0%{ transform:translateX(-50%) scale(1) rotate(-6deg); }
-    100%{ transform:translateX(-50%) scale(1.2) rotate(6deg); }
-  }
-  /* Phase 2 (5-7s): schwarz/verkohlt */
-  .fsa-gui-charred{
-    filter: brightness(0) !important;
-    transition: filter 1s ease;
-  }
-  /* Phase 3 (7-8s): wackeln */
-  .fsa-gui-wobble{
-    animation: fsaGuiWobble .14s ease-in-out infinite;
-  }
-  @keyframes fsaGuiWobble{
-    0%,100%{ transform:translateX(-3px) rotate(-1.5deg); }
-    50%{ transform:translateX(3px) rotate(1.5deg); }
-  }
-
   .hearts{display:flex; gap:3px;}
   .heart{font-size:15px; filter:grayscale(1); opacity:.25; transition: all .3s;}
   .heart.full{filter:none; opacity:1;}
@@ -1694,6 +1616,8 @@
       <div style="font-size:12px; opacity:.75;">Jeden Tag neu · Lektionen abschließen für Truhen</div>
     </div>
 
+    <button class="btn btn-primary" id="openInviteLeaderboardBtn" style="width:100%; margin-bottom:16px; font-size:15.5px; padding:15px;">🏆 Invite Leaderboard</button>
+
     <div id="missionsList"></div>
   </section>
 
@@ -2010,6 +1934,32 @@
   </div>
 
   <!-- Nachrichten: Übersicht der Freunde mit ungelesenen Nachrichten (NEU) -->
+  <!-- Invite Leaderboard (NEU): Rangliste + Einladungslink, Top 3 bekommen eine Truhe -->
+  <div class="overlay" id="overlayInviteLeaderboard">
+    <div class="modal-card" style="max-width:420px;">
+      <div style="font-size:36px; margin-bottom:6px;">🏆</div>
+      <h2>Invite Leaderboard</h2>
+      <p>Lade Freunde ein - wer die meisten wirbt, gewinnt! 🥇 Platz 1: legendäre Truhe · 🥈 Platz 2: epische Truhe · 🥉 Platz 3: eine Truhe.</p>
+
+      <div class="referral-banner" style="margin-top:10px;">
+        <div class="referral-banner-title">🎁 500 Aura gratis!</div>
+        <div class="referral-banner-sub">Lade einen Freund über deinen persönlichen Link ein. Registriert er sich genau darüber, bekommst du 500 Aura geschenkt und zählst einen Punkt fürs Leaderboard.</div>
+        <div class="add-friend-row" id="inviteLbLinkRow" style="display:none;">
+          <input type="text" id="inviteLbLinkInput" class="input-field" readonly>
+          <button class="btn btn-primary btn-small" id="copyInviteLbBtn">Kopieren</button>
+        </div>
+        <div id="inviteLbLoggedOutMsg" class="empty-hint" style="display:none; margin-top:2px; text-align:left;">
+          Melde dich in den Einstellungen an und wähle einen Benutzernamen, um deinen Einladungslink zu bekommen.
+        </div>
+      </div>
+
+      <div class="levels-heading" style="text-align:left; margin-top:16px;">Rangliste</div>
+      <div id="inviteLeaderboardList" style="max-height:40vh; overflow-y:auto;"></div>
+
+      <button class="btn btn-ghost" id="closeInviteLeaderboard" style="margin-top:16px;">Schließen</button>
+    </div>
+  </div>
+
   <div class="overlay" id="overlayMessagesList">
     <div class="modal-card" style="max-width:400px;">
       <div style="font-size:36px; margin-bottom:6px;">💬</div>
@@ -2114,16 +2064,6 @@
   <!-- Letztes Leben verloren: Herz zerbricht (NEU) -->
   <div class="scare-overlay" id="overlayGameOverScare">
     <div class="gameover-heart" id="gameOverHeartIcon">❤️</div>
-  </div>
-
-  <!-- Erster-Streak-Feiermoment (NEU) - erscheint nur EINMAL pro Account,
-       direkt nach der allerersten abgeschlossenen Lektion. -->
-  <div class="fsa-overlay" id="overlayFirstStreak">
-    <div class="fsa-bg-fade" id="fsaBgFade"></div>
-    <div class="fsa-flame" id="fsaFlame">🔥</div>
-    <div class="fsa-text" id="fsaText">Tippe, um einen Streak zu starten</div>
-    <div class="fsa-subtext" id="fsaSubtext"></div>
-    <button class="btn btn-primary" id="fsaContinueBtn" style="display:none;">Weiter</button>
   </div>
 
   <!-- App-Start-Intro (NEU) -->
@@ -2360,7 +2300,9 @@
     shareChest: null,
     lastFirebaseUid: null, // erkennt einen Accountwechsel auf demselben Gerät, damit kein veralteter Benutzername hängen bleibt
     hasEverSetUsername: false, // Absicherung gegen wiederholte Benutzername-Abfrage bei kurzzeitigen Sync-/Speicher-Aussetzern (z.B. iOS)
-    hasSeenFirstStreakAnimation: false // Erster-Streak-Feiermoment nach der allerersten Lektion, erscheint nur einmal
+    referralCount: 0, // Anzahl erfolgreich geworbener Freunde - Basis für das Invite Leaderboard
+    inviteChests: { rank1: null, rank2: null, rank3: null }, // Truhen für Platz 1-3 im Invite Leaderboard
+    claimedInviteRanks: [] // welche Platzierungs-Truhen (1/2/3) schon jemals vergeben wurden
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -2378,6 +2320,8 @@
           claimedReferralRewardIds: parsed.claimedReferralRewardIds || [],
           unlockedFrames: parsed.unlockedFrames || ["none"],
           unlockedFonts: parsed.unlockedFonts || ["none"],
+          inviteChests: parsed.inviteChests || { rank1: null, rank2: null, rank3: null },
+          claimedInviteRanks: parsed.claimedInviteRanks || [],
           achievements: parsed.achievements || {},
           friendUsernameCache: parsed.friendUsernameCache || {},
           countedDuelWins: parsed.countedDuelWins || []
@@ -2553,6 +2497,7 @@
       if(newIds.length === 0) return;
       profile.totalAura += totalCredit;
       profile.claimedReferralRewardIds = [...(profile.claimedReferralRewardIds || []), ...newIds];
+      profile.referralCount = (profile.referralCount || 0) + newIds.length;
       saveProfile();
       showToast(`🎉 +${totalCredit} Aura durch Einladungen erhalten!`);
       renderShop();
@@ -3787,6 +3732,12 @@
       if(chest && !chest.claimed) count++;
     });
     if(profile.shareChest && !profile.shareChest.claimed) count++;
+    if(profile.inviteChests){
+      ["rank1","rank2","rank3"].forEach(k => {
+        const c = profile.inviteChests[k];
+        if(c && !c.claimed) count++;
+      });
+    }
     return count;
   }
 
@@ -3822,10 +3773,13 @@
     if(sourceType === "share"){
       return profile.shareChest;
     }
+    if(sourceType === "invite"){
+      return profile.inviteChests ? profile.inviteChests[sourceId] : null;
+    }
     return null;
   }
 
-  let activeChestSource = null; // { type: 'mission'|'achievement'|'share', id }
+  let activeChestSource = null; // { type: 'mission'|'achievement'|'share'|'invite', id }
 
   function openChestModal(sourceType, sourceId){
     const chest = getChestRef(sourceType, sourceId);
@@ -3840,6 +3794,8 @@
       title = def ? def.label : title;
     } else if(sourceType === "share"){
       title = "Danke fürs Teilen!";
+    } else if(sourceType === "invite"){
+      title = sourceId === "rank1" ? "🥇 Platz 1 im Invite Leaderboard" : sourceId === "rank2" ? "🥈 Platz 2 im Invite Leaderboard" : "🥉 Platz 3 im Invite Leaderboard";
     }
     $("chestModalTitle").textContent = title;
     renderChestModal();
@@ -3993,6 +3949,67 @@
     }
   }
 
+  // Invite Leaderboard (NEU): zeigt, wer die meisten Freunde erfolgreich
+  // geworben hat (profile.referralCount, siehe claimPendingReferralRewards).
+  // Die aktuellen Top 3 bekommen automatisch eine passende Truhe, falls sie
+  // diesen Platz noch nicht belohnt bekommen haben.
+  async function openInviteLeaderboard(){
+    $("overlayInviteLeaderboard").classList.add("show");
+    renderReferralUI($("inviteLbLinkRow"), $("inviteLbLinkInput"), $("inviteLbLoggedOutMsg"));
+
+    const listEl = $("inviteLeaderboardList");
+    listEl.innerHTML = "<div class='empty-hint'>Lade Rangliste …</div>";
+    if(!firebaseInitialized){
+      listEl.innerHTML = "<div class='empty-hint'>Nur online verfügbar - bitte einloggen.</div>";
+      return;
+    }
+    try{
+      const snap = await db().collection("users")
+        .orderBy("referralCount", "desc")
+        .limit(20)
+        .get();
+      const entries = snap.docs
+        .map(d => ({ ...d.data(), uid: d.id }))
+        .filter(e => !!e.username && (e.referralCount || 0) > 0);
+
+      listEl.innerHTML = "";
+      if(entries.length === 0){
+        listEl.innerHTML = "<div class='empty-hint'>Noch niemand hat Freunde eingeladen. Sei die/der Erste!</div>";
+        return;
+      }
+      entries.forEach((e, i) => {
+        const row = document.createElement("div");
+        row.className = "lb-row" + (currentUser && e.uid === currentUser.uid ? " me" : "");
+        row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-name">@${e.username}</div><div class="lb-aura">👥 ${e.referralCount}</div>`;
+        listEl.appendChild(row);
+      });
+
+      if(currentUser){
+        const myRank = entries.findIndex(e => e.uid === currentUser.uid) + 1; // 0, falls nicht gefunden
+        if(myRank >= 1 && myRank <= 3){
+          grantInviteRankReward(myRank);
+        }
+      }
+    }catch(err){
+      console.error("Invite Leaderboard Fehler:", err);
+      listEl.innerHTML = "<div class='empty-hint'>Rangliste konnte nicht geladen werden.</div>";
+    }
+  }
+
+  function grantInviteRankReward(rank){
+    const claimed = profile.claimedInviteRanks || [];
+    if(claimed.includes(rank)) return;
+    const rankKey = "rank" + rank;
+    const tier = rank === 1 ? "legendary" : rank === 2 ? "epic" : "standard";
+    profile.inviteChests = profile.inviteChests || { rank1: null, rank2: null, rank3: null };
+    profile.inviteChests[rankKey] = { tier, attemptsUsed: 0, claimed: false };
+    profile.claimedInviteRanks = [...claimed, rank];
+    saveProfile();
+    updateMissionsBadge();
+    renderMissions();
+    showToast(`🏆 Platz ${rank} beim Einladen! Eine Truhe wartet in den Missionen.`);
+  }
+
   function renderMissions(){
     ensureDailyMissions();
     checkAchievements();
@@ -4085,6 +4102,23 @@
         ${chestHtml}
       `;
       wrap.appendChild(card);
+    }
+
+    const INVITE_RANK_LABELS = { rank1: "🥇 Platz 1 im Invite Leaderboard", rank2: "🥈 Platz 2 im Invite Leaderboard", rank3: "🥉 Platz 3 im Invite Leaderboard" };
+    if(profile.inviteChests){
+      ["rank1","rank2","rank3"].forEach(rankKey => {
+        const chest = profile.inviteChests[rankKey];
+        if(!chest) return;
+        const card = document.createElement("div");
+        card.className = "mission-card";
+        const chestHtml = buildChestHtml(chest, "invite", rankKey, "");
+        card.innerHTML = `
+          <div class="m-title">${INVITE_RANK_LABELS[rankKey]}</div>
+          <div class="m-sub">Belohnung fürs Werben von Freunden</div>
+          ${chestHtml}
+        `;
+        wrap.appendChild(card);
+      });
     }
 
     wrap.querySelectorAll(".chest-modal-open-btn").forEach(btn => {
@@ -4202,7 +4236,17 @@
     merged.comboLossCount = Math.max(localP.comboLossCount || 0, cloudP.comboLossCount || 0);
     merged.hasSeenSharePrompt = !!(localP.hasSeenSharePrompt || cloudP.hasSeenSharePrompt);
     merged.hasEverSetUsername = !!(localP.hasEverSetUsername || cloudP.hasEverSetUsername || cloudP.username);
-    merged.hasSeenFirstStreakAnimation = !!(localP.hasSeenFirstStreakAnimation || cloudP.hasSeenFirstStreakAnimation);
+    merged.referralCount = Math.max(localP.referralCount || 0, cloudP.referralCount || 0);
+    merged.claimedInviteRanks = Array.from(new Set([
+      ...(localP.claimedInviteRanks || []),
+      ...(cloudP.claimedInviteRanks || [])
+    ]));
+    const lic = localP.inviteChests || {}, cic = cloudP.inviteChests || {};
+    merged.inviteChests = {
+      rank1: lic.rank1 || cic.rank1 || null,
+      rank2: lic.rank2 || cic.rank2 || null,
+      rank3: lic.rank3 || cic.rank3 || null
+    };
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.countedDuelWins = Array.from(new Set([
       ...(localP.countedDuelWins || []),
@@ -5344,6 +5388,13 @@
   /* Einladungslink (Shop-Banner + einmaliger Popup) */
   $("copyReferralBtn").addEventListener("click", () => {
     copyReferralLink($("referralLinkInput"));
+  });
+  $("openInviteLeaderboardBtn").addEventListener("click", openInviteLeaderboard);
+  $("closeInviteLeaderboard").addEventListener("click", () => {
+    $("overlayInviteLeaderboard").classList.remove("show");
+  });
+  $("copyInviteLbBtn").addEventListener("click", () => {
+    copyReferralLink($("inviteLbLinkInput"));
   });
   $("copyReferralPromoBtn").addEventListener("click", () => {
     copyReferralLink($("referralPromoLinkInput"));
@@ -6535,160 +6586,11 @@
     }, 220);
   }
 
-  // Erster-Streak-Feiermoment: läuft nur EINMAL pro Account, direkt nach der
-  // allerersten abgeschlossenen Lektion.
-  // Ablauf: sofort schwarzer Bildschirm mit einer erloschenen Flamme zum
-  // Antippen ("Tippe, um deinen Streak zu starten") -> Antippen macht Schwarz
-  // + Flamme sofort weg, man ist normal im Home-Menü -> DORT wächst die
-  // ECHTE Streak-Flamme immer größer, während die GUI-Elemente drumherum
-  // (Level-Kästchen, Herzen, Start-Button, Navigation, Topbar) 5 Sekunden
-  // lang wirklich Feuer fangen -> werden 2 Sekunden lang schwarz/verkohlt ->
-  // wackeln 1 Sekunde -> fallen über 2 Sekunden alle herunter -> Text
-  // "Das ist dein Streak, beschütze ihn." -> Weiter-Button bringt alles
-  // wieder normal zurück.
-  function playFirstStreakCelebration(){
-    showScreen("home");
-    renderHome();
-
-    const overlay = $("overlayFirstStreak");
-    const bgFade = $("fsaBgFade");
-    const flame = $("fsaFlame");
-    const textEl = $("fsaText");
-    const subEl = $("fsaSubtext");
-    const btn = $("fsaContinueBtn");
-
-    flame.className = "fsa-flame";
-    flame.style.display = "";
-    flame.style.opacity = "1";
-    flame.style.transform = "";
-    textEl.textContent = "Tippe, um deinen Streak zu starten";
-    textEl.style.opacity = "1";
-    textEl.style.fontSize = "20px";
-    subEl.textContent = "";
-    btn.style.display = "none";
-    overlay.classList.add("show");
-
-    // Sofort schwarz, ohne Einblenden - man soll das Home-Menü hier noch
-    // NICHT sehen, nur die erloschene Flamme auf schwarzem Grund.
-    bgFade.style.transition = "none";
-    bgFade.classList.add("show");
-    void bgFade.offsetWidth; // Reflow erzwingen, damit die Transition danach wieder greift
-    bgFade.style.transition = "";
-
-    function onIgnite(){
-      flame.removeEventListener("click", onIgnite);
-      // Antippen: schwarzer Hintergrund und graue Flamme verschwinden sofort,
-      // man ist ganz normal im Home-Menü.
-      overlay.classList.remove("show");
-      bgFade.classList.remove("show");
-      startRealFlameBurnSequence();
-    }
-    flame.addEventListener("click", onIgnite);
-
-    btn.onclick = () => {
-      cleanupBurnSequence();
-      goHomeWithTransition();
-    };
-  }
-
-  // Lässt die ECHTE Streak-Flamme im Home-Hero-Bereich größer werden und die
-  // umliegenden GUI-Elemente in vier zeitlich genauen Phasen reagieren:
-  // 5s wirklich brennen -> 2s schwarz/verkohlt -> 1s wackeln -> 2s abfallen.
-  function startRealFlameBurnSequence(){
-    const realFlame = document.querySelector("#heroFlame .flame-icon");
-    const guiTargets = [
-      ...document.querySelectorAll("#screen-home .stat-pill"),
-      document.querySelector("#screen-home .topbar"),
-      $("startBtn"),
-      $("bottomNav")
-    ].filter(Boolean);
-
-    if(realFlame) realFlame.classList.add("fsa-real-flame-grow");
-
-    // Phase 1 (0-5s): GUI-Elemente fangen sichtbar Feuer (kleine Flammen-Icons
-    // obendrauf, die flackern).
-    guiTargets.forEach(el => {
-      const cs = getComputedStyle(el);
-      if(cs.position === "static") el.style.position = "relative";
-      const lick = document.createElement("div");
-      lick.className = "fsa-fire-lick fsa-fire-lick-temp";
-      lick.textContent = "🔥";
-      el.appendChild(lick);
-    });
-
-    // Phase 2 (5-7s): schwarz/verkohlt
-    setTimeout(() => {
-      guiTargets.forEach(el => el.classList.add("fsa-gui-charred"));
-    }, 5000);
-
-    // Phase 3 (7-8s): wackeln
-    setTimeout(() => {
-      guiTargets.forEach(el => el.classList.add("fsa-gui-wobble"));
-    }, 7000);
-
-    // Phase 4 (8-10s): alle fallen herunter
-    setTimeout(() => {
-      guiTargets.forEach((el, i) => {
-        el.classList.remove("fsa-gui-wobble");
-        const delay = i * 100;
-        el.style.transition = `transform 1.7s cubic-bezier(.55,0,1,.45) ${delay}ms, opacity 1.7s ease ${delay}ms`;
-        el.style.transform = `translateY(120vh) rotate(${(Math.random()*40-20).toFixed(0)}deg)`;
-        el.style.opacity = "0";
-      });
-    }, 8000);
-
-    // Nach 10s: Textmoment
-    setTimeout(() => {
-      const overlay = $("overlayFirstStreak");
-      const bgFade = $("fsaBgFade");
-      const flame = $("fsaFlame");
-      const textEl = $("fsaText");
-      const subEl = $("fsaSubtext");
-      const btn = $("fsaContinueBtn");
-      flame.style.display = "none";
-      bgFade.style.transition = "none";
-      bgFade.classList.add("show");
-      void bgFade.offsetWidth;
-      bgFade.style.transition = "";
-      overlay.classList.add("show");
-      textEl.textContent = "Das ist dein Streak, beschütze ihn.";
-      textEl.style.fontSize = "22px";
-      textEl.style.opacity = "1";
-      subEl.textContent = "";
-      btn.style.display = "inline-block";
-    }, 10000);
-  }
-
-  // Setzt alle durch die Brenn-Sequenz veränderten Elemente wieder zurück,
-  // bevor es normal zum Home-Menü weitergeht.
-  function cleanupBurnSequence(){
-    document.querySelectorAll(".fsa-fire-lick-temp").forEach(el => el.remove());
-    document.querySelectorAll(".fsa-gui-charred, .fsa-gui-wobble").forEach(el => {
-      el.classList.remove("fsa-gui-charred", "fsa-gui-wobble");
-      el.style.transition = "";
-      el.style.transform = "";
-      el.style.opacity = "";
-    });
-    const realFlame = document.querySelector("#heroFlame .flame-icon");
-    if(realFlame) realFlame.classList.remove("fsa-real-flame-grow");
-    $("overlayFirstStreak").classList.remove("show");
-    $("fsaBgFade").classList.remove("show");
-  }
-
   $("resultContinue").addEventListener("click", () => {
-    function proceed(){
-      if(!profile.hasSeenFirstStreakAnimation){
-        profile.hasSeenFirstStreakAnimation = true;
-        saveProfile();
-        playFirstStreakCelebration();
-      } else {
-        goHomeWithTransition();
-      }
-    }
     if(lastLessonGainedProgress){
-      flyLevelPoint(() => proceed());
+      flyLevelPoint(() => goHomeWithTransition());
     } else {
-      proceed();
+      goHomeWithTransition();
     }
   });
 

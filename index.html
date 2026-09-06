@@ -187,7 +187,8 @@
   [data-theme="glow"] .flame-icon{
     filter: drop-shadow(0 10px 22px rgba(168,85,247,.4));
   }
-  /* Leuchtende Ecken für Karten/Kacheln/Fenster im Glow-Theme */
+  /* Leuchtende Ecken für Karten/Kacheln/Fenster im Glow-Theme - deutlich
+     kräftiger als vorher, plus ein Glow auf den Haupt-Buttons. */
   [data-theme="glow"] .shop-item,
   [data-theme="glow"] .settings-row,
   [data-theme="glow"] .modal-card,
@@ -198,25 +199,55 @@
   [data-theme="glow"] .auth-box,
   [data-theme="glow"] #profileHeaderCard,
   [data-theme="glow"] .mission-card{
-    box-shadow: 0 0 14px rgba(168,85,247,.28), inset 0 0 0 1px rgba(168,85,247,.18);
+    box-shadow: 0 0 22px rgba(168,85,247,.42), inset 0 0 0 1px rgba(168,85,247,.3);
+  }
+  [data-theme="glow"] .btn-primary{
+    box-shadow: 0 0 20px rgba(168,85,247,.6), 0 4px 14px rgba(0,0,0,.3);
+  }
+  [data-theme="glow"] .topbar, [data-theme="glow"] .bottom-nav{
+    box-shadow: 0 0 24px rgba(168,85,247,.3);
   }
   /* Ein paar wenige, langsam schwebende weiße Partikel im Hintergrund */
   [data-theme="glow"] .app::after{
     content:"";
     position:absolute; inset:0; z-index:3; pointer-events:none;
     background-image:
-      radial-gradient(2px 2px at 18% 25%, rgba(255,255,255,.75), transparent 60%),
-      radial-gradient(2px 2px at 75% 15%, rgba(255,255,255,.5), transparent 60%),
-      radial-gradient(1.5px 1.5px at 40% 65%, rgba(255,255,255,.6), transparent 60%),
-      radial-gradient(2px 2px at 85% 55%, rgba(255,255,255,.5), transparent 60%),
-      radial-gradient(1.5px 1.5px at 12% 82%, rgba(255,255,255,.55), transparent 60%),
-      radial-gradient(1.5px 1.5px at 60% 40%, rgba(255,255,255,.4), transparent 60%);
+      radial-gradient(2.5px 2.5px at 18% 25%, rgba(255,255,255,.85), transparent 60%),
+      radial-gradient(2.5px 2.5px at 75% 15%, rgba(255,255,255,.6), transparent 60%),
+      radial-gradient(2px 2px at 40% 65%, rgba(255,255,255,.7), transparent 60%),
+      radial-gradient(2.5px 2.5px at 85% 55%, rgba(255,255,255,.6), transparent 60%),
+      radial-gradient(2px 2px at 12% 82%, rgba(255,255,255,.65), transparent 60%),
+      radial-gradient(2px 2px at 60% 40%, rgba(255,255,255,.5), transparent 60%);
     animation: glowThemeParticlesFloat 14s ease-in-out infinite;
   }
   @keyframes glowThemeParticlesFloat{
     0%,100%{ transform: translateY(0); }
     50%{ transform: translateY(-18px); }
   }
+
+  /* Schwebende "Papierschnipsel" - nur im Glow-Theme sichtbar (NEU) */
+  .glow-decor{
+    position:absolute; inset:0; z-index:4; pointer-events:none; overflow:hidden;
+    opacity:0; transition:opacity .4s ease;
+  }
+  [data-theme="glow"] .glow-decor{ opacity:1; }
+  .glow-paper{
+    position:absolute; width:20px; height:26px; background:rgba(255,255,255,.88);
+    border-radius:3px; box-shadow:0 4px 14px rgba(0,0,0,.3), 0 0 10px rgba(255,255,255,.4);
+  }
+  .glow-paper.p1{ top:10%; left:8%; animation: glowPaperDrift1 18s ease-in-out infinite; }
+  .glow-paper.p2{ top:62%; left:82%; animation: glowPaperDrift2 22s ease-in-out infinite; }
+  .glow-paper.p3{ top:38%; left:88%; width:15px; height:19px; animation: glowPaperDrift1 20s ease-in-out infinite reverse; }
+  .glow-paper.p4{ top:78%; left:14%; width:17px; height:22px; animation: glowPaperDrift2 16s ease-in-out infinite; }
+  @keyframes glowPaperDrift1{
+    0%,100%{ transform: translateY(0) rotate(-12deg); }
+    50%{ transform: translateY(-26px) rotate(-4deg); }
+  }
+  @keyframes glowPaperDrift2{
+    0%,100%{ transform: translateY(0) rotate(16deg); }
+    50%{ transform: translateY(22px) rotate(24deg); }
+  }
+
 
   *{
     box-sizing:border-box; 
@@ -844,6 +875,13 @@
     background:var(--card); border:1px solid var(--border); border-radius:20px;
     padding:18px; margin-top:14px; text-align:left;
   }
+  .referral-signup-banner{
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: var(--accent-text); border-radius:18px; padding:16px 18px;
+    margin-top:14px; text-align:center; font-size:16px; font-weight:800;
+    line-height:1.4; box-shadow:0 10px 26px rgba(0,0,0,.25);
+  }
+  .referral-signup-banner b{ text-decoration:underline; }
   .danger-zone{
     background:rgba(255,77,109,0.08); border:1.5px solid #ff4d6d; border-radius:20px;
     padding:18px; margin-top:14px; text-align:left;
@@ -904,6 +942,27 @@
   .meme-foot{color:var(--text); opacity:.85; font-size:13px; margin-top:14px;}
 
   .complete-emoji{font-size:64px;}
+  .result-emoji-pop-pass{ animation: resultEmojiPopPass .6s cubic-bezier(.34,1.6,.64,1); }
+  @keyframes resultEmojiPopPass{
+    0%{ transform:scale(0) rotate(-20deg); opacity:0; }
+    60%{ transform:scale(1.25) rotate(6deg); opacity:1; }
+    100%{ transform:scale(1) rotate(0deg); opacity:1; }
+  }
+  .result-emoji-pop-fail{ animation: resultEmojiPopFail .5s ease-out; }
+  @keyframes resultEmojiPopFail{
+    0%{ transform:scale(.6) translateY(-10px); opacity:0; }
+    50%{ transform:translateX(-4px); }
+    70%{ transform:translateX(4px); }
+    100%{ transform:scale(1) translateY(0) translateX(0); opacity:1; }
+  }
+  .result-confetti-piece{
+    position:fixed; top:0; left:50%; width:8px; height:8px; border-radius:2px;
+    pointer-events:none; z-index:300; opacity:0;
+  }
+  @keyframes resultConfettiFall{
+    0%{ transform:translate(0,0) rotate(0deg); opacity:1; }
+    100%{ transform:var(--confetti-end); opacity:0; }
+  }
   .complete-title{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:26px; margin:8px 0 4px; color:var(--text);}
   .complete-sub{color:var(--text); opacity:.85; font-size:14px; margin-bottom:20px;}
   .complete-stats{display:flex; gap:10px; margin-bottom:24px;}
@@ -1204,6 +1263,13 @@
 </head>
 <body>
 <div class="app" data-theme="dark" id="app">
+  <!-- Glow-Theme: schwebende "Papierschnipsel"-Deko (NEU) -->
+  <div class="glow-decor" aria-hidden="true">
+    <div class="glow-paper p1"></div>
+    <div class="glow-paper p2"></div>
+    <div class="glow-paper p3"></div>
+    <div class="glow-paper p4"></div>
+  </div>
 
   <!-- ============ HOME ============ -->
   <section class="screen active" id="screen-home">
@@ -1613,6 +1679,10 @@
         <div class="d" id="usernameTextDisplay">Nicht angemeldet / Gast</div>
       </div>
       <button class="btn btn-ghost btn-small" id="goToProfileBtn">Profil</button>
+    </div>
+
+    <div class="referral-signup-banner" id="referralSignupBanner" style="display:none;">
+      🎁 Wenn du dich jetzt registrierst, bekommt <b id="referralSignupUsername">@jemand</b> 500 Aura!
     </div>
 
     <div class="auth-box">
@@ -4923,6 +4993,10 @@
     if($("themeSelect")) $("themeSelect").value = t;
   }
   
+  const THEME_DISPLAY_NAMES = {
+    black: "Black", white_clean: "White Clean", clean: "Clean",
+    pink: "Pink", glass: "Glass", glow: "Glow"
+  };
   function toggleTheme(){
     const unlocked = profile.unlockedThemes || ["black"];
     let curIdx = unlocked.indexOf(profile.theme);
@@ -4930,7 +5004,7 @@
     profile.theme = unlocked[(curIdx + 1) % unlocked.length];
     applyTheme();
     saveProfile();
-    showToast("Design gewechselt!");
+    showToast(`🎨 Design: ${THEME_DISPLAY_NAMES[profile.theme] || profile.theme}`);
   }
   
   $("themeToggle").addEventListener("click", toggleTheme);
@@ -5061,6 +5135,18 @@
       ? "@" + profile.username + (isSuperUser() ? " ⭐" : "")
       : (currentUser ? "Angemeldet (noch kein Benutzername)" : "Nicht angemeldet / Gast");
     $("usernameTextDisplay").textContent = displayName;
+
+    // Einladungs-Hinweis: solange noch kein eigener Account existiert und ein
+    // Einladungscode aussteht, prominent VOR der Registrierung zeigen, was
+    // der einladende Freund dafür bekommt - motiviert eher als eine
+    // Bestätigung erst danach.
+    const refBanner = $("referralSignupBanner");
+    if(!currentUser && pendingReferralCode){
+      $("referralSignupUsername").textContent = "@" + pendingReferralCode;
+      refBanner.style.display = "block";
+    } else {
+      refBanner.style.display = "none";
+    }
     
     // Update Theme Dropdown mit Schloss-Symbolen
     const unlocked = profile.unlockedThemes || ["black"];
@@ -6201,8 +6287,39 @@
       showToast(`✨ Perfekte Lektion! +${perfectBonus} Bonus-Aura`);
     }
 
+    // Kleine, zum Ergebnis passende Animation: fröhliches Reinpoppen +
+    // Konfetti bei Erfolg, sanftes Wackeln bei Misserfolg.
+    const emojiEl = $("resultEmoji");
+    emojiEl.classList.remove("result-emoji-pop-pass", "result-emoji-pop-fail");
+    void emojiEl.offsetWidth; // Reflow erzwingen, damit die Animation bei jeder Lektion neu startet
+    emojiEl.classList.add(passed ? "result-emoji-pop-pass" : "result-emoji-pop-fail");
+    if(passed) spawnResultConfetti();
+
     showScreen("result");
     if(passed) maybeShowShareLessonPrompt();
+  }
+
+  // Ein kurzer, dezenter Konfetti-Burst beim erfolgreichen Abschluss einer
+  // Lektion - ein paar bunte Schnipsel fallen von oben und verschwinden
+  // wieder von selbst (kein Aufräumen von Hand nötig dank der Animation).
+  function spawnResultConfetti(){
+    const colors = ["#c9ff52", "#ec4899", "#a855f7", "#3ee08a", "#ffd700"];
+    const count = 16;
+    for(let i = 0; i < count; i++){
+      const piece = document.createElement("div");
+      piece.className = "result-confetti-piece";
+      const startX = (Math.random() * 80 - 40); // etwas Streuung um die Mitte
+      const endX = startX + (Math.random() * 120 - 60);
+      const endY = 260 + Math.random() * 200;
+      const rot = Math.random() * 480 - 240;
+      piece.style.left = `calc(50% + ${startX}px)`;
+      piece.style.top = "22%";
+      piece.style.background = colors[i % colors.length];
+      piece.style.setProperty("--confetti-end", `translate(${endX - startX}px, ${endY}px) rotate(${rot}deg)`);
+      piece.style.animation = `resultConfettiFall ${1.1 + Math.random()*0.6}s ease-in forwards ${Math.random()*0.15}s`;
+      document.body.appendChild(piece);
+      setTimeout(() => piece.remove(), 2200);
+    }
   }
 
   // Lässt einen kleinen "Level-Punkt" vom Ergebnis-Bildschirm nach oben fliegen,
@@ -6261,15 +6378,22 @@
     }, 550);
   }
 
-  $("resultContinue").addEventListener("click", () => {
-    if(lastLessonGainedProgress){
-      flyLevelPoint(() => {
-        showScreen("home");
-        renderHome();
-      });
-    } else {
+  function goHomeWithTransition(){
+    $("lessonTransitionOverlay").classList.add("show");
+    setTimeout(() => {
       showScreen("home");
       renderHome();
+      setTimeout(() => {
+        $("lessonTransitionOverlay").classList.remove("show");
+      }, 60);
+    }, 220);
+  }
+
+  $("resultContinue").addEventListener("click", () => {
+    if(lastLessonGainedProgress){
+      flyLevelPoint(() => goHomeWithTransition());
+    } else {
+      goHomeWithTransition();
     }
   });
 

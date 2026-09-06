@@ -1675,9 +1675,27 @@
     <div class="settings-row">
       <div class="info">
         <div class="t">🔔 Streak-Erinnerung</div>
-        <div class="d">Erinnert dich um 20 Uhr, falls du deinen Streak an dem Tag noch nicht gemacht hast.</div>
+        <div class="d">Erinnert dich, falls du deinen Streak an dem Tag noch nicht gemacht hast.</div>
       </div>
       <div class="switch" id="streakReminderSwitch"><div class="knob"></div></div>
+    </div>
+
+    <div class="settings-row">
+      <div class="info">
+        <div class="t">Erinnerungs-Uhrzeit</div>
+        <div class="d">Zu welcher Uhrzeit du erinnert werden möchtest.</div>
+      </div>
+      <input type="time" id="streakReminderTimeInput" class="input-field" style="width:110px; flex-shrink:0;" value="20:00">
+    </div>
+
+    <button class="btn btn-primary btn-small" id="allowNotificationsBtn" style="width:100%; margin-top:2px; margin-bottom:14px; display:none;">🔔 Mitteilungen zulassen</button>
+
+    <div class="settings-row" id="installAppRow" style="cursor:pointer; display:none;">
+      <div class="info">
+        <div class="t">📲 App installieren</div>
+        <div class="d">MathEdits wie eine App nutzen, ganz ohne Browser-Leiste.</div>
+      </div>
+      <div style="font-size:20px; opacity:.6;">›</div>
     </div>
 
     <div class="settings-row">
@@ -2313,7 +2331,8 @@
     lastWeeklyRolloverAt: null, // Zeitstempel (ms) des zuletzt verarbeiteten Sonntag-22-Uhr-Grenzwerts
     claimedWeeklyInviteRewardAt: null, // Zeitstempel (ms) des Grenzwerts, für den die Belohnung schon vergeben wurde
     inviteChests: { rank2a: null, rank2b: null, rank3: null }, // Platz 2 = zwei Truhen, Platz 3 = eine Truhe (Platz 1 bekommt direkt Aura)
-    streakReminderEnabled: true, // Erinnerung um 20 Uhr, falls der Streak noch nicht gemacht wurde
+    streakReminderEnabled: true, // Erinnerung, falls der Streak an dem Tag noch nicht gemacht wurde
+    streakReminderTime: "20:00", // einstellbare Uhrzeit dafür (HH:MM)
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
   };
   let profile = { ...DEFAULT_PROFILE };
@@ -4330,6 +4349,7 @@
       rank3: lic.rank3 || cic.rank3 || null
     };
     merged.streakReminderEnabled = (typeof localP.streakReminderEnabled === "boolean") ? localP.streakReminderEnabled : (typeof cloudP.streakReminderEnabled === "boolean" ? cloudP.streakReminderEnabled : true);
+    merged.streakReminderTime = localP.streakReminderTime || cloudP.streakReminderTime || "20:00";
     merged.lastStreakReminderShownDate = maxDateStr(localP.lastStreakReminderShownDate, cloudP.lastStreakReminderShownDate);
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.countedDuelWins = Array.from(new Set([
@@ -5367,6 +5387,8 @@
   function renderSettings(){
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
     $("streakReminderSwitch").classList.toggle("on", profile.streakReminderEnabled !== false);
+    $("streakReminderTimeInput").value = profile.streakReminderTime || "20:00";
+    updateNotificationAndInstallUI();
     const displayName = profile.username
       ? "@" + profile.username + (isSuperUser() ? " ⭐" : "")
       : (currentUser ? "Angemeldet (noch kein Benutzername)" : "Nicht angemeldet / Gast");
@@ -5438,6 +5460,40 @@
     renderSettings();
     if(profile.streakReminderEnabled) requestNotificationPermissionIfNeeded();
   });
+
+  $("streakReminderTimeInput").addEventListener("change", (e) => {
+    profile.streakReminderTime = e.target.value || "20:00";
+    saveProfile();
+  });
+
+  $("allowNotificationsBtn").addEventListener("click", async () => {
+    if(!("Notification" in window)) return;
+    try{ await Notification.requestPermission(); }catch(e){ }
+    updateNotificationAndInstallUI();
+  });
+
+  $("installAppRow").addEventListener("click", () => {
+    if(isIOSDevice()){
+      $("iosInstallBanner").classList.add("show");
+    } else if(isAndroidDevice()){
+      if(deferredAndroidInstallPrompt){
+        $("androidInstallBanner").classList.add("show");
+      } else {
+        showToast("Installation gerade nicht verfügbar - eventuell schon installiert.");
+      }
+    } else {
+      showToast("App-Installation ist nur auf iPhone/iPad/Android verfügbar.");
+    }
+  });
+
+  // Zeigt/versteckt den "Mitteilungen zulassen"-Button (nur solange noch
+  // nicht entschieden) und die "App installieren"-Zeile (nur auf iOS/Android,
+  // und nicht mehr, wenn schon als App installiert).
+  function updateNotificationAndInstallUI(){
+    const notifBtn = $("allowNotificationsBtn");
+    notifBtn.style.display = ("Notification" in window && Notification.permission === "default") ? "block" : "none";
+    $("installAppRow").style.display = (!isRunningStandalone() && (isIOSDevice() || isAndroidDevice())) ? "flex" : "none";
+  }
 
   $("heroFlame").addEventListener("click", () => {
     const n = profile.streak || 0;
@@ -6851,7 +6907,11 @@
     if(!("Notification" in window)) return;
     if(profile.streakReminderEnabled === false) return;
     if(Notification.permission !== "granted") return;
-    if(new Date().getHours() < 20) return;
+    const [rh, rm] = (profile.streakReminderTime || "20:00").split(":").map(n => parseInt(n, 10));
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const reminderMinutes = (rh || 20) * 60 + (rm || 0);
+    if(nowMinutes < reminderMinutes) return;
     if(hasCompletedStreakToday()) return;
     const today = todayStr();
     if(profile.lastStreakReminderShownDate === today) return;

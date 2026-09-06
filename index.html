@@ -187,8 +187,9 @@
   [data-theme="glow"] .flame-icon{
     filter: drop-shadow(0 10px 22px rgba(168,85,247,.4));
   }
-  /* Leuchtende Ecken für Karten/Kacheln/Fenster im Glow-Theme - deutlich
-     kräftiger als vorher, plus ein Glow auf den Haupt-Buttons. */
+  /* Leuchtende Ecken für Karten/Kacheln/Fenster im Glow-Theme, mit kleinen
+     Mini-Punkten NUR direkt um den leuchtenden Rand herum (kein Hintergrund-
+     Partikelfeld, keine frei herumschwebende Deko mehr). */
   [data-theme="glow"] .shop-item,
   [data-theme="glow"] .settings-row,
   [data-theme="glow"] .modal-card,
@@ -200,6 +201,8 @@
   [data-theme="glow"] #profileHeaderCard,
   [data-theme="glow"] .mission-card{
     box-shadow: 0 0 22px rgba(168,85,247,.42), inset 0 0 0 1px rgba(168,85,247,.3);
+    outline: 2px dotted rgba(255,255,255,.5);
+    outline-offset: 3px;
   }
   [data-theme="glow"] .btn-primary{
     box-shadow: 0 0 20px rgba(168,85,247,.6), 0 4px 14px rgba(0,0,0,.3);
@@ -207,47 +210,6 @@
   [data-theme="glow"] .topbar, [data-theme="glow"] .bottom-nav{
     box-shadow: 0 0 24px rgba(168,85,247,.3);
   }
-  /* Ein paar wenige, langsam schwebende weiße Partikel im Hintergrund */
-  [data-theme="glow"] .app::after{
-    content:"";
-    position:absolute; inset:0; z-index:3; pointer-events:none;
-    background-image:
-      radial-gradient(2.5px 2.5px at 18% 25%, rgba(255,255,255,.85), transparent 60%),
-      radial-gradient(2.5px 2.5px at 75% 15%, rgba(255,255,255,.6), transparent 60%),
-      radial-gradient(2px 2px at 40% 65%, rgba(255,255,255,.7), transparent 60%),
-      radial-gradient(2.5px 2.5px at 85% 55%, rgba(255,255,255,.6), transparent 60%),
-      radial-gradient(2px 2px at 12% 82%, rgba(255,255,255,.65), transparent 60%),
-      radial-gradient(2px 2px at 60% 40%, rgba(255,255,255,.5), transparent 60%);
-    animation: glowThemeParticlesFloat 14s ease-in-out infinite;
-  }
-  @keyframes glowThemeParticlesFloat{
-    0%,100%{ transform: translateY(0); }
-    50%{ transform: translateY(-18px); }
-  }
-
-  /* Schwebende "Papierschnipsel" - nur im Glow-Theme sichtbar (NEU) */
-  .glow-decor{
-    position:absolute; inset:0; z-index:4; pointer-events:none; overflow:hidden;
-    opacity:0; transition:opacity .4s ease;
-  }
-  [data-theme="glow"] .glow-decor{ opacity:1; }
-  .glow-paper{
-    position:absolute; width:20px; height:26px; background:rgba(255,255,255,.88);
-    border-radius:3px; box-shadow:0 4px 14px rgba(0,0,0,.3), 0 0 10px rgba(255,255,255,.4);
-  }
-  .glow-paper.p1{ top:10%; left:8%; animation: glowPaperDrift1 18s ease-in-out infinite; }
-  .glow-paper.p2{ top:62%; left:82%; animation: glowPaperDrift2 22s ease-in-out infinite; }
-  .glow-paper.p3{ top:38%; left:88%; width:15px; height:19px; animation: glowPaperDrift1 20s ease-in-out infinite reverse; }
-  .glow-paper.p4{ top:78%; left:14%; width:17px; height:22px; animation: glowPaperDrift2 16s ease-in-out infinite; }
-  @keyframes glowPaperDrift1{
-    0%,100%{ transform: translateY(0) rotate(-12deg); }
-    50%{ transform: translateY(-26px) rotate(-4deg); }
-  }
-  @keyframes glowPaperDrift2{
-    0%,100%{ transform: translateY(0) rotate(16deg); }
-    50%{ transform: translateY(22px) rotate(24deg); }
-  }
-
 
   *{
     box-sizing:border-box; 
@@ -1263,13 +1225,6 @@
 </head>
 <body>
 <div class="app" data-theme="dark" id="app">
-  <!-- Glow-Theme: schwebende "Papierschnipsel"-Deko (NEU) -->
-  <div class="glow-decor" aria-hidden="true">
-    <div class="glow-paper p1"></div>
-    <div class="glow-paper p2"></div>
-    <div class="glow-paper p3"></div>
-    <div class="glow-paper p4"></div>
-  </div>
 
   <!-- ============ HOME ============ -->
   <section class="screen active" id="screen-home">
@@ -1861,9 +1816,9 @@
 
   <div class="overlay" id="overlayWelcome">
     <div class="modal-card">
-      <div style="font-size:42px; margin-bottom:8px;">👋</div>
+      <div style="font-size:42px; margin-bottom:8px;" id="welcomeEmoji">👋</div>
       <h2>Willkommen bei MathEdits!</h2>
-      <p>Möchtest du dich direkt einloggen, um deine Aura, dein Level und deinen Fortschritt sicher zu speichern?</p>
+      <p id="welcomeMessageText">Möchtest du dich direkt einloggen, um deine Aura, dein Level und deinen Fortschritt sicher zu speichern?</p>
       <button class="btn btn-primary" id="welcomeAuthBtn" style="margin-bottom:10px;">Einloggen / Account erstellen</button>
       <button class="btn btn-ghost" id="welcomeGuestBtn">Erstmal als Gast spielen</button>
     </div>
@@ -5353,6 +5308,17 @@
     profile.dailyGoal = selectedDailyGoal;
     saveProfile();
     closeAllOnboardingOverlays();
+    // Liegt ein Einladungscode vor (die Person kam über einen ?ref=-Link),
+    // wird das GENAU HIER prominent gezeigt - das ist der erste Bildschirm,
+    // an dem man sich einloggen/registrieren kann, also der Moment, wo der
+    // Anreiz am meisten zählt (statt erst danach in den Einstellungen).
+    if(pendingReferralCode && !currentUser){
+      $("welcomeEmoji").textContent = "🎁";
+      $("welcomeMessageText").innerHTML = `Wenn du dich jetzt registrierst, bekommt <b>@${pendingReferralCode}</b> (die Person, die dich eingeladen hat) <b>500 Aura</b>!`;
+    } else {
+      $("welcomeEmoji").textContent = "👋";
+      $("welcomeMessageText").textContent = "Möchtest du dich direkt einloggen, um deine Aura, dein Level und deinen Fortschritt sicher zu speichern?";
+    }
     $("overlayWelcome").classList.add("show");
   });
 

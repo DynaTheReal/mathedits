@@ -662,6 +662,56 @@
     100%{ transform:scale(.2) rotate(20deg); opacity:0; }
   }
 
+  /* ---------- Erster-Streak-Feiermoment (NEU) ---------- */
+  .fsa-overlay{
+    display:none; position:fixed; inset:0; z-index:500;
+    flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:24px; overflow:hidden;
+  }
+  .fsa-overlay.show{ display:flex; }
+  .fsa-bg-fade{
+    position:absolute; inset:0; background:#000; opacity:0;
+    transition:opacity 1.1s ease; pointer-events:none; z-index:-1;
+  }
+  .fsa-bg-fade.show{ opacity:1; }
+  .fsa-flame{
+    font-size:80px; cursor:pointer; user-select:none;
+    filter:grayscale(1) brightness(.5);
+    transition: filter 1s ease, font-size 1.4s cubic-bezier(.34,1.1,.5,1),
+                transform 1.4s cubic-bezier(.34,1.1,.5,1), opacity .8s ease;
+  }
+  .fsa-flame.lit{
+    filter:grayscale(0) brightness(1) drop-shadow(0 0 40px rgba(255,140,0,.9)) drop-shadow(0 0 90px rgba(255,70,0,.55));
+    animation: fsaFlameFlicker 1.1s ease-in-out infinite;
+  }
+  .fsa-flame.huge{
+    font-size:280px;
+    filter:grayscale(0) brightness(1.15) drop-shadow(0 0 100px rgba(255,140,0,1)) drop-shadow(0 0 180px rgba(255,60,0,.85));
+  }
+  .fsa-flame.rise{
+    font-size:72px;
+    filter:grayscale(0) brightness(1) drop-shadow(0 0 34px rgba(255,140,0,.85));
+    animation: fsaFlameFlicker 1.1s ease-in-out infinite;
+  }
+  @keyframes fsaFlameFlicker{
+    0%,100%{ transform:scale(1) rotate(-2deg); }
+    50%{ transform:scale(1.07) rotate(2deg); }
+  }
+  .fsa-text{
+    color:#fff; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:20px;
+    margin-top:22px; transition:opacity .6s ease, font-size .6s ease;
+  }
+  .fsa-subtext{
+    color:#ffb46b; font-size:14px; margin-top:8px; font-weight:700;
+    min-height:18px;
+  }
+  /* "Verbrennen" der Home-Elemente im Hintergrund, während die Flamme wächst */
+  .fsa-burning{
+    transition: filter .6s ease, transform .9s cubic-bezier(.55,0,1,.45), opacity .9s ease;
+  }
+  .fsa-burning.charred{ filter: brightness(0) saturate(0); }
+  .fsa-burning.fallen{ opacity:0; }
+
   .hearts{display:flex; gap:3px;}
   .heart{font-size:15px; filter:grayscale(1); opacity:.25; transition: all .3s;}
   .heart.full{filter:none; opacity:1;}
@@ -1814,6 +1864,14 @@
   </nav>
 
   <!-- ============ OVERLAYS ============ -->
+  <div class="overlay" id="overlayIntroPitch">
+    <div class="modal-card">
+      <div style="font-size:48px; margin-bottom:12px;">🎯</div>
+      <h2 style="margin-bottom:6px; line-height:1.5;">Löse Aufgaben.<br>Sammle Aura.<br>Steige in der Rangliste auf.</h2>
+      <button class="btn btn-primary" id="introPitchContinueBtn" style="margin-top:18px;">Weiter</button>
+    </div>
+  </div>
+
   <div class="overlay" id="overlayDifficulty">
     <div class="modal-card">
       <div style="font-size:42px; margin-bottom:8px;">👋</div>
@@ -2028,6 +2086,16 @@
   <!-- Letztes Leben verloren: Herz zerbricht (NEU) -->
   <div class="scare-overlay" id="overlayGameOverScare">
     <div class="gameover-heart" id="gameOverHeartIcon">❤️</div>
+  </div>
+
+  <!-- Erster-Streak-Feiermoment (NEU) - erscheint nur EINMAL pro Account,
+       direkt nach der allerersten abgeschlossenen Lektion. -->
+  <div class="fsa-overlay" id="overlayFirstStreak">
+    <div class="fsa-bg-fade" id="fsaBgFade"></div>
+    <div class="fsa-flame" id="fsaFlame">🔥</div>
+    <div class="fsa-text" id="fsaText">Tippe, um einen Streak zu starten</div>
+    <div class="fsa-subtext" id="fsaSubtext"></div>
+    <button class="btn btn-primary" id="fsaContinueBtn" style="display:none;">Weiter</button>
   </div>
 
   <!-- App-Start-Intro (NEU) -->
@@ -2263,7 +2331,8 @@
     hasSeenSharePrompt: false, // "Teile diese Website"-Hinweis nach der ersten Lektion, erscheint nur einmal
     shareChest: null,
     lastFirebaseUid: null, // erkennt einen Accountwechsel auf demselben Gerät, damit kein veralteter Benutzername hängen bleibt
-    hasEverSetUsername: false // Absicherung gegen wiederholte Benutzername-Abfrage bei kurzzeitigen Sync-/Speicher-Aussetzern (z.B. iOS)
+    hasEverSetUsername: false, // Absicherung gegen wiederholte Benutzername-Abfrage bei kurzzeitigen Sync-/Speicher-Aussetzern (z.B. iOS)
+    hasSeenFirstStreakAnimation: false // Erster-Streak-Feiermoment nach der allerersten Lektion, erscheint nur einmal
   };
   let profile = { ...DEFAULT_PROFILE };
 
@@ -4105,6 +4174,7 @@
     merged.comboLossCount = Math.max(localP.comboLossCount || 0, cloudP.comboLossCount || 0);
     merged.hasSeenSharePrompt = !!(localP.hasSeenSharePrompt || cloudP.hasSeenSharePrompt);
     merged.hasEverSetUsername = !!(localP.hasEverSetUsername || cloudP.hasEverSetUsername || cloudP.username);
+    merged.hasSeenFirstStreakAnimation = !!(localP.hasSeenFirstStreakAnimation || cloudP.hasSeenFirstStreakAnimation);
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.countedDuelWins = Array.from(new Set([
       ...(localP.countedDuelWins || []),
@@ -5282,7 +5352,7 @@
      nie zwei Overlays gleichzeitig "show" haben (und so versehentlich Klicks
      im Hintergrund blockieren könnten). */
   function closeAllOnboardingOverlays(){
-    ["overlayDifficulty", "overlayDailyGoal", "overlayWelcome"].forEach(id => {
+    ["overlayIntroPitch", "overlayDifficulty", "overlayDailyGoal", "overlayWelcome"].forEach(id => {
       const el = $(id);
       if(el) el.classList.remove("show");
     });
@@ -5296,6 +5366,11 @@
       selectedDifficulty = btn.dataset.diff;
     });
   });
+  $("introPitchContinueBtn").addEventListener("click", () => {
+    closeAllOnboardingOverlays();
+    $("overlayDifficulty").classList.add("show");
+  });
+
   $("difficultyContinueBtn").addEventListener("click", () => {
     // Level bleibt immer bei 1 - die Schwierigkeitswahl legt nur fest, mit
     // welcher (ohnehin kostenlosen) Einmaleins-Stufe man startet.
@@ -6432,11 +6507,107 @@
     }, 220);
   }
 
-  $("resultContinue").addEventListener("click", () => {
-    if(lastLessonGainedProgress){
-      flyLevelPoint(() => goHomeWithTransition());
-    } else {
+  // Erster-Streak-Feiermoment: läuft nur EINMAL pro Account, direkt nach der
+  // allerersten abgeschlossenen Lektion. Zeigt zuerst eine erloschene Flamme
+  // zum Antippen, die dann entfacht wird, riesig wächst und dabei die
+  // sichtbaren Home-Elemente dahinter "verbrennt" und abfallen lässt, bevor
+  // der Text "Dein erster Tag" erscheint und die Flamme klein von unten
+  // wieder aufsteigt.
+  function playFirstStreakCelebration(){
+    showScreen("home");
+    renderHome();
+
+    const overlay = $("overlayFirstStreak");
+    const bgFade = $("fsaBgFade");
+    const flame = $("fsaFlame");
+    const textEl = $("fsaText");
+    const subEl = $("fsaSubtext");
+    const btn = $("fsaContinueBtn");
+
+    flame.className = "fsa-flame";
+    flame.style.opacity = "1";
+    flame.style.transform = "";
+    bgFade.classList.remove("show");
+    textEl.textContent = "Tippe, um einen Streak zu starten";
+    textEl.style.opacity = "1";
+    textEl.style.fontSize = "20px";
+    subEl.textContent = "";
+    btn.style.display = "none";
+    overlay.classList.add("show");
+
+    function onIgnite(){
+      flame.removeEventListener("click", onIgnite);
+      flame.classList.add("lit");
+      textEl.style.opacity = "0";
+
+      setTimeout(() => {
+        flame.classList.remove("lit");
+        flame.classList.add("huge");
+        burnAwayHomeElements();
+        bgFade.classList.add("show");
+      }, 900);
+
+      setTimeout(() => {
+        textEl.textContent = "Dein erster Tag 🔥";
+        textEl.style.fontSize = "28px";
+        textEl.style.opacity = "1";
+      }, 2700);
+
+      setTimeout(() => {
+        flame.classList.remove("huge");
+        flame.classList.add("rise");
+        subEl.textContent = "Führe deinen Streak fort";
+        btn.style.display = "inline-block";
+      }, 5700);
+    }
+    flame.addEventListener("click", onIgnite);
+
+    btn.onclick = () => {
+      overlay.classList.remove("show");
+      // Verbrannte Home-Elemente wieder normal herstellen, bevor Home
+      // regulär (mit frischen Werten) neu gerendert wird.
+      document.querySelectorAll(".fsa-burning").forEach(el => {
+        el.classList.remove("fsa-burning", "charred", "fallen");
+        el.style.transform = "";
+      });
       goHomeWithTransition();
+    };
+  }
+
+  function burnAwayHomeElements(){
+    const targets = [
+      document.querySelector("#screen-home .topbar"),
+      document.querySelector("#screen-home .stats-row"),
+      document.querySelector("#screen-home .hero"),
+      $("startBtn"),
+      $("bottomNav")
+    ].filter(Boolean);
+    targets.forEach((el, i) => {
+      el.classList.add("fsa-burning");
+      setTimeout(() => {
+        el.classList.add("charred");
+        setTimeout(() => {
+          el.style.transform = `translateY(120vh) rotate(${(Math.random()*40-20).toFixed(0)}deg)`;
+          el.classList.add("fallen");
+        }, 500);
+      }, i * 150);
+    });
+  }
+
+  $("resultContinue").addEventListener("click", () => {
+    function proceed(){
+      if(!profile.hasSeenFirstStreakAnimation){
+        profile.hasSeenFirstStreakAnimation = true;
+        saveProfile();
+        playFirstStreakCelebration();
+      } else {
+        goHomeWithTransition();
+      }
+    }
+    if(lastLessonGainedProgress){
+      flyLevelPoint(() => proceed());
+    } else {
+      proceed();
     }
   });
 
@@ -6649,7 +6820,7 @@
 
     playStartupIntro(() => {
       if(!profile.hasSeenWelcome && !currentUser){
-        $("overlayDifficulty").classList.add("show");
+        $("overlayIntroPitch").classList.add("show");
       }
       maybeShowIOSInstallBanner();
     });

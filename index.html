@@ -557,6 +557,18 @@
   }
   .times-table-btn:active{ transform:scale(.94); }
 
+  /* ---------- Trends-Raster (NEU) ---------- */
+  .trend-cell{
+    background:var(--card); border:1.5px solid var(--border); border-radius:14px;
+    padding:16px 0; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:20px;
+    color:var(--text); text-align:center; position:relative;
+  }
+  .trend-cell .pct{ display:block; font-size:10px; font-weight:600; opacity:.75; margin-top:2px; }
+  .trend-cell.trend-red{ border-color:#ef4444; background:rgba(239,68,68,.12); }
+  .trend-cell.trend-yellow{ border-color:#eab308; background:rgba(234,179,8,.12); }
+  .trend-cell.trend-green{ border-color:#22c55e; background:rgba(34,197,94,.12); }
+  .trend-cell.trend-neutral{ opacity:.5; }
+
   .duel-invite-banner{
     position:fixed; top:calc(10px + env(safe-area-inset-top)); left:50%;
     transform:translate(-50%,-140%); width:calc(100% - 32px); max-width:428px;
@@ -1702,6 +1714,30 @@
     <div id="missionsList"></div>
   </section>
 
+  <!-- ============ TRENDS (NEU) ============ -->
+  <section class="screen" id="screen-trends">
+    <div class="topbar">
+      <div class="brand"><span class="dot"></span>MathEdits</div>
+      <div class="topbar-actions">
+        <div class="theme-toggle" id="themeToggleTrends">🌙</div>
+      </div>
+    </div>
+
+    <div class="shop-header">
+      <h2>📈 Trends</h2>
+      <div style="font-size:12px; opacity:.75;">Wie gut du das kleine Einmaleins pro Zahl kannst</div>
+    </div>
+
+    <div class="times-table-grid" id="trendsGrid" style="grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px;"></div>
+
+    <div style="display:flex; gap:14px; align-items:center; justify-content:center; margin-bottom:18px; font-size:12px; opacity:.8;">
+      <span>🔴 Schwach</span><span>🟡 Okay</span><span>🟢 Stark</span>
+    </div>
+
+    <button class="btn btn-primary" id="startWeakTasksBtn" style="width:100%; padding:15px;">💪 Schwierige Aufgaben starten</button>
+    <div class="d" style="text-align:center; margin-top:8px;">Die Aufgaben, mit denen du am meisten struggelst - gibt Aura und Level.</div>
+  </section>
+
   <!-- ============ SETTINGS ============ -->
   <section class="screen" id="screen-settings">
     <div class="topbar">
@@ -1905,6 +1941,9 @@
         <div class="box"><div class="n" id="resAura">+0</div><div class="l">Aura</div></div>
         <div class="box"><div class="n" id="resLevel">0:00</div><div class="l">Zeit</div></div>
       </div>
+      <div class="d" id="resultStreakHint" style="display:none; margin-top:14px; background:rgba(201,255,82,.1); border:1.5px solid var(--accent); border-radius:12px; padding:10px 14px;">
+        🔥 Lern morgen noch einmal und verlängere deinen Streak - dafür gibt's am zweiten Tag eine Truhe!
+      </div>
     </div>
     <button class="btn btn-primary" id="resultContinue">Weiter</button>
   </section>
@@ -1922,6 +1961,10 @@
     <button class="nav-item" id="navLeaderboard">
       <span class="icon">🏆</span>
       <span class="label">Rangliste</span>
+    </button>
+    <button class="nav-item" id="navTrends">
+      <span class="icon">📈</span>
+      <span class="label">Trends</span>
     </button>
     <button class="nav-item" id="navMissions">
       <span class="icon-wrap">
@@ -2067,6 +2110,17 @@
       <input type="number" id="donateAuraAmountInput" class="input-field" placeholder="Betrag" min="1" style="margin-bottom:12px;">
       <button class="btn btn-primary" id="donateAuraConfirmBtn">Spenden</button>
       <button class="btn btn-ghost" id="donateAuraCancelBtn" style="margin-top:10px;">Abbrechen</button>
+    </div>
+  </div>
+
+  <!-- Kostenlose Stufe über der aktiven Stufe freischalten (NEU) -->
+  <div class="overlay" id="overlayUnlockFreeTier">
+    <div class="modal-card" style="max-width:340px;">
+      <div style="font-size:36px; margin-bottom:6px;">⚠️</div>
+      <h2>"<span id="unlockFreeTierName"></span>" freischalten?</h2>
+      <p>Das kostet zwar kein Level, aber Achtung: Solange das nicht deine aktive Stufe ist, bekommst du dort weder Level noch Aura - nur zum Üben.</p>
+      <button class="btn btn-primary" id="unlockFreeTierConfirmBtn">Freischalten</button>
+      <button class="btn btn-ghost" id="unlockFreeTierCancelBtn" style="margin-top:10px;">Abbrechen</button>
     </div>
   </div>
 
@@ -2488,6 +2542,10 @@
     lastSeenBroadcastAt: 0, // bis wann Owner-Broadcasts schon gesehen wurden
     claimedAuraDonationIds: [], // schon abgeholte Aura-Spenden von anderen Nutzern
     lastSeenUpdateNoticeAt: 0, // bis wann Owner-Update-Hinweise schon gesehen wurden
+    hasReceivedStreak2Chest: false, // ob die Truhe für den ersten zweitägigen Streak schon vergeben wurde
+    streak2Chest: null, // Truhe für den ersten zweitägigen Streak
+    manuallyUnlockedFreeTiers: [], // kostenlose Stufen über der aktiven Stufe, die bewusst mit Warnung bestätigt wurden
+    factStats: {}, // Trends: pro Zahl (1-12) {correct, wrong} bei Multiplikations-Aufgaben
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
   };
   let profile = { ...DEFAULT_PROFILE };
@@ -3990,6 +4048,12 @@
         profile.streakDates = profile.streakDates.slice(-60);
       }
     }
+    // Beim allerersten Mal, dass der Streak auf 2 Tage kommt, gibt es eine
+    // echte Truhe als Belohnung.
+    if(profile.streak === 2 && !profile.hasReceivedStreak2Chest){
+      profile.hasReceivedStreak2Chest = true;
+      profile.streak2Chest = freshChest();
+    }
   }
 
   function renderStreak(){
@@ -4239,6 +4303,7 @@
       if(chest && !chest.claimed) count++;
     });
     if(profile.shareChest && !profile.shareChest.claimed) count++;
+    if(profile.streak2Chest && !profile.streak2Chest.claimed) count++;
     if(profile.inviteChests){
       ["rank2a","rank2b","rank3"].forEach(k => {
         const c = profile.inviteChests[k];
@@ -4291,10 +4356,13 @@
     if(sourceType === "invite"){
       return profile.inviteChests ? profile.inviteChests[sourceId] : null;
     }
+    if(sourceType === "streak2"){
+      return profile.streak2Chest;
+    }
     return null;
   }
 
-  let activeChestSource = null; // { type: 'mission'|'achievement'|'share'|'invite', id }
+  let activeChestSource = null; // { type: 'mission'|'achievement'|'share'|'invite'|'streak2', id }
 
   function openChestModal(sourceType, sourceId){
     const chest = getChestRef(sourceType, sourceId);
@@ -4311,6 +4379,8 @@
       title = "Danke fürs Teilen!";
     } else if(sourceType === "invite"){
       title = (sourceId === "rank2a" || sourceId === "rank2b") ? "🥈 Platz 2 im Invite Leaderboard" : "🥉 Platz 3 im Invite Leaderboard";
+    } else if(sourceType === "streak2"){
+      title = "🔥 2 Tage am Stück!";
     }
     $("chestModalTitle").textContent = title;
     renderChestModal();
@@ -4510,6 +4580,28 @@
   }
 
 
+  function trendColorFor(stat){
+    if(!stat || (stat.correct + stat.wrong) < 3) return "trend-neutral";
+    const acc = stat.correct / (stat.correct + stat.wrong);
+    if(acc < 0.5) return "trend-red";
+    if(acc < 0.8) return "trend-yellow";
+    return "trend-green";
+  }
+
+  function renderTrends(){
+    const grid = $("trendsGrid");
+    grid.innerHTML = "";
+    for(let n = 1; n <= 12; n++){
+      const stat = (profile.factStats || {})[String(n)];
+      const total = stat ? stat.correct + stat.wrong : 0;
+      const acc = total > 0 ? Math.round((stat.correct / total) * 100) : null;
+      const cell = document.createElement("div");
+      cell.className = "trend-cell " + trendColorFor(stat);
+      cell.innerHTML = `${n}<span class="pct">${acc !== null ? acc + "%" : "-"}</span>`;
+      grid.appendChild(cell);
+    }
+  }
+
   function renderMissions(){
     ensureDailyMissions();
     checkAchievements();
@@ -4600,6 +4692,18 @@
       card.innerHTML = `
         <div class="m-title">📣 Danke fürs Teilen!</div>
         <div class="m-sub">Belohnung fürs Teilen der App</div>
+        ${chestHtml}
+      `;
+      wrap.appendChild(card);
+    }
+
+    if(profile.streak2Chest){
+      const card = document.createElement("div");
+      card.className = "mission-card";
+      const chestHtml = buildChestHtml(profile.streak2Chest, "streak2", "streak2", "");
+      card.innerHTML = `
+        <div class="m-title">🔥 2 Tage am Stück!</div>
+        <div class="m-sub">Belohnung für deinen ersten zweitägigen Streak</div>
         ${chestHtml}
       `;
       wrap.appendChild(card);
@@ -4771,6 +4875,23 @@
       ...(cloudP.claimedAuraDonationIds || [])
     ]));
     merged.lastSeenUpdateNoticeAt = Math.max(localP.lastSeenUpdateNoticeAt || 0, cloudP.lastSeenUpdateNoticeAt || 0);
+    merged.hasReceivedStreak2Chest = !!(localP.hasReceivedStreak2Chest || cloudP.hasReceivedStreak2Chest);
+    merged.streak2Chest = localP.streak2Chest || cloudP.streak2Chest || null;
+    merged.manuallyUnlockedFreeTiers = Array.from(new Set([
+      ...(localP.manuallyUnlockedFreeTiers || []),
+      ...(cloudP.manuallyUnlockedFreeTiers || [])
+    ]));
+    {
+      const lfs = localP.factStats || {}, cfs = cloudP.factStats || {};
+      const keys = new Set([...Object.keys(lfs), ...Object.keys(cfs)]);
+      const mergedStats = {};
+      keys.forEach(k => {
+        const l = lfs[k] || { correct: 0, wrong: 0 };
+        const c = cfs[k] || { correct: 0, wrong: 0 };
+        mergedStats[k] = { correct: Math.max(l.correct || 0, c.correct || 0), wrong: Math.max(l.wrong || 0, c.wrong || 0) };
+      });
+      merged.factStats = mergedStats;
+    }
     merged.lastStreakReminderShownDate = maxDateStr(localP.lastStreakReminderShownDate, cloudP.lastStreakReminderShownDate);
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.countedDuelWins = Array.from(new Set([
@@ -4929,6 +5050,25 @@
       if(r <= 0) return fn();
     }
     return entries[entries.length - 1][0]();
+  }
+
+  // Trends (NEU): merkt sich pro Zahl 1-12, wie oft Multiplikations-Aufgaben
+  // mit dieser Zahl als Faktor richtig/falsch beantwortet wurden - Basis für
+  // das Zahlen-Raster im Trends-Tab.
+  function recordFactStat(q, isCorrect){
+    if(!q || !q.text || !q.text.includes("×")) return;
+    const parts = q.text.split("×").map(s => parseInt(s.trim(), 10));
+    if(parts.length !== 2 || parts.some(n => isNaN(n))) return;
+    if(!profile.factStats) profile.factStats = {};
+    const seen = new Set();
+    parts.forEach(n => {
+      if(n < 1 || n > 12 || seen.has(n)) return;
+      seen.add(n);
+      const key = String(n);
+      if(!profile.factStats[key]) profile.factStats[key] = { correct: 0, wrong: 0 };
+      if(isCorrect) profile.factStats[key].correct++;
+      else profile.factStats[key].wrong++;
+    });
   }
 
   function mult(min, max){
@@ -5192,9 +5332,10 @@
   const screens = {
     home: $("screen-home"), shop: $("screen-shop"), locked: $("screen-locked"), 
     lesson: $("screen-lesson"), result: $("screen-result"), settings: $("screen-settings"),
-    profile: $("screen-profile"), leaderboard: $("screen-leaderboard"), missions: $("screen-missions")
+    profile: $("screen-profile"), leaderboard: $("screen-leaderboard"), missions: $("screen-missions"),
+    trends: $("screen-trends")
   };
-  const NAV_SCREENS = ["home", "shop", "leaderboard", "missions", "profile"];
+  const NAV_SCREENS = ["home", "shop", "leaderboard", "missions", "profile", "trends"];
 
   function showScreen(name){
     Object.values(screens).forEach(s => s.classList.remove("active"));
@@ -5207,6 +5348,7 @@
       $("navHome").classList.toggle("active", name === "home");
       $("navShop").classList.toggle("active", name === "shop");
       $("navLeaderboard").classList.toggle("active", name === "leaderboard");
+      $("navTrends").classList.toggle("active", name === "trends");
       $("navMissions").classList.toggle("active", name === "missions");
       $("navProfile").classList.toggle("active", name === "profile");
     } else {
@@ -5260,6 +5402,11 @@
       saveProfile();
       updateMissionsBadge();
     }
+  });
+
+  $("navTrends").addEventListener("click", () => {
+    showScreen("trends");
+    renderTrends();
   });
 
   $("goToProfileBtn").addEventListener("click", () => {
@@ -5680,6 +5827,7 @@
     $("themeToggleProfile").textContent = icon;
     $("themeToggleLeaderboard").textContent = icon;
     $("themeToggleMissions").textContent = icon;
+    $("themeToggleTrends").textContent = icon;
     if($("themeSelect")) $("themeSelect").value = t;
   }
   
@@ -5703,6 +5851,7 @@
   $("themeToggleProfile").addEventListener("click", toggleTheme);
   $("themeToggleLeaderboard").addEventListener("click", toggleTheme);
   $("themeToggleMissions").addEventListener("click", toggleTheme);
+  $("themeToggleTrends").addEventListener("click", toggleTheme);
   
   $("themeSelect").addEventListener("change", (e) => {
     const val = e.target.value;
@@ -5953,6 +6102,28 @@
   $("donateAuraConfirmBtn").addEventListener("click", confirmDonateAura);
   $("donateAuraCancelBtn").addEventListener("click", () => {
     $("overlayDonateAura").classList.remove("show");
+  });
+
+  $("startWeakTasksBtn").addEventListener("click", startWeakTasksLesson);
+
+  $("unlockFreeTierConfirmBtn").addEventListener("click", () => {
+    if(pendingUnlockTierIndex === null) return;
+    const i = pendingUnlockTierIndex;
+    profile.manuallyUnlockedFreeTiers = [...(profile.manuallyUnlockedFreeTiers || []), i];
+    selectedTierIndex = i;
+    $("tierLabel").textContent = TIERS[i].name;
+    saveProfile();
+    $("overlayUnlockFreeTier").classList.remove("show");
+    renderTierCarousel();
+    const activeIdx = tierIndexForLevel(profile.level);
+    if(i !== activeIdx){
+      showToast(`⚠️ Nur reines Üben - Level & Aura gibt's nur mit "${TIERS[activeIdx].name}"`);
+    }
+    pendingUnlockTierIndex = null;
+  });
+  $("unlockFreeTierCancelBtn").addEventListener("click", () => {
+    $("overlayUnlockFreeTier").classList.remove("show");
+    pendingUnlockTierIndex = null;
   });
 
   $("ownerSendUpdateNoticeBtn").addEventListener("click", sendOwnerUpdateNotice);
@@ -6719,20 +6890,31 @@
     const activeIdx = tierIndexForLevel(profile.level);
     wrap.innerHTML = "";
     TIERS.forEach((tier, i) => {
-      const locked = !isTierSelectable(i, activeIdx);
+      const needsLevel = !isTierSelectable(i, activeIdx);
+      const manuallyUnlocked = (profile.manuallyUnlockedFreeTiers || []).includes(i);
+      // Kostenlose Stufen (kein Level nötig) über der aktiven Stufe zeigen
+      // trotzdem ein Schloss, bis man sie einmal bewusst mit Warnung
+      // bestätigt hat - man kann sie also jederzeit freischalten, soll aber
+      // vorher wissen, dass Level & Aura dann nur mit der aktiven Stufe
+      // weitergehen.
+      const showsLocked = needsLevel || (i > activeIdx && !manuallyUnlocked);
       const card = document.createElement("div");
-      card.className = "tier-card" + (i === selectedTierIndex ? " active" : "") + (locked ? " locked" : "");
+      card.className = "tier-card" + (i === selectedTierIndex ? " active" : "") + (showsLocked ? " locked" : "");
       card.innerHTML = `
         ${i === activeIdx ? '<span class="current-dot"></span>' : ""}
-        ${locked ? '<span class="lock">🔒</span>' : ""}
+        ${showsLocked ? '<span class="lock">🔒</span>' : ""}
         <span class="icon">${tier.icon}</span>
         <span class="name">${tier.name}</span>
-        ${locked ? `<span class="level-req">Lvl ${tier.from}</span>` : ""}
+        ${needsLevel ? `<span class="level-req">Lvl ${tier.from}</span>` : ""}
       `;
       card.addEventListener("click", () => {
-        if(locked){
+        if(needsLevel){
           card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
           showToast(`Freigeschaltet ab Level ${tier.from}`);
+          return;
+        }
+        if(showsLocked){
+          openUnlockFreeTierConfirm(i, tier);
           return;
         }
         selectedTierIndex = i;
@@ -6744,6 +6926,13 @@
       });
       wrap.appendChild(card);
     });
+  }
+
+  let pendingUnlockTierIndex = null;
+  function openUnlockFreeTierConfirm(i, tier){
+    pendingUnlockTierIndex = i;
+    $("unlockFreeTierName").textContent = tier.name;
+    $("overlayUnlockFreeTier").classList.add("show");
   }
 
   function renderLocked(){
@@ -6807,8 +6996,10 @@
       activeLiveDuelId = null;
     }
     lesson = null;
-    showScreen("home");
-    renderHome();
+    playComboLossScare(() => {
+      showScreen("home");
+      renderHome();
+    });
   });
 
   /* ========================================================
@@ -6826,6 +7017,50 @@
     // Lektions-lokale Streak hier mit dem aktuellen Combo-Stand, statt immer
     // bei 0 anzufangen.
     lesson.streakThisLesson = lesson.isMainProgression ? (profile.comboCount || 0) : 0;
+    $("progressFill").classList.toggle("combo-active", lesson.streakThisLesson > 5);
+    showScreen("lesson");
+    renderQuestion();
+  }
+
+  // Trends (NEU): baut eine Lektion NUR aus den Zahlen, mit denen laut
+  // factStats am meisten gestruggelt wird (schlechteste Genauigkeit zuerst,
+  // nur Zahlen mit genug Daten). Gibt wie eine normale Lektion Aura & Level.
+  function buildWeakTasksLesson(){
+    const stats = profile.factStats || {};
+    const candidates = [];
+    for(let n = 1; n <= 12; n++){
+      const s = stats[String(n)];
+      const total = s ? s.correct + s.wrong : 0;
+      const acc = total >= 3 ? (s.correct / total) : 1; // ohne genug Daten: nicht als "schwach" werten
+      candidates.push({ n, acc, total });
+    }
+    candidates.sort((a, b) => a.acc - b.acc);
+    const weakNumbers = candidates.filter(c => c.total >= 3 && c.acc < 0.8).slice(0, 5).map(c => c.n);
+    const pool = weakNumbers.length > 0 ? weakNumbers : [2,3,4,5,6,7,8,9,10];
+
+    const questions = [];
+    const seenTexts = new Set();
+    for(let i = 0; i < QUESTIONS_PER_LESSON; i++){
+      let q, attempts = 0;
+      do{
+        const n = pool[randInt(0, pool.length - 1)];
+        const other = randInt(2, 12);
+        const swap = Math.random() < 0.5;
+        const a = swap ? other : n, b = swap ? n : other;
+        q = { text: `${a} × ${b}`, answer: a * b };
+        attempts++;
+      } while(seenTexts.has(q.text) && attempts < 30);
+      seenTexts.add(q.text);
+      questions.push(q);
+    }
+    const tier = { id: "weak_tasks", name: "Schwierige Aufgaben", icon: "💪", timeMs: 9000, normalAura: 2, editAura: 4 };
+    return { tier, isMainProgression: true, questions, index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false };
+  }
+
+  function startWeakTasksLesson(){
+    lesson = buildWeakTasksLesson();
+    lesson.startedAt = performance.now();
+    lesson.streakThisLesson = profile.comboCount || 0;
     $("progressFill").classList.toggle("combo-active", lesson.streakThisLesson > 5);
     showScreen("lesson");
     renderQuestion();
@@ -7040,6 +7275,7 @@
     const q = lesson.questions[lesson.index];
     const given = isTimeout ? null : parseInt(lesson.answer, 10);
     const isCorrect = !isTimeout && given === q.answer;
+    recordFactStat(q, isCorrect);
     const isSlow = isTimeout || elapsed > slowThresholdMs;
     const isFastCorrect = isCorrect && elapsed <= AURA_THRESHOLD_MS;
 
@@ -7285,6 +7521,9 @@
     $("resCorrect").textContent = `${lesson.correct}/${QUESTIONS_PER_LESSON}`;
     $("resAura").textContent = `+${auraGained}`;
     $("resLevel").textContent = formatDuration(elapsedMs);
+    // Nach der allerersten jemals abgeschlossenen Lektion (Streak-Tag 1)
+    // einen Hinweis auf die Truhe am zweiten Tag zeigen.
+    $("resultStreakHint").style.display = (profile.streak === 1 && profile.lessonsCompleted === 1) ? "block" : "none";
     if(perfectBonus > 0){
       showToast(`✨ Perfekte Lektion! +${perfectBonus} Bonus-Aura`);
     }

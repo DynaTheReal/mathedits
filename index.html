@@ -568,6 +568,11 @@
   .duel-invite-banner.show{ transform:translate(-50%,0); }
   .duel-invite-icon{ font-size:24px; flex-shrink:0; }
   .duel-invite-text{ font-size:13px; color:var(--text); line-height:1.4; }
+  .banner-close-x{
+    position:absolute; top:6px; right:8px; background:none; border:none;
+    color:var(--text-dim); font-size:13px; font-weight:800; cursor:pointer;
+    padding:4px; line-height:1; z-index:5;
+  }
 
   /* ---------- PWA-Installationshinweis (NEU) ---------- */
   .pwa-install-banner{
@@ -654,13 +659,16 @@
 
   /* ---------- Owner-Broadcast (NEU) - kompakter Banner statt Vollbild ---------- */
   .broadcast-banner{
-    border: 1.5px solid #ffd700;
-    box-shadow: 0 12px 30px rgba(0,0,0,.35), 0 0 16px rgba(255,215,0,.25);
-    cursor: default;
+    top: 14%;
+    max-width: 440px;
+    padding: 18px 20px;
+    border: 2px solid #ffd700;
+    box-shadow: 0 18px 42px rgba(0,0,0,.45), 0 0 26px rgba(255,215,0,.3);
+    cursor: pointer;
   }
-  .broadcast-banner-icon{ font-size:22px; flex-shrink:0; }
+  .broadcast-banner-icon{ font-size:28px; flex-shrink:0; }
   .broadcast-banner-text{
-    font-size:13px; color:var(--text); line-height:1.4; text-align:left;
+    font-size:15px; color:var(--text); line-height:1.5; text-align:left;
   }
   .broadcast-banner-text b{ color:#ffd700; }
 
@@ -1614,7 +1622,7 @@
       <div class="social-tabs">
         <div class="social-tab active" id="socialTabFriends">Freunde</div>
         <div class="social-tab" id="socialTabAdd">Freund hinzufügen</div>
-        <div class="social-tab" id="socialTabRequests">Freundschaftsanfragen</div>
+        <div class="social-tab" id="socialTabRequests" style="position:relative;">Freundschaftsanfragen<span class="nav-badge" id="friendRequestsTabBadge" style="display:none; position:absolute; top:-4px; right:-4px;">1</span></div>
       </div>
 
       <div class="social-tab-content" id="socialContentFriends">
@@ -2109,12 +2117,21 @@
   <div class="duel-invite-banner" id="messageNotifyBanner">
     <div class="duel-invite-icon">💬</div>
     <div class="duel-invite-text" id="messageNotifyText">Neue Nachricht</div>
+    <button class="banner-close-x" id="messageNotifyBannerClose">✕</button>
+  </div>
+
+  <!-- Neue Freundschaftsanfrage (NEU, wie Nachricht) -->
+  <div class="duel-invite-banner" id="friendRequestBanner">
+    <div class="duel-invite-icon">🤝</div>
+    <div class="duel-invite-text" id="friendRequestBannerText">Neue Freundschaftsanfrage</div>
+    <button class="banner-close-x" id="friendRequestBannerClose">✕</button>
   </div>
 
   <!-- Owner-only: Banner bei neuer Registrierung (NEU) -->
   <div class="duel-invite-banner" id="ownerRegNotifyBanner">
     <div class="duel-invite-icon">👑</div>
     <div class="duel-invite-text" id="ownerRegNotifyBannerText">Neue Registrierung</div>
+    <button class="banner-close-x" id="ownerRegNotifyBannerClose">✕</button>
   </div>
 
   <!-- PWA: iOS "Zum Home-Bildschirm hinzufügen"-Hinweis (NEU) -->
@@ -2154,6 +2171,7 @@
   <div class="duel-invite-banner" id="duelInviteBanner">
     <div class="duel-invite-icon">⚔️</div>
     <div class="duel-invite-text" id="duelInviteText">Duell-Einladung</div>
+    <button class="banner-close-x" id="duelInviteBannerClose">✕</button>
   </div>
 
   <!-- Live-Duell: warten auf Antwort des Eingeladenen -->
@@ -2208,6 +2226,7 @@
       <button class="btn btn-primary btn-small" id="updateNoticeConfirmBtn">Update</button>
       <button class="pwa-install-dismiss" id="updateNoticeDismissBtn">Später</button>
     </div>
+    <button class="banner-close-x" id="updateNoticeBannerClose">✕</button>
   </div>
 
   <!-- App-Start-Intro (NEU) -->
@@ -2597,26 +2616,29 @@
   // Läuft für JEDEN eingeloggten Nutzer: holt den neuesten Broadcast und
   // zeigt ihn groß an, falls er neuer ist als das, was diese Person schon
   // gesehen hat.
-  async function checkForNewBroadcast(){
+  // Owner-Broadcast (NEU, überarbeitet): wird jetzt NUR noch live zugestellt.
+  // Ein Broadcast, der gesendet wurde, während man die App nicht offen hatte,
+  // wird beim späteren Öffnen NICHT mehr nachgeholt - nur wer gerade online
+  // ist, sieht ihn, genau in dem Moment.
+  let broadcastLiveUnsubscribe = null;
+  let broadcastListenerStartTime = null;
+  let broadcastAutoHideTimer = null;
+  function watchLiveBroadcast(){
+    if(broadcastLiveUnsubscribe){ broadcastLiveUnsubscribe(); broadcastLiveUnsubscribe = null; }
     if(!firebaseInitialized || !currentUser) return;
-    try{
-      const snap = await db().collection("broadcasts")
-        .orderBy("createdAt", "desc")
-        .limit(1)
-        .get();
-      if(snap.empty) return;
-      const doc = snap.docs[0];
-      const data = doc.data();
-      if((data.createdAt || 0) <= (profile.lastSeenBroadcastAt || 0)) return;
-      $("broadcastMessage").innerHTML = `<b>${data.ownerUsername || OWNER_USERNAME}:</b> ${data.message || ""}`;
-      $("overlayBroadcast").classList.add("show");
-      profile.lastSeenBroadcastAt = data.createdAt;
-      saveProfile();
-      // Kein Schließen-Button - blendet stattdessen von selbst wieder aus.
-      setTimeout(() => { $("overlayBroadcast").classList.remove("show"); }, 9000);
-    }catch(err){
-      console.error("Broadcast abrufen Fehler:", err);
-    }
+    broadcastListenerStartTime = Date.now();
+    broadcastLiveUnsubscribe = db().collection("broadcasts")
+      .orderBy("createdAt", "desc")
+      .limit(1)
+      .onSnapshot((snap) => {
+        if(snap.empty) return;
+        const data = snap.docs[0].data();
+        if((data.createdAt || 0) <= broadcastListenerStartTime) return;
+        $("broadcastMessage").innerHTML = `<b>${data.ownerUsername || OWNER_USERNAME}:</b> ${data.message || ""}`;
+        $("overlayBroadcast").classList.add("show");
+        clearTimeout(broadcastAutoHideTimer);
+        broadcastAutoHideTimer = setTimeout(() => { $("overlayBroadcast").classList.remove("show"); }, 5000);
+      }, (err) => console.error("Live-Broadcast Fehler:", err));
   }
 
   // Owner-Update-Hinweis (NEU): eine eigene, separate Benachrichtigung
@@ -2991,6 +3013,17 @@
     // nicht) und gesendet (du folgst jemandem, der dir noch nicht folgt).
     const followBackListEl = $("followBackList");
     const notFollowedBack = followersData.filter(f => !following.includes(f.uid));
+    pendingFriendRequestCount = notFollowedBack.length;
+    const reqTabBadge = $("friendRequestsTabBadge");
+    if(reqTabBadge){
+      if(pendingFriendRequestCount > 0){
+        reqTabBadge.textContent = pendingFriendRequestCount;
+        reqTabBadge.style.display = "flex";
+      } else {
+        reqTabBadge.style.display = "none";
+      }
+    }
+    updateMessagesBadge();
     followBackListEl.innerHTML = "";
     if(notFollowedBack.length === 0){
       followBackListEl.innerHTML = "<div class='empty-hint'>Keine offenen Anfragen.</div>";
@@ -3257,6 +3290,7 @@
     return Object.values(unreadCountsByFriend).reduce((a,b) => a+b, 0);
   }
 
+  let pendingFriendRequestCount = 0;
   function updateMessagesBadge(){
     const badge = $("messagesBadge");
     const navBadge = $("profileNavBadge");
@@ -3270,8 +3304,9 @@
       }
     }
     if(navBadge){
-      if(n > 0){
-        navBadge.textContent = n;
+      const navTotal = n + pendingFriendRequestCount;
+      if(navTotal > 0){
+        navBadge.textContent = navTotal;
         navBadge.style.display = "flex";
       } else {
         navBadge.style.display = "none";
@@ -3690,7 +3725,7 @@
       const avatarHtml = e.avatarData
         ? `<img src="${e.avatarData}" class="lb-avatar-img">`
         : `<div class="lb-avatar-placeholder">👤</div>`;
-      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-avatar">${avatarHtml}</div><div class="lb-name ${fontClass}">@${e.username || "?"}</div><div class="lb-aura">🎯 Lvl ${e.level}</div>`;
+      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-avatar">${avatarHtml}</div><div class="lb-name ${fontClass}">${isOnline(e) ? '<span class="online-dot"></span>' : ""}@${e.username || "?"}</div><div class="lb-aura">🎯 Lvl ${e.level}</div>`;
       row.addEventListener("click", () => openFriendProfile(e.uid));
       list.appendChild(row);
     });
@@ -3714,10 +3749,10 @@
       return;
     }
 
-    const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 1, avatarData: profile.avatarData, activeFont: profile.activeFont }];
+    const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 1, avatarData: profile.avatarData, activeFont: profile.activeFont, lastActiveAt: profile.lastActiveAt }];
     for(const uid of mutualUids){
       const u = await fetchUserDoc(uid);
-      if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 1, avatarData: u.avatarData, activeFont: u.activeFont });
+      if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 1, avatarData: u.avatarData, activeFont: u.activeFont, lastActiveAt: u.lastActiveAt });
     }
     const filtered = entries.filter(e => (e.level || 0) > 1); // Level 1 wird in keiner Rangliste angezeigt
     if(filtered.length === 0){
@@ -3747,7 +3782,7 @@
       let entries = snap.docs
         .map(d => ({ ...d.data(), uid: d.id }))
         .filter(e => !!e.username && (e.level || 0) > 1) // Level 1 wird in keiner Rangliste angezeigt
-        .map(e => ({ uid: e.uid, username: e.username, level: e.level || 1, avatarData: e.avatarData, activeFont: e.activeFont }));
+        .map(e => ({ uid: e.uid, username: e.username, level: e.level || 1, avatarData: e.avatarData, activeFont: e.activeFont, lastActiveAt: e.lastActiveAt }));
 
       if(entries.length === 0){
         $("leaderboardEmptyMsg").textContent = "Noch niemand über Level 1 vorhanden.";
@@ -3995,7 +4030,7 @@
   // mit beliebigen Nutzerdaten - für Freunde (aus Firestore) UND für die
   // eigene Statistik (direkt aus dem lokalen Profil, auch als Gast).
   function renderFriendProfileCard(u, isOwnProfile){
-    $("friendProfileUsername").textContent = u.username ? "@" + u.username : "Gast";
+    $("friendProfileUsername").innerHTML = u.username ? ((!isOwnProfile && isOnline(u) ? '<span class="online-dot"></span>' : "") + "@" + u.username) : "Gast";
     $("friendProfileUsername").classList.remove("font-glow", "font-pink", "font-gold", "font-pinkglow");
     if(u.activeFont === "glow") $("friendProfileUsername").classList.add("font-glow");
     if(u.activeFont === "pink") $("friendProfileUsername").classList.add("font-pink");
@@ -5676,6 +5711,47 @@
   // watchIncomingMessages) - zeigt ein Banner oben, sowohl live während man
   // die App gerade nutzt, als auch beim Öffnen der App, falls in der
   // Zwischenzeit jemand registriert hat.
+  // Freundschaftsanfragen (NEU): läuft dauerhaft im Hintergrund für jeden
+  // eingeloggten Nutzer, sobald man angemeldet ist - hält den Badge-Zähler
+  // (Profil-Nav + Anfragen-Tab) aktuell und zeigt bei einer WÄHREND dieser
+  // Sitzung neu eintreffenden Anfrage ein Banner oben, wie bei Nachrichten.
+  let friendRequestUnsubscribe = null;
+  let friendRequestInitialSnapshotDone = false;
+  function watchFriendRequests(){
+    if(friendRequestUnsubscribe){ friendRequestUnsubscribe(); friendRequestUnsubscribe = null; }
+    if(!firebaseInitialized || !currentUser) return;
+    friendRequestInitialSnapshotDone = false;
+    friendRequestUnsubscribe = db().collection("users")
+      .where("following", "array-contains", currentUser.uid)
+      .onSnapshot((snap) => {
+        const followers = snap.docs.map(d => ({ ...d.data(), uid: d.id }));
+        const following = profile.following || [];
+        const notFollowedBack = followers.filter(f => !following.includes(f.uid));
+        pendingFriendRequestCount = notFollowedBack.length;
+        const reqTabBadge = $("friendRequestsTabBadge");
+        if(reqTabBadge){
+          if(pendingFriendRequestCount > 0){
+            reqTabBadge.textContent = pendingFriendRequestCount;
+            reqTabBadge.style.display = "flex";
+          } else {
+            reqTabBadge.style.display = "none";
+          }
+        }
+        updateMessagesBadge();
+
+        if(friendRequestInitialSnapshotDone){
+          snap.docChanges().forEach(change => {
+            if(change.type === "added" && !(profile.following || []).includes(change.doc.id)){
+              const data = change.doc.data();
+              $("friendRequestBannerText").innerHTML = `<b>@${data.username || "Jemand"}</b> möchte dir folgen`;
+              $("friendRequestBanner").classList.add("show");
+            }
+          });
+        }
+        friendRequestInitialSnapshotDone = true;
+      }, (err) => console.error("Freundschaftsanfragen beobachten Fehler:", err));
+  }
+
   let ownerRegNotifyUnsubscribe = null;
   let pendingOwnerRegNotify = null;
   function watchOwnerRegistrationNotifications(){
@@ -5858,10 +5934,17 @@
   });
 
   $("ownerSendUpdateNoticeBtn").addEventListener("click", sendOwnerUpdateNotice);
+  $("overlayBroadcast").addEventListener("click", () => {
+    $("overlayBroadcast").classList.remove("show");
+    clearTimeout(broadcastAutoHideTimer);
+  });
   $("updateNoticeConfirmBtn").addEventListener("click", () => {
     location.reload();
   });
   $("updateNoticeDismissBtn").addEventListener("click", () => {
+    $("overlayUpdateNotice").classList.remove("show");
+  });
+  $("updateNoticeBannerClose").addEventListener("click", () => {
     $("overlayUpdateNotice").classList.remove("show");
   });
 
@@ -6007,6 +6090,10 @@
 
   /* Live-Duell: Einladungs-Banner & Warte-Overlay */
   $("duelInviteBanner").addEventListener("click", acceptDuelInvite);
+  $("duelInviteBannerClose").addEventListener("click", (e) => {
+    e.stopPropagation();
+    $("duelInviteBanner").classList.remove("show");
+  });
   $("cancelDuelInviteBtn").addEventListener("click", cancelDuelInvite);
 
   /* Truhen-Modal (Startdrop-Stil) */
@@ -6058,12 +6145,33 @@
       pendingMessageNotify = null;
     }
   });
+  $("messageNotifyBannerClose").addEventListener("click", (e) => {
+    e.stopPropagation();
+    $("messageNotifyBanner").classList.remove("show");
+    pendingMessageNotify = null;
+  });
+
+  $("friendRequestBanner").addEventListener("click", () => {
+    $("friendRequestBanner").classList.remove("show");
+    showScreen("profile");
+    renderProfile();
+    switchSocialTab("requests");
+  });
+  $("friendRequestBannerClose").addEventListener("click", (e) => {
+    e.stopPropagation();
+    $("friendRequestBanner").classList.remove("show");
+  });
 
   $("ownerRegNotifyBanner").addEventListener("click", () => {
     $("ownerRegNotifyBanner").classList.remove("show");
     pendingOwnerRegNotify = null;
     showScreen("settings");
     renderSettings();
+  });
+  $("ownerRegNotifyBannerClose").addEventListener("click", (e) => {
+    e.stopPropagation();
+    $("ownerRegNotifyBanner").classList.remove("show");
+    pendingOwnerRegNotify = null;
   });
 
   /* Onboarding-Kette (NEU): Schwierigkeit -> Tägliches Lernziel -> Login.
@@ -6200,6 +6308,12 @@
     closeAllOnboardingOverlays();
     renderSettings();
     showScreen("settings");
+    // Direkt zu den Login-Feldern scrollen, damit man sie sofort sieht,
+    // statt erst selbst runterscrollen zu müssen.
+    setTimeout(() => {
+      const authBox = document.querySelector("#screen-settings .auth-box");
+      if(authBox) authBox.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
   });
 
   $("welcomeGuestBtn").addEventListener("click", () => {
@@ -6259,6 +6373,14 @@
       if(ownerRegNotifyUnsubscribe){
         ownerRegNotifyUnsubscribe();
         ownerRegNotifyUnsubscribe = null;
+      }
+      if(broadcastLiveUnsubscribe){
+        broadcastLiveUnsubscribe();
+        broadcastLiveUnsubscribe = null;
+      }
+      if(friendRequestUnsubscribe){
+        friendRequestUnsubscribe();
+        friendRequestUnsubscribe = null;
       }
 
       if(user){
@@ -6330,7 +6452,8 @@
             claimPendingReferralRewards();
             checkAndGrantWeeklyInviteReward();
             watchOwnerRegistrationNotifications();
-            checkForNewBroadcast();
+            watchFriendRequests();
+            watchLiveBroadcast();
             claimPendingAuraDonations();
             checkForUpdateNotice();
           } else {

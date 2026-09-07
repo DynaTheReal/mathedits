@@ -652,23 +652,27 @@
     font-size:100px; filter:drop-shadow(0 0 30px rgba(255,26,26,.85));
   }
 
-  /* ---------- Owner-Broadcast (NEU) ---------- */
-  .broadcast-card{
-    border: 2.5px solid #ffd700;
-    box-shadow: 0 0 40px rgba(255,215,0,.4), 0 20px 60px rgba(0,0,0,.5);
+  /* ---------- Owner-Broadcast (NEU) - kompakter Banner statt Vollbild ---------- */
+  .broadcast-banner{
+    border: 1.5px solid #ffd700;
+    box-shadow: 0 12px 30px rgba(0,0,0,.35), 0 0 16px rgba(255,215,0,.25);
+    cursor: default;
   }
-  .broadcast-avatar-wrap{ display:flex; justify-content:center; margin-bottom:10px; }
-  .broadcast-avatar, .broadcast-avatar-placeholder{
-    width:76px; height:76px; border-radius:50%; object-fit:cover;
-    border:3px solid #ffd700; box-shadow:0 0 24px rgba(255,215,0,.5);
+  .broadcast-banner-icon{ font-size:22px; flex-shrink:0; }
+  .broadcast-banner-text{
+    font-size:13px; color:var(--text); line-height:1.4; text-align:left;
   }
-  .broadcast-avatar-placeholder{
-    display:flex; align-items:center; justify-content:center; font-size:34px; background:var(--card-2);
+  .broadcast-banner-text b{ color:#ffd700; }
+
+  .update-notice-banner{
+    max-width:400px; padding:16px; align-items:center; cursor:default;
+    border-color:var(--accent); box-shadow:0 14px 34px rgba(0,0,0,.4), 0 0 18px rgba(201,255,82,.25);
   }
-  .broadcast-from{ font-weight:800; color:#ffd700; margin-bottom:10px; font-size:14px; }
-  .broadcast-message{
-    font-size:17px; font-weight:700; line-height:1.5; white-space:pre-wrap;
-  }
+  .update-notice-icon{ font-size:30px; flex-shrink:0; }
+  .update-notice-text{ flex:1; text-align:left; }
+  .update-notice-title{ font-family:'Baloo 2',sans-serif; font-weight:800; font-size:16px; }
+  .update-notice-sub{ font-size:12.5px; color:var(--text-dim); margin-top:2px; }
+  .update-notice-actions{ display:flex; flex-direction:column; gap:6px; align-items:stretch; flex-shrink:0; }
   .gameover-heart.breaking{
     animation: gameoverHeartBreak 2s cubic-bezier(.4,0,.6,1) forwards;
   }
@@ -1716,6 +1720,8 @@
         <button class="btn btn-primary btn-small" id="ownerSendBroadcastBtn" style="margin-top:8px; width:100%;">Senden</button>
       </div>
 
+      <button class="btn btn-primary btn-small" id="ownerSendUpdateNoticeBtn" style="width:100%; margin-bottom:16px;">🔄 Update-Nachricht senden</button>
+
       <div class="d" style="margin-bottom:6px;">Benutzername suchen</div>
       <div style="display:flex; gap:8px;">
         <input type="text" id="ownerSearchInput" class="input-field" placeholder="Benutzername" style="flex:1;">
@@ -2029,7 +2035,20 @@
 
       <button class="btn btn-primary" id="friendProfileAddBtn" style="margin-top:18px; display:none;">➕ Freund hinzufügen</button>
       <button class="btn btn-primary" id="friendProfileMessageBtn" style="margin-top:10px; display:none;">💬 Nachrichten</button>
+      <button class="btn btn-primary" id="friendProfileDonateBtn" style="margin-top:10px; display:none;">🎁 Aura spenden</button>
       <button class="btn btn-ghost" id="closeFriendProfile" style="margin-top:10px;">Schließen</button>
+    </div>
+  </div>
+
+  <!-- Aura spenden: Betrag eingeben (NEU) -->
+  <div class="overlay" id="overlayDonateAura">
+    <div class="modal-card" style="max-width:340px;">
+      <div style="font-size:36px; margin-bottom:6px;">🎁</div>
+      <h2>Aura spenden</h2>
+      <p>Wie viel Aura möchtest du <b id="donateAuraTargetName">@jemandem</b> schenken? Der Betrag wird dir sofort abgezogen.</p>
+      <input type="number" id="donateAuraAmountInput" class="input-field" placeholder="Betrag" min="1" style="margin-bottom:12px;">
+      <button class="btn btn-primary" id="donateAuraConfirmBtn">Spenden</button>
+      <button class="btn btn-ghost" id="donateAuraCancelBtn" style="margin-top:10px;">Abbrechen</button>
     </div>
   </div>
 
@@ -2173,15 +2192,21 @@
   </div>
 
   <!-- Owner-Broadcast: Nachricht an alle Nutzer, groß in der Mitte (NEU) -->
-  <div class="overlay" id="overlayBroadcast">
-    <div class="modal-card broadcast-card">
-      <div class="broadcast-avatar-wrap">
-        <img id="broadcastAvatarImg" class="broadcast-avatar" style="display:none;">
-        <div id="broadcastAvatarPlaceholder" class="broadcast-avatar-placeholder">👑</div>
-      </div>
-      <div class="broadcast-from" id="broadcastFrom">@DynaTheReal</div>
-      <div class="broadcast-message" id="broadcastMessage"></div>
-      <button class="btn btn-primary" id="broadcastCloseBtn" style="margin-top:18px;">Verstanden</button>
+  <div class="duel-invite-banner broadcast-banner" id="overlayBroadcast">
+    <div class="broadcast-banner-icon">👤</div>
+    <div class="broadcast-banner-text" id="broadcastMessage"></div>
+  </div>
+
+  <!-- Owner-Update-Hinweis (NEU) - etwas größer als der Broadcast-Banner -->
+  <div class="duel-invite-banner update-notice-banner" id="overlayUpdateNotice">
+    <div class="update-notice-icon">🔄</div>
+    <div class="update-notice-text">
+      <div class="update-notice-title">Neue Version!</div>
+      <div class="update-notice-sub">Willst du jetzt updaten?</div>
+    </div>
+    <div class="update-notice-actions">
+      <button class="btn btn-primary btn-small" id="updateNoticeConfirmBtn">Update</button>
+      <button class="pwa-install-dismiss" id="updateNoticeDismissBtn">Später</button>
     </div>
   </div>
 
@@ -2431,6 +2456,8 @@
     lastSeenRegistrationEventAt: 0, // nur für den Owner relevant: bis wann Registrierungs-Benachrichtigungen schon gesehen wurden
     dismissedRegistrationEventIds: [], // nur für den Owner relevant: einzeln weggeklickte Registrierungs-Einträge
     lastSeenBroadcastAt: 0, // bis wann Owner-Broadcasts schon gesehen wurden
+    claimedAuraDonationIds: [], // schon abgeholte Aura-Spenden von anderen Nutzern
+    lastSeenUpdateNoticeAt: 0, // bis wann Owner-Update-Hinweise schon gesehen wurden
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
   };
   let profile = { ...DEFAULT_PROFILE };
@@ -2581,21 +2608,46 @@
       const doc = snap.docs[0];
       const data = doc.data();
       if((data.createdAt || 0) <= (profile.lastSeenBroadcastAt || 0)) return;
-      $("broadcastFrom").textContent = "@" + (data.ownerUsername || OWNER_USERNAME);
-      $("broadcastMessage").textContent = data.message || "";
-      if(data.ownerAvatarData){
-        $("broadcastAvatarImg").src = data.ownerAvatarData;
-        $("broadcastAvatarImg").style.display = "block";
-        $("broadcastAvatarPlaceholder").style.display = "none";
-      } else {
-        $("broadcastAvatarImg").style.display = "none";
-        $("broadcastAvatarPlaceholder").style.display = "flex";
-      }
+      $("broadcastMessage").innerHTML = `<b>${data.ownerUsername || OWNER_USERNAME}:</b> ${data.message || ""}`;
       $("overlayBroadcast").classList.add("show");
       profile.lastSeenBroadcastAt = data.createdAt;
       saveProfile();
+      // Kein Schließen-Button - blendet stattdessen von selbst wieder aus.
+      setTimeout(() => { $("overlayBroadcast").classList.remove("show"); }, 9000);
     }catch(err){
       console.error("Broadcast abrufen Fehler:", err);
+    }
+  }
+
+  // Owner-Update-Hinweis (NEU): eine eigene, separate Benachrichtigung
+  // (unabhängig von normalen Broadcasts), die dazu auffordert, die Seite
+  // neu zu laden, um die neueste Version zu bekommen.
+  async function sendOwnerUpdateNotice(){
+    if(!isOwner() || !firebaseInitialized || !currentUser) return;
+    try{
+      await db().collection("updateNotices").add({ createdAt: Date.now() });
+      showToast("🔄 Update-Nachricht an alle gesendet!");
+    }catch(err){
+      showToast("Update-Nachricht konnte nicht gesendet werden.");
+      console.error("Update-Nachricht senden Fehler:", err);
+    }
+  }
+
+  async function checkForUpdateNotice(){
+    if(!firebaseInitialized || !currentUser) return;
+    try{
+      const snap = await db().collection("updateNotices")
+        .orderBy("createdAt", "desc")
+        .limit(1)
+        .get();
+      if(snap.empty) return;
+      const data = snap.docs[0].data();
+      if((data.createdAt || 0) <= (profile.lastSeenUpdateNoticeAt || 0)) return;
+      $("overlayUpdateNotice").classList.add("show");
+      profile.lastSeenUpdateNoticeAt = data.createdAt;
+      saveProfile();
+    }catch(err){
+      console.error("Update-Hinweis abrufen Fehler:", err);
     }
   }
 
@@ -2669,6 +2721,80 @@
   // Schreibzugriff): sucht alle offenen Belohnungen, die auf die eigene UID
   // ausgestellt wurden, schreibt sie der eigenen Aura gut und merkt sich lokal,
   // welche IDs bereits verrechnet wurden (damit nichts doppelt gezählt wird).
+  // Aura spenden (NEU): funktioniert wie das Einladungs-Belohnungssystem -
+  // der Spender zieht sich den Betrag sofort selbst ab und legt ein
+  // Dokument an, das der Empfänger beim nächsten Login selbst abholt (man
+  // darf ja nicht direkt in ein fremdes Konto schreiben).
+  let donateAuraTargetUid = null;
+  let donateAuraTargetUsername = null;
+  function openDonateAuraOverlay(uid, username){
+    donateAuraTargetUid = uid;
+    donateAuraTargetUsername = username;
+    $("donateAuraTargetName").textContent = "@" + username;
+    $("donateAuraAmountInput").value = "";
+    $("overlayDonateAura").classList.add("show");
+  }
+
+  async function confirmDonateAura(){
+    const amount = parseInt($("donateAuraAmountInput").value, 10);
+    if(!amount || amount <= 0){
+      showToast("Bitte einen gültigen Betrag eingeben.");
+      return;
+    }
+    if(amount > profile.totalAura){
+      showToast("Du hast nicht genug Aura dafür.");
+      return;
+    }
+    if(!donateAuraTargetUid || !firebaseInitialized || !currentUser) return;
+    try{
+      await db().collection("auraDonations").add({
+        fromUid: currentUser.uid,
+        fromUsername: profile.username,
+        toUid: donateAuraTargetUid,
+        amount,
+        createdAt: Date.now()
+      });
+      profile.totalAura -= amount;
+      saveProfile();
+      renderHome();
+      $("overlayDonateAura").classList.remove("show");
+      showToast(`🎁 ${amount} Aura an @${donateAuraTargetUsername} gespendet!`);
+    }catch(err){
+      showToast("Spende konnte nicht gesendet werden.");
+      console.error("Aura spenden Fehler:", err);
+    }
+  }
+
+  async function claimPendingAuraDonations(){
+    if(!firebaseInitialized || !currentUser) return;
+    try{
+      const snap = await db().collection("auraDonations")
+        .where("toUid", "==", currentUser.uid)
+        .get();
+      if(snap.empty) return;
+      const already = new Set(profile.claimedAuraDonationIds || []);
+      let total = 0;
+      const newIds = [];
+      let lastFrom = null;
+      snap.forEach(doc => {
+        if(already.has(doc.id)) return;
+        const data = doc.data();
+        total += data.amount || 0;
+        newIds.push(doc.id);
+        lastFrom = data.fromUsername;
+      });
+      if(newIds.length === 0) return;
+      profile.totalAura += total;
+      profile.claimedAuraDonationIds = [...(profile.claimedAuraDonationIds || []), ...newIds];
+      saveProfile();
+      renderHome();
+      const fromText = newIds.length === 1 ? `von @${lastFrom}` : `von ${newIds.length} Personen`;
+      showToast(`🎁 +${total} Aura geschenkt bekommen ${fromText}!`);
+    }catch(err){
+      console.error("Aura-Spenden abholen Fehler:", err);
+    }
+  }
+
   async function claimPendingReferralRewards(){
     if(!firebaseInitialized || !currentUser){
       console.log("[Einladung] claimPendingReferralRewards übersprungen (nicht angemeldet).");
@@ -3940,6 +4066,20 @@
       msgBtn.onclick = null;
     }
 
+    // "Aura spenden"-Button: bei jedem fremden Profil mit bekanntem
+    // Benutzernamen, unabhängig von einer Freundschaft.
+    const donateBtn = $("friendProfileDonateBtn");
+    if(!isOwnProfile && u.username && currentUser){
+      donateBtn.style.display = "block";
+      donateBtn.onclick = () => {
+        $("overlayFriendProfile").classList.remove("show");
+        openDonateAuraOverlay(u.uid, u.username);
+      };
+    } else {
+      donateBtn.style.display = "none";
+      donateBtn.onclick = null;
+    }
+
     $("overlayFriendProfile").classList.add("show");
   }
 
@@ -4569,6 +4709,11 @@
       ...(cloudP.dismissedRegistrationEventIds || [])
     ]));
     merged.lastSeenBroadcastAt = Math.max(localP.lastSeenBroadcastAt || 0, cloudP.lastSeenBroadcastAt || 0);
+    merged.claimedAuraDonationIds = Array.from(new Set([
+      ...(localP.claimedAuraDonationIds || []),
+      ...(cloudP.claimedAuraDonationIds || [])
+    ]));
+    merged.lastSeenUpdateNoticeAt = Math.max(localP.lastSeenUpdateNoticeAt || 0, cloudP.lastSeenUpdateNoticeAt || 0);
     merged.lastStreakReminderShownDate = maxDateStr(localP.lastStreakReminderShownDate, cloudP.lastStreakReminderShownDate);
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.countedDuelWins = Array.from(new Set([
@@ -5706,8 +5851,18 @@
     sendOwnerBroadcast(input.value);
     input.value = "";
   });
-  $("broadcastCloseBtn").addEventListener("click", () => {
-    $("overlayBroadcast").classList.remove("show");
+
+  $("donateAuraConfirmBtn").addEventListener("click", confirmDonateAura);
+  $("donateAuraCancelBtn").addEventListener("click", () => {
+    $("overlayDonateAura").classList.remove("show");
+  });
+
+  $("ownerSendUpdateNoticeBtn").addEventListener("click", sendOwnerUpdateNotice);
+  $("updateNoticeConfirmBtn").addEventListener("click", () => {
+    location.reload();
+  });
+  $("updateNoticeDismissBtn").addEventListener("click", () => {
+    $("overlayUpdateNotice").classList.remove("show");
   });
 
   /* ========================================================
@@ -6176,6 +6331,8 @@
             checkAndGrantWeeklyInviteReward();
             watchOwnerRegistrationNotifications();
             checkForNewBroadcast();
+            claimPendingAuraDonations();
+            checkForUpdateNotice();
           } else {
             cloudSyncReady = true;
             // Nur EINMAL versuchen, das Dokument anzulegen - nicht bei jedem

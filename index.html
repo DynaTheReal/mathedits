@@ -657,27 +657,30 @@
     font-size:100px; filter:drop-shadow(0 0 30px rgba(255,26,26,.85));
   }
 
-  /* ---------- Owner-Broadcast (NEU) - kompakter Banner statt Vollbild ---------- */
-  .broadcast-banner{
-    max-width: 440px;
-    padding: 18px 20px;
-    border: 2px solid #ffd700;
-    box-shadow: 0 18px 42px rgba(0,0,0,.45), 0 0 26px rgba(255,215,0,.3);
-    cursor: pointer;
+  /* ---------- Owner-Broadcast (NEU, komplett neu aufgebaut) - eigenständige
+     Toast-Komponente, unabhängig von .duel-invite-banner, damit hier keine
+     geerbte Transform-Positionierung mehr etwas kaputt machen kann. Nutzt
+     bewusst opacity/visibility statt einer Transform-basierten
+     "off-screen"-Position zum Verstecken - das ist robuster und war die
+     Ursache des vorherigen Bugs (leeres Banner, das permanent sichtbar war). */
+  .broadcast-toast{
+    position:fixed; top:16%; left:50%; transform:translateX(-50%);
+    width:calc(100% - 32px); max-width:440px;
+    background:var(--card); border:2px solid #ffd700; border-radius:16px;
+    padding:18px 20px; display:flex; align-items:center; gap:12px;
+    box-shadow:0 18px 42px rgba(0,0,0,.45), 0 0 26px rgba(255,215,0,.3);
+    z-index:250; cursor:pointer;
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .3s ease;
   }
-  /* Wichtig: NUR im sichtbaren Zustand weiter nach unten versetzen - die
-     Basis-Position (aus .duel-invite-banner) muss unverändert bleiben,
-     sonst reicht die geerbte "unsichtbar"-Verschiebung nicht mehr aus, um
-     das Banner wirklich aus dem sichtbaren Bereich zu schieben (führte
-     vorher dazu, dass ein leeres Banner permanent sichtbar war). */
-  .broadcast-banner.show{
-    transform: translate(-50%, 55px);
+  .broadcast-toast.show{
+    opacity:1; visibility:visible; pointer-events:auto;
   }
-  .broadcast-banner-icon{ font-size:28px; flex-shrink:0; }
-  .broadcast-banner-text{
-    font-size:15px; color:var(--text); line-height:1.5; text-align:left;
+  .broadcast-toast-icon{ font-size:28px; flex-shrink:0; }
+  .broadcast-toast-text{
+    font-size:15px; color:var(--text); line-height:1.5; text-align:left; flex:1;
   }
-  .broadcast-banner-text b{ color:#ffd700; }
+  .broadcast-toast-text b{ color:#ffd700; }
 
   .update-notice-banner{
     max-width:400px; padding:16px; align-items:center; cursor:default;
@@ -2216,11 +2219,11 @@
     <div class="gameover-heart" id="gameOverHeartIcon">❤️</div>
   </div>
 
-  <!-- Owner-Broadcast: Nachricht an alle Nutzer, groß in der Mitte (NEU) -->
-  <div class="duel-invite-banner broadcast-banner" id="overlayBroadcast">
-    <div class="broadcast-banner-icon">👤</div>
-    <div class="broadcast-banner-text" id="broadcastMessage"></div>
-    <button class="banner-close-x" id="overlayBroadcastClose">✕</button>
+  <!-- Owner-Broadcast: Nachricht an alle Nutzer (NEU, komplett neu aufgebaut) -->
+  <div class="broadcast-toast" id="broadcastToast">
+    <div class="broadcast-toast-icon">👤</div>
+    <div class="broadcast-toast-text" id="broadcastToastText"></div>
+    <button class="banner-close-x" id="broadcastToastClose">✕</button>
   </div>
 
   <!-- Owner-Update-Hinweis (NEU) - etwas größer als der Broadcast-Banner -->
@@ -2598,11 +2601,11 @@
     }
   }
 
-  // Owner-Broadcast (NEU): der Owner schreibt eine Nachricht, die ALLE
-  // Nutzer weltweit beim nächsten Öffnen (bzw. sofort, falls die App gerade
-  // läuft) groß in der Mitte zu sehen bekommen, mit dem Profilbild des
-  // Owners. Nur der Owner darf einen Eintrag anlegen (siehe Firestore-
-  // Regeln), aber JEDER darf die Sammlung lesen.
+  // Owner-Broadcast (NEU, komplett neu aufgebaut): der Owner schreibt eine
+  // Nachricht, die NUR live zugestellt wird - wer die App gerade offen hat,
+  // sieht sie 5 Sekunden lang; wer offline war, sieht sie beim späteren
+  // Öffnen NICHT nachträglich. Nur der Owner darf einen Eintrag anlegen
+  // (siehe Firestore-Regeln), aber JEDER darf die Sammlung lesen.
   async function sendOwnerBroadcast(message){
     if(!isOwner() || !firebaseInitialized || !currentUser) return;
     const text = (message || "").trim();
@@ -2610,7 +2613,6 @@
     try{
       await db().collection("broadcasts").add({
         message: text.slice(0, 500),
-        ownerAvatarData: profile.avatarData || null,
         ownerUsername: profile.username || OWNER_USERNAME,
         createdAt: Date.now()
       });
@@ -2621,31 +2623,44 @@
     }
   }
 
-  // Läuft für JEDEN eingeloggten Nutzer: holt den neuesten Broadcast und
-  // zeigt ihn groß an, falls er neuer ist als das, was diese Person schon
-  // gesehen hat.
-  // Owner-Broadcast (NEU, überarbeitet): wird jetzt NUR noch live zugestellt.
-  // Ein Broadcast, der gesendet wurde, während man die App nicht offen hatte,
-  // wird beim späteren Öffnen NICHT mehr nachgeholt - nur wer gerade online
-  // ist, sieht ihn, genau in dem Moment.
-  let broadcastLiveUnsubscribe = null;
-  let broadcastListenerStartTime = null;
-  let broadcastAutoHideTimer = null;
+  let broadcastToastUnsubscribe = null;
+  let broadcastToastStartedAt = null;
+  let broadcastToastHideTimer = null;
+  let broadcastToastShownDocId = null;
+
+  function hideBroadcastToast(){
+    $("broadcastToast").classList.remove("show");
+    clearTimeout(broadcastToastHideTimer);
+    broadcastToastHideTimer = null;
+  }
+
   function watchLiveBroadcast(){
-    if(broadcastLiveUnsubscribe){ broadcastLiveUnsubscribe(); broadcastLiveUnsubscribe = null; }
+    if(broadcastToastUnsubscribe){ broadcastToastUnsubscribe(); broadcastToastUnsubscribe = null; }
+    hideBroadcastToast();
     if(!firebaseInitialized || !currentUser) return;
-    broadcastListenerStartTime = Date.now();
-    broadcastLiveUnsubscribe = db().collection("broadcasts")
+    // Der Grenzwert wird JETZT festgehalten - nur Broadcasts, deren
+    // Zeitstempel NACH diesem Moment liegt, werden angezeigt. Alles, was
+    // schon vorher existierte, wird bewusst ignoriert.
+    broadcastToastStartedAt = Date.now();
+    broadcastToastShownDocId = null;
+    broadcastToastUnsubscribe = db().collection("broadcasts")
       .orderBy("createdAt", "desc")
       .limit(1)
       .onSnapshot((snap) => {
         if(snap.empty) return;
-        const data = snap.docs[0].data();
-        if((data.createdAt || 0) <= broadcastListenerStartTime) return;
-        $("broadcastMessage").innerHTML = `<b>${data.ownerUsername || OWNER_USERNAME}:</b> ${data.message || ""}`;
-        $("overlayBroadcast").classList.add("show");
-        clearTimeout(broadcastAutoHideTimer);
-        broadcastAutoHideTimer = setTimeout(() => { $("overlayBroadcast").classList.remove("show"); }, 5000);
+        const doc = snap.docs[0];
+        const data = doc.data();
+        if(!data || typeof data.createdAt !== "number") return;
+        if(data.createdAt <= broadcastToastStartedAt) return;
+        // Verhindert, dass derselbe Broadcast zweimal auftaucht - Firestore
+        // feuert bei einem eigenen Schreibvorgang oft zweimal (einmal
+        // optimistisch lokal, einmal nach Server-Bestätigung).
+        if(doc.id === broadcastToastShownDocId) return;
+        broadcastToastShownDocId = doc.id;
+        $("broadcastToastText").innerHTML = `<b>${data.ownerUsername || OWNER_USERNAME}:</b> ${data.message || ""}`;
+        $("broadcastToast").classList.add("show");
+        clearTimeout(broadcastToastHideTimer);
+        broadcastToastHideTimer = setTimeout(hideBroadcastToast, 5000);
       }, (err) => console.error("Live-Broadcast Fehler:", err));
   }
 
@@ -2795,34 +2810,33 @@
     }
   }
 
-  async function claimPendingAuraDonations(){
+  let auraDonationUnsubscribe = null;
+  function watchAuraDonations(){
+    if(auraDonationUnsubscribe){ auraDonationUnsubscribe(); auraDonationUnsubscribe = null; }
     if(!firebaseInitialized || !currentUser) return;
-    try{
-      const snap = await db().collection("auraDonations")
-        .where("toUid", "==", currentUser.uid)
-        .get();
-      if(snap.empty) return;
-      const already = new Set(profile.claimedAuraDonationIds || []);
-      let total = 0;
-      const newIds = [];
-      let lastFrom = null;
-      snap.forEach(doc => {
-        if(already.has(doc.id)) return;
-        const data = doc.data();
-        total += data.amount || 0;
-        newIds.push(doc.id);
-        lastFrom = data.fromUsername;
-      });
-      if(newIds.length === 0) return;
-      profile.totalAura += total;
-      profile.claimedAuraDonationIds = [...(profile.claimedAuraDonationIds || []), ...newIds];
-      saveProfile();
-      renderHome();
-      const fromText = newIds.length === 1 ? `von @${lastFrom}` : `von ${newIds.length} Personen`;
-      showToast(`🎁 +${total} Aura geschenkt bekommen ${fromText}!`);
-    }catch(err){
-      console.error("Aura-Spenden abholen Fehler:", err);
-    }
+    auraDonationUnsubscribe = db().collection("auraDonations")
+      .where("toUid", "==", currentUser.uid)
+      .onSnapshot((snap) => {
+        if(snap.empty) return;
+        const already = new Set(profile.claimedAuraDonationIds || []);
+        let total = 0;
+        const newIds = [];
+        let lastFrom = null;
+        snap.forEach(doc => {
+          if(already.has(doc.id)) return;
+          const data = doc.data();
+          total += data.amount || 0;
+          newIds.push(doc.id);
+          lastFrom = data.fromUsername;
+        });
+        if(newIds.length === 0) return;
+        profile.totalAura += total;
+        profile.claimedAuraDonationIds = [...(profile.claimedAuraDonationIds || []), ...newIds];
+        saveProfile();
+        renderHome();
+        const fromText = newIds.length === 1 ? `von @${lastFrom}` : `von ${newIds.length} Personen`;
+        showToast(`🎁 +${total} Aura geschenkt bekommen ${fromText}!`);
+      }, (err) => console.error("Aura-Spenden beobachten Fehler:", err));
   }
 
   async function claimPendingReferralRewards(){
@@ -5942,14 +5956,10 @@
   });
 
   $("ownerSendUpdateNoticeBtn").addEventListener("click", sendOwnerUpdateNotice);
-  $("overlayBroadcast").addEventListener("click", () => {
-    $("overlayBroadcast").classList.remove("show");
-    clearTimeout(broadcastAutoHideTimer);
-  });
-  $("overlayBroadcastClose").addEventListener("click", (e) => {
+  $("broadcastToast").addEventListener("click", hideBroadcastToast);
+  $("broadcastToastClose").addEventListener("click", (e) => {
     e.stopPropagation();
-    $("overlayBroadcast").classList.remove("show");
-    clearTimeout(broadcastAutoHideTimer);
+    hideBroadcastToast();
   });
   $("updateNoticeConfirmBtn").addEventListener("click", () => {
     location.reload();
@@ -6212,12 +6222,14 @@
   });
 
   $("difficultyContinueBtn").addEventListener("click", () => {
-    // Level bleibt immer bei 1 - die Schwierigkeitswahl legt nur fest, mit
-    // welcher (ohnehin kostenlosen) Einmaleins-Stufe man startet.
+    // Das Level wird jetzt passend zur gewählten Stufe gesetzt (statt immer
+    // bei 1 zu bleiben) - sonst würde die gewählte Schwierigkeit nicht der
+    // "aktiven" Stufe entsprechen und man bekäme für die ersten Lektionen
+    // gar keinen Level-/Aura-Fortschritt (nur reines Üben ohne Belohnung).
     const tierIdForDifficulty = { beginner: "kl_mult", medium: "mult_m", hard: "gr_mult" };
     const tierId = tierIdForDifficulty[selectedDifficulty] || "kl_mult";
     const tierIdx = TIERS.findIndex(t => t.id === tierId);
-    profile.level = 1;
+    profile.level = tierIdx >= 0 ? TIERS[tierIdx].from : 1;
     profile.levelProgress = 0;
     selectedTierIndex = tierIdx >= 0 ? tierIdx : null;
     saveProfile();
@@ -6387,13 +6399,17 @@
         ownerRegNotifyUnsubscribe();
         ownerRegNotifyUnsubscribe = null;
       }
-      if(broadcastLiveUnsubscribe){
-        broadcastLiveUnsubscribe();
-        broadcastLiveUnsubscribe = null;
+      if(broadcastToastUnsubscribe){
+        broadcastToastUnsubscribe();
+        broadcastToastUnsubscribe = null;
       }
       if(friendRequestUnsubscribe){
         friendRequestUnsubscribe();
         friendRequestUnsubscribe = null;
+      }
+      if(auraDonationUnsubscribe){
+        auraDonationUnsubscribe();
+        auraDonationUnsubscribe = null;
       }
 
       if(user){
@@ -6467,7 +6483,7 @@
             watchOwnerRegistrationNotifications();
             watchFriendRequests();
             watchLiveBroadcast();
-            claimPendingAuraDonations();
+            watchAuraDonations();
             checkForUpdateNotice();
           } else {
             cloudSyncReady = true;
@@ -6722,6 +6738,9 @@
         selectedTierIndex = i;
         $("tierLabel").textContent = tier.name;
         renderTierCarousel();
+        if(i !== activeIdx){
+          showToast(`⚠️ Nur reines Üben - Level & Aura gibt's nur mit "${TIERS[activeIdx].name}"`);
+        }
       });
       wrap.appendChild(card);
     });

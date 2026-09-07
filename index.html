@@ -613,15 +613,14 @@
     opacity:0; pointer-events:none; transition:opacity .25s ease;
   }
   .scare-overlay.show{ opacity:1; pointer-events:auto; }
-  .scare-eyes{ display:flex; gap:44px; margin-bottom:26px; }
-  .scare-eye{
-    width:46px; height:64px; border-radius:50%; background:#ff1a1a;
-    box-shadow:0 0 30px 10px rgba(255,26,26,.75), 0 0 70px 24px rgba(255,26,26,.35);
-    animation: scareEyePulse 1.1s ease-in-out infinite;
+  .scare-mathy{
+    width:min(78vw, 340px); max-height:46vh; object-fit:contain;
+    margin-bottom:22px; filter:drop-shadow(0 0 26px rgba(255,26,26,.6)) drop-shadow(0 0 60px rgba(255,26,26,.3));
+    animation: scareMathyPulse 1.1s ease-in-out infinite;
   }
-  @keyframes scareEyePulse{
-    0%,100%{ transform:scaleY(1); }
-    50%{ transform:scaleY(.12); }
+  @keyframes scareMathyPulse{
+    0%,100%{ transform:scale(1); }
+    50%{ transform:scale(1.05); }
   }
   .scare-text{
     color:#ff1a1a; font-family:'Baloo 2', sans-serif; font-size:26px; font-weight:800;
@@ -2261,10 +2260,7 @@
 
   <!-- Combo-Verlust-Schreckmoment (NEU) -->
   <div class="scare-overlay" id="overlayComboScare">
-    <div class="scare-eyes">
-      <div class="scare-eye"></div>
-      <div class="scare-eye"></div>
-    </div>
+    <img src="E725DF13-67A4-4EAA-AC9B-ECEA97D86F5A.png" class="scare-mathy" alt="Mathy">
     <div class="scare-text">Dein Ernst?</div>
   </div>
 

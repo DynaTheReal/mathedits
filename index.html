@@ -659,12 +659,19 @@
 
   /* ---------- Owner-Broadcast (NEU) - kompakter Banner statt Vollbild ---------- */
   .broadcast-banner{
-    top: 14%;
     max-width: 440px;
     padding: 18px 20px;
     border: 2px solid #ffd700;
     box-shadow: 0 18px 42px rgba(0,0,0,.45), 0 0 26px rgba(255,215,0,.3);
     cursor: pointer;
+  }
+  /* Wichtig: NUR im sichtbaren Zustand weiter nach unten versetzen - die
+     Basis-Position (aus .duel-invite-banner) muss unverändert bleiben,
+     sonst reicht die geerbte "unsichtbar"-Verschiebung nicht mehr aus, um
+     das Banner wirklich aus dem sichtbaren Bereich zu schieben (führte
+     vorher dazu, dass ein leeres Banner permanent sichtbar war). */
+  .broadcast-banner.show{
+    transform: translate(-50%, 55px);
   }
   .broadcast-banner-icon{ font-size:28px; flex-shrink:0; }
   .broadcast-banner-text{
@@ -2213,6 +2220,7 @@
   <div class="duel-invite-banner broadcast-banner" id="overlayBroadcast">
     <div class="broadcast-banner-icon">👤</div>
     <div class="broadcast-banner-text" id="broadcastMessage"></div>
+    <button class="banner-close-x" id="overlayBroadcastClose">✕</button>
   </div>
 
   <!-- Owner-Update-Hinweis (NEU) - etwas größer als der Broadcast-Banner -->
@@ -5935,6 +5943,11 @@
 
   $("ownerSendUpdateNoticeBtn").addEventListener("click", sendOwnerUpdateNotice);
   $("overlayBroadcast").addEventListener("click", () => {
+    $("overlayBroadcast").classList.remove("show");
+    clearTimeout(broadcastAutoHideTimer);
+  });
+  $("overlayBroadcastClose").addEventListener("click", (e) => {
+    e.stopPropagation();
     $("overlayBroadcast").classList.remove("show");
     clearTimeout(broadcastAutoHideTimer);
   });

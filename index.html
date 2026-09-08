@@ -559,11 +559,11 @@
 
   /* ---------- Trends-Raster (NEU) ---------- */
   .trend-cell{
-    background:var(--card); border:1.5px solid var(--border); border-radius:14px;
-    padding:16px 0; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:20px;
+    background:var(--card); border:1.5px solid var(--border); border-radius:10px;
+    padding:9px 0; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:14px;
     color:var(--text); text-align:center; position:relative;
   }
-  .trend-cell .pct{ display:block; font-size:10px; font-weight:600; opacity:.75; margin-top:2px; }
+  .trend-cell .pct{ display:block; font-size:8px; font-weight:600; opacity:.75; margin-top:1px; }
   .trend-cell.trend-red{ border-color:#ef4444; background:rgba(239,68,68,.12); }
   .trend-cell.trend-yellow{ border-color:#eab308; background:rgba(234,179,8,.12); }
   .trend-cell.trend-green{ border-color:#22c55e; background:rgba(34,197,94,.12); }
@@ -1727,14 +1727,14 @@
       <div style="font-size:12px; opacity:.75;">Wie gut du das kleine Einmaleins pro Zahl kannst</div>
     </div>
 
-    <div class="times-table-grid" id="trendsGrid" style="grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px;"></div>
+    <button class="btn btn-primary" id="startWeakTasksBtn" style="width:100%; padding:15px; margin-bottom:6px;">💪 Schwierige Aufgaben starten</button>
+    <div class="d" style="text-align:center; margin-bottom:18px;">Die Aufgaben, mit denen du am meisten struggelst - gibt Aura und Level.</div>
+
+    <div class="times-table-grid" id="trendsGrid" style="grid-template-columns:repeat(6,1fr); gap:7px; margin-bottom:18px;"></div>
 
     <div style="display:flex; gap:14px; align-items:center; justify-content:center; margin-bottom:18px; font-size:12px; opacity:.8;">
       <span>🔴 Schwach</span><span>🟡 Okay</span><span>🟢 Stark</span>
     </div>
-
-    <button class="btn btn-primary" id="startWeakTasksBtn" style="width:100%; padding:15px;">💪 Schwierige Aufgaben starten</button>
-    <div class="d" style="text-align:center; margin-top:8px;">Die Aufgaben, mit denen du am meisten struggelst - gibt Aura und Level.</div>
   </section>
 
   <!-- ============ SETTINGS ============ -->
@@ -1742,6 +1742,7 @@
     <div class="topbar">
       <div class="exit-x" id="settingsBack">←</div>
       <div class="settings-title">Einstellungen</div>
+      <div class="exit-x" id="redeemCodeBtn" title="Code einlösen" style="font-family:'Baloo 2',sans-serif; font-weight:900;">C</div>
     </div>
 
     <div class="settings-row">
@@ -1774,6 +1775,17 @@
       </div>
 
       <button class="btn btn-primary btn-small" id="ownerSendUpdateNoticeBtn" style="width:100%; margin-bottom:16px;">🔄 Update-Nachricht senden</button>
+
+      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:16px;">
+        <div style="font-weight:800; margin-bottom:8px;">🎁 Einlöse-Code festlegen</div>
+        <div class="d" id="ownerCodeStatus" style="margin-bottom:8px;">Aktuell: kein aktiver Code.</div>
+        <input type="text" id="ownerCodeInput" class="input-field" placeholder="Neuer Code (z.B. MATHY500)" style="margin-bottom:8px; text-transform:uppercase;">
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <button class="btn btn-ghost btn-small" id="ownerCodeRewardAuraBtn" style="flex:1;">500 Aura</button>
+          <button class="btn btn-ghost btn-small" id="ownerCodeRewardLifeBtn" style="flex:1;">1 Leben</button>
+        </div>
+        <button class="btn btn-primary btn-small" id="ownerSetCodeBtn" style="width:100%;">Code setzen</button>
+      </div>
 
       <div class="d" style="margin-bottom:6px;">Benutzername suchen</div>
       <div style="display:flex; gap:8px;">
@@ -2120,6 +2132,18 @@
       <p>Das kostet zwar kein Level, aber Achtung: Solange das nicht deine aktive Stufe ist, bekommst du dort weder Level noch Aura - nur zum Üben.</p>
       <button class="btn btn-primary" id="unlockFreeTierConfirmBtn">Freischalten</button>
       <button class="btn btn-ghost" id="unlockFreeTierCancelBtn" style="margin-top:10px;">Abbrechen</button>
+    </div>
+  </div>
+
+  <!-- Code einlösen (NEU) -->
+  <div class="overlay" id="overlayRedeemCode">
+    <div class="modal-card" style="max-width:320px;">
+      <div style="font-size:36px; margin-bottom:6px;">🎁</div>
+      <h2>Code einlösen</h2>
+      <p>Gib deinen Code ein, um deine Belohnung zu bekommen.</p>
+      <input type="text" id="redeemCodeInput" class="input-field" placeholder="Code" style="margin-bottom:12px; text-transform:uppercase;">
+      <button class="btn btn-primary" id="redeemCodeConfirmBtn">Einlösen</button>
+      <button class="btn btn-ghost" id="redeemCodeCancelBtn" style="margin-top:10px;">Abbrechen</button>
     </div>
   </div>
 
@@ -2747,6 +2771,96 @@
       saveProfile();
     }catch(err){
       console.error("Update-Hinweis abrufen Fehler:", err);
+    }
+  }
+
+  /* ========================================================
+     EINLÖSE-CODES (NEU): der Owner legt einen einmal nutzbaren Code fest
+     (500 Aura oder 1 Leben). Der erste, der ihn richtig eingibt, bekommt die
+     Belohnung - danach ist der Code sofort verbraucht und niemand sonst
+     kann ihn mehr nutzen. Die Firestore-Regel erlaubt jedem NUR das Kippen
+     von active:true -> false (nichts sonst), das schützt gegen Missbrauch
+     und gegen zwei gleichzeitige Einlösungen.
+  ======================================================== */
+  let ownerSelectedCodeReward = "aura";
+
+  async function renderOwnerCodeStatus(){
+    if(!isOwner() || !firebaseInitialized) return;
+    const statusEl = $("ownerCodeStatus");
+    try{
+      const doc = await db().collection("redeemCodes").doc("current").get();
+      if(!doc.exists || !doc.data().active){
+        statusEl.textContent = "Aktuell: kein aktiver Code.";
+        return;
+      }
+      const data = doc.data();
+      const rewardText = data.rewardType === "life" ? "1 Leben" : "500 Aura";
+      statusEl.textContent = `Aktuell aktiv: "${data.code}" (${rewardText})`;
+    }catch(err){
+      console.error("Code-Status Fehler:", err);
+    }
+  }
+
+  async function ownerSetRedeemCode(){
+    if(!isOwner() || !firebaseInitialized || !currentUser) return;
+    const code = $("ownerCodeInput").value.trim().toUpperCase();
+    if(!code){
+      showToast("Bitte einen Code eingeben.");
+      return;
+    }
+    try{
+      await db().collection("redeemCodes").doc("current").set({
+        code, rewardType: ownerSelectedCodeReward, active: true,
+        setByUid: currentUser.uid, createdAt: Date.now()
+      });
+      $("ownerCodeInput").value = "";
+      showToast(`🎁 Code "${code}" gesetzt!`);
+      renderOwnerCodeStatus();
+    }catch(err){
+      showToast("Code konnte nicht gesetzt werden.");
+      console.error("Code setzen Fehler:", err);
+    }
+  }
+
+  async function redeemCode(){
+    const input = $("redeemCodeInput").value.trim().toUpperCase();
+    if(!input || !firebaseInitialized || !currentUser){
+      showToast("Bitte einen Code eingeben.");
+      return;
+    }
+    try{
+      const ref = db().collection("redeemCodes").doc("current");
+      const doc = await ref.get();
+      if(!doc.exists || !doc.data().active){
+        showToast("Kein aktiver Code vorhanden.");
+        return;
+      }
+      const data = doc.data();
+      if(data.code !== input){
+        showToast("❌ Code ungültig.");
+        return;
+      }
+      // Kippt NUR active auf false - schlägt fehl, falls jemand anderes
+      // (fast) gleichzeitig schneller war, weil die Regel serverseitig
+      // prüft, dass der Code zu diesem Zeitpunkt noch aktiv ist.
+      await ref.update({
+        active: false, redeemedByUid: currentUser.uid,
+        redeemedByUsername: profile.username || "", redeemedAt: Date.now()
+      });
+      if(data.rewardType === "life"){
+        profile.lives = Math.min(MAX_LIVES, profile.lives + 1);
+        showToast("🎉 Code eingelöst! +1 Leben");
+      } else {
+        profile.totalAura += 500;
+        showToast("🎉 Code eingelöst! +500 Aura");
+      }
+      saveProfile();
+      renderHome();
+      $("overlayRedeemCode").classList.remove("show");
+      $("redeemCodeInput").value = "";
+    }catch(err){
+      showToast("Code konnte nicht eingelöst werden - vielleicht schon benutzt?");
+      console.error("Code einlösen Fehler:", err);
     }
   }
 
@@ -3527,6 +3641,16 @@
     const invite = pendingIncomingInvite;
     $("duelInviteBanner").classList.remove("show");
     pendingIncomingInvite = null;
+    // Wichtig: eine gerade laufende (normale) Lektion muss hier sauber
+    // gestoppt werden - sonst tickt ihr Timer im Hintergrund unter dem
+    // Duell-Overlay weiter, läuft irgendwann ab und man landet ungewollt
+    // (durch einen Zeitüberschreitungs-/Herzverlust) wieder auf dem
+    // Home-Bildschirm, während man eigentlich das Duell spielen wollte.
+    if(lesson && !lesson.isLiveDuel){
+      stopTimer();
+      pendingAdvanceAt = null;
+      lesson = null;
+    }
     try{
       await db().collection("duelInvites").doc(invite.id).update({ status: "accepted" });
       await db().collection("liveDuels").doc(invite.id).set({
@@ -6123,6 +6247,28 @@
   });
 
   $("ownerSendUpdateNoticeBtn").addEventListener("click", sendOwnerUpdateNotice);
+
+  $("ownerCodeRewardAuraBtn").addEventListener("click", () => {
+    ownerSelectedCodeReward = "aura";
+    $("ownerCodeRewardAuraBtn").style.cssText = "flex:1; background:var(--accent); color:#000; border-color:var(--accent);";
+    $("ownerCodeRewardLifeBtn").style.cssText = "flex:1;";
+  });
+  $("ownerCodeRewardLifeBtn").addEventListener("click", () => {
+    ownerSelectedCodeReward = "life";
+    $("ownerCodeRewardLifeBtn").style.cssText = "flex:1; background:var(--accent); color:#000; border-color:var(--accent);";
+    $("ownerCodeRewardAuraBtn").style.cssText = "flex:1;";
+  });
+  $("ownerSetCodeBtn").addEventListener("click", ownerSetRedeemCode);
+
+  $("redeemCodeBtn").addEventListener("click", () => {
+    $("redeemCodeInput").value = "";
+    $("overlayRedeemCode").classList.add("show");
+  });
+  $("redeemCodeConfirmBtn").addEventListener("click", redeemCode);
+  $("redeemCodeCancelBtn").addEventListener("click", () => {
+    $("overlayRedeemCode").classList.remove("show");
+  });
+
   $("broadcastToast").addEventListener("click", hideBroadcastToast);
   $("broadcastToastClose").addEventListener("click", (e) => {
     e.stopPropagation();
@@ -6177,7 +6323,10 @@
     }
 
     $("ownerPanelRow").style.display = isOwner() ? "flex" : "none";
-    if(isOwner()) renderOwnerRegistrationNotifications();
+    if(isOwner()){
+      renderOwnerRegistrationNotifications();
+      renderOwnerCodeStatus();
+    }
 
     if(currentUser){
       $("authTitle").textContent = "Angemeldet als: " + currentUser.email;

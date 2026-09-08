@@ -22,6 +22,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 
 <style>
   :root{
@@ -1807,14 +1808,20 @@
       <button class="btn btn-primary btn-small" id="ownerSendUpdateNoticeBtn" style="width:100%; margin-bottom:16px;">🔄 Update-Nachricht senden</button>
 
       <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:16px;">
-        <div style="font-weight:800; margin-bottom:8px;">🎁 Einlöse-Code festlegen</div>
-        <div class="d" id="ownerCodeStatus" style="margin-bottom:8px;">Aktuell: kein aktiver Code.</div>
+        <div style="font-weight:800; margin-bottom:8px;">🎁 Einlöse-Codes</div>
+        <div class="d" id="ownerCodeStatus" style="margin-bottom:8px;">Aktuell: keine aktiven Codes.</div>
         <input type="text" id="ownerCodeInput" class="input-field" placeholder="Neuer Code (z.B. MATHY500)" style="margin-bottom:8px; text-transform:uppercase;">
         <div style="display:flex; gap:8px; margin-bottom:8px;">
           <button class="btn btn-ghost btn-small" id="ownerCodeRewardAuraBtn" style="flex:1;">500 Aura</button>
           <button class="btn btn-ghost btn-small" id="ownerCodeRewardLifeBtn" style="flex:1;">1 Leben</button>
+          <button class="btn btn-ghost btn-small" id="ownerCodeRewardChestBtn" style="flex:1;">Truhe</button>
         </div>
-        <button class="btn btn-primary btn-small" id="ownerSetCodeBtn" style="width:100%;">Code setzen</button>
+        <select id="ownerCodeChestTierSelect" class="input-field" style="margin-bottom:8px; display:none;">
+          <option value="standard">Standard-Truhe</option>
+          <option value="epic">Epische Truhe</option>
+          <option value="legendary">Legendäre Truhe</option>
+        </select>
+        <button class="btn btn-primary btn-small" id="ownerSetCodeBtn" style="width:100%;">Code hinzufügen</button>
       </div>
 
       <div class="d" style="margin-bottom:6px;">Benutzername suchen</div>
@@ -1832,6 +1839,26 @@
         <input type="number" id="ownerStreakInput" class="input-field">
         <div class="d" style="margin-bottom:6px; margin-top:10px;">Freigeschaltete Designs</div>
         <div id="ownerThemeCheckboxes" style="display:flex; flex-direction:column; gap:6px;"></div>
+
+        <div class="d" style="margin-bottom:4px; margin-top:14px;">Benutzername ändern</div>
+        <input type="text" id="ownerRenameInput" class="input-field" placeholder="Neuer Benutzername" style="text-transform:lowercase;">
+
+        <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:12px; padding:10px; margin-top:14px;">
+          <div class="d" style="font-weight:800; margin-bottom:8px; color:#ef4444;">🚫 Konto sperren</div>
+          <div id="ownerBanStatus" class="d" style="margin-bottom:8px;">Aktuell nicht gesperrt.</div>
+          <select id="ownerBanDurationSelect" class="input-field" style="margin-bottom:8px;">
+            <option value="1">1 Tag</option>
+            <option value="3">3 Tage</option>
+            <option value="7">7 Tage</option>
+            <option value="30">30 Tage</option>
+            <option value="forever">Für immer</option>
+          </select>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary btn-small" id="ownerBanBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Sperren</button>
+            <button class="btn btn-ghost btn-small" id="ownerUnbanBtn" style="flex:1;">Entsperren</button>
+          </div>
+        </div>
+
         <button class="btn btn-primary" id="ownerSaveBtn" style="margin-top:16px;">Änderungen speichern</button>
       </div>
     </div>
@@ -2322,6 +2349,13 @@
     <div class="gameover-heart" id="gameOverHeartIcon">❤️</div>
   </div>
 
+  <!-- Konto gesperrt (NEU): volles, nicht wegklickbares Overlay -->
+  <div id="overlayBanned" style="display:none; position:fixed; inset:0; z-index:99999; background:#0a0a10; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px;">
+    <div style="font-size:70px; margin-bottom:16px;">🚫</div>
+    <div style="font-family:'Baloo 2',sans-serif; font-weight:900; font-size:28px; color:#ef4444; margin-bottom:14px;">Du bist gesperrt</div>
+    <div id="bannedUntilText" style="font-size:15px; color:var(--text-dim); max-width:320px;"></div>
+  </div>
+
   <!-- Owner-Broadcast: Nachricht an alle Nutzer (NEU, komplett neu aufgebaut) -->
   <div class="broadcast-toast" id="broadcastToast">
     <div class="broadcast-toast-icon">👤</div>
@@ -2477,6 +2511,11 @@
     messagingSenderId: "932854951832",
     appId: "1:932854951832:web:ab148c2f323b25f8bcc5ed"
   };
+  // WICHTIG: Diesen Platzhalter durch deinen eigenen VAPID-Schlüssel
+  // ersetzen! Zu finden in der Firebase-Konsole unter Project Settings →
+  // Cloud Messaging → Web Push certificates → "Generate key pair".
+  // Ohne echten Schlüssel funktionieren Push-Benachrichtigungen NICHT.
+  const FCM_VAPID_KEY = "BJYewZxtVUhBEEGi4JHl1xRssKfGGIJh1IB1z4Lki02bNFqykGhMqlR1tVJ4U4h51ZtKhibxw7TrTBuTBmlJq6U";
 
   let firebaseInitialized = false;
   let currentUser = null;
@@ -2597,6 +2636,7 @@
     factStats: {}, // Trends: pro Zahl (1-20) {correct, wrong} bei Multiplikations-Aufgaben
     factPairStats: {}, // Trends-Detailansicht: pro Reihe (1-20) x Spalte (1-12) {correct, wrong}
     lessonInProgressAt: null, // erkennt, ob die App während einer laufenden Lektion geschlossen wurde
+    redeemedCodeChests: {}, // Truhen aus eingelösten Codes, keyed nach Code-Dokument-ID
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
   };
   let profile = { ...DEFAULT_PROFILE };
@@ -2649,13 +2689,30 @@
 
   /* AUTOMATISCHER SYNC ALLE 10 SEKUNDEN - aktualisiert dabei auch die
      "zuletzt aktiv"-Zeit für den Online-Punkt bei Freunden. */
-  const ONLINE_THRESHOLD_MS = 2 * 60 * 1000; // 2 Minuten
+  const ONLINE_THRESHOLD_MS = 30 * 1000; // 30 Sekunden (passt besser zum 10-Sekunden-Heartbeat)
+  let currentFriendProfileUid = null; // für das periodische Online-Punkt-Update im offenen Freundes-Profil
   setInterval(() => {
     if(firebaseInitialized && currentUser && cloudSyncReady){
       profile.lastActiveAt = Date.now();
       saveProfile();
     }
   }, 10000);
+
+  // Online-Punkte (grün) frisch halten: die Rangliste und das
+  // Freundes-Profil würden sonst nur beim Öffnen einmal geladen und dann
+  // nicht mehr aktualisiert, solange man einfach draufschaut.
+  setInterval(() => {
+    if(!firebaseInitialized || !currentUser) return;
+    if(screens.leaderboard && screens.leaderboard.classList.contains("active")){
+      renderLeaderboard();
+    }
+    if(screens.profile && screens.profile.classList.contains("active")){
+      renderProfile();
+    }
+    if($("overlayFriendProfile") && $("overlayFriendProfile").classList.contains("show") && currentFriendProfileUid){
+      fetchUserDoc(currentFriendProfileUid).then(u => { if(u) renderFriendProfileCard(u, false); });
+    }
+  }, 15000);
 
   function isOnline(u){
     return !!(u && u.lastActiveAt && (Date.now() - u.lastActiveAt) < ONLINE_THRESHOLD_MS);
@@ -2822,19 +2879,26 @@
      und gegen zwei gleichzeitige Einlösungen.
   ======================================================== */
   let ownerSelectedCodeReward = "aura";
+  let ownerSelectedChestTier = "standard";
+
+  function rewardLabelForCode(data){
+    if(data.rewardType === "life") return "1 Leben";
+    if(data.rewardType === "chest") return (CHEST_TIER_LABEL[data.chestTier || "standard"] || "Standard") + "-Truhe";
+    return "500 Aura";
+  }
 
   async function renderOwnerCodeStatus(){
     if(!isOwner() || !firebaseInitialized) return;
     const statusEl = $("ownerCodeStatus");
     try{
-      const doc = await db().collection("redeemCodes").doc("current").get();
-      if(!doc.exists || !doc.data().active){
-        statusEl.textContent = "Aktuell: kein aktiver Code.";
+      const snap = await db().collection("redeemCodes").get();
+      const active = snap.docs.filter(d => d.data().active);
+      if(active.length === 0){
+        statusEl.textContent = "Aktuell: keine aktiven Codes.";
         return;
       }
-      const data = doc.data();
-      const rewardText = data.rewardType === "life" ? "1 Leben" : "500 Aura";
-      statusEl.textContent = `Aktuell aktiv: "${data.code}" (${rewardText})`;
+      const lines = active.map(d => `"${d.data().code}" (${rewardLabelForCode(d.data())})`);
+      statusEl.textContent = "Aktiv: " + lines.join(", ");
     }catch(err){
       console.error("Code-Status Fehler:", err);
     }
@@ -2848,12 +2912,14 @@
       return;
     }
     try{
-      await db().collection("redeemCodes").doc("current").set({
+      const data = {
         code, rewardType: ownerSelectedCodeReward, active: true,
         setByUid: currentUser.uid, createdAt: Date.now()
-      });
+      };
+      if(ownerSelectedCodeReward === "chest") data.chestTier = ownerSelectedChestTier;
+      await db().collection("redeemCodes").add(data);
       $("ownerCodeInput").value = "";
-      showToast(`🎁 Code "${code}" gesetzt!`);
+      showToast(`🎁 Code "${code}" hinzugefügt!`);
       renderOwnerCodeStatus();
     }catch(err){
       showToast("Code konnte nicht gesetzt werden.");
@@ -2868,27 +2934,32 @@
       return;
     }
     try{
-      const ref = db().collection("redeemCodes").doc("current");
-      const doc = await ref.get();
-      if(!doc.exists || !doc.data().active){
-        showToast("Kein aktiver Code vorhanden.");
+      // Einzelnes Gleichheits-Filter (kein zusammengesetzter Index nötig) -
+      // "aktiv" wird clientseitig aus den Treffern herausgefiltert, da
+      // ohnehin kaum mehrere Codes mit demselben Text existieren.
+      const snap = await db().collection("redeemCodes").where("code", "==", input).get();
+      const doc = snap.docs.find(d => d.data().active);
+      if(!doc){
+        showToast("❌ Code ungültig oder schon benutzt.");
         return;
       }
       const data = doc.data();
-      if(data.code !== input){
-        showToast("❌ Code ungültig.");
-        return;
-      }
       // Kippt NUR active auf false - schlägt fehl, falls jemand anderes
       // (fast) gleichzeitig schneller war, weil die Regel serverseitig
       // prüft, dass der Code zu diesem Zeitpunkt noch aktiv ist.
-      await ref.update({
+      await doc.ref.update({
         active: false, redeemedByUid: currentUser.uid,
         redeemedByUsername: profile.username || "", redeemedAt: Date.now()
       });
       if(data.rewardType === "life"){
         profile.lives = Math.min(MAX_LIVES, profile.lives + 1);
         showToast("🎉 Code eingelöst! +1 Leben");
+      } else if(data.rewardType === "chest"){
+        profile.redeemedCodeChests = profile.redeemedCodeChests || {};
+        profile.redeemedCodeChests[doc.id] = { tier: data.chestTier || "standard", attemptsUsed: 0, claimed: false };
+        showToast("🎁 Code eingelöst! Eine Truhe wartet in den Missionen.");
+        updateMissionsBadge();
+        renderMissions();
       } else {
         profile.totalAura += 500;
         showToast("🎉 Code eingelöst! +500 Aura");
@@ -3018,6 +3089,7 @@
   }
 
   let auraDonationUnsubscribe = null;
+  let fcmTokenSaved = false;
   function watchAuraDonations(){
     if(auraDonationUnsubscribe){ auraDonationUnsubscribe(); auraDonationUnsubscribe = null; }
     if(!firebaseInitialized || !currentUser) return;
@@ -4365,6 +4437,7 @@
   }
 
   async function openFriendProfile(uid){
+    currentFriendProfileUid = uid;
     let u = await fetchUserDoc(uid);
     if(!u){
       // Kurzer Retry, falls es nur eine kurzzeitige Verzögerung war
@@ -4464,6 +4537,9 @@
     });
     if(profile.shareChest && !profile.shareChest.claimed) count++;
     if(profile.streak2Chest && !profile.streak2Chest.claimed) count++;
+    if(profile.redeemedCodeChests){
+      Object.values(profile.redeemedCodeChests).forEach(c => { if(c && !c.claimed) count++; });
+    }
     if(profile.inviteChests){
       ["rank2a","rank2b","rank3"].forEach(k => {
         const c = profile.inviteChests[k];
@@ -4519,10 +4595,13 @@
     if(sourceType === "streak2"){
       return profile.streak2Chest;
     }
+    if(sourceType === "redeemcode"){
+      return profile.redeemedCodeChests ? profile.redeemedCodeChests[sourceId] : null;
+    }
     return null;
   }
 
-  let activeChestSource = null; // { type: 'mission'|'achievement'|'share'|'invite'|'streak2', id }
+  let activeChestSource = null; // { type: 'mission'|'achievement'|'share'|'invite'|'streak2'|'redeemcode', id }
 
   function openChestModal(sourceType, sourceId){
     const chest = getChestRef(sourceType, sourceId);
@@ -4541,6 +4620,8 @@
       title = (sourceId === "rank2a" || sourceId === "rank2b") ? "🥈 Platz 2 im Invite Leaderboard" : "🥉 Platz 3 im Invite Leaderboard";
     } else if(sourceType === "streak2"){
       title = "🔥 2 Tage am Stück!";
+    } else if(sourceType === "redeemcode"){
+      title = "🎁 Einlöse-Code";
     }
     $("chestModalTitle").textContent = title;
     renderChestModal();
@@ -4889,6 +4970,21 @@
       wrap.appendChild(card);
     }
 
+    if(profile.redeemedCodeChests){
+      Object.entries(profile.redeemedCodeChests).forEach(([id, chest]) => {
+        if(!chest) return;
+        const card = document.createElement("div");
+        card.className = "mission-card";
+        const chestHtml = buildChestHtml(chest, "redeemcode", id, "");
+        card.innerHTML = `
+          <div class="m-title">🎁 Einlöse-Code</div>
+          <div class="m-sub">Belohnung von deinem eingelösten Code</div>
+          ${chestHtml}
+        `;
+        wrap.appendChild(card);
+      });
+    }
+
     const INVITE_RANK_LABELS = { rank2a: "🥈 Platz 2 im Invite Leaderboard (1/2)", rank2b: "🥈 Platz 2 im Invite Leaderboard (2/2)", rank3: "🥉 Platz 3 im Invite Leaderboard" };
     if(profile.inviteChests){
       ["rank2a","rank2b","rank3"].forEach(rankKey => {
@@ -5089,6 +5185,7 @@
       });
       merged.factPairStats = mergedPairs;
     }
+    merged.redeemedCodeChests = { ...(cloudP.redeemedCodeChests || {}), ...(localP.redeemedCodeChests || {}) };
     merged.lastStreakReminderShownDate = maxDateStr(localP.lastStreakReminderShownDate, cloudP.lastStreakReminderShownDate);
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.countedDuelWins = Array.from(new Set([
@@ -6083,6 +6180,7 @@
   ======================================================== */
   const ALL_THEME_IDS = ["black", "white_clean", "clean", "pink", "glass", "glow"];
   let ownerEditingUid = null;
+  let ownerEditingOldUsernameLower = null;
 
   // Zeigt dem Owner, wer sich seit dem letzten Besuch neu registriert hat -
   // mit E-Mail und Benutzername. Nur der Owner darf registrationEvents
@@ -6226,10 +6324,19 @@
       const data = userDoc.data();
 
       ownerEditingUid = targetUid;
+      ownerEditingOldUsernameLower = normalizeUsername(data.username || uname);
       $("ownerTargetLabel").textContent = "@" + (data.username || uname);
       $("ownerAuraInput").value = data.totalAura || 0;
       $("ownerLevelInput").value = data.level || 1;
       $("ownerStreakInput").value = data.streak || 0;
+      $("ownerRenameInput").value = "";
+      if(data.banned && (data.bannedUntil === null || data.bannedUntil > Date.now())){
+        $("ownerBanStatus").textContent = data.bannedUntil === null
+          ? "🚫 Aktuell für immer gesperrt."
+          : `🚫 Aktuell gesperrt bis ${new Date(data.bannedUntil).toLocaleString("de-DE")}.`;
+      } else {
+        $("ownerBanStatus").textContent = "Aktuell nicht gesperrt.";
+      }
 
       const unlockedThemes = data.unlockedThemes || ["black"];
       const box = $("ownerThemeCheckboxes");
@@ -6265,13 +6372,33 @@
     const newStreak = Math.max(0, parseInt($("ownerStreakInput").value, 10) || 0);
     const checkedThemes = [...$("ownerThemeCheckboxes").querySelectorAll("input[type=checkbox]:checked")].map(cb => cb.value);
     if(!checkedThemes.includes("black")) checkedThemes.push("black");
+    const newUsernameRaw = $("ownerRenameInput").value.trim();
     try{
+      if(newUsernameRaw){
+        const newLower = normalizeUsername(newUsernameRaw);
+        if(!isValidUsername(newLower)){
+          showToast("Ungültiger neuer Benutzername (3-20 Zeichen: a-z, 0-9, _).");
+          return;
+        }
+        if(newLower !== ownerEditingOldUsernameLower){
+          const existing = await db().collection("usernames").doc(newLower).get();
+          if(existing.exists){
+            showToast("Dieser Benutzername ist schon vergeben.");
+            return;
+          }
+          await db().collection("usernames").doc(newLower).set({ uid: ownerEditingUid, username: newUsernameRaw });
+          if(ownerEditingOldUsernameLower){
+            await db().collection("usernames").doc(ownerEditingOldUsernameLower).delete();
+          }
+        }
+      }
       await db().collection("users").doc(ownerEditingUid).set({
         totalAura: newAura,
         level: newLevel,
         levelProgress: 0,
         streak: newStreak,
-        unlockedThemes: checkedThemes
+        unlockedThemes: checkedThemes,
+        ...(newUsernameRaw ? { username: newUsernameRaw, usernameLower: normalizeUsername(newUsernameRaw) } : {})
       }, { merge: true });
 
       // Bearbeitet der Owner sein EIGENES Profil, muss der lokale Stand
@@ -6286,12 +6413,17 @@
         profile.levelProgress = 0;
         profile.streak = newStreak;
         profile.unlockedThemes = checkedThemes;
+        if(newUsernameRaw){
+          profile.username = newUsernameRaw;
+          profile.usernameLower = normalizeUsername(newUsernameRaw);
+        }
         lastWrittenProfileJSON = JSON.stringify(profile);
         saveProfile();
         renderHome();
         renderProfile();
         renderShop();
       }
+      if(newUsernameRaw) ownerEditingOldUsernameLower = normalizeUsername(newUsernameRaw);
 
       showToast("✅ Änderungen gespeichert!");
     }catch(err){
@@ -6300,8 +6432,41 @@
     }
   }
 
+  // Konto sperren (NEU): duration ist entweder eine Anzahl Tage oder
+  // "forever". bannedUntil = null bedeutet für immer, sonst ein
+  // Zeitstempel (ms), ab dem die Sperre automatisch nicht mehr gilt.
+  async function ownerBanUser(){
+    if(!ownerEditingUid || !isOwner()) return;
+    const duration = $("ownerBanDurationSelect").value;
+    const bannedUntil = duration === "forever" ? null : (Date.now() + parseInt(duration, 10) * 24 * 60 * 60 * 1000);
+    try{
+      await db().collection("users").doc(ownerEditingUid).set({ banned: true, bannedUntil }, { merge: true });
+      $("ownerBanStatus").textContent = bannedUntil === null
+        ? "🚫 Aktuell für immer gesperrt."
+        : `🚫 Aktuell gesperrt bis ${new Date(bannedUntil).toLocaleString("de-DE")}.`;
+      showToast("🚫 Konto gesperrt.");
+    }catch(err){
+      showToast("Sperren fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  async function ownerUnbanUser(){
+    if(!ownerEditingUid || !isOwner()) return;
+    try{
+      await db().collection("users").doc(ownerEditingUid).set({ banned: false, bannedUntil: null }, { merge: true });
+      $("ownerBanStatus").textContent = "Aktuell nicht gesperrt.";
+      showToast("✅ Konto entsperrt.");
+    }catch(err){
+      showToast("Entsperren fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
   $("ownerSearchBtn").addEventListener("click", ownerSearchUser);
   $("ownerSaveBtn").addEventListener("click", ownerSaveChanges);
+  $("ownerBanBtn").addEventListener("click", ownerBanUser);
+  $("ownerUnbanBtn").addEventListener("click", ownerUnbanUser);
   $("ownerSendBroadcastBtn").addEventListener("click", () => {
     const input = $("ownerBroadcastInput");
     sendOwnerBroadcast(input.value);
@@ -6344,11 +6509,25 @@
     ownerSelectedCodeReward = "aura";
     $("ownerCodeRewardAuraBtn").style.cssText = "flex:1; background:var(--accent); color:#000; border-color:var(--accent);";
     $("ownerCodeRewardLifeBtn").style.cssText = "flex:1;";
+    $("ownerCodeRewardChestBtn").style.cssText = "flex:1;";
+    $("ownerCodeChestTierSelect").style.display = "none";
   });
   $("ownerCodeRewardLifeBtn").addEventListener("click", () => {
     ownerSelectedCodeReward = "life";
     $("ownerCodeRewardLifeBtn").style.cssText = "flex:1; background:var(--accent); color:#000; border-color:var(--accent);";
     $("ownerCodeRewardAuraBtn").style.cssText = "flex:1;";
+    $("ownerCodeRewardChestBtn").style.cssText = "flex:1;";
+    $("ownerCodeChestTierSelect").style.display = "none";
+  });
+  $("ownerCodeRewardChestBtn").addEventListener("click", () => {
+    ownerSelectedCodeReward = "chest";
+    $("ownerCodeRewardChestBtn").style.cssText = "flex:1; background:var(--accent); color:#000; border-color:var(--accent);";
+    $("ownerCodeRewardAuraBtn").style.cssText = "flex:1;";
+    $("ownerCodeRewardLifeBtn").style.cssText = "flex:1;";
+    $("ownerCodeChestTierSelect").style.display = "block";
+  });
+  $("ownerCodeChestTierSelect").addEventListener("change", (e) => {
+    ownerSelectedChestTier = e.target.value;
   });
   $("ownerSetCodeBtn").addEventListener("click", ownerSetRedeemCode);
 
@@ -6557,9 +6736,13 @@
 
   $("closeFriendProfile").addEventListener("click", () => {
     $("overlayFriendProfile").classList.remove("show");
+    currentFriendProfileUid = null;
   });
   $("overlayFriendProfile").addEventListener("click", (e) => {
-    if(e.target.id === "overlayFriendProfile") $("overlayFriendProfile").classList.remove("show");
+    if(e.target.id === "overlayFriendProfile"){
+      $("overlayFriendProfile").classList.remove("show");
+      currentFriendProfileUid = null;
+    }
   });
 
   $("openMessagesBtn").addEventListener("click", openMessagesList);
@@ -6817,6 +7000,7 @@
         auraDonationUnsubscribe();
         auraDonationUnsubscribe = null;
       }
+      fcmTokenSaved = false;
 
       if(user){
         watchIncomingDuelInvites();
@@ -6834,6 +7018,21 @@
 
           if(doc.exists){
             const cloudData = doc.data();
+
+            // Konto gesperrt (NEU): sofort prüfen, bevor irgendetwas anderes
+            // passiert - eine Sperre gilt, wenn "banned" gesetzt ist UND
+            // entweder für immer (bannedUntil === null) oder die Frist noch
+            // nicht abgelaufen ist.
+            if(cloudData.banned && (cloudData.bannedUntil === null || cloudData.bannedUntil === undefined || cloudData.bannedUntil > Date.now())){
+              $("bannedUntilText").textContent = (cloudData.bannedUntil === null || cloudData.bannedUntil === undefined)
+                ? "Du bist für immer gesperrt."
+                : `Gesperrt bis ${new Date(cloudData.bannedUntil).toLocaleString("de-DE")}.`;
+              $("overlayBanned").style.display = "flex";
+              return;
+            } else {
+              $("overlayBanned").style.display = "none";
+            }
+
             const normalizedCloud = {
               ...DEFAULT_PROFILE,
               ...cloudData,
@@ -6890,6 +7089,7 @@
             watchFriendRequests();
             watchLiveBroadcast();
             watchAuraDonations();
+            initFcmAndSaveToken();
             checkForUpdateNotice();
           } else {
             cloudSyncReady = true;
@@ -8041,7 +8241,40 @@
   function requestNotificationPermissionIfNeeded(){
     if(!("Notification" in window)) return;
     if(Notification.permission === "default"){
-      Notification.requestPermission().catch(() => {});
+      Notification.requestPermission().then((perm) => {
+        if(perm === "granted") initFcmAndSaveToken();
+      }).catch(() => {});
+    } else if(Notification.permission === "granted"){
+      initFcmAndSaveToken();
+    }
+  }
+
+  // Holt den FCM-Push-Token für dieses Gerät und speichert ihn unter dem
+  // eigenen Account in Firestore, damit ein Cloud-Functions-Backend (siehe
+  // functions/index.js) echte Push-Benachrichtigungen dorthin schicken kann.
+  // Ohne einen echten VAPID-Schlüssel (siehe FCM_VAPID_KEY oben) und ohne
+  // deployte Cloud Functions passiert hier nichts Sichtbares - das ist
+  // erwartet, bis beides eingerichtet ist.
+  async function initFcmAndSaveToken(){
+    if(fcmTokenSaved) return;
+    try{
+      if(!firebaseInitialized || !currentUser) return;
+      if(!("Notification" in window) || Notification.permission !== "granted") return;
+      if(!firebase.messaging || !("serviceWorker" in navigator)) return;
+      if(FCM_VAPID_KEY === "HIER_DEINEN_VAPID_KEY_EINTRAGEN") return;
+      const reg = await navigator.serviceWorker.getRegistration();
+      if(!reg) return;
+      const messaging = firebase.messaging();
+      const token = await messaging.getToken({ vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: reg });
+      if(!token) return;
+      await db().collection("users").doc(currentUser.uid).collection("fcmTokens").doc(token).set({
+        token,
+        platform: isIOSDevice() ? "ios" : (isAndroidDevice() ? "android" : "web"),
+        updatedAt: Date.now()
+      });
+      fcmTokenSaved = true;
+    }catch(err){
+      console.warn("FCM-Token konnte nicht eingerichtet werden:", err);
     }
   }
 
@@ -8122,13 +8355,43 @@
       $("pwaManifestLink").setAttribute("href", URL.createObjectURL(manifestBlob));
       $("appleTouchIconLink").setAttribute("href", iconUri);
 
-      // Minimaler Service Worker (reine Pass-Through-Fetches) - für Chrome
-      // auf Android eine Voraussetzung, damit die Seite überhaupt als
-      // "installierbare" PWA erkannt wird und beforeinstallprompt feuert.
+      // Service Worker mit FCM-Unterstützung: importiert die Firebase-SDKs,
+      // initialisiert Messaging und zeigt Push-Nachrichten an, die
+      // eintreffen, während die App im Hintergrund oder ganz geschlossen
+      // ist (Voraussetzung dafür ist, dass ein Cloud-Functions-Backend die
+      // Nachrichten tatsächlich verschickt - siehe functions/index.js).
       if("serviceWorker" in navigator){
-        const swCode = `self.addEventListener('fetch', function(e){ e.respondWith(fetch(e.request).catch(function(){ return caches.match(e.request); })); });`;
+        const swCode = `
+          importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
+          importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
+          try{
+            firebase.initializeApp(${JSON.stringify(firebaseConfig)});
+            const messaging = firebase.messaging();
+            messaging.onBackgroundMessage(function(payload){
+              const title = (payload.notification && payload.notification.title) || 'MathEdits';
+              const options = {
+                body: (payload.notification && payload.notification.body) || '',
+                icon: ${JSON.stringify(iconUri)},
+                tag: (payload.data && payload.data.tag) || 'mathedits-push'
+              };
+              self.registration.showNotification(title, options);
+            });
+          }catch(e){ /* Messaging in diesem Kontext nicht verfügbar - Rest funktioniert trotzdem */ }
+
+          self.addEventListener('notificationclick', function(e){
+            e.notification.close();
+            e.waitUntil(clients.matchAll({type:'window', includeUncontrolled:true}).then(function(list){
+              for(const c of list){ if('focus' in c) return c.focus(); }
+              if(clients.openWindow) return clients.openWindow('/');
+            }));
+          });
+
+          self.addEventListener('fetch', function(e){ e.respondWith(fetch(e.request).catch(function(){ return caches.match(e.request); })); });
+        `;
         const swBlob = new Blob([swCode], { type: "application/javascript" });
-        navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(err => console.warn("Service Worker Registrierung fehlgeschlagen:", err));
+        navigator.serviceWorker.register(URL.createObjectURL(swBlob))
+          .then(() => { if(Notification.permission === "granted") initFcmAndSaveToken(); })
+          .catch(err => console.warn("Service Worker Registrierung fehlgeschlagen:", err));
       }
     }catch(err){
       console.warn("PWA-Setup fehlgeschlagen:", err);

@@ -246,7 +246,11 @@
     --rainbow-header: linear-gradient(90deg, #a855f7, #7c3aed, #a855f7);
   }
   /* Lila Glitch-Kanten an Kacheln/Fenstern - kleine, versetzte Farbstreifen
-     die kurz aufblitzen, statt eines gleichmäßigen Leuchtens. */
+     die kurz aufblitzen, statt eines gleichmäßigen Leuchtens.
+     WICHTIG: KEIN overflow:hidden hier - das hätte diese Elemente (viele
+     davon Flex-Kinder) auf ihre Inhaltsgröße schrumpfen lassen, weil
+     overflow!=visible bei Flex-Kindern die automatische Mindestgröße auf 0
+     zurücksetzt. Genau das war der Größen-Bug. */
   [data-theme="glitch"] .shop-item,
   [data-theme="glitch"] .settings-row,
   [data-theme="glitch"] .modal-card,
@@ -257,7 +261,7 @@
   [data-theme="glitch"] .auth-box,
   [data-theme="glitch"] #profileHeaderCard,
   [data-theme="glitch"] .mission-card{
-    border-color:#3d1f5c; position:relative; overflow:hidden;
+    border-color:#3d1f5c; position:relative;
   }
   [data-theme="glitch"] .shop-item::before,
   [data-theme="glitch"] .settings-row::before,
@@ -271,6 +275,7 @@
   [data-theme="glitch"] .mission-card::before{
     content:""; position:absolute; inset:0; pointer-events:none;
     box-shadow: inset 0 0 0 1.5px #a855f7;
+    border-radius:inherit;
     animation: glitchEdgeFlicker 3.6s steps(1) infinite;
   }
   @keyframes glitchEdgeFlicker{
@@ -285,6 +290,27 @@
   }
   [data-theme="glitch"] .btn-primary{
     box-shadow: 0 0 18px rgba(168,85,247,.55), 0 4px 14px rgba(0,0,0,.5);
+  }
+
+  /* GUI-Ränder (NEU): zusätzliche lilane Glitch-Streifen ganz oben und
+     ganz unten am kompletten App-Fenster, unabhängig von einzelnen
+     Kacheln - macht das Glitch-Gefühl auch am Bildschirmrand spürbar. */
+  [data-theme="glitch"] .app{ position:relative; }
+  [data-theme="glitch"] .app::before,
+  [data-theme="glitch"] .app::after{
+    content:""; position:absolute; left:0; right:0; height:3px;
+    background:#a855f7; box-shadow:0 0 12px 2px rgba(168,85,247,.9);
+    pointer-events:none; z-index:500; opacity:0;
+    animation: glitchAppEdge 4.4s steps(1) infinite;
+  }
+  [data-theme="glitch"] .app::before{ top:0; }
+  [data-theme="glitch"] .app::after{ bottom:0; animation-delay:.9s; }
+  @keyframes glitchAppEdge{
+    0%, 90%, 100%{ opacity:0; transform:translateX(0) scaleX(1); }
+    91%{ opacity:1; transform:translateX(-6px) scaleX(.4); }
+    92.5%{ opacity:0; }
+    94%{ opacity:1; transform:translateX(8px) scaleX(.7); }
+    95.5%{ opacity:0; }
   }
 
   *{
@@ -1303,7 +1329,7 @@
     border: 3px solid #a855f7;
     background: #000;
     box-shadow: 0 0 24px rgba(168,85,247,.5);
-    position: relative; overflow: hidden;
+    position: relative;
   }
   .frame-glitch #profileHeaderCard::before,
   #friendProfileCard.frame-glitch::before{

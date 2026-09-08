@@ -227,6 +227,66 @@
     box-shadow: 0 0 24px rgba(168,85,247,.3);
   }
 
+  /* THEME: GLITCH (NEU) - schwarz mit lila Glitch-Kanten */
+  [data-theme="glitch"]{
+    --bg: #000000;
+    --bg-soft: #050505;
+    --card: #0a0a0a;
+    --card-2: #111111;
+    --border: #2a1a3a;
+    --text: #f0e8ff;
+    --text-dim: #b8a8d0;
+    --accent: #a855f7;
+    --accent-text: #ffffff;
+    --accent-2: #7c3aed;
+    --danger: #ff4d6d;
+    --success: #3ee08a;
+    --shadow: 0 20px 50px rgba(0,0,0,.7);
+    --overlay-bg: rgba(0,0,0,.95);
+    --rainbow-header: linear-gradient(90deg, #a855f7, #7c3aed, #a855f7);
+  }
+  /* Lila Glitch-Kanten an Kacheln/Fenstern - kleine, versetzte Farbstreifen
+     die kurz aufblitzen, statt eines gleichmäßigen Leuchtens. */
+  [data-theme="glitch"] .shop-item,
+  [data-theme="glitch"] .settings-row,
+  [data-theme="glitch"] .modal-card,
+  [data-theme="glitch"] .stat-pill,
+  [data-theme="glitch"] .tier-card,
+  [data-theme="glitch"] .friend-row,
+  [data-theme="glitch"] .lb-row,
+  [data-theme="glitch"] .auth-box,
+  [data-theme="glitch"] #profileHeaderCard,
+  [data-theme="glitch"] .mission-card{
+    border-color:#3d1f5c; position:relative; overflow:hidden;
+  }
+  [data-theme="glitch"] .shop-item::before,
+  [data-theme="glitch"] .settings-row::before,
+  [data-theme="glitch"] .modal-card::before,
+  [data-theme="glitch"] .stat-pill::before,
+  [data-theme="glitch"] .tier-card::before,
+  [data-theme="glitch"] .friend-row::before,
+  [data-theme="glitch"] .lb-row::before,
+  [data-theme="glitch"] .auth-box::before,
+  [data-theme="glitch"] #profileHeaderCard::before,
+  [data-theme="glitch"] .mission-card::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    box-shadow: inset 0 0 0 1.5px #a855f7;
+    animation: glitchEdgeFlicker 3.6s steps(1) infinite;
+  }
+  @keyframes glitchEdgeFlicker{
+    0%, 92%, 100%{ opacity:0; clip-path: inset(0 0 100% 0); }
+    93%{ opacity:1; clip-path: inset(10% 0 60% 0); transform:translateX(2px); }
+    94%{ opacity:0; }
+    96%{ opacity:1; clip-path: inset(70% 0 5% 0); transform:translateX(-3px); }
+    97%{ opacity:0; }
+  }
+  [data-theme="glitch"] .flame-icon{
+    filter: drop-shadow(0 10px 22px rgba(168,85,247,.5));
+  }
+  [data-theme="glitch"] .btn-primary{
+    box-shadow: 0 0 18px rgba(168,85,247,.55), 0 4px 14px rgba(0,0,0,.5);
+  }
+
   *{
     box-sizing:border-box; 
     -webkit-tap-highlight-color: transparent;
@@ -987,6 +1047,18 @@
   .modal-card h2{font-family:'Baloo 2',sans-serif; font-size:24px; margin:0 0 8px;}
   .modal-card p{font-size:13.5px; opacity:.85; line-height:1.45; margin-bottom:20px;}
 
+  /* ---------- EarthLive (NEU) - immer blau, egal welches Theme ---------- */
+  .earthlive-card{
+    background:linear-gradient(160deg, #0a2a6b, #071d4d) !important;
+    border:1.5px solid #3b82f6 !important;
+    box-shadow: 0 0 40px rgba(59,130,246,.35), 0 20px 60px rgba(0,0,0,.5) !important;
+  }
+  .earthlive-stat{
+    background:rgba(255,255,255,.08); border-radius:14px; padding:14px; margin-top:12px;
+  }
+  .earthlive-num{ font-family:'Baloo 2',sans-serif; font-size:32px; font-weight:900; color:#fff; }
+  .earthlive-label{ font-size:12px; color:rgba(255,255,255,.75); margin-top:2px; }
+
   /* ---------- overlays ---------- */
   .overlay{
     position:fixed; inset:0; z-index:99; display:flex; align-items:center; justify-content:center;
@@ -1226,6 +1298,19 @@
     0%,100%{ transform:translateY(0) translateX(0); opacity:.6; }
     50%{ transform:translateY(-10px) translateX(8px); opacity:1; }
   }
+  .frame-glitch #profileHeaderCard,
+  #friendProfileCard.frame-glitch{
+    border: 3px solid #a855f7;
+    background: #000;
+    box-shadow: 0 0 24px rgba(168,85,247,.5);
+    position: relative; overflow: hidden;
+  }
+  .frame-glitch #profileHeaderCard::before,
+  #friendProfileCard.frame-glitch::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    box-shadow: inset 0 0 0 2px #a855f7;
+    animation: glitchEdgeFlicker 3.2s steps(1) infinite;
+  }
   @keyframes glowParticleFloat2{
     0%,100%{ transform:translateY(0) translateX(0); opacity:.6; }
     50%{ transform:translateY(10px) translateX(-8px); opacity:1; }
@@ -1263,6 +1348,21 @@
     text-shadow: 0 0 8px rgba(255,95,162,.85), 0 0 16px rgba(255,95,162,.45);
     display:inline-block;
     animation: fontGlowWobble 2.2s ease-in-out infinite;
+  }
+  .font-glitch{
+    color:#0a0a0a !important;
+    font-weight:900;
+    text-shadow: 0 0 4px rgba(168,85,247,.9), 1px 0 0 #a855f7, -1px 0 0 #7c3aed;
+    display:inline-block;
+    position:relative;
+    animation: fontGlitchJitter 2.6s steps(1) infinite;
+  }
+  @keyframes fontGlitchJitter{
+    0%, 88%, 100%{ transform:translate(0,0); text-shadow: 0 0 4px rgba(168,85,247,.9), 1px 0 0 #a855f7, -1px 0 0 #7c3aed; }
+    89%{ transform:translate(-2px,1px); text-shadow: 0 0 6px rgba(168,85,247,1), 3px 0 0 #a855f7, -3px 0 0 #7c3aed; }
+    91%{ transform:translate(2px,-1px); text-shadow: 0 0 4px rgba(168,85,247,.9), 1px 0 0 #a855f7, -1px 0 0 #7c3aed; }
+    93%{ transform:translate(-1px,0); text-shadow: 0 0 8px rgba(168,85,247,1), -3px 0 0 #a855f7, 3px 0 0 #7c3aed; }
+    95%{ transform:translate(0,0); }
   }
   /* Rangliste: Blütenpartikel um die Zeile, wenn die Person Pink Glow trägt -
      wie der lila Glow-Effekt, nur pink und mit Blüten statt Punkten. */
@@ -1388,6 +1488,7 @@
     <div class="topbar">
       <div class="brand"><span class="dot"></span>MathEdits</div>
       <div class="topbar-actions">
+        <div class="theme-toggle" id="earthLiveBtn" title="EarthLive">🌐</div>
         <div class="theme-toggle" id="settingsBtn">⚙️</div>
         <div class="theme-toggle" id="themeToggle">🌙</div>
       </div>
@@ -1560,6 +1661,15 @@
       <button class="buy-btn" id="buyGlowTheme">600 Aura</button>
     </div>
 
+    <div class="shop-item">
+      <div class="item-icon">🖤</div>
+      <div class="item-info">
+        <div class="item-title">Glitch Theme</div>
+        <div class="item-desc">Schwarzes Design mit lila Glitch-Effekten an den Kanten.</div>
+      </div>
+      <button class="buy-btn" id="buyGlitchTheme">1500 Aura</button>
+    </div>
+
     <div class="shop-section-title">Profilrahmen</div>
 
     <div class="shop-item">
@@ -1587,6 +1697,15 @@
         <div class="item-desc">Lilaner Glow-Rahmen mit leuchtenden Partikeln für dein Profil.</div>
       </div>
       <button class="buy-btn" id="buyGlowFrame">1500 Aura</button>
+    </div>
+
+    <div class="shop-item">
+      <div class="item-icon">🖤</div>
+      <div class="item-info">
+        <div class="item-title">Glitch-Rahmen</div>
+        <div class="item-desc">Schwarzer Rahmen mit lila Glitch-Kanten für dein Profil.</div>
+      </div>
+      <button class="buy-btn" id="buyGlitchFrame">1500 Aura</button>
     </div>
 
     <div class="shop-item">
@@ -1634,6 +1753,15 @@
         <div class="item-desc">Dein Profilname wackelt leicht und leuchtet pink - mit Blütenpartikeln in der Rangliste.</div>
       </div>
       <button class="buy-btn" id="buyPinkGlowFont">1000 Aura</button>
+    </div>
+
+    <div class="shop-item">
+      <div class="item-icon">🖤</div>
+      <div class="item-info">
+        <div class="item-title">Glitch-Schrift</div>
+        <div class="item-desc">Schwarze Schrift mit lila Glitch-Effekten, die leicht die Position ändert.</div>
+      </div>
+      <button class="buy-btn" id="buyGlitchFont">1200 Aura</button>
     </div>
   </section>
 
@@ -1843,6 +1971,7 @@
         <option value="pink">Pink (🔒)</option>
         <option value="glass">Glass (🔒)</option>
         <option value="glow">Glow (🔒)</option>
+        <option value="glitch">Glitch (🔒)</option>
       </select>
     </div>
 
@@ -2272,6 +2401,23 @@
       <textarea id="feedbackInput" class="input-field" rows="4" placeholder="Dein Feedback..." style="width:100%; resize:vertical; font-family:inherit; margin-bottom:12px;"></textarea>
       <button class="btn btn-primary" id="feedbackSendBtn">Senden</button>
       <button class="btn btn-ghost" id="feedbackCancelBtn" style="margin-top:10px;">Abbrechen</button>
+    </div>
+  </div>
+
+  <!-- EarthLive (NEU): immer blauer Hintergrund, egal welches Theme aktiv ist -->
+  <div class="overlay" id="overlayEarthLive">
+    <div class="modal-card earthlive-card">
+      <div style="font-size:40px; margin-bottom:8px;">🌐</div>
+      <h2 style="color:#fff;">EarthLive</h2>
+      <div class="earthlive-stat">
+        <div class="earthlive-num" id="earthLiveOnlineNum">-</div>
+        <div class="earthlive-label">gerade online</div>
+      </div>
+      <div class="earthlive-stat">
+        <div class="earthlive-num" id="earthLiveTotalNum">-</div>
+        <div class="earthlive-label">insgesamt registriert</div>
+      </div>
+      <button class="btn btn-ghost" id="closeEarthLive" style="margin-top:18px; color:#fff; border-color:rgba(255,255,255,.4);">Schließen</button>
     </div>
   </div>
 
@@ -2791,6 +2937,30 @@
 
   function isOnline(u){
     return !!(u && u.lastActiveAt && (Date.now() - u.lastActiveAt) < ONLINE_THRESHOLD_MS);
+  }
+
+  // EarthLive (NEU): zeigt, wie viele Nutzer gerade online sind und wie
+  // viele es insgesamt gibt - liest einmalig die komplette users-Sammlung.
+  async function openEarthLive(){
+    $("overlayEarthLive").classList.add("show");
+    $("earthLiveOnlineNum").textContent = "…";
+    $("earthLiveTotalNum").textContent = "…";
+    if(!firebaseInitialized){
+      $("earthLiveOnlineNum").textContent = "-";
+      $("earthLiveTotalNum").textContent = "-";
+      return;
+    }
+    try{
+      const snap = await db().collection("users").get();
+      const total = snap.docs.length;
+      const online = snap.docs.filter(d => isOnline(d.data())).length;
+      $("earthLiveOnlineNum").textContent = online;
+      $("earthLiveTotalNum").textContent = total;
+    }catch(err){
+      console.error("EarthLive Fehler:", err);
+      $("earthLiveOnlineNum").textContent = "-";
+      $("earthLiveTotalNum").textContent = "-";
+    }
   }
 
   function isSuperUser(){
@@ -3385,11 +3555,12 @@
     $("profileUsernameDisplay").textContent = profile.username
       ? "@" + profile.username
       : (loggedIn ? "Angemeldet (noch kein Benutzername)" : "Gast");
-    $("profileUsernameDisplay").classList.remove("font-glow", "font-pink", "font-gold", "font-pinkglow");
+    $("profileUsernameDisplay").classList.remove("font-glow", "font-pink", "font-gold", "font-pinkglow", "font-glitch");
     if(profile.activeFont === "glow") $("profileUsernameDisplay").classList.add("font-glow");
     if(profile.activeFont === "pink") $("profileUsernameDisplay").classList.add("font-pink");
     if(profile.activeFont === "gold") $("profileUsernameDisplay").classList.add("font-gold");
     if(profile.activeFont === "pinkglow") $("profileUsernameDisplay").classList.add("font-pinkglow");
+    if(profile.activeFont === "glitch") $("profileUsernameDisplay").classList.add("font-glitch");
     $("profileAuraVal").textContent = profile.totalAura;
     $("profileLevel").textContent = profile.level;
     $("profileStreak").textContent = profile.streak || 0;
@@ -3404,10 +3575,11 @@
     }
 
     const screenProfile = $("screen-profile");
-    screenProfile.classList.remove("frame-pink", "frame-clean", "frame-glow", "frame-gold");
+    screenProfile.classList.remove("frame-pink", "frame-clean", "frame-glow", "frame-gold", "frame-glitch");
     if(profile.activeFrame === "pink") screenProfile.classList.add("frame-pink");
     if(profile.activeFrame === "clean") screenProfile.classList.add("frame-clean");
     if(profile.activeFrame === "glow") screenProfile.classList.add("frame-glow");
+    if(profile.activeFrame === "glitch") screenProfile.classList.add("frame-glitch");
     if(profile.activeFrame === "gold") screenProfile.classList.add("frame-gold");
 
     const titleEl = $("profileTitleDisplay");
@@ -4183,7 +4355,7 @@
       const ambientClass = e.activeFont === "glow" ? " lb-row-glow" : (e.activeFont === "pinkglow" ? " lb-row-pinkglow" : "");
       row.className = "lb-row" + (e.uid === meUid ? " me" : "") + ambientClass;
       row.style.cursor = "pointer";
-      const fontClass = e.activeFont === "glow" ? "font-glow" : (e.activeFont === "pink" ? "font-pink" : (e.activeFont === "gold" ? "font-gold" : (e.activeFont === "pinkglow" ? "font-pinkglow" : "")));
+      const fontClass = e.activeFont === "glow" ? "font-glow" : (e.activeFont === "pink" ? "font-pink" : (e.activeFont === "gold" ? "font-gold" : (e.activeFont === "pinkglow" ? "font-pinkglow" : (e.activeFont === "glitch" ? "font-glitch" : ""))));
       const avatarHtml = e.avatarData
         ? `<img src="${e.avatarData}" class="lb-avatar-img">`
         : `<div class="lb-avatar-placeholder">👤</div>`;
@@ -4499,11 +4671,12 @@
   // eigene Statistik (direkt aus dem lokalen Profil, auch als Gast).
   function renderFriendProfileCard(u, isOwnProfile){
     $("friendProfileUsername").innerHTML = u.username ? ((!isOwnProfile && isOnline(u) ? '<span class="online-dot"></span>' : "") + "@" + u.username) : "Gast";
-    $("friendProfileUsername").classList.remove("font-glow", "font-pink", "font-gold", "font-pinkglow");
+    $("friendProfileUsername").classList.remove("font-glow", "font-pink", "font-gold", "font-pinkglow", "font-glitch");
     if(u.activeFont === "glow") $("friendProfileUsername").classList.add("font-glow");
     if(u.activeFont === "pink") $("friendProfileUsername").classList.add("font-pink");
     if(u.activeFont === "gold") $("friendProfileUsername").classList.add("font-gold");
     if(u.activeFont === "pinkglow") $("friendProfileUsername").classList.add("font-pinkglow");
+    if(u.activeFont === "glitch") $("friendProfileUsername").classList.add("font-glitch");
     const titleEl = $("friendProfileTitle");
     if(u.activeTitle){
       titleEl.textContent = "🏅 " + u.activeTitle;
@@ -4512,10 +4685,11 @@
       titleEl.style.display = "none";
     }
     const card = $("friendProfileCard");
-    card.classList.remove("frame-pink", "frame-clean", "frame-glow", "frame-gold");
+    card.classList.remove("frame-pink", "frame-clean", "frame-glow", "frame-gold", "frame-glitch");
     if(u.activeFrame === "pink") card.classList.add("frame-pink");
     if(u.activeFrame === "clean") card.classList.add("frame-clean");
     if(u.activeFrame === "glow") card.classList.add("frame-glow");
+    if(u.activeFrame === "glitch") card.classList.add("frame-glitch");
     if(u.activeFrame === "gold") card.classList.add("frame-gold");
 
     if(u.avatarData){
@@ -6410,6 +6584,15 @@
       bGlowTheme.disabled = profile.totalAura < 600;
     }
 
+    const bGlitchTheme = $("buyGlitchTheme");
+    if(unlocked.includes("glitch")){
+      bGlitchTheme.textContent = "Freigeschaltet";
+      bGlitchTheme.disabled = true;
+    } else {
+      bGlitchTheme.textContent = "1500 Aura";
+      bGlitchTheme.disabled = profile.totalAura < 1500;
+    }
+
     const unlockedFrames = profile.unlockedFrames || ["none"];
     const bPinkFrame = $("buyPinkFrame");
     if(unlockedFrames.includes("pink")){
@@ -6434,6 +6617,14 @@
     } else {
       bGlowFrame.textContent = "1500 Aura";
       bGlowFrame.disabled = profile.totalAura < 1500;
+    }
+    const bGlitchFrame = $("buyGlitchFrame");
+    if(unlockedFrames.includes("glitch")){
+      bGlitchFrame.textContent = "Freigeschaltet";
+      bGlitchFrame.disabled = true;
+    } else {
+      bGlitchFrame.textContent = "1500 Aura";
+      bGlitchFrame.disabled = profile.totalAura < 1500;
     }
     const bGoldFrame = $("buyGoldFrame");
     if(unlockedFrames.includes("gold")){
@@ -6476,6 +6667,14 @@
     } else {
       bPinkGlowFont.textContent = "1000 Aura";
       bPinkGlowFont.disabled = profile.totalAura < 1000;
+    }
+    const bGlitchFont = $("buyGlitchFont");
+    if(unlockedFonts.includes("glitch")){
+      bGlitchFont.textContent = "Freigeschaltet";
+      bGlitchFont.disabled = true;
+    } else {
+      bGlitchFont.textContent = "1200 Aura";
+      bGlitchFont.disabled = profile.totalAura < 1200;
     }
 
     // Update Item Knöpfe
@@ -6556,6 +6755,7 @@
   $("buyPinkTheme").addEventListener("click", () => buyTheme("pink", 500, "Pink"));
   $("buyGlassTheme").addEventListener("click", () => buyTheme("glass", 600, "Glass"));
   $("buyGlowTheme").addEventListener("click", () => buyTheme("glow", 600, "Glow"));
+  $("buyGlitchTheme").addEventListener("click", () => buyTheme("glitch", 1500, "Glitch"));
 
   function buyFrame(frameKey, cost, name){
     if(profile.totalAura >= cost){
@@ -6571,6 +6771,7 @@
   $("buyPinkFrame").addEventListener("click", () => buyFrame("pink", 300, "Pink"));
   $("buyCleanFrame").addEventListener("click", () => buyFrame("clean", 300, "Clean"));
   $("buyGlowFrame").addEventListener("click", () => buyFrame("glow", 1500, "Glow"));
+  $("buyGlitchFrame").addEventListener("click", () => buyFrame("glitch", 1500, "Glitch"));
   $("buyGoldFrame").addEventListener("click", () => buyFrame("gold", 700, "Gold"));
 
   function buyFont(fontKey, cost, name){
@@ -6589,6 +6790,7 @@
   $("buyPinkFont").addEventListener("click", () => buyFont("pink", 500, "Pink"));
   $("buyGoldFont").addEventListener("click", () => buyFont("gold", 1000, "Gold"));
   $("buyPinkGlowFont").addEventListener("click", () => buyFont("pinkglow", 1000, "Pink Glow"));
+  $("buyGlitchFont").addEventListener("click", () => buyFont("glitch", 1200, "Glitch"));
 
   /* ========================================================
      THEME SYSTEM
@@ -6662,7 +6864,7 @@
      Nutzer per Benutzername und erlaubt, dessen Aura/Level/Streak/
      freigeschaltete Designs direkt in dessen Firestore-Dokument zu setzen.
   ======================================================== */
-  const ALL_THEME_IDS = ["black", "white_clean", "clean", "pink", "glass", "glow"];
+  const ALL_THEME_IDS = ["black", "white_clean", "clean", "pink", "glass", "glow", "glitch"];
   let ownerEditingUid = null;
   let ownerEditingOldUsernameLower = null;
 
@@ -7083,6 +7285,7 @@
       select.options[3].text = "Pink " + (unlocked.includes("pink") ? "" : "(🔒)");
       select.options[4].text = "Glass " + (unlocked.includes("glass") ? "" : "(🔒)");
       select.options[5].text = "Glow " + (unlocked.includes("glow") ? "" : "(🔒)");
+      select.options[6].text = "Glitch " + (unlocked.includes("glitch") ? "" : "(🔒)");
       select.value = profile.theme || "black";
     }
 
@@ -7109,6 +7312,11 @@
       $("logoutBtn").style.display = "none";
     }
   }
+
+  $("earthLiveBtn").addEventListener("click", openEarthLive);
+  $("closeEarthLive").addEventListener("click", () => {
+    $("overlayEarthLive").classList.remove("show");
+  });
 
   $("settingsBtn").addEventListener("click", () => {
     renderSettings();

@@ -561,7 +561,7 @@
   .trend-cell{
     background:var(--card); border:1.5px solid var(--border); border-radius:10px;
     padding:9px 0; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:14px;
-    color:var(--text); text-align:center; position:relative;
+    color:var(--text); text-align:center; position:relative; cursor:pointer;
   }
   .trend-cell .pct{ display:block; font-size:8px; font-weight:600; opacity:.75; margin-top:1px; }
   .trend-cell.trend-red{ border-color:#ef4444; background:rgba(239,68,68,.12); }
@@ -1757,6 +1757,16 @@
     </div>
   </section>
 
+  <!-- Trends: Detailansicht einer Reihe (NEU) -->
+  <div class="overlay" id="overlayTrendRowDetail">
+    <div class="modal-card" style="max-width:360px;">
+      <h2 id="trendRowDetailTitle">Die 7er-Reihe</h2>
+      <p>Wie gut du jede einzelne Aufgabe dieser Reihe kannst.</p>
+      <div class="times-table-grid" id="trendRowDetailList" style="grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:16px;"></div>
+      <button class="btn btn-ghost" id="closeTrendRowDetail">Schließen</button>
+    </div>
+  </div>
+
   <!-- ============ SETTINGS ============ -->
   <section class="screen" id="screen-settings">
     <div class="topbar">
@@ -2584,7 +2594,8 @@
     hasReceivedStreak2Chest: false, // ob die Truhe für den ersten zweitägigen Streak schon vergeben wurde
     streak2Chest: null, // Truhe für den ersten zweitägigen Streak
     manuallyUnlockedFreeTiers: [], // kostenlose Stufen über der aktiven Stufe, die bewusst mit Warnung bestätigt wurden
-    factStats: {}, // Trends: pro Zahl (1-12) {correct, wrong} bei Multiplikations-Aufgaben
+    factStats: {}, // Trends: pro Zahl (1-20) {correct, wrong} bei Multiplikations-Aufgaben
+    factPairStats: {}, // Trends-Detailansicht: pro Reihe (1-20) x Spalte (1-12) {correct, wrong}
     lessonInProgressAt: null, // erkennt, ob die App während einer laufenden Lektion geschlossen wurde
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
   };
@@ -4740,15 +4751,35 @@
   function renderTrends(){
     const grid = $("trendsGrid");
     grid.innerHTML = "";
-    for(let n = 1; n <= 12; n++){
+    for(let n = 1; n <= 20; n++){
       const stat = (profile.factStats || {})[String(n)];
       const total = stat ? stat.correct + stat.wrong : 0;
       const acc = total > 0 ? Math.round((stat.correct / total) * 100) : null;
       const cell = document.createElement("div");
       cell.className = "trend-cell " + trendColorFor(stat);
       cell.innerHTML = `${n}<span class="pct">${acc !== null ? acc + "%" : "-"}</span>`;
+      cell.addEventListener("click", () => openTrendRowDetail(n));
       grid.appendChild(cell);
     }
+  }
+
+  // Detailansicht einer Reihe (NEU): zeigt N×1 bis N×12 einzeln mit Farbe.
+  function openTrendRowDetail(n){
+    $("trendRowDetailTitle").textContent = `Die ${n}er-Reihe`;
+    const listEl = $("trendRowDetailList");
+    listEl.innerHTML = "";
+    const pairStats = (profile.factPairStats || {})[n] || {};
+    for(let col = 1; col <= 12; col++){
+      const stat = pairStats[String(col)];
+      const total = stat ? stat.correct + stat.wrong : 0;
+      const acc = total > 0 ? Math.round((stat.correct / total) * 100) : null;
+      const row = document.createElement("div");
+      row.className = "trend-cell " + trendColorFor(stat);
+      row.style.padding = "10px 0";
+      row.innerHTML = `${n}×${col}<span class="pct">${acc !== null ? acc + "%" : "-"}</span>`;
+      listEl.appendChild(row);
+    }
+    $("overlayTrendRowDetail").classList.add("show");
   }
 
   function renderMissions(){
@@ -5041,6 +5072,23 @@
       });
       merged.factStats = mergedStats;
     }
+    {
+      const lps = localP.factPairStats || {}, cps = cloudP.factPairStats || {};
+      const rowKeys = new Set([...Object.keys(lps), ...Object.keys(cps)]);
+      const mergedPairs = {};
+      rowKeys.forEach(rk => {
+        const lRow = lps[rk] || {}, cRow = cps[rk] || {};
+        const colKeys = new Set([...Object.keys(lRow), ...Object.keys(cRow)]);
+        const mergedRow = {};
+        colKeys.forEach(ck => {
+          const l = lRow[ck] || { correct: 0, wrong: 0 };
+          const c = cRow[ck] || { correct: 0, wrong: 0 };
+          mergedRow[ck] = { correct: Math.max(l.correct || 0, c.correct || 0), wrong: Math.max(l.wrong || 0, c.wrong || 0) };
+        });
+        mergedPairs[rk] = mergedRow;
+      });
+      merged.factPairStats = mergedPairs;
+    }
     merged.lastStreakReminderShownDate = maxDateStr(localP.lastStreakReminderShownDate, cloudP.lastStreakReminderShownDate);
     merged.shareChest = localP.shareChest || cloudP.shareChest || null;
     merged.countedDuelWins = Array.from(new Set([
@@ -5209,14 +5257,26 @@
     const parts = q.text.split("×").map(s => parseInt(s.trim(), 10));
     if(parts.length !== 2 || parts.some(n => isNaN(n))) return;
     if(!profile.factStats) profile.factStats = {};
+    if(!profile.factPairStats) profile.factPairStats = {};
+    const [a, b] = parts;
     const seen = new Set();
     parts.forEach(n => {
-      if(n < 1 || n > 12 || seen.has(n)) return;
+      if(n < 1 || n > 20 || seen.has(n)) return;
       seen.add(n);
       const key = String(n);
       if(!profile.factStats[key]) profile.factStats[key] = { correct: 0, wrong: 0 };
       if(isCorrect) profile.factStats[key].correct++;
       else profile.factStats[key].wrong++;
+    });
+    // Zusätzlich pro einzelner Aufgabe (Reihe × Spalte) für die
+    // Detailansicht einer Reihe - z.B. "7×3" landet unter Reihe 7, Spalte 3.
+    [[a, b], [b, a]].forEach(([row, col]) => {
+      if(row < 1 || row > 20 || col < 1 || col > 12) return;
+      if(!profile.factPairStats[row]) profile.factPairStats[row] = {};
+      const colKey = String(col);
+      if(!profile.factPairStats[row][colKey]) profile.factPairStats[row][colKey] = { correct: 0, wrong: 0 };
+      if(isCorrect) profile.factPairStats[row][colKey].correct++;
+      else profile.factPairStats[row][colKey].wrong++;
     });
   }
 
@@ -6254,6 +6314,9 @@
   });
 
   $("startWeakTasksBtn").addEventListener("click", startWeakTasksLesson);
+  $("closeTrendRowDetail").addEventListener("click", () => {
+    $("overlayTrendRowDetail").classList.remove("show");
+  });
 
   $("unlockFreeTierConfirmBtn").addEventListener("click", () => {
     if(pendingUnlockTierIndex === null) return;

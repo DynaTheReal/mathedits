@@ -1404,7 +1404,7 @@
 
     <div class="hero">
       <div class="hero-top-row">
-        <div class="hero-top-spacer"></div>
+        <button class="theme-toggle" id="duelLobbyBtn" title="Duell-Lobby">⚔️</button>
         <div class="hero-flame" id="heroFlame">
           <div class="flame-wrap">
             <span class="flame-icon">🔥</span>
@@ -1767,6 +1767,47 @@
       <button class="btn btn-ghost" id="closeTrendRowDetail">Schließen</button>
     </div>
   </div>
+
+  <!-- ============ DUELL-LOBBY (NEU, komplett überarbeitetes Duell-System) ============ -->
+  <section class="screen" id="screen-duellobby">
+    <div class="topbar">
+      <div class="exit-x" id="duelLobbyBack">←</div>
+      <div class="settings-title">Duell-Lobby</div>
+    </div>
+    <div class="shop-header">
+      <h2>⚔️ Duell-Lobby</h2>
+      <div id="duelLobbySubtitle" style="font-size:12px; opacity:.75;">Lade Freunde ein - alle spielen dieselbe Lektion, wer zuerst fertig ist, gewinnt.</div>
+    </div>
+    <div id="duelLobbyMembersList" style="margin-bottom:16px;"></div>
+    <button class="btn btn-primary" id="duelLobbyInviteBtn" style="width:100%; margin-bottom:10px;">+ Freund einladen</button>
+    <button class="btn btn-primary" id="duelLobbyStartBtn" style="width:100%; margin-bottom:10px; display:none;">🚀 Duell starten</button>
+    <button class="btn btn-ghost" id="duelLobbyLeaveBtn" style="width:100%;">Lobby verlassen</button>
+  </section>
+
+  <!-- Duell-Lobby: Freund einladen (NEU) -->
+  <div class="overlay" id="overlayDuelInviteFriend">
+    <div class="modal-card" style="max-width:340px;">
+      <div style="font-size:36px; margin-bottom:6px;">⚔️</div>
+      <h2>Freund einladen</h2>
+      <div id="duelInviteFriendList" style="max-height:45vh; overflow-y:auto; margin-bottom:12px;"></div>
+      <button class="btn btn-ghost" id="closeDuelInviteFriend">Schließen</button>
+    </div>
+  </div>
+
+  <!-- Duell: Warten auf andere / Endergebnis (NEU) -->
+  <section class="screen" id="screen-duelresults">
+    <div class="topbar">
+      <div class="brand"><span class="dot"></span>MathEdits</div>
+      <div></div>
+    </div>
+    <div class="locked-wrap">
+      <div class="complete-emoji" id="duelResultsEmoji">⏳</div>
+      <div class="complete-title" id="duelResultsTitle">Warte auf die anderen …</div>
+      <div class="complete-sub" id="duelResultsSub">Du bist fertig! Sobald alle fertig sind, siehst du das Ergebnis.</div>
+      <div id="duelResultsList" style="margin-top:18px; width:100%;"></div>
+    </div>
+    <button class="btn btn-primary" id="duelResultsHomeBtn" style="display:none;">Zurück zum Home</button>
+  </section>
 
   <!-- ============ SETTINGS ============ -->
   <section class="screen" id="screen-settings">
@@ -5631,6 +5672,340 @@
   }
 
   /* ========================================================
+     DUELL-LOBBY (NEU, komplett überarbeitetes Duell-System)
+     Ersetzt das alte 1-gegen-1-Format. Beliebig viele Freunde können einer
+     Lobby beitreten. Startet der Host, bekommen ALLE dieselben 10 Fragen
+     und spielen unabhängig voneinander den normalen "erst richtig
+     beantworten, dann weiter"-Ablauf durch - wer als Erstes fertig ist,
+     gewinnt.
+  ======================================================== */
+  let activeDuelLobbyId = null;
+  let duelLobbyUnsubscribe = null;
+  let isDuelLobbyHost = false;
+
+  function buildSharedDuelQuestions(){
+    const activeIdx = tierIndexForLevel(profile.level);
+    const idx = (selectedTierIndex !== null && isTierSelectable(selectedTierIndex, activeIdx)) ? selectedTierIndex : activeIdx;
+    const tier = TIERS[idx];
+    const questions = [];
+    const seenTexts = new Set();
+    for(let i = 0; i < QUESTIONS_PER_LESSON; i++){
+      let q = tier.gen();
+      let attempts = 0;
+      while(seenTexts.has(q.text) && attempts < 25){
+        q = tier.gen();
+        attempts++;
+      }
+      seenTexts.add(q.text);
+      questions.push(q);
+    }
+    return { questions, timeMs: tier.timeMs };
+  }
+
+  async function openDuelLobby(){
+    if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
+    try{
+      const ref = await db().collection("duelLobbies").add({
+        hostUid: currentUser.uid,
+        hostUsername: profile.username || "?",
+        status: "waiting",
+        memberUids: [currentUser.uid],
+        memberNames: { [currentUser.uid]: profile.username || "?" },
+        results: {},
+        questions: null,
+        timeMs: null,
+        createdAt: Date.now(),
+        startedAt: null
+      });
+      activeDuelLobbyId = ref.id;
+      isDuelLobbyHost = true;
+      showScreen("duellobby");
+      watchDuelLobby(ref.id);
+    }catch(err){
+      showToast("Lobby konnte nicht erstellt werden.");
+      console.error("Duell-Lobby erstellen Fehler:", err);
+    }
+  }
+
+  function watchDuelLobby(lobbyId){
+    if(duelLobbyUnsubscribe){ duelLobbyUnsubscribe(); duelLobbyUnsubscribe = null; }
+    duelLobbyUnsubscribe = db().collection("duelLobbies").doc(lobbyId).onSnapshot((doc) => {
+      if(!doc.exists){
+        showToast("Die Lobby wurde geschlossen.");
+        leaveDuelLobbyLocally();
+        showScreen("home");
+        renderHome();
+        return;
+      }
+      const data = doc.data();
+      if(data.status === "waiting"){
+        renderDuelLobbyMembers(data);
+      } else if(data.status === "active"){
+        if(!lesson || !lesson.isDuelLobby || lesson.duelLobbyId !== lobbyId){
+          beginDuelLobbyLesson(data, lobbyId);
+        }
+      } else if(data.status === "finished"){
+        renderDuelResultsScreen(data);
+      }
+    }, (err) => console.error("Duell-Lobby beobachten Fehler:", err));
+  }
+
+  function renderDuelLobbyMembers(data){
+    const wrap = $("duelLobbyMembersList");
+    wrap.innerHTML = "";
+    (data.memberUids || []).forEach(uid => {
+      const row = document.createElement("div");
+      row.className = "friend-row";
+      const name = (data.memberNames || {})[uid] || "?";
+      row.innerHTML = `<span class="name">@${name}</span>` + (uid === data.hostUid ? ' <span style="opacity:.6; font-size:11px;">(Host)</span>' : "");
+      wrap.appendChild(row);
+    });
+    isDuelLobbyHost = !!(currentUser && data.hostUid === currentUser.uid);
+    $("duelLobbyStartBtn").style.display = (isDuelLobbyHost && (data.memberUids || []).length >= 2) ? "block" : "none";
+    $("duelLobbyInviteBtn").style.display = isDuelLobbyHost ? "block" : "none";
+  }
+
+  async function openDuelInviteFriendPicker(){
+    if(!activeDuelLobbyId) return;
+    $("overlayDuelInviteFriend").classList.add("show");
+    const listEl = $("duelInviteFriendList");
+    listEl.innerHTML = "<div class='empty-hint'>Lade Freunde …</div>";
+    const following = profile.following || [];
+    const followers = await fetchFollowers(currentUser.uid);
+    const mutualUids = following.filter(uid => followers.some(f => f.uid === uid));
+    if(mutualUids.length === 0){
+      listEl.innerHTML = "<div class='empty-hint'>Noch keine gegenseitigen Freunde zum Einladen.</div>";
+      return;
+    }
+    const friendDocs = await Promise.all(mutualUids.map(async uid => ({ uid, u: await fetchUserDoc(uid) })));
+    listEl.innerHTML = "";
+    friendDocs.forEach(({ uid, u }) => {
+      const uname = u ? (u.username || "Unbekannt") : ((profile.friendUsernameCache || {})[uid] || "Unbekannt");
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);";
+      row.innerHTML = `<span>@${uname}</span><button class="btn btn-primary btn-small" data-uid="${uid}" data-name="${uname}">Einladen</button>`;
+      listEl.appendChild(row);
+    });
+    listEl.querySelectorAll("button[data-uid]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        sendDuelLobbyInvite(btn.dataset.uid, btn.dataset.name);
+        btn.textContent = "Eingeladen ✓";
+        btn.disabled = true;
+      });
+    });
+  }
+
+  async function sendDuelLobbyInvite(toUid, toUsername){
+    if(!activeDuelLobbyId || !currentUser) return;
+    try{
+      await db().collection("duelLobbyInvites").add({
+        lobbyId: activeDuelLobbyId,
+        fromUid: currentUser.uid, fromUsername: profile.username || "?",
+        toUid, toUsername,
+        status: "pending",
+        createdAt: Date.now()
+      });
+    }catch(err){
+      showToast("Einladung konnte nicht gesendet werden.");
+      console.error("Lobby-Einladung senden Fehler:", err);
+    }
+  }
+
+  // Eingehende Lobby-Einladungen live beobachten - nutzt denselben
+  // Banner wie vorher, aber Tippen darauf tritt jetzt der Lobby bei statt
+  // direkt in ein 1-gegen-1-Duell zu starten.
+  let duelLobbyInviteUnsubscribe = null;
+  let pendingDuelLobbyInvite = null;
+  function watchIncomingDuelLobbyInvites(){
+    if(duelLobbyInviteUnsubscribe){ duelLobbyInviteUnsubscribe(); duelLobbyInviteUnsubscribe = null; }
+    if(!firebaseInitialized || !currentUser) return;
+    duelLobbyInviteUnsubscribe = db().collection("duelLobbyInvites")
+      .where("toUid", "==", currentUser.uid)
+      .where("status", "==", "pending")
+      .onSnapshot((snap) => {
+        snap.docChanges().forEach(change => {
+          if(change.type === "added"){
+            const data = change.doc.data();
+            pendingDuelLobbyInvite = { id: change.doc.id, ...data };
+            $("duelInviteText").innerHTML = `<b>@${data.fromUsername}</b> lädt dich zu einem Duell ein!`;
+            $("duelInviteBanner").classList.add("show");
+          }
+        });
+      }, (err) => console.error("Lobby-Einladungen beobachten Fehler:", err));
+  }
+
+  async function acceptDuelLobbyInvite(){
+    if(!pendingDuelLobbyInvite) return;
+    const invite = pendingDuelLobbyInvite;
+    $("duelInviteBanner").classList.remove("show");
+    pendingDuelLobbyInvite = null;
+    if(lesson && !lesson.isDuelLobby){
+      stopTimer();
+      pendingAdvanceAt = null;
+      lesson = null;
+      clearLessonInProgress();
+    }
+    try{
+      await db().collection("duelLobbyInvites").doc(invite.id).update({ status: "accepted" });
+      const lobbyRef = db().collection("duelLobbies").doc(invite.lobbyId);
+      const lobbyDoc = await lobbyRef.get();
+      if(!lobbyDoc.exists){ showToast("Die Lobby existiert nicht mehr."); return; }
+      const data = lobbyDoc.data();
+      if(!(data.memberUids || []).includes(currentUser.uid)){
+        await lobbyRef.update({
+          memberUids: [...(data.memberUids || []), currentUser.uid],
+          [`memberNames.${currentUser.uid}`]: profile.username || "?"
+        });
+      }
+      activeDuelLobbyId = invite.lobbyId;
+      isDuelLobbyHost = false;
+      showScreen("duellobby");
+      watchDuelLobby(invite.lobbyId);
+    }catch(err){
+      showToast("Beitreten fehlgeschlagen.");
+      console.error("Lobby beitreten Fehler:", err);
+    }
+  }
+
+  async function startDuelLobby(){
+    if(!activeDuelLobbyId || !isDuelLobbyHost) return;
+    try{
+      const built = buildSharedDuelQuestions();
+      await db().collection("duelLobbies").doc(activeDuelLobbyId).update({
+        status: "active",
+        questions: built.questions,
+        timeMs: built.timeMs,
+        startedAt: Date.now()
+      });
+    }catch(err){
+      showToast("Duell konnte nicht gestartet werden.");
+      console.error("Duell starten Fehler:", err);
+    }
+  }
+
+  function beginDuelLobbyLesson(data, lobbyId){
+    lesson = {
+      tier: { name: "⚔️ Duell-Lobby", timeMs: data.timeMs || 9000, normalAura: 2, editAura: 4 },
+      isMainProgression: false,
+      isDuel: true,
+      isDuelLobby: true,
+      duelLobbyId: lobbyId,
+      questions: data.questions.map(q => ({ ...q })),
+      index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false
+    };
+    lesson.startedAt = performance.now();
+    $("progressFill").classList.remove("combo-active");
+    markLessonInProgress();
+    showScreen("lesson");
+    renderQuestion();
+  }
+
+  async function finishDuelLobbyLesson(){
+    const lobbyId = lesson.duelLobbyId;
+    const timeMs = performance.now() - (lesson.startedAt || performance.now());
+    const correctCount = lesson.correct;
+    profile.lastLessonAt = Date.now();
+    clearLessonInProgress();
+    profile.totalAura += lesson.aura;
+    saveProfile();
+    lesson = null;
+
+    showScreen("duelresults");
+    $("duelResultsEmoji").textContent = "⏳";
+    $("duelResultsTitle").textContent = "Warte auf die anderen …";
+    $("duelResultsSub").textContent = "Du bist fertig! Sobald alle fertig sind, siehst du das Ergebnis.";
+    $("duelResultsList").innerHTML = "";
+    $("duelResultsHomeBtn").style.display = "none";
+
+    try{
+      const ref = db().collection("duelLobbies").doc(lobbyId);
+      await ref.update({
+        [`results.${currentUser.uid}`]: {
+          timeMs, correctCount, username: profile.username || "?", finishedAt: Date.now()
+        }
+      });
+      const doc = await ref.get();
+      const data = doc.data();
+      const allDone = (data.memberUids || []).every(uid => data.results && data.results[uid]);
+      if(allDone && data.status !== "finished"){
+        await ref.update({ status: "finished" });
+      }
+    }catch(err){
+      console.error("Duell-Ergebnis speichern Fehler:", err);
+    }
+    watchDuelLobby(lobbyId);
+  }
+
+  function renderDuelResultsScreen(data){
+    const results = data.results || {};
+    const memberUids = data.memberUids || [];
+    const finishedCount = memberUids.filter(uid => results[uid]).length;
+    const allDone = memberUids.length > 0 && memberUids.every(uid => results[uid]);
+
+    if(!allDone){
+      $("duelResultsEmoji").textContent = "⏳";
+      $("duelResultsTitle").textContent = "Warte auf die anderen …";
+      $("duelResultsSub").textContent = `${finishedCount}/${memberUids.length} sind fertig.`;
+      $("duelResultsHomeBtn").style.display = "none";
+      return;
+    }
+
+    const ranked = memberUids.map(uid => ({ uid, ...results[uid] })).sort((a, b) => a.timeMs - b.timeMs);
+    const winner = ranked[0];
+    const iWon = !!(currentUser && winner.uid === currentUser.uid);
+
+    $("duelResultsEmoji").textContent = iWon ? "🏆" : "⚔️";
+    $("duelResultsTitle").textContent = iWon ? "Du hast gewonnen!" : `@${winner.username} hat gewonnen!`;
+    $("duelResultsSub").textContent = "Endergebnis:";
+    $("duelResultsHomeBtn").style.display = "block";
+
+    const listEl = $("duelResultsList");
+    listEl.innerHTML = "";
+    ranked.forEach((r, i) => {
+      const row = document.createElement("div");
+      row.className = "lb-row" + (currentUser && r.uid === currentUser.uid ? " me" : "");
+      row.innerHTML = `<div class="lb-rank">#${i + 1}</div><div class="lb-name">@${r.username}</div><div class="lb-aura">${formatDuration(r.timeMs)} · ${r.correctCount}/${QUESTIONS_PER_LESSON}</div>`;
+      listEl.appendChild(row);
+    });
+
+    if(duelLobbyUnsubscribe){ duelLobbyUnsubscribe(); duelLobbyUnsubscribe = null; }
+    activeDuelLobbyId = null;
+  }
+
+  async function leaveDuelLobby(){
+    if(!activeDuelLobbyId || !currentUser){
+      leaveDuelLobbyLocally();
+      showScreen("home");
+      renderHome();
+      return;
+    }
+    try{
+      const ref = db().collection("duelLobbies").doc(activeDuelLobbyId);
+      const doc = await ref.get();
+      if(doc.exists){
+        const data = doc.data();
+        const remaining = (data.memberUids || []).filter(uid => uid !== currentUser.uid);
+        if(remaining.length === 0){
+          await ref.delete();
+        } else {
+          await ref.update({ memberUids: remaining });
+        }
+      }
+    }catch(err){
+      console.error("Lobby verlassen Fehler:", err);
+    }
+    leaveDuelLobbyLocally();
+    showScreen("home");
+    renderHome();
+  }
+
+  function leaveDuelLobbyLocally(){
+    if(duelLobbyUnsubscribe){ duelLobbyUnsubscribe(); duelLobbyUnsubscribe = null; }
+    activeDuelLobbyId = null;
+    isDuelLobbyHost = false;
+  }
+
+  /* ========================================================
      DOM REFS & SCREEN SWITCHING
   ======================================================== */
   const $ = (id) => document.getElementById(id);
@@ -5639,7 +6014,7 @@
     home: $("screen-home"), shop: $("screen-shop"), locked: $("screen-locked"), 
     lesson: $("screen-lesson"), result: $("screen-result"), settings: $("screen-settings"),
     profile: $("screen-profile"), leaderboard: $("screen-leaderboard"), missions: $("screen-missions"),
-    trends: $("screen-trends")
+    trends: $("screen-trends"), duellobby: $("screen-duellobby"), duelresults: $("screen-duelresults")
   };
   const NAV_SCREENS = ["home", "shop", "leaderboard", "missions", "profile", "trends"];
 
@@ -6696,13 +7071,26 @@
     if(e.target.id === "overlayTimesTablePicker") $("overlayTimesTablePicker").classList.remove("show");
   });
 
-  /* Live-Duell: Einladungs-Banner & Warte-Overlay */
-  $("duelInviteBanner").addEventListener("click", acceptDuelInvite);
+  /* Duell-Lobby: Einladungs-Banner (NEU - ersetzt das alte 1-gegen-1-Duell) */
+  $("duelInviteBanner").addEventListener("click", acceptDuelLobbyInvite);
   $("duelInviteBannerClose").addEventListener("click", (e) => {
     e.stopPropagation();
     $("duelInviteBanner").classList.remove("show");
+    pendingDuelLobbyInvite = null;
   });
-  $("cancelDuelInviteBtn").addEventListener("click", cancelDuelInvite);
+
+  $("duelLobbyBtn").addEventListener("click", openDuelLobby);
+  $("duelLobbyBack").addEventListener("click", leaveDuelLobby);
+  $("duelLobbyLeaveBtn").addEventListener("click", leaveDuelLobby);
+  $("duelLobbyInviteBtn").addEventListener("click", openDuelInviteFriendPicker);
+  $("duelLobbyStartBtn").addEventListener("click", startDuelLobby);
+  $("closeDuelInviteFriend").addEventListener("click", () => {
+    $("overlayDuelInviteFriend").classList.remove("show");
+  });
+  $("duelResultsHomeBtn").addEventListener("click", () => {
+    showScreen("home");
+    renderHome();
+  });
 
   /* Truhen-Modal (Startdrop-Stil) */
   $("chestTapIcon").addEventListener("pointerdown", (e) => {
@@ -6980,6 +7368,11 @@
         incomingInviteUnsubscribe();
         incomingInviteUnsubscribe = null;
       }
+      if(duelLobbyInviteUnsubscribe){
+        duelLobbyInviteUnsubscribe();
+        duelLobbyInviteUnsubscribe = null;
+      }
+      leaveDuelLobbyLocally();
       if(unreadMessageUnsubscribe){
         unreadMessageUnsubscribe();
         unreadMessageUnsubscribe = null;
@@ -7003,7 +7396,7 @@
       fcmTokenSaved = false;
 
       if(user){
-        watchIncomingDuelInvites();
+        watchIncomingDuelLobbyInvites();
         watchIncomingMessages();
         syncUnsubscribe = db().collection("users").doc(user.uid).onSnapshot((doc) => {
           // Sehr wichtig gegen eine Rückkopplungsschleife: jeder eigene
@@ -7941,6 +8334,10 @@
   let lastLessonGainedProgress = false; // steuert, ob nach "Weiter" der Level-Punkt-Flug gezeigt wird
 
   function finishLesson(passed){
+    if(lesson && lesson.isDuelLobby){
+      finishDuelLobbyLesson();
+      return;
+    }
     profile.lastLessonAt = Date.now();
     clearLessonInProgress();
     saveProfile();

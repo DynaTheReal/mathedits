@@ -838,6 +838,26 @@
     width:6px; height:6px; border-radius:50%; background:var(--accent-2);
     position:absolute; top:9px; left:10px; box-shadow:0 0 6px var(--accent-2);
   }
+  .tier-card.tier-ranked{
+    border:2px solid transparent;
+    background:
+      linear-gradient(var(--card), var(--card)) padding-box,
+      linear-gradient(90deg, #ff004c, #ff9900, #fff200, #22e06c, #22aaff, #a855f7, #ff004c) border-box;
+    background-size: 100% 100%, 300% 100%;
+    animation: rankedBorderShift 4s linear infinite;
+  }
+  @keyframes rankedBorderShift{
+    0%{ background-position: 0 0, 0% 0; }
+    100%{ background-position: 0 0, 300% 0; }
+  }
+  .tier-card .ranked-label{
+    position:absolute; top:-9px; left:50%; transform:translateX(-50%);
+    font-size:8.5px; font-weight:900; letter-spacing:.5px; white-space:nowrap;
+    padding:2px 7px; border-radius:8px; color:#fff;
+    background:linear-gradient(90deg, #ff004c, #ff9900, #fff200, #22e06c, #22aaff, #a855f7);
+    background-size:300% 100%;
+    animation: rankedBorderShift 4s linear infinite;
+  }
   .tier-card.shake{animation: shake .35s;}
 
   .btn{
@@ -1728,7 +1748,7 @@
     </div>
 
     <button class="btn btn-primary" id="startWeakTasksBtn" style="width:100%; padding:15px; margin-bottom:6px;">💪 Schwierige Aufgaben starten</button>
-    <div class="d" style="text-align:center; margin-bottom:18px;">Die Aufgaben, mit denen du am meisten struggelst - gibt Aura und Level.</div>
+    <div class="d" style="text-align:center; margin-bottom:18px;">Die Aufgaben, mit denen du am meisten struggelst - gibt Aura, kostet aber kein Level und keine Leben.</div>
 
     <div class="times-table-grid" id="trendsGrid" style="grid-template-columns:repeat(6,1fr); gap:7px; margin-bottom:18px;"></div>
 
@@ -1854,8 +1874,7 @@
 
     <div class="auth-box">
       <div class="t" style="font-weight:700; font-size:15px; margin-bottom:8px;" id="authTitle">Account / Login</div>
-      <input type="text" id="authUsername" class="input-field" placeholder="Benutzername (nur bei Registrierung)">
-      <input type="email" id="authEmail" class="input-field" placeholder="E-Mail">
+      <input type="text" id="authUsername" class="input-field" placeholder="Benutzername">
       <input type="password" id="authPassword" class="input-field" placeholder="Passwort">
       <div style="display:flex; gap:8px; margin-top:4px;">
         <button class="btn btn-primary btn-small" id="loginBtn">Einloggen</button>
@@ -2566,6 +2585,7 @@
     streak2Chest: null, // Truhe für den ersten zweitägigen Streak
     manuallyUnlockedFreeTiers: [], // kostenlose Stufen über der aktiven Stufe, die bewusst mit Warnung bestätigt wurden
     factStats: {}, // Trends: pro Zahl (1-12) {correct, wrong} bei Multiplikations-Aufgaben
+    lessonInProgressAt: null, // erkennt, ob die App während einer laufenden Lektion geschlossen wurde
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
   };
   let profile = { ...DEFAULT_PROFILE };
@@ -2643,6 +2663,14 @@
   }
   function isValidUsername(lower){
     return /^[a-z0-9_]{3,20}$/.test(lower);
+  }
+  // Firebase Auth braucht intern immer ein E-Mail-Format - da man sich hier
+  // aber nur mit Benutzername + Passwort anmeldet, wird daraus eine
+  // synthetische, für die Person unsichtbare "E-Mail" gebaut. Login und
+  // Registrierung nutzen exakt dieselbe Umwandlung, sodass kein Nachschlagen
+  // nötig ist.
+  function usernameToSyntheticEmail(username){
+    return normalizeUsername(username) + "@mathedits.app";
   }
 
   // Reserviert einen Benutzernamen für die uid in der öffentlichen "usernames"-Sammlung
@@ -3650,6 +3678,7 @@
       stopTimer();
       pendingAdvanceAt = null;
       lesson = null;
+      clearLessonInProgress();
     }
     try{
       await db().collection("duelInvites").doc(invite.id).update({ status: "accepted" });
@@ -6329,9 +6358,8 @@
     }
 
     if(currentUser){
-      $("authTitle").textContent = "Angemeldet als: " + currentUser.email;
+      $("authTitle").textContent = "Angemeldet als: @" + (profile.username || "?");
       $("authUsername").style.display = "none";
-      $("authEmail").style.display = "none";
       $("authPassword").style.display = "none";
       $("loginBtn").style.display = "none";
       $("registerBtn").style.display = "none";
@@ -6339,7 +6367,6 @@
     } else {
       $("authTitle").textContent = "Account / Login";
       $("authUsername").style.display = "block";
-      $("authEmail").style.display = "block";
       $("authPassword").style.display = "block";
       $("loginBtn").style.display = "block";
       $("registerBtn").style.display = "block";
@@ -6829,30 +6856,32 @@
 
   $("loginBtn").addEventListener("click", () => {
     if(!firebaseInitialized) return showToast("Firebase API Key nicht konfiguriert");
-    const email = $("authEmail").value;
+    const uname = normalizeUsername($("authUsername").value);
     const pass = $("authPassword").value;
-    firebase.auth().signInWithEmailAndPassword(email, pass)
+    if(!isValidUsername(uname)){
+      return alert("Bitte gib deinen Benutzernamen ein.");
+    }
+    firebase.auth().signInWithEmailAndPassword(usernameToSyntheticEmail(uname), pass)
       .then(() => showToast("Erfolgreich eingeloggt!"))
       .catch((err) => alert(err.message));
   });
 
   $("registerBtn").addEventListener("click", () => {
     if(!firebaseInitialized) return showToast("Firebase API Key nicht konfiguriert");
-    const email = $("authEmail").value;
     const pass = $("authPassword").value;
     const uname = $("authUsername").value;
     if(!isValidUsername(normalizeUsername(uname))){
       return alert("Bitte gib einen gültigen Benutzernamen ein (3-20 Zeichen: a-z, 0-9, _).");
     }
     registrationInProgress = true;
-    firebase.auth().createUserWithEmailAndPassword(email, pass)
+    firebase.auth().createUserWithEmailAndPassword(usernameToSyntheticEmail(uname), pass)
       .then(async (cred) => {
         try{
           await reserveUsername(cred.user.uid, uname);
           showToast("Account erstellt!");
           saveProfile();
           processPendingReferral(cred.user.uid, uname, normalizeUsername(uname));
-          logRegistrationForOwner(cred.user.uid, email, uname);
+          logRegistrationForOwner(cred.user.uid, usernameToSyntheticEmail(uname), uname);
         }catch(err){
           alert(err.message);
         } finally {
@@ -7044,9 +7073,9 @@
       // weitergehen.
       const showsLocked = needsLevel || (i > activeIdx && !manuallyUnlocked);
       const card = document.createElement("div");
-      card.className = "tier-card" + (i === selectedTierIndex ? " active" : "") + (showsLocked ? " locked" : "");
+      card.className = "tier-card" + (i === selectedTierIndex ? " active" : "") + (showsLocked ? " locked" : "") + (i === activeIdx ? " tier-ranked" : "");
       card.innerHTML = `
-        ${i === activeIdx ? '<span class="current-dot"></span>' : ""}
+        ${i === activeIdx ? '<span class="ranked-label">🌈 RANKED</span>' : ""}
         ${showsLocked ? '<span class="lock">🔒</span>' : ""}
         <span class="icon">${tier.icon}</span>
         <span class="name">${tier.name}</span>
@@ -7135,12 +7164,18 @@
   $("exitLesson").addEventListener("click", () => {
     stopTimer();
     pendingAdvanceAt = null;
+    const wasNormalLesson = lesson && !lesson.isLiveDuel && !lesson.isTimesTablePractice;
     if(lesson && lesson.isLiveDuel && liveDuelUnsubscribe){
       liveDuelUnsubscribe();
       liveDuelUnsubscribe = null;
       activeLiveDuelId = null;
     }
     lesson = null;
+    clearLessonInProgress();
+    if(wasNormalLesson){
+      profile.totalAura = Math.max(0, profile.totalAura - 10);
+      saveProfile();
+    }
     playComboLossScare(() => {
       showScreen("home");
       renderHome();
@@ -7154,6 +7189,20 @@
   let questionStartedAt = 0;
   const TIMER_CIRCUMFERENCE = 2 * Math.PI * 22;
 
+  // Erkennt, ob die App während einer laufenden Lektion geschlossen wurde
+  // (nie richtig beendet oder per X abgebrochen) - beim nächsten Start gibt
+  // es dann denselben 10-Aura-Abzug wie beim X-Abbruch.
+  function markLessonInProgress(){
+    profile.lessonInProgressAt = Date.now();
+    saveProfile();
+  }
+  function clearLessonInProgress(){
+    if(profile.lessonInProgressAt){
+      profile.lessonInProgressAt = null;
+      saveProfile();
+    }
+  }
+
   function startLesson(){
     lesson = buildLesson();
     lesson.startedAt = performance.now();
@@ -7163,6 +7212,7 @@
     // bei 0 anzufangen.
     lesson.streakThisLesson = lesson.isMainProgression ? (profile.comboCount || 0) : 0;
     $("progressFill").classList.toggle("combo-active", lesson.streakThisLesson > 5);
+    markLessonInProgress();
     showScreen("lesson");
     renderQuestion();
   }
@@ -7199,7 +7249,7 @@
       questions.push(q);
     }
     const tier = { id: "weak_tasks", name: "Schwierige Aufgaben", icon: "💪", timeMs: 9000, normalAura: 2, editAura: 4 };
-    return { tier, isMainProgression: true, questions, index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false };
+    return { tier, isMainProgression: false, noLifeLoss: true, questions, index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false };
   }
 
   function startWeakTasksLesson(){
@@ -7207,6 +7257,7 @@
     lesson.startedAt = performance.now();
     lesson.streakThisLesson = profile.comboCount || 0;
     $("progressFill").classList.toggle("combo-active", lesson.streakThisLesson > 5);
+    markLessonInProgress();
     showScreen("lesson");
     renderQuestion();
   }
@@ -7507,8 +7558,10 @@
       }
     } else if(isSlow){
       profile.totalMistakes = (profile.totalMistakes || 0) + 1;
-      loseLife();
-      if(profile.lives <= 0 && !isSuperUser()) pendingGameOverScare = true;
+      if(!lesson.noLifeLoss){
+        loseLife();
+        if(profile.lives <= 0 && !isSuperUser()) pendingGameOverScare = true;
+      }
       lesson.missedCurrentQuestion = true;
       pendingRetry = true;
       regenerateCurrentQuestion();
@@ -7517,8 +7570,10 @@
       setTimeout(() => showMemeOverlay(isCorrect, showMs), 150);
     } else {
       profile.totalMistakes = (profile.totalMistakes || 0) + 1;
-      loseLife();
-      if(profile.lives <= 0 && !isSuperUser()) pendingGameOverScare = true;
+      if(!lesson.noLifeLoss){
+        loseLife();
+        if(profile.lives <= 0 && !isSuperUser()) pendingGameOverScare = true;
+      }
       lesson.missedCurrentQuestion = true;
       pendingRetry = true;
       regenerateCurrentQuestion();
@@ -7624,6 +7679,7 @@
 
   function finishLesson(passed){
     profile.lastLessonAt = Date.now();
+    clearLessonInProgress();
     saveProfile();
     let title, sub, emoji;
     lastLessonGainedProgress = false;
@@ -8063,6 +8119,14 @@
     checkStreakDecay();
     processWeeklyInviteRollover();
     ensureDailyMissions();
+    // Falls die App zuletzt mitten in einer Lektion geschlossen wurde, ohne
+    // dass sie sauber beendet oder per X abgebrochen wurde, gilt derselbe
+    // 10-Aura-Abzug wie beim Abbruch.
+    if(profile.lessonInProgressAt){
+      profile.totalAura = Math.max(0, profile.totalAura - 10);
+      profile.lessonInProgressAt = null;
+      showToast("Die App wurde während einer Lektion geschlossen - 10 Aura abgezogen.");
+    }
     saveProfile();
     applyTheme();
     applyIntroThemeColor();

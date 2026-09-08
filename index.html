@@ -632,6 +632,11 @@
     0%{ transform:translateX(-4px) rotate(-1deg); }
     100%{ transform:translateX(4px) rotate(1deg); }
   }
+  .scare-aura-penalty{
+    margin-top:12px; color:#fff; font-family:'Baloo 2', sans-serif; font-size:22px; font-weight:900;
+    background:#ff1a1a; padding:6px 18px; border-radius:12px;
+    box-shadow:0 0 26px rgba(255,26,26,.7);
+  }
 
   /* ---------- App-Start-Intro (NEU) ---------- */
   @keyframes fadeInText {
@@ -807,6 +812,12 @@
   /* ---------- level carousel ---------- */
   .levels-heading{
     font-size:13px; font-weight:700; color:var(--text); opacity:.85; margin:clamp(2px,1vh,8px) 2px clamp(2px,1vh,8px);
+  }
+  /* Auf dem iPad rutscht das Karussell sonst teilweise hinter den
+     "Lektion starten"-Button - hier gezielt nur für iPad etwas nach oben
+     versetzt, ohne den Button selbst zu verschieben. */
+  body.is-ipad .levels-heading{
+    margin-top:-14px;
   }
   .tier-carousel{
     display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity;
@@ -1814,7 +1825,10 @@
     <div class="topbar">
       <div class="exit-x" id="settingsBack">←</div>
       <div class="settings-title">Einstellungen</div>
-      <div class="exit-x" id="redeemCodeBtn" title="Code einlösen" style="font-family:'Baloo 2',sans-serif; font-weight:900;">C</div>
+      <div style="display:flex; gap:8px;">
+        <div class="exit-x" id="feedbackBtn" title="Feedback geben" style="font-family:'Baloo 2',sans-serif; font-weight:900;">!</div>
+        <div class="exit-x" id="redeemCodeBtn" title="Code einlösen" style="font-family:'Baloo 2',sans-serif; font-weight:900;">C</div>
+      </div>
     </div>
 
     <div class="settings-row">
@@ -1838,6 +1852,11 @@
       <div id="ownerRegNotifyBox" style="display:none; background:rgba(236,72,153,.1); border:1.5px solid #ec4899; border-radius:14px; padding:12px; margin-bottom:16px;">
         <div style="font-weight:800; margin-bottom:8px;">🔔 Neue Registrierungen</div>
         <div id="ownerRegNotifyList" style="max-height:220px; overflow-y:auto;"></div>
+      </div>
+
+      <div id="ownerFeedbackBox" style="display:none; background:rgba(59,130,246,.1); border:1.5px solid #3b82f6; border-radius:14px; padding:12px; margin-bottom:16px;">
+        <div style="font-weight:800; margin-bottom:8px;">💬 Feedback</div>
+        <div id="ownerFeedbackList" style="max-height:260px; overflow-y:auto;"></div>
       </div>
 
       <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:16px;">
@@ -2244,6 +2263,18 @@
     </div>
   </div>
 
+  <!-- Feedback geben (NEU) -->
+  <div class="overlay" id="overlayFeedback">
+    <div class="modal-card" style="max-width:340px;">
+      <div style="font-size:36px; margin-bottom:6px;">💬</div>
+      <h2>Feedback geben</h2>
+      <p>Was läuft gut, was sollte besser sein? Landet direkt beim Owner.</p>
+      <textarea id="feedbackInput" class="input-field" rows="4" placeholder="Dein Feedback..." style="width:100%; resize:vertical; font-family:inherit; margin-bottom:12px;"></textarea>
+      <button class="btn btn-primary" id="feedbackSendBtn">Senden</button>
+      <button class="btn btn-ghost" id="feedbackCancelBtn" style="margin-top:10px;">Abbrechen</button>
+    </div>
+  </div>
+
   <!-- Nachrichten: Übersicht der Freunde mit ungelesenen Nachrichten (NEU) -->
   <!-- Invite Leaderboard (NEU): Rangliste + Einladungslink, Top 3 bekommen eine Truhe -->
   <div class="overlay" id="overlayInviteLeaderboard">
@@ -2383,6 +2414,7 @@
   <div class="scare-overlay" id="overlayComboScare">
     <img src="E725DF13-67A4-4EAA-AC9B-ECEA97D86F5A.png" class="scare-mathy" alt="Mathy">
     <div class="scare-text">Dein Ernst?</div>
+    <div class="scare-aura-penalty" id="scareAuraPenalty" style="display:none;">-10 Aura</div>
   </div>
 
   <!-- Letztes Leben verloren: Herz zerbricht (NEU) -->
@@ -2678,6 +2710,8 @@
     factPairStats: {}, // Trends-Detailansicht: pro Reihe (1-20) x Spalte (1-12) {correct, wrong}
     lessonInProgressAt: null, // erkennt, ob die App während einer laufenden Lektion geschlossen wurde
     redeemedCodeChests: {}, // Truhen aus eingelösten Codes, keyed nach Code-Dokument-ID
+    dismissedFeedbackIds: [], // nur für den Owner relevant: einzeln weggeklicktes Feedback
+    lastSeenFeedbackAt: 0, // nur für den Owner relevant: bis wann Feedback schon gesehen wurde
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
   };
   let profile = { ...DEFAULT_PROFILE };
@@ -2813,6 +2847,81 @@
       });
     }catch(err){
       console.error("Registrierungs-Log Fehler:", err);
+    }
+  }
+
+  // Feedback (NEU): jeder darf einen eigenen Eintrag anlegen, nur der
+  // Owner darf die Liste lesen (siehe Firestore-Regeln).
+  async function sendFeedback(){
+    const text = $("feedbackInput").value.trim();
+    if(!text){
+      showToast("Bitte etwas Text eingeben.");
+      return;
+    }
+    if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
+    try{
+      await db().collection("feedback").add({
+        text: text.slice(0, 1000),
+        fromUid: currentUser.uid,
+        fromUsername: profile.username || "?",
+        createdAt: Date.now()
+      });
+      $("feedbackInput").value = "";
+      $("overlayFeedback").classList.remove("show");
+      showToast("💬 Danke für dein Feedback!");
+    }catch(err){
+      showToast("Feedback konnte nicht gesendet werden.");
+      console.error("Feedback senden Fehler:", err);
+    }
+  }
+
+  async function renderOwnerFeedback(){
+    if(!isOwner() || !firebaseInitialized) return;
+    const box = $("ownerFeedbackBox");
+    const listEl = $("ownerFeedbackList");
+    try{
+      const snap = await db().collection("feedback")
+        .orderBy("createdAt", "desc")
+        .limit(50)
+        .get();
+      const dismissed = new Set(profile.dismissedFeedbackIds || []);
+      const docs = snap.docs.filter(d => !dismissed.has(d.id));
+      if(docs.length === 0){
+        box.style.display = "none";
+        return;
+      }
+      box.style.display = "block";
+      listEl.innerHTML = "";
+      const lastSeen = profile.lastSeenFeedbackAt || 0;
+      let newest = lastSeen;
+      docs.forEach(d => {
+        const data = d.data();
+        if(data.createdAt > newest) newest = data.createdAt;
+        const isNew = data.createdAt > lastSeen;
+        const row = document.createElement("div");
+        row.className = "owner-feedback-row";
+        row.style.cssText = "padding:8px 0; border-bottom:1px solid rgba(59,130,246,.2); font-size:12.5px; display:flex; align-items:flex-start; gap:8px;";
+        row.innerHTML = `
+          <div style="flex:1;${isNew ? " font-weight:800;" : " opacity:.65;"}">${isNew ? "🆕 " : ""}<b>@${data.fromUsername || "?"}</b>: ${data.text || ""}<br><span style="opacity:.6; font-size:11px;">${formatRelativeTime(data.createdAt)}</span></div>
+          <button class="owner-feedback-dismiss-btn" data-id="${d.id}" style="background:none; border:none; color:var(--text-dim); font-size:16px; font-weight:800; cursor:pointer; padding:2px 6px; flex-shrink:0;">✕</button>
+        `;
+        listEl.appendChild(row);
+      });
+      listEl.querySelectorAll(".owner-feedback-dismiss-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          profile.dismissedFeedbackIds = [...(profile.dismissedFeedbackIds || []), id];
+          saveProfile();
+          btn.closest(".owner-feedback-row").remove();
+          if(listEl.children.length === 0) box.style.display = "none";
+        });
+      });
+      if(newest > lastSeen){
+        profile.lastSeenFeedbackAt = newest;
+        saveProfile();
+      }
+    }catch(err){
+      console.error("Feedback anzeigen Fehler:", err);
     }
   }
 
@@ -6915,6 +7024,15 @@
     $("overlayRedeemCode").classList.remove("show");
   });
 
+  $("feedbackBtn").addEventListener("click", () => {
+    $("feedbackInput").value = "";
+    $("overlayFeedback").classList.add("show");
+  });
+  $("feedbackSendBtn").addEventListener("click", sendFeedback);
+  $("feedbackCancelBtn").addEventListener("click", () => {
+    $("overlayFeedback").classList.remove("show");
+  });
+
   $("broadcastToast").addEventListener("click", hideBroadcastToast);
   $("broadcastToastClose").addEventListener("click", (e) => {
     e.stopPropagation();
@@ -6972,6 +7090,7 @@
     if(isOwner()){
       renderOwnerRegistrationNotifications();
       renderOwnerCodeStatus();
+      renderOwnerFeedback();
     }
 
     if(currentUser){
@@ -7835,7 +7954,7 @@
     playComboLossScare(() => {
       showScreen("home");
       renderHome();
-    });
+    }, wasNormalLesson);
   });
 
   /* ========================================================
@@ -8065,8 +8184,9 @@
     });
   }
 
-  function playComboLossScare(callback){
+  function playComboLossScare(callback, showAuraPenalty){
     fallEverythingOnLessonScreen((targets) => {
+      $("scareAuraPenalty").style.display = showAuraPenalty ? "block" : "none";
       $("overlayComboScare").classList.add("show");
       setTimeout(() => {
         $("overlayComboScare").classList.remove("show");
@@ -8615,6 +8735,9 @@
     // während iOS Safari/PWA davon nicht betroffen ist) - siehe CSS unten.
     if(isAndroidDevice()){
       document.body.classList.add("is-android");
+    }
+    if(isIPadDevice()){
+      document.body.classList.add("is-ipad");
     }
   }
 

@@ -3134,6 +3134,7 @@
       await db().collection("broadcasts").add({
         message: text.slice(0, 500),
         ownerUsername: profile.username || OWNER_USERNAME,
+        ownerFrame: profile.activeFrame || "none",
         createdAt: Date.now()
       });
       showToast("📢 Broadcast an alle gesendet!");
@@ -3178,11 +3179,30 @@
         if(doc.id === broadcastToastShownDocId) return;
         broadcastToastShownDocId = doc.id;
         $("broadcastToastText").innerHTML = `<b>${data.ownerUsername || OWNER_USERNAME}:</b> ${data.message || ""}`;
+        applyBroadcastFrameStyle(data.ownerFrame);
         $("broadcastToast").classList.add("show");
         clearTimeout(broadcastToastHideTimer);
         broadcastToastHideTimer = setTimeout(hideBroadcastToast, 5000);
       }, (err) => console.error("Live-Broadcast Fehler:", err));
   }
+
+  // Rand des Broadcast-Banners passend zum aktuellen Profilrahmen-Theme
+  // des Owners einfärben, statt immer fest gold zu sein.
+  const BROADCAST_FRAME_STYLES = {
+    none:   { border: "2px solid #ffd700", glow: "rgba(255,215,0,.3)" },
+    pink:   { border: "2px solid #ec4899", glow: "rgba(236,72,153,.35)" },
+    clean:  { border: "2px solid rgba(255,255,255,.6)", glow: "rgba(255,255,255,.2)" },
+    glow:   { border: "2px solid #c084fc", glow: "rgba(192,132,252,.4)" },
+    gold:   { border: "2px solid #ffd700", glow: "rgba(255,215,0,.4)" },
+    glitch: { border: "2px solid #a855f7", glow: "rgba(168,85,247,.45)" }
+  };
+  function applyBroadcastFrameStyle(frameId){
+    const style = BROADCAST_FRAME_STYLES[frameId] || BROADCAST_FRAME_STYLES.none;
+    const toast = $("broadcastToast");
+    toast.style.border = style.border;
+    toast.style.boxShadow = `0 18px 42px rgba(0,0,0,.45), 0 0 26px ${style.glow}`;
+  }
+
 
   // Owner-Update-Hinweis (NEU): eine eigene, separate Benachrichtigung
   // (unabhängig von normalen Broadcasts), die dazu auffordert, die Seite
@@ -3703,10 +3723,23 @@
         const uname = u ? (u.username || "Unbekannt") : ((profile.friendUsernameCache || {})[uid] || "Unbekannt");
         const row = document.createElement("div");
         row.className = "friend-row";
-        row.innerHTML = `<span class="name">@${uname}</span><span class="duel-outcome">Wartet auf Bestätigung …</span>`;
+        row.style.cssText = "display:flex; align-items:center; justify-content:space-between; gap:8px;";
+        row.innerHTML = `<span class="name">@${uname}</span><span style="display:flex; align-items:center; gap:8px;"><span class="duel-outcome">Wartet auf Bestätigung …</span><button class="banner-close-x cancel-friend-request-btn" data-uid="${uid}" style="position:static;">✕</button></span>`;
         sentRequestsListEl.appendChild(row);
       }
+      sentRequestsListEl.querySelectorAll(".cancel-friend-request-btn").forEach(btn => {
+        btn.addEventListener("click", () => cancelFriendRequest(btn.dataset.uid));
+      });
     }
+  }
+
+  // Freundschaftsanfrage zurückziehen (NEU): entfernt die Person wieder
+  // aus "following", solange sie einem noch nicht zurückfolgt.
+  function cancelFriendRequest(uid){
+    profile.following = (profile.following || []).filter(u => u !== uid);
+    saveProfile();
+    renderProfile();
+    showToast("Anfrage zurückgezogen.");
   }
 
   let profileSocialTab = "friends"; // "friends" | "add" | "requests"
@@ -4409,14 +4442,15 @@
       return;
     }
 
-    const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 1, avatarData: profile.avatarData, activeFont: profile.activeFont, lastActiveAt: profile.lastActiveAt }];
+    const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 1, avatarData: profile.avatarData, activeFont: profile.activeFont, lastActiveAt: profile.lastActiveAt, lastLessonAt: profile.lastLessonAt }];
     for(const uid of mutualUids){
       const u = await fetchUserDoc(uid);
-      if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 1, avatarData: u.avatarData, activeFont: u.activeFont, lastActiveAt: u.lastActiveAt });
+      if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 1, avatarData: u.avatarData, activeFont: u.activeFont, lastActiveAt: u.lastActiveAt, lastLessonAt: u.lastLessonAt });
     }
-    const filtered = entries.filter(e => (e.level || 0) > 1); // Level 1 wird in keiner Rangliste angezeigt
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    const filtered = entries.filter(e => (e.level || 0) > 1 && e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
     if(filtered.length === 0){
-      $("leaderboardEmptyMsg").textContent = "Noch niemand über Level 1. Löst ein paar Lektionen!";
+      $("leaderboardEmptyMsg").textContent = "Niemand hat in den letzten 7 Tagen gelernt. Los geht's!";
       $("leaderboardEmptyMsg").style.display = "block";
       return;
     }
@@ -4442,10 +4476,13 @@
       let entries = snap.docs
         .map(d => ({ ...d.data(), uid: d.id }))
         .filter(e => !!e.username && (e.level || 0) > 1) // Level 1 wird in keiner Rangliste angezeigt
-        .map(e => ({ uid: e.uid, username: e.username, level: e.level || 1, avatarData: e.avatarData, activeFont: e.activeFont, lastActiveAt: e.lastActiveAt }));
+        .map(e => ({ uid: e.uid, username: e.username, level: e.level || 1, avatarData: e.avatarData, activeFont: e.activeFont, lastActiveAt: e.lastActiveAt, lastLessonAt: e.lastLessonAt }));
+
+      const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+      entries = entries.filter(e => e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
 
       if(entries.length === 0){
-        $("leaderboardEmptyMsg").textContent = "Noch niemand über Level 1 vorhanden.";
+        $("leaderboardEmptyMsg").textContent = "Niemand hat in den letzten 7 Tagen gelernt.";
         $("leaderboardEmptyMsg").style.display = "block";
         return;
       }
@@ -5906,7 +5943,21 @@
   const WRONG_SLOW_MEMES = [
     {emoji:"💀", cap:"Skill Issue, offiziell bestätigt"},
     {emoji:"📉", cap:"Die Zahlen lügen nicht, du schon"},
-    {emoji:"🫠", cap:"Gehirn hat sich verabschiedet"}
+    {emoji:"🫠", cap:"Gehirn hat sich verabschiedet"},
+    {emoji:"🗿", cap:"Ratio + L + du bist nicht der Main Character"},
+    {emoji:"🤡", cap:"Clown-Modus aktiviert"},
+    {emoji:"😭", cap:"Bro hat gar nicht nachgedacht"},
+    {emoji:"🚩", cap:"Riesige rote Flagge im Kopfrechnen"},
+    {emoji:"🧍", cap:"NPC-Antwort erkannt"},
+    {emoji:"💅", cap:"Falsch, aber mit Stil"},
+    {emoji:"🥀", cap:"Main Character Energy: kurzzeitig offline"},
+    {emoji:"🍂", cap:"L + Ratio, aber morgen ist ein neuer Tag"},
+    {emoji:"🎭", cap:"Plot Twist, den niemand wollte"},
+    {emoji:"🫡", cap:"Respekt fürs Versuchen, immerhin"},
+    {emoji:"😵‍💫", cap:"Brain.exe hat sich aufgehängt"},
+    {emoji:"🧊", cap:"Eiskalt daneben"},
+    {emoji:"📵", cap:"Von der Realität geghostet"},
+    {emoji:"🎬", cap:"Cut. Der Regisseur ist not it"}
   ];
   const COMPLETE_LINES = [
     {emoji:"🔥", title:"Lektion geschafft!", sub:"Du hast gegessen und nichts übrig gelassen."},
@@ -5915,7 +5966,26 @@
     {emoji:"🧠", title:"Gehirn auf 100%", sub:"Sauber durchgezogen."}
   ];
   const FAIL_LINES = [
-    {emoji:"💀", title:"Ausgeknockt", sub:"Die Mathe hat heute gewonnen. Komm zurück, wenn Leben da sind."}
+    {emoji:"💀", title:"Ausgeknockt", sub:"Die Mathe hat heute gewonnen. Komm zurück, wenn Leben da sind."},
+    {emoji:"💀", title:"GG, Digga", sub:"Das war 'ne Bruchlandung. Nächstes Mal ohne Autopilot."},
+    {emoji:"😭", title:"Skill Issue", sub:"Kein Leben mehr, kein Comeback. Reload nötig."},
+    {emoji:"🗿", title:"Ratio + L", sub:"Die Mathe hat dich geratioed. Zeit für Rache."},
+    {emoji:"📉", title:"Aura -100", sub:"Und tschüss, Selbstvertrauen."},
+    {emoji:"🥀", title:"Main Character Energy... weg", sub:"Kurz die Hauptrolle abgegeben."},
+    {emoji:"🤡", title:"Clown Moment", sub:"Die Zirkusmusik spielt gerade extra für dich."},
+    {emoji:"💔", title:"It's giving... Fail", sub:"Das war nicht sehr sigma von dir."},
+    {emoji:"🧍", title:"NPC-Verhalten erkannt", sub:"Selbst die KI hätte das gewusst."},
+    {emoji:"😵‍💫", title:"Brain.exe abgestürzt", sub:"Neustart wird empfohlen."},
+    {emoji:"🚩", title:"Red Flag im Kopfrechnen", sub:"Aber hey, wenigstens warst du schnell dabei."},
+    {emoji:"🫠", title:"Geschmolzen", sub:"Deine Leben sind weg wie Eis in der Sonne."},
+    {emoji:"💅", title:"Kein Leben, aber Attitude", sub:"Immerhin siehst du dabei gut aus."},
+    {emoji:"🥲", title:"Bruh Moment", sub:"Das hat wehgetan, oder?"},
+    {emoji:"🎬", title:"Cut. Nochmal.", sub:"Der Regisseur ist nicht zufrieden."},
+    {emoji:"🧊", title:"Eiskalt daneben", sub:"Die Rechnung war's leider nicht."},
+    {emoji:"🛑", title:"Game Over, Alter", sub:"Nicht mal knapp."},
+    {emoji:"📵", title:"Verbindung zur Realität getrennt", sub:"Die Zahlen haben dich geghostet."},
+    {emoji:"🐌", title:"Zu langsam, zu unsicher", sub:"Aber die Vibes waren immerhin okay."},
+    {emoji:"🎭", title:"Plot Twist: Du hast verloren", sub:"Niemand hat's kommen sehen. Außer alle."}
   ];
 
   /* ========================================================
@@ -8719,7 +8789,7 @@
       registerLessonForMissions();
       playSuccessJingle();
     } else {
-      const pick = FAIL_LINES[0];
+      const pick = FAIL_LINES[randInt(0, FAIL_LINES.length - 1)];
       title = pick.title; sub = pick.sub; emoji = pick.emoji;
     }
     const auraGained = lesson.aura + perfectBonus;

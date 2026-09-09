@@ -6198,13 +6198,17 @@
   function watchIncomingDuelLobbyInvites(){
     if(duelLobbyInviteUnsubscribe){ duelLobbyInviteUnsubscribe(); duelLobbyInviteUnsubscribe = null; }
     if(!firebaseInitialized || !currentUser) return;
+    // Nur EIN Gleichheits-Filter, kein zusammengesetzter Index nötig -
+    // "pending" wird clientseitig gefiltert. Der vorherige
+    // .where().where()-Aufbau brauchte einen Firestore-Composite-Index,
+    // den es nicht gab - dadurch kamen Einladungen nie zuverlässig an.
     duelLobbyInviteUnsubscribe = db().collection("duelLobbyInvites")
       .where("toUid", "==", currentUser.uid)
-      .where("status", "==", "pending")
       .onSnapshot((snap) => {
         snap.docChanges().forEach(change => {
           if(change.type === "added"){
             const data = change.doc.data();
+            if(data.status !== "pending") return;
             pendingDuelLobbyInvite = { id: change.doc.id, ...data };
             $("duelInviteText").innerHTML = `<b>@${data.fromUsername}</b> lädt dich zu einem Duell ein!`;
             $("duelInviteBanner").classList.add("show");
@@ -6266,7 +6270,6 @@
     lesson = {
       tier: { name: "⚔️ Duell-Lobby", timeMs: data.timeMs || 9000, normalAura: 2, editAura: 4 },
       isMainProgression: false,
-      isDuel: true,
       isDuelLobby: true,
       duelLobbyId: lobbyId,
       questions: data.questions.map(q => ({ ...q })),
@@ -6364,11 +6367,11 @@
       if(doc.exists){
         const data = doc.data();
         const remaining = (data.memberUids || []).filter(uid => uid !== currentUser.uid);
-        if(remaining.length === 0){
-          await ref.delete();
-        } else {
-          await ref.update({ memberUids: remaining });
-        }
+        // WICHTIG: nie versuchen zu löschen - laut Firestore-Regel darf nur
+        // der Host ein Dokument löschen, ein NICHT-Host, der als Letztes
+        // geht, würde damit lautlos scheitern (die Lobby bliebe für ihn
+        // "aktiv" hängen). Ein leeres memberUids-Array reicht völlig.
+        await ref.update({ memberUids: remaining });
       }
     }catch(err){
       console.error("Lobby verlassen Fehler:", err);

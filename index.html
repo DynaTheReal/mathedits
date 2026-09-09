@@ -2171,6 +2171,9 @@
 
       <button class="btn btn-small" id="deleteAccountBtn" style="width:100%; background:#000; color:#ff4d6d; border:2px solid #ff4d6d;">☠️ Konto endgültig löschen</button>
       <div class="d" style="margin-top:8px; font-size:11px;">Löscht deinen Account komplett - Login, Benutzername und aller Fortschritt sind unwiderruflich weg. Das lässt sich NICHT rückgängig machen.</div>
+
+      <button class="btn btn-small" id="ownerResetOwnPasswordBtn" style="display:none; width:100%; margin-top:14px; background:#facc15; color:#000; border:none;">👑 Mein Passwort zurücksetzen (nur Owner)</button>
+      <div class="d" id="ownerResetPasswordHint" style="display:none; margin-top:8px; font-size:11px;">Setzt dein Owner-Passwort neu, OHNE das alte zu kennen - funktioniert nur, solange du gerade eingeloggt bist.</div>
     </div>
 
     <div class="settings-foot">MathEdits · Dein Fortschritt wird synchronisiert.<br>Build: 2026-09-loop-fix-v2</div>
@@ -7580,6 +7583,8 @@
     }
 
     $("ownerPanelRow").style.display = isOwner() ? "flex" : "none";
+    $("ownerResetOwnPasswordBtn").style.display = isOwner() ? "block" : "none";
+    $("ownerResetPasswordHint").style.display = isOwner() ? "block" : "none";
     if(isOwner()){
       renderOwnerRegistrationNotifications();
       renderOwnerCodeStatus();
@@ -8314,6 +8319,42 @@
     }catch(err){
       alert(friendlyAuthError(err));
       console.error("Account löschen Fehler:", err);
+    }
+  });
+
+  // Owner-Passwort zurücksetzen OHNE das alte zu kennen (NEU): nur für den
+  // Owner sichtbar. Firebase verlangt für Passwort-Änderungen eigentlich
+  // eine frische Anmeldung - hier wird bewusst OHNE erneute Passwort-Abfrage
+  // versucht, direkt auf der schon laufenden Sitzung zu setzen. Das klappt,
+  // solange die aktuelle Sitzung noch "frisch genug" ist (z.B. man ist
+  // gerade eingeloggt und aktiv in der App). Ist die Sitzung zu alt, lehnt
+  // Firebase mit "auth/requires-recent-login" ab - dafür gibt's clientseitig
+  // keinen Umweg ohne das alte Passwort zu kennen, das müsste dann über die
+  // Firebase-Konsole direkt gemacht werden.
+  $("ownerResetOwnPasswordBtn").addEventListener("click", async () => {
+    if(!isOwner() || !firebaseInitialized || !currentUser){
+      return showToast("Nur als Owner-Account verfügbar.");
+    }
+    const newPass = prompt("Neues Owner-Passwort (mindestens 6 Zeichen):");
+    if(newPass === null) return;
+    if(newPass.length < 6){
+      return alert("Das neue Passwort muss mindestens 6 Zeichen haben.");
+    }
+    const confirmPass = prompt("Neues Passwort zur Sicherheit nochmal eingeben:");
+    if(confirmPass === null) return;
+    if(newPass !== confirmPass){
+      return alert("Die beiden Eingaben stimmen nicht überein.");
+    }
+    try{
+      await currentUser.updatePassword(newPass);
+      showToast("✅ Passwort erfolgreich zurückgesetzt! Bitte gut merken.");
+    }catch(err){
+      if(err.code === "auth/requires-recent-login"){
+        alert("Deine aktuelle Sitzung ist Firebase zu alt für diese Aktion direkt - ein Passwort-Reset ohne das alte Passwort zu kennen geht dann leider nur noch über die Firebase-Konsole direkt (Authentication → Nutzer → dein Account → Passwort setzen).");
+      } else {
+        alert(friendlyAuthError(err));
+      }
+      console.error("Owner-Passwort zurücksetzen Fehler:", err);
     }
   });
 

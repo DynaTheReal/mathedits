@@ -2159,13 +2159,18 @@
 
       <button class="btn btn-ghost btn-small" id="changeUsernameBtn" style="width:100%; margin-bottom:10px; border-color:#ff4d6d; color:#ff4d6d;">✏️ Benutzernamen ändern</button>
 
+      <button class="btn btn-ghost btn-small" id="changePasswordBtn" style="width:100%; margin-bottom:10px; border-color:#ff4d6d; color:#ff4d6d;">🔑 Passwort ändern</button>
+
       <button class="btn btn-ghost btn-small" id="reloadPageBtn" style="width:100%; margin-bottom:10px; border-color:#ff4d6d; color:#ff4d6d;">🔄 Seite neu laden</button>
 
       <button class="btn btn-ghost btn-small" id="deleteAppBtn" style="width:100%; margin-bottom:10px; border-color:#ff4d6d; color:#ff4d6d;">📱 App löschen (nur dieses Gerät)</button>
       <div class="d" style="margin-bottom:14px; font-size:11px;">Löscht die App-Daten nur auf diesem Gerät und meldet dich ab. Bist du angemeldet, bleiben deine Daten sicher in der Cloud - einfach neu einloggen, um weiterzumachen.</div>
 
       <button class="btn btn-small" id="resetDataBtn" style="width:100%; background:#ff4d6d; color:#fff; border:none;">🗑️ Zurücksetzen (Fortschritt löschen)</button>
-      <div class="d" style="margin-top:8px; font-size:11px;">Löscht deinen gesamten Fortschritt (Level, Aura, Streak, Erfolge, Käufe ...) - auch in der Cloud. Dein Account/Login bleibt bestehen - die App startet danach wieder von vorne.</div>
+      <div class="d" style="margin-bottom:14px; font-size:11px;">Löscht deinen gesamten Fortschritt (Level, Aura, Streak, Erfolge, Käufe ...) - auch in der Cloud. Dein Account/Login bleibt bestehen - die App startet danach wieder von vorne.</div>
+
+      <button class="btn btn-small" id="deleteAccountBtn" style="width:100%; background:#000; color:#ff4d6d; border:2px solid #ff4d6d;">☠️ Konto endgültig löschen</button>
+      <div class="d" style="margin-top:8px; font-size:11px;">Löscht deinen Account komplett - Login, Benutzername und aller Fortschritt sind unwiderruflich weg. Das lässt sich NICHT rückgängig machen.</div>
     </div>
 
     <div class="settings-foot">MathEdits · Dein Fortschritt wird synchronisiert.<br>Build: 2026-09-loop-fix-v2</div>
@@ -8252,6 +8257,63 @@
     }catch(err){
       alert(err.message);
       console.error(err);
+    }
+  });
+
+  // Passwort ändern (NEU): Firebase verlangt für sensible Änderungen eine
+  // frische Anmeldung - deshalb wird zuerst mit dem AKTUELLEN Passwort neu
+  // authentifiziert, bevor das neue Passwort gesetzt wird.
+  $("changePasswordBtn").addEventListener("click", async () => {
+    if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
+    const oldPass = prompt("Zur Sicherheit: dein AKTUELLES Passwort eingeben");
+    if(oldPass === null) return;
+    const newPass = prompt("Neues Passwort (mindestens 6 Zeichen):");
+    if(newPass === null) return;
+    if(newPass.length < 6){
+      return alert("Das neue Passwort muss mindestens 6 Zeichen haben.");
+    }
+    try{
+      const credential = firebase.auth.EmailAuthProvider.credential(
+        usernameToSyntheticEmail(profile.usernameLower), oldPass
+      );
+      await currentUser.reauthenticateWithCredential(credential);
+      await currentUser.updatePassword(newPass);
+      showToast("✅ Passwort geändert!");
+    }catch(err){
+      alert(friendlyAuthError(err));
+      console.error("Passwort ändern Fehler:", err);
+    }
+  });
+
+  // Konto endgültig löschen (NEU): löscht die Benutzername-Reservierung,
+  // das Profil-Dokument und zuletzt den Firebase-Auth-Account selbst -
+  // in dieser Reihenfolge, damit bei einem Abbruch mittendrin nie ein
+  // Auth-Account ohne zugehörige Daten übrig bleibt, sondern höchstens
+  // Daten ohne Login (die dann ohnehin nie wieder erreichbar wären).
+  $("deleteAccountBtn").addEventListener("click", async () => {
+    if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
+    const sure = confirm("Dein Account wird UNWIDERRUFLICH gelöscht - Login, Benutzername und aller Fortschritt sind komplett weg. Wirklich fortfahren?");
+    if(!sure) return;
+    const pass = prompt("Zur Bestätigung: dein Passwort eingeben");
+    if(pass === null) return;
+    try{
+      const credential = firebase.auth.EmailAuthProvider.credential(
+        usernameToSyntheticEmail(profile.usernameLower), pass
+      );
+      await currentUser.reauthenticateWithCredential(credential);
+      const uid = currentUser.uid;
+      const usernameLower = profile.usernameLower;
+      try{ await db().collection("usernames").doc(usernameLower).delete(); }catch(e){ /* notfalls stehen lassen */ }
+      try{ await db().collection("users").doc(uid).delete(); }catch(e){ /* notfalls stehen lassen */ }
+      await currentUser.delete();
+      currentUser = null;
+      cloudSyncReady = false;
+      localStorage.removeItem(PROFILE_KEY);
+      showToast("Account gelöscht.");
+      setTimeout(() => location.reload(), 800);
+    }catch(err){
+      alert(friendlyAuthError(err));
+      console.error("Account löschen Fehler:", err);
     }
   });
 

@@ -903,7 +903,7 @@
      "Lektion starten"-Button - hier gezielt nur für iPad etwas nach oben
      versetzt, ohne den Button selbst zu verschieben. */
   body.is-ipad .levels-heading{
-    margin-top:-14px;
+    margin-top:-40px;
   }
   .tier-carousel{
     display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity;
@@ -2882,6 +2882,8 @@
     factPairStats: {}, // Trends-Detailansicht: pro Reihe (1-20) x Spalte (1-12) {correct, wrong}
     lessonInProgressAt: null, // erkennt, ob die App während einer laufenden Lektion geschlossen wurde
     redeemedCodeChests: {}, // Truhen aus eingelösten Codes, keyed nach Code-Dokument-ID
+    hasReceivedInstallChest: false, // ob die Truhe fürs Hinzufügen zum Home-Bildschirm schon vergeben wurde
+    installChest: null, // Truhe fürs Hinzufügen zum Home-Bildschirm
     dismissedFeedbackIds: [], // nur für den Owner relevant: einzeln weggeklicktes Feedback
     lastSeenFeedbackAt: 0, // nur für den Owner relevant: bis wann Feedback schon gesehen wurde
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
@@ -4924,6 +4926,7 @@
     });
     if(profile.shareChest && !profile.shareChest.claimed) count++;
     if(profile.streak2Chest && !profile.streak2Chest.claimed) count++;
+    if(profile.installChest && !profile.installChest.claimed) count++;
     if(profile.redeemedCodeChests){
       Object.values(profile.redeemedCodeChests).forEach(c => { if(c && !c.claimed) count++; });
     }
@@ -4985,10 +4988,13 @@
     if(sourceType === "redeemcode"){
       return profile.redeemedCodeChests ? profile.redeemedCodeChests[sourceId] : null;
     }
+    if(sourceType === "install"){
+      return profile.installChest;
+    }
     return null;
   }
 
-  let activeChestSource = null; // { type: 'mission'|'achievement'|'share'|'invite'|'streak2'|'redeemcode', id }
+  let activeChestSource = null; // { type: 'mission'|'achievement'|'share'|'invite'|'streak2'|'redeemcode'|'install', id }
 
   function openChestModal(sourceType, sourceId){
     const chest = getChestRef(sourceType, sourceId);
@@ -5009,6 +5015,8 @@
       title = "🔥 2 Tage am Stück!";
     } else if(sourceType === "redeemcode"){
       title = "🎁 Einlöse-Code";
+    } else if(sourceType === "install"){
+      title = "📲 Zum Home-Bildschirm hinzugefügt!";
     }
     $("chestModalTitle").textContent = title;
     renderChestModal();
@@ -5357,6 +5365,18 @@
       wrap.appendChild(card);
     }
 
+    if(profile.installChest){
+      const card = document.createElement("div");
+      card.className = "mission-card";
+      const chestHtml = buildChestHtml(profile.installChest, "install", "install", "");
+      card.innerHTML = `
+        <div class="m-title">📲 Zum Home-Bildschirm hinzugefügt!</div>
+        <div class="m-sub">Belohnung fürs Installieren der App</div>
+        ${chestHtml}
+      `;
+      wrap.appendChild(card);
+    }
+
     if(profile.redeemedCodeChests){
       Object.entries(profile.redeemedCodeChests).forEach(([id, chest]) => {
         if(!chest) return;
@@ -5669,11 +5689,20 @@
   // Level-Bedarf pro Stufe: die allererste Stufe braucht nur 5 Level, "Großes
   // Einmaleins" braucht 10, danach braucht jede Stufe 20 Level.
   const DEFAULT_LEVELS_PER_TIER = 17;
-  // kl_mult/mult/mult_m/gr_mult sind jetzt "kostenlos" (siehe FREE_TIER_COUNT
-  // unten) und dienen nur noch als grobe Einstufung für die ersten Level -
+  // kl_mult/mult/mult_m/gr_mult sind "kostenlos" (siehe FREE_TIER_COUNT
+  // unten) und dienen nur als grobe Einstufung für die ersten Level -
   // deshalb stark verkürzt, damit Blitz-Einmaleins schon bei Level 10 statt
-  // erst bei ~36 beginnt.
-  const TIER_LEVEL_OVERRIDES = { kl_mult: 2, mult: 2, mult_m: 3, gr_mult: 2 };
+  // erst bei ~36 beginnt. Ab da steigen die Level-Kosten pro Stufe langsam
+  // an (am Anfang braucht man weniger Level pro Stufe, später mehr) - so
+  // landet die letzte Stufe jetzt bei Level 200 statt bei ~299.
+  const TIER_LEVEL_OVERRIDES = {
+    kl_mult: 2, mult: 2, mult_m: 3, gr_mult: 2,
+    blitz_m: 8, addsub_e: 9, addsub: 9, addsub_f: 10,
+    div_e: 10, div: 10, div_p: 11, frac_e: 11,
+    frac: 11, mix_ad: 12, mix_fd: 12, addsub_p: 12,
+    word_e: 13, gr_mix: 13, blitz_p: 14, frac_p: 14,
+    kopf_m: 11
+  };
   const TIER_DEFS = [
     {id:"kl_mult",  name:"Kleines Einmaleins",        icon:"✖️",  timeMs: 8000,  normalAura: 1, editAura: 2, gen: () => multFewOnes(1,5)},
     {id:"mult",     name:"Einmaleins",                icon:"✳️",  timeMs: 8500,  normalAura: 1, editAura: 2, gen: () => mult(2,10)},
@@ -9009,6 +9038,21 @@
       return false;
     }
   }
+
+  // Truhe fürs Hinzufügen zum Home-Bildschirm (NEU): läuft beim App-Start
+  // UND beim "appinstalled"-Event (Android/Chrome) - vergibt die Truhe nur
+  // einmal, sobald erkannt wird, dass die App als eigenständige App läuft.
+  function grantInstallChestIfNeeded(){
+    if(profile.hasReceivedInstallChest) return;
+    if(!isRunningStandalone()) return;
+    profile.hasReceivedInstallChest = true;
+    profile.installChest = freshChest();
+    saveProfile();
+    updateMissionsBadge();
+    if(screens.missions && screens.missions.classList.contains("active")) renderMissions();
+    showToast("📲 Danke fürs Installieren! Eine Truhe wartet in den Missionen.");
+  }
+
   function isIOSDevice(){
     return /iPhone|iPad|iPod/.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPadOS meldet sich als Mac
@@ -9253,6 +9297,12 @@
     setTimeout(() => { $("androidInstallBanner").classList.add("show"); }, 1200);
   });
 
+  // Feuert auf Android/Chrome direkt beim erfolgreichen Installieren - so
+  // gibt es die Truhe sofort, ohne dass man die App erst neu starten muss.
+  window.addEventListener("appinstalled", () => {
+    grantInstallChestIfNeeded();
+  });
+
   $("androidInstallBtn").addEventListener("click", async () => {
     $("androidInstallBanner").classList.remove("show");
     if(!deferredAndroidInstallPrompt) return;
@@ -9288,6 +9338,7 @@
     if(profile.streakReminderEnabled !== false) requestNotificationPermissionIfNeeded();
     renderHome();
     updateMissionsBadge();
+    grantInstallChestIfNeeded();
 
     playStartupIntro(() => {
       if(!profile.hasSeenWelcome && !currentUser){

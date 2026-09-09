@@ -2014,6 +2014,24 @@
         <div id="ownerFeedbackList" style="max-height:260px; overflow-y:auto;"></div>
       </div>
 
+      <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:14px; padding:12px; margin-bottom:16px;">
+        <div style="font-weight:800; margin-bottom:8px; color:#ef4444;">🛑 Website Not-Stopp</div>
+        <div class="d" id="siteStopStatus" style="margin-bottom:8px;">Aktuell nicht gestoppt.</div>
+        <select id="siteStopDurationSelect" class="input-field" style="margin-bottom:8px;">
+          <option value="15">15 Minuten</option>
+          <option value="30">30 Minuten</option>
+          <option value="60">1 Stunde</option>
+          <option value="180">3 Stunden</option>
+          <option value="1440">1 Tag</option>
+          <option value="indefinite">Bis ich manuell entsperre</option>
+        </select>
+        <input type="text" id="siteStopReasonInput" class="input-field" placeholder="Grund (optional)" style="margin-bottom:8px;">
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary btn-small" id="siteStopBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Stoppen</button>
+          <button class="btn btn-ghost btn-small" id="siteResumeBtn" style="flex:1;">Wieder freigeben</button>
+        </div>
+      </div>
+
       <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:16px;">
         <div style="font-weight:800; margin-bottom:8px;">📢 Nachricht an alle senden</div>
         <textarea id="ownerBroadcastInput" class="input-field" rows="3" placeholder="Nachricht an alle Nutzer weltweit..." style="width:100%; resize:vertical; font-family:inherit;"></textarea>
@@ -2601,6 +2619,15 @@
     <div id="bannedUntilText" style="font-size:15px; color:var(--text-dim); max-width:320px;"></div>
   </div>
 
+  <!-- Website Not-Stopp (NEU): volles, nicht wegklickbares Overlay - für
+       alle außer dem Owner selbst, damit er es wieder aufheben kann. -->
+  <div id="overlaySiteStopped" style="display:none; position:fixed; inset:0; z-index:99999; background:#0a0a10; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px;">
+    <div style="font-size:70px; margin-bottom:16px;">🛑</div>
+    <div style="font-family:'Baloo 2',sans-serif; font-weight:900; font-size:24px; color:#ef4444; margin-bottom:14px;">Die Website wurde gestoppt,<br>weil ein Problem aufgetreten ist</div>
+    <div id="siteStoppedReasonText" style="font-size:14px; color:var(--text-dim); max-width:320px; margin-bottom:10px;"></div>
+    <div id="siteStoppedUntilText" style="font-size:13px; color:var(--text-dim); max-width:320px;"></div>
+  </div>
+
   <!-- Owner-Broadcast: Nachricht an alle Nutzer (NEU, komplett neu aufgebaut) -->
   <div class="broadcast-toast" id="broadcastToast">
     <div class="broadcast-toast-icon">👤</div>
@@ -2884,6 +2911,7 @@
     redeemedCodeChests: {}, // Truhen aus eingelösten Codes, keyed nach Code-Dokument-ID
     hasReceivedInstallChest: false, // ob die Truhe fürs Hinzufügen zum Home-Bildschirm schon vergeben wurde
     installChest: null, // Truhe fürs Hinzufügen zum Home-Bildschirm
+    lastLocalSaveAt: 0, // Zeitstempel des letzten lokalen Speicherns - entscheidet bei Aura, welche Seite beim Abgleich gewinnt
     dismissedFeedbackIds: [], // nur für den Owner relevant: einzeln weggeklicktes Feedback
     lastSeenFeedbackAt: 0, // nur für den Owner relevant: bis wann Feedback schon gesehen wurde
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
@@ -2913,6 +2941,12 @@
     }catch(e){
       profile = { ...DEFAULT_PROFILE };
     }
+    // Startpunkt für die "hat sich inhaltlich etwas geändert"-Erkennung in
+    // saveProfile() setzen - direkt nach dem Laden, damit der ERSTE
+    // saveProfile()-Aufruf (z.B. in init()) nicht fälschlich denkt, gerade
+    // sei etwas Neues passiert, nur weil zuvor noch nichts verglichen wurde.
+    const { lastActiveAt: _la, lastLocalSaveAt: _ls, ...meaningfulAtLoad } = profile;
+    lastMeaningfulProfileJSON = JSON.stringify(meaningfulAtLoad);
   }
   
   // Merkt sich den zuletzt tatsächlich in die Cloud geschriebenen Stand.
@@ -2922,9 +2956,22 @@
   // Ursache einer Rückkopplungsschleife, die den Browser dauerhaft beschäftigt
   // und Klicks (besonders im Home-Menü) unbrauchbar gemacht hat.
   let lastWrittenProfileJSON = null;
+  let lastMeaningfulProfileJSON = null;
 
   function saveProfile(){
     try{
+      // "lastLocalSaveAt" nur aktualisieren, wenn sich INHALTLICH etwas
+      // geändert hat - nicht bei jedem 10-Sekunden-Herzschlag, der nur
+      // "lastActiveAt" berührt. Sonst würde dieser Zeitstempel dauerhaft
+      // "jetzt" bleiben, solange die App offen ist, und beim Aura-Abgleich
+      // fälschlich immer die lokale Seite gewinnen lassen - selbst wenn
+      // zwischenzeitlich ein anderes Gerät echte Änderungen gemacht hat.
+      const { lastActiveAt, lastLocalSaveAt, ...meaningful } = profile;
+      const meaningfulJSON = JSON.stringify(meaningful);
+      if(meaningfulJSON !== lastMeaningfulProfileJSON){
+        lastMeaningfulProfileJSON = meaningfulJSON;
+        profile.lastLocalSaveAt = Date.now();
+      }
       const json = JSON.stringify(profile);
       localStorage.setItem(PROFILE_KEY, json);
       if(firebaseInitialized && currentUser && cloudSyncReady){
@@ -3082,8 +3129,7 @@
         .orderBy("createdAt", "desc")
         .limit(50)
         .get();
-      const dismissed = new Set(profile.dismissedFeedbackIds || []);
-      const docs = snap.docs.filter(d => !dismissed.has(d.id));
+      const docs = snap.docs;
       if(docs.length === 0){
         box.style.display = "none";
         return;
@@ -3106,12 +3152,25 @@
         listEl.appendChild(row);
       });
       listEl.querySelectorAll(".owner-feedback-dismiss-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
           const id = btn.dataset.id;
-          profile.dismissedFeedbackIds = [...(profile.dismissedFeedbackIds || []), id];
-          saveProfile();
-          btn.closest(".owner-feedback-row").remove();
-          if(listEl.children.length === 0) box.style.display = "none";
+          const row = btn.closest(".owner-feedback-row");
+          btn.disabled = true;
+          try{
+            // Löscht das Feedback wirklich aus Firestore, statt es nur
+            // lokal im Profil als "gesehen" zu markieren - das lokale
+            // Markieren war anfällig für eine Race Condition beim
+            // Neuladen (die Cloud-Kopie des Profils konnte die Markierung
+            // noch nicht enthalten), wodurch gelöschtes Feedback nach
+            // einem Reload wieder auftauchte.
+            await db().collection("feedback").doc(id).delete();
+            row.remove();
+            if(listEl.children.length === 0) box.style.display = "none";
+          }catch(err){
+            showToast("Löschen fehlgeschlagen.");
+            console.error("Feedback löschen Fehler:", err);
+            btn.disabled = false;
+          }
         });
       });
       if(newest > lastSeen){
@@ -5479,7 +5538,16 @@
       merged.level = localP.level || 1;
       merged.levelProgress = localP.levelProgress || 0;
     }
-    merged.totalAura = Math.max(localP.totalAura || 0, cloudP.totalAura || 0);
+    // AURA (KRITISCH): Math.max() war hier vorher der Ansatz - das
+    // funktioniert nur für ZUNAHMEN. Bei einem KAUF sinkt die Aura, und
+    // falls der Cloud-Schreibvorgang beim Neuladen noch nicht angekommen
+    // war, hätte Math.max() den ALTEN, höheren Cloud-Wert zurückgeholt -
+    // praktisch eine kostenlose Rückerstattung jedes Kaufs. Stattdessen
+    // wird jetzt verglichen, welche Seite ZULETZT tatsächlich gespeichert
+    // wurde (lastLocalSaveAt), und NUR deren Aura-Wert komplett
+    // übernommen - kein Vermischen von "höher gewinnt" mehr.
+    const localNewer = (localP.lastLocalSaveAt || 0) >= (cloudP.lastLocalSaveAt || 0);
+    merged.totalAura = localNewer ? (localP.totalAura || 0) : (cloudP.totalAura || 0);
     merged.lessonsCompleted = Math.max(localP.lessonsCompleted || 0, cloudP.lessonsCompleted || 0);
     merged.streak = Math.max(localP.streak || 0, cloudP.streak || 0);
     merged.lastStreakDate = maxDateStr(localP.lastStreakDate, cloudP.lastStreakDate);
@@ -5539,9 +5607,9 @@
     merged.claimedWeeklyInviteRewardAt = Math.max(localP.claimedWeeklyInviteRewardAt || 0, cloudP.claimedWeeklyInviteRewardAt || 0) || null;
     const lic = localP.inviteChests || {}, cic = cloudP.inviteChests || {};
     merged.inviteChests = {
-      rank2a: lic.rank2a || cic.rank2a || null,
-      rank2b: lic.rank2b || cic.rank2b || null,
-      rank3: lic.rank3 || cic.rank3 || null
+      rank2a: (lic.rank2a || cic.rank2a) ? pickFurtherChest(lic.rank2a, cic.rank2a) : null,
+      rank2b: (lic.rank2b || cic.rank2b) ? pickFurtherChest(lic.rank2b, cic.rank2b) : null,
+      rank3: (lic.rank3 || cic.rank3) ? pickFurtherChest(lic.rank3, cic.rank3) : null
     };
     merged.streakReminderEnabled = (typeof localP.streakReminderEnabled === "boolean") ? localP.streakReminderEnabled : (typeof cloudP.streakReminderEnabled === "boolean" ? cloudP.streakReminderEnabled : true);
     merged.streakReminderTime = localP.streakReminderTime || cloudP.streakReminderTime || "20:00";
@@ -5559,7 +5627,15 @@
     ]));
     merged.lastSeenUpdateNoticeAt = Math.max(localP.lastSeenUpdateNoticeAt || 0, cloudP.lastSeenUpdateNoticeAt || 0);
     merged.hasReceivedStreak2Chest = !!(localP.hasReceivedStreak2Chest || cloudP.hasReceivedStreak2Chest);
-    merged.streak2Chest = localP.streak2Chest || cloudP.streak2Chest || null;
+    // Truhen (KRITISCH): einmal eingelöst muss IMMER eingelöst bleiben,
+    // egal welche Seite sonst als "neuer" gilt - sonst ließe sich dieselbe
+    // Truhe durch einen Reload im richtigen Moment mehrfach abholen (genau
+    // der gemeldete Exploit mit der Home-Bildschirm-Truhe). Nutzt dieselbe
+    // bereits vorhandene pickFurtherChest()-Logik wie bei Achievements.
+    merged.streak2Chest = localP.streak2Chest || cloudP.streak2Chest
+      ? pickFurtherChest(localP.streak2Chest, cloudP.streak2Chest) : null;
+    merged.installChest = localP.installChest || cloudP.installChest
+      ? pickFurtherChest(localP.installChest, cloudP.installChest) : null;
     merged.manuallyUnlockedFreeTiers = Array.from(new Set([
       ...(localP.manuallyUnlockedFreeTiers || []),
       ...(cloudP.manuallyUnlockedFreeTiers || [])
@@ -5592,9 +5668,13 @@
       });
       merged.factPairStats = mergedPairs;
     }
-    merged.redeemedCodeChests = { ...(cloudP.redeemedCodeChests || {}), ...(localP.redeemedCodeChests || {}) };
+    const lrc = localP.redeemedCodeChests || {}, crc = cloudP.redeemedCodeChests || {};
+    merged.redeemedCodeChests = {};
+    new Set([...Object.keys(lrc), ...Object.keys(crc)]).forEach(id => {
+      merged.redeemedCodeChests[id] = (lrc[id] || crc[id]) ? pickFurtherChest(lrc[id], crc[id]) : null;
+    });
     merged.lastStreakReminderShownDate = maxDateStr(localP.lastStreakReminderShownDate, cloudP.lastStreakReminderShownDate);
-    merged.shareChest = localP.shareChest || cloudP.shareChest || null;
+    merged.shareChest = (localP.shareChest || cloudP.shareChest) ? pickFurtherChest(localP.shareChest, cloudP.shareChest) : null;
     merged.countedDuelWins = Array.from(new Set([
       ...(localP.countedDuelWins || []),
       ...(cloudP.countedDuelWins || [])
@@ -6228,9 +6308,14 @@
     if(duelLobbyInviteUnsubscribe){ duelLobbyInviteUnsubscribe(); duelLobbyInviteUnsubscribe = null; }
     if(!firebaseInitialized || !currentUser) return;
     // Nur EIN Gleichheits-Filter, kein zusammengesetzter Index nötig -
-    // "pending" wird clientseitig gefiltert. Der vorherige
-    // .where().where()-Aufbau brauchte einen Firestore-Composite-Index,
-    // den es nicht gab - dadurch kamen Einladungen nie zuverlässig an.
+    // "pending" wird clientseitig gefiltert.
+    // WICHTIG: nur LIVE zustellen - ein Grenzwert wird beim Start des
+    // Listeners festgehalten, nur Einladungen die DANACH erstellt wurden,
+    // lösen den Banner aus. Sonst würde bei jedem Neustart der App jede
+    // alte, noch "pending" Einladung erneut angezeigt (das war der
+    // gemeldete Bug: "bekomme immer wieder dieselbe Duell-Anfrage", auch
+    // für Einladungen, die eintrafen, während man offline war).
+    const listenerStartedAt = Date.now();
     duelLobbyInviteUnsubscribe = db().collection("duelLobbyInvites")
       .where("toUid", "==", currentUser.uid)
       .onSnapshot((snap) => {
@@ -6238,6 +6323,7 @@
           if(change.type === "added"){
             const data = change.doc.data();
             if(data.status !== "pending") return;
+            if(!data.createdAt || data.createdAt <= listenerStartedAt) return;
             pendingDuelLobbyInvite = { id: change.doc.id, ...data };
             $("duelInviteText").innerHTML = `<b>@${data.fromUsername}</b> lädt dich zu einem Duell ein!`;
             $("duelInviteBanner").classList.add("show");
@@ -7277,10 +7363,81 @@
     }
   }
 
+  // Website Not-Stopp (NEU): ein einzelnes Dokument, live beobachtet -
+  // sobald der Owner es aktiviert, sehen alle ANDEREN sofort das
+  // blockierende Overlay (der Owner selbst bleibt immer außen vor, sonst
+  // könnte er sich selbst aussperren).
+  let siteStopUnsubscribe = null;
+  function watchSiteStopStatus(){
+    if(siteStopUnsubscribe){ siteStopUnsubscribe(); siteStopUnsubscribe = null; }
+    if(!firebaseInitialized) return;
+    siteStopUnsubscribe = db().collection("siteStatus").doc("current").onSnapshot((doc) => {
+      const data = doc.exists ? doc.data() : null;
+      if(isOwner()){
+        $("overlaySiteStopped").style.display = "none";
+        renderSiteStopStatusDisplay(data);
+        return;
+      }
+      const isActive = !!(data && data.stopped && (data.stoppedUntil === null || data.stoppedUntil === undefined || data.stoppedUntil > Date.now()));
+      if(isActive){
+        $("siteStoppedReasonText").textContent = data.reason || "";
+        $("siteStoppedUntilText").textContent = (data.stoppedUntil === null || data.stoppedUntil === undefined)
+          ? "Schau später nochmal vorbei."
+          : `Voraussichtlich wieder verfügbar: ${new Date(data.stoppedUntil).toLocaleString("de-DE")}`;
+        $("overlaySiteStopped").style.display = "flex";
+      } else {
+        $("overlaySiteStopped").style.display = "none";
+      }
+    }, (err) => console.error("Site-Stopp beobachten Fehler:", err));
+  }
+
+  function renderSiteStopStatusDisplay(data){
+    const el = $("siteStopStatus");
+    if(!el) return;
+    const isActive = !!(data && data.stopped && (data.stoppedUntil === null || data.stoppedUntil === undefined || data.stoppedUntil > Date.now()));
+    if(!isActive){
+      el.textContent = "Aktuell nicht gestoppt.";
+      return;
+    }
+    const untilText = (data.stoppedUntil === null || data.stoppedUntil === undefined)
+      ? "für immer (bis manuell entsperrt)"
+      : `bis ${new Date(data.stoppedUntil).toLocaleString("de-DE")}`;
+    el.textContent = `🛑 Aktuell gestoppt ${untilText}.${data.reason ? " Grund: " + data.reason : ""}`;
+  }
+
+  async function ownerStopSite(){
+    if(!isOwner()) return;
+    const duration = $("siteStopDurationSelect").value;
+    const reason = $("siteStopReasonInput").value.trim();
+    const stoppedUntil = duration === "indefinite" ? null : (Date.now() + parseInt(duration, 10) * 60 * 1000);
+    try{
+      await db().collection("siteStatus").doc("current").set({
+        stopped: true, stoppedUntil, reason, stoppedAt: Date.now()
+      });
+      showToast("🛑 Website gestoppt.");
+    }catch(err){
+      showToast("Stoppen fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  async function ownerResumeSite(){
+    if(!isOwner()) return;
+    try{
+      await db().collection("siteStatus").doc("current").set({ stopped: false, stoppedUntil: null, reason: "" }, { merge: true });
+      showToast("✅ Website wieder freigegeben.");
+    }catch(err){
+      showToast("Freigeben fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
   $("ownerSearchBtn").addEventListener("click", ownerSearchUser);
   $("ownerSaveBtn").addEventListener("click", ownerSaveChanges);
   $("ownerBanBtn").addEventListener("click", ownerBanUser);
   $("ownerUnbanBtn").addEventListener("click", ownerUnbanUser);
+  $("siteStopBtn").addEventListener("click", ownerStopSite);
+  $("siteResumeBtn").addEventListener("click", ownerResumeSite);
   $("ownerSendBroadcastBtn").addEventListener("click", () => {
     const input = $("ownerBroadcastInput");
     sendOwnerBroadcast(input.value);
@@ -7852,6 +8009,7 @@
 
       if(user){
         watchIncomingDuelLobbyInvites();
+        watchSiteStopStatus();
         watchIncomingMessages();
         syncUnsubscribe = db().collection("users").doc(user.uid).onSnapshot((doc) => {
           // Sehr wichtig gegen eine Rückkopplungsschleife: jeder eigene
@@ -7965,6 +8123,34 @@
     });
   }
 
+  // Übersetzt häufige Firebase-Auth-Fehlercodes in verständlichen Text,
+  // statt die rohe, oft kryptische Firebase-Meldung direkt anzuzeigen.
+  function friendlyAuthError(err){
+    const code = err && err.code;
+    if(code === "auth/wrong-password" || code === "auth/invalid-credential" || code === "auth/invalid-login-credentials"){
+      return "Benutzername oder Passwort falsch.";
+    }
+    if(code === "auth/user-not-found"){
+      return "Diesen Benutzernamen gibt es nicht. Falsch geschrieben oder noch kein Account?";
+    }
+    if(code === "auth/user-token-expired" || code === "auth/user-disabled" || code === "auth/invalid-user-token"){
+      return "Deine Sitzung ist abgelaufen - bitte versuch es gleich nochmal.";
+    }
+    if(code === "auth/too-many-requests"){
+      return "Zu viele Versuche - bitte kurz warten und nochmal versuchen.";
+    }
+    if(code === "auth/network-request-failed"){
+      return "Keine Internetverbindung - bitte prüfen und nochmal versuchen.";
+    }
+    if(code === "auth/email-already-in-use"){
+      return "Dieser Benutzername ist schon vergeben.";
+    }
+    if(code === "auth/weak-password"){
+      return "Das Passwort ist zu schwach (mindestens 6 Zeichen).";
+    }
+    return err && err.message ? err.message : "Unbekannter Fehler.";
+  }
+
   $("loginBtn").addEventListener("click", () => {
     if(!firebaseInitialized) return showToast("Firebase API Key nicht konfiguriert");
     const uname = normalizeUsername($("authUsername").value);
@@ -7972,9 +8158,15 @@
     if(!isValidUsername(uname)){
       return alert("Bitte gib deinen Benutzernamen ein.");
     }
-    firebase.auth().signInWithEmailAndPassword(usernameToSyntheticEmail(uname), pass)
-      .then(() => showToast("Erfolgreich eingeloggt!"))
-      .catch((err) => alert(err.message));
+    // Vor dem eigentlichen Login wird zuerst eine eventuell noch im
+    // Hintergrund hängende, abgelaufene Sitzung sauber beendet - das war
+    // vermutlich die Ursache für den gelegentlichen "Authentication token
+    // expired"-Fehler beim Einloggen (ein Rest einer alten Sitzung, der mit
+    // dem neuen Login-Versuch kollidiert ist).
+    firebase.auth().signOut().catch(() => {}).then(() => {
+      return firebase.auth().signInWithEmailAndPassword(usernameToSyntheticEmail(uname), pass);
+    }).then(() => showToast("Erfolgreich eingeloggt!"))
+      .catch((err) => alert(friendlyAuthError(err)));
   });
 
   $("registerBtn").addEventListener("click", () => {
@@ -7994,12 +8186,12 @@
           processPendingReferral(cred.user.uid, uname, normalizeUsername(uname));
           logRegistrationForOwner(cred.user.uid, usernameToSyntheticEmail(uname), uname);
         }catch(err){
-          alert(err.message);
+          alert(friendlyAuthError(err));
         } finally {
           registrationInProgress = false;
         }
       })
-      .catch((err) => { alert(err.message); registrationInProgress = false; });
+      .catch((err) => { alert(friendlyAuthError(err)); registrationInProgress = false; });
   });
 
   $("logoutBtn").addEventListener("click", () => {
@@ -9335,6 +9527,7 @@
     applyIntroThemeColor();
     setupPwaManifestAndServiceWorker();
     startStreakReminderScheduler();
+    watchSiteStopStatus();
     if(profile.streakReminderEnabled !== false) requestNotificationPermissionIfNeeded();
     renderHome();
     updateMissionsBadge();

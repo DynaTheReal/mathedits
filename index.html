@@ -1609,14 +1609,26 @@
     animation: fontGlowWobble 2.2s ease-in-out infinite;
   }
   .font-glitch{
-    color:#fff;
-    mix-blend-mode:difference;
+    color:#000;
     font-weight:900;
     -webkit-text-stroke: 0.7px currentColor;
     text-shadow: 0.6px 0 0 currentColor, -0.6px 0 0 currentColor, 0 0.6px 0 currentColor, 0 -0.6px 0 currentColor;
     display:inline-block;
     position:relative;
     animation: fontGlitchJitter .45s steps(1) infinite;
+  }
+  /* Auf dunklen Themes wird die Schrift lila statt schwarz, damit sie dort
+     immer gut lesbar bleibt - sonst nur schwarz. */
+  [data-theme="black"] .font-glitch,
+  [data-theme="glow"] .font-glitch,
+  [data-theme="glitch"] .font-glitch,
+  [data-theme="cyber"] .font-glitch,
+  [data-theme="toxic"] .font-glitch,
+  [data-theme="crimson"] .font-glitch,
+  [data-theme="galaxy"] .font-glitch,
+  [data-theme="royal"] .font-glitch,
+  [data-theme="sunset"] .font-glitch{
+    color:#a855f7;
   }
   @keyframes fontGlitchJitter{
     0%{ transform:translate(0,0); }
@@ -1863,6 +1875,13 @@
       </div>
     </div>
 
+    <div class="shop-category-menu" style="display:flex; gap:8px; overflow-x:auto; padding:2px 20px 10px; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
+      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionItems" style="flex-shrink:0;">🧊 Items</button>
+      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionThemes" style="flex-shrink:0;">🎨 Designs</button>
+      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionFrames" style="flex-shrink:0;">🖼️ Rahmen</button>
+      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionFonts" style="flex-shrink:0;">🔤 Schriften</button>
+    </div>
+
     <div class="referral-banner">
       <div class="referral-banner-title">🎁 500 Aura gratis!</div>
       <div class="referral-banner-sub">Lade einen Freund über deinen persönlichen Link ein. Registriert er sich genau darüber, bekommst du 500 Aura geschenkt.</div>
@@ -1875,13 +1894,13 @@
       </div>
     </div>
 
-    <div class="shop-section-title">Items & Boosts</div>
+    <div class="shop-section-title" id="shopSectionItems">Items & Boosts</div>
     
     <div class="shop-item">
       <div class="item-icon">🧊</div>
       <div class="item-info">
         <div class="item-title">Icecube</div>
-        <div class="item-desc">Ein Tag ohne Lernen und Streak bleibt bestehen.</div>
+        <div class="item-desc">Ein Tag ohne Lernen und Streak bleibt bestehen. Maximal 2 gleichzeitig.</div>
       </div>
       <button class="buy-btn" id="buyIcecube">150 Aura</button>
     </div>
@@ -1913,7 +1932,7 @@
       <button class="buy-btn" id="buyStreakRepair">10.000 Aura</button>
     </div>
 
-    <div class="shop-section-title">Designs</div>
+    <div class="shop-section-title" id="shopSectionThemes">Designs</div>
 
 
     <div class="shop-item">
@@ -2042,7 +2061,7 @@
       <button class="buy-btn" id="buyMinimalTheme">700 Aura</button>
     </div>
 
-    <div class="shop-section-title">Profilrahmen</div>
+    <div class="shop-section-title" id="shopSectionFrames">Profilrahmen</div>
 
     <div class="shop-item">
       <div class="item-icon">🌸</div>
@@ -2089,7 +2108,7 @@
       <button class="buy-btn" id="buyGoldFrame">700 Aura</button>
     </div>
 
-    <div class="shop-section-title">Profil-Schriftarten</div>
+    <div class="shop-section-title" id="shopSectionFonts">Profil-Schriftarten</div>
 
     <div class="shop-item">
       <div class="item-icon">✨</div>
@@ -7821,7 +7840,9 @@
     }
 
     // Update Item Knöpfe
-    $("buyIcecube").disabled = profile.totalAura < 150;
+    const icecubeMaxed = (profile.inventory.icecube || 0) >= 2;
+    $("buyIcecube").disabled = profile.totalAura < 150 || icecubeMaxed;
+    $("buyIcecube").textContent = icecubeMaxed ? "Maximum (2)" : "150 Aura";
     $("buyLife").disabled = profile.totalAura < 100 || profile.lives >= MAX_LIVES;
     $("buyTimeBooster").disabled = profile.totalAura < 200;
 
@@ -7831,7 +7852,17 @@
   }
 
   // SHOP EVENT LISTENERS
+  document.querySelectorAll(".shop-cat-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = $(btn.dataset.target);
+      if(target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
   $("buyIcecube").addEventListener("click", () => {
+    if((profile.inventory.icecube || 0) >= 2){
+      return showToast("Du hast schon das Maximum von 2 Icecubes.");
+    }
     if(profile.totalAura >= 150){
       profile.totalAura -= 150;
       profile.inventory.icecube = (profile.inventory.icecube || 0) + 1;
@@ -8138,12 +8169,27 @@
     const uname = normalizeUsername($("ownerSearchInput").value);
     if(!uname) return;
     try{
+      let targetUid = null;
+      let data = null;
       const unameDoc = await db().collection("usernames").doc(uname).get();
-      if(!unameDoc.exists){ showToast("Benutzername nicht gefunden."); return; }
-      const targetUid = unameDoc.data().uid;
-      const userDoc = await db().collection("users").doc(targetUid).get();
-      if(!userDoc.exists){ showToast("Keine Nutzerdaten gefunden."); return; }
-      const data = userDoc.data();
+      if(unameDoc.exists){
+        targetUid = unameDoc.data().uid;
+        const userDoc = await db().collection("users").doc(targetUid).get();
+        if(userDoc.exists) data = userDoc.data();
+      }
+      // Ausweichweg (NEU): falls die Benutzername-Reservierung fehlt oder
+      // nicht mehr zum tatsächlichen Nutzer-Dokument passt (z.B. bei sehr
+      // alten Accounts von vor der Umstellung auf dieses System, oder nach
+      // einer Konto-Neuerstellung), zusätzlich direkt in der users-
+      // Sammlung nach dem Benutzernamen suchen.
+      if(!data){
+        const fallbackSnap = await db().collection("users").where("usernameLower", "==", uname).get();
+        if(!fallbackSnap.empty){
+          targetUid = fallbackSnap.docs[0].id;
+          data = fallbackSnap.docs[0].data();
+        }
+      }
+      if(!data){ showToast("Benutzername nicht gefunden."); return; }
 
       ownerEditingUid = targetUid;
       ownerEditingOldUsernameLower = normalizeUsername(data.username || uname);
@@ -8474,12 +8520,22 @@
     const uname = normalizeUsername($("modSearchInput").value);
     if(!uname) return;
     try{
+      let targetUid = null;
+      let data = null;
       const unameDoc = await db().collection("usernames").doc(uname).get();
-      if(!unameDoc.exists){ showToast("Benutzername nicht gefunden."); return; }
-      const targetUid = unameDoc.data().uid;
-      const userDoc = await db().collection("users").doc(targetUid).get();
-      if(!userDoc.exists){ showToast("Keine Nutzerdaten gefunden."); return; }
-      const data = userDoc.data();
+      if(unameDoc.exists){
+        targetUid = unameDoc.data().uid;
+        const userDoc = await db().collection("users").doc(targetUid).get();
+        if(userDoc.exists) data = userDoc.data();
+      }
+      if(!data){
+        const fallbackSnap = await db().collection("users").where("usernameLower", "==", uname).get();
+        if(!fallbackSnap.empty){
+          targetUid = fallbackSnap.docs[0].id;
+          data = fallbackSnap.docs[0].data();
+        }
+      }
+      if(!data){ showToast("Benutzername nicht gefunden."); return; }
       modEditingUid = targetUid;
       $("modTargetLabel").textContent = "@" + (data.username || uname);
       $("modAuraInput").value = data.totalAura || 0;

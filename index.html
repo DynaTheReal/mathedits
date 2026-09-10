@@ -2166,7 +2166,7 @@
       </div>
     </div>
 
-    <div style="background:rgba(250,204,21,.1); border:1.5px solid #facc15; border-radius:14px; padding:12px; margin:0 20px 16px;" id="ownerAdminPassBox">
+    <div style="background:rgba(250,204,21,.1); border:1.5px solid #facc15; border-radius:14px; padding:12px; margin:0 20px 16px; display:none;" id="ownerAdminPassBox">
       <div style="font-weight:800; margin-bottom:8px; color:#facc15;">🔐 Admin-Aktions-Passwort</div>
       <div class="d" style="margin-bottom:8px; font-size:11.5px;">Dieses Passwort müssen Mods bei JEDER Aktion im Mod-Panel eingeben - getrennt von deinem eigenen Login-Passwort.</div>
       <input type="password" id="adminActionPasswordInput" class="input-field" placeholder="Neues Admin-Aktions-Passwort" style="margin-bottom:8px;">
@@ -8402,6 +8402,13 @@
               // Cloud geschrieben werden (cloudSyncReady).
               profile = reconcileProfiles(profile, normalizedCloud);
               profile.lastFirebaseUid = user.uid;
+              // isMod ist vom Owner gesteuert und muss IMMER dem
+              // Cloud-Stand folgen - reconcileProfiles() hat dafür keine
+              // eigene Regel (Basis ist der lokale Stand), wodurch eine neu
+              // ernannte Mod-Rolle sonst nie auf diesem Gerät ankam, bis
+              // man z.B. selbst wieder etwas lokal änderte. Direkt aus den
+              // rohen Cloud-Daten übernehmen, genau wie beim Sperr-Status.
+              profile.isMod = !!cloudData.isMod;
               cloudSyncReady = true;
             }
 

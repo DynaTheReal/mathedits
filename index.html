@@ -1551,13 +1551,13 @@
     animation: fontGlowWobble 2.2s ease-in-out infinite;
   }
   .font-glitch{
-    color:#000 !important;
+    color:#fff;
+    mix-blend-mode:difference;
     font-weight:900;
+    -webkit-text-stroke: 0.7px currentColor;
+    text-shadow: 0.6px 0 0 currentColor, -0.6px 0 0 currentColor, 0 0.6px 0 currentColor, 0 -0.6px 0 currentColor;
     display:inline-block;
     position:relative;
-    background:#a855f7;
-    padding:1px 7px;
-    border-radius:6px;
     animation: fontGlitchJitter .45s steps(1) infinite;
   }
   @keyframes fontGlitchJitter{
@@ -1571,14 +1571,14 @@
     84%{ transform:translate(-1px,-2px); }
     100%{ transform:translate(0,0); }
   }
-  /* Eckige, groessere lila Glitch-Partikel rings um die Schrift, die
-     unruhig hin- und herspringen - nicht nur in der Rangliste, sondern
-     überall wo die Glitch-Schrift angezeigt wird (Profil, Freundes-Profil,
-     Rangliste). Nutzt den box-shadow-Trick, um mit EINEM Element viele
-     Kopien gleichzeitig zu erzeugen. border-radius:0 hält sie eckig. */
+  /* Groessere, pixelige (eckige, blockige) lila Glitch-Partikel rings um
+     die Schrift, die unruhig hin- und herspringen - nicht nur in der
+     Rangliste, sondern überall wo die Glitch-Schrift angezeigt wird
+     (Profil, Freundes-Profil, Rangliste). Nutzt den box-shadow-Trick, um
+     mit EINEM Element viele Kopien gleichzeitig zu erzeugen. */
   .font-glitch::before, .font-glitch::after{
-    content:""; position:absolute; width:4px; height:4px; background:#a855f7;
-    border-radius:0;
+    content:""; position:absolute; width:5px; height:5px; background:#a855f7;
+    border-radius:0; mix-blend-mode:normal;
     box-shadow:
       -16px -9px 0 0 #7c3aed, 18px -12px 0 0 #a855f7, -20px 5px 0 0 #a855f7,
       16px 9px 0 0 #7c3aed, -12px 14px 0 0 #a855f7, 20px -4px 0 0 #7c3aed,
@@ -1591,10 +1591,10 @@
   .font-glitch::after{ top:60%; left:50%; animation-delay:.25s; }
   @keyframes glitchFontParticles{
     0%{ opacity:0; transform:translate(0,0); }
-    20%{ opacity:1; transform:translate(3px,-2px); }
-    40%{ opacity:.2; transform:translate(-2px,3px); }
-    60%{ opacity:1; transform:translate(2px,2px); }
-    80%{ opacity:.4; transform:translate(-3px,-1px); }
+    20%{ opacity:1; transform:translate(4px,-3px); }
+    40%{ opacity:.2; transform:translate(-3px,4px); }
+    60%{ opacity:1; transform:translate(3px,3px); }
+    80%{ opacity:.4; transform:translate(-4px,-2px); }
     100%{ opacity:0; transform:translate(0,0); }
   }
   /* Schwarze Partikel um die Zeile in der Rangliste, wenn die Person die
@@ -2383,18 +2383,6 @@
     </div>
   </div>
 
-  <!-- Eigene Umfrage-Idee einreichen (NEU) -->
-  <div class="overlay" id="overlayPollSuggestion">
-    <div class="modal-card" style="max-width:340px;">
-      <div style="font-size:36px; margin-bottom:6px;">💡</div>
-      <h2>Umfrage-Idee einreichen</h2>
-      <p>Schick dem Owner eine Idee für eine Umfrage.</p>
-      <textarea id="pollSuggestionInput" class="input-field" rows="3" placeholder="Deine Idee..." style="width:100%; resize:vertical; font-family:inherit; margin-bottom:12px;"></textarea>
-      <button class="btn btn-primary" id="sendPollSuggestionBtn">Senden</button>
-      <button class="btn btn-ghost" id="closePollSuggestion" style="margin-top:10px;">Abbrechen</button>
-    </div>
-  </div>
-
   <!-- ============ SETTINGS ============ -->
   <section class="screen" id="screen-settings">
     <div class="topbar">
@@ -2491,11 +2479,6 @@
         <div id="pollResultsList" style="max-height:280px; overflow-y:auto;"></div>
       </div>
 
-      <div id="pollSuggestionsBox" style="display:none; background:rgba(59,130,246,.1); border:1.5px solid #3b82f6; border-radius:14px; padding:12px; margin-bottom:16px;">
-        <div style="font-weight:800; margin-bottom:8px;">💡 Umfrage-Ideen von Nutzern</div>
-        <div id="pollSuggestionsList" style="max-height:220px; overflow-y:auto;"></div>
-      </div>
-
       <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:16px;">
         <div style="font-weight:800; margin-bottom:8px;">🎁 Einlöse-Codes</div>
         <div class="d" id="ownerCodeStatus" style="margin-bottom:8px;">Aktuell: keine aktiven Codes.</div>
@@ -2574,14 +2557,6 @@
         <div class="d">Aura-Edits und Memes bleiben 4 Sekunden statt kurz sichtbar.</div>
       </div>
       <div class="switch" id="longModeSwitch"><div class="knob"></div></div>
-    </div>
-
-    <div class="settings-row" id="pollSuggestionRow" style="cursor:pointer;">
-      <div class="info">
-        <div class="t">💡 Umfrage-Idee einreichen</div>
-        <div class="d">Schick dem Owner deine Idee für eine Umfrage.</div>
-      </div>
-      <div class="exit-x" style="pointer-events:none;">→</div>
     </div>
 
     <div class="settings-row">
@@ -8667,14 +8642,6 @@
     $("pollOptionsFields").style.display = e.target.value === "text" ? "none" : "block";
   });
   $("closeLivePoll").addEventListener("click", hideLivePoll);
-  $("pollSuggestionRow").addEventListener("click", () => {
-    $("pollSuggestionInput").value = "";
-    $("overlayPollSuggestion").classList.add("show");
-  });
-  $("sendPollSuggestionBtn").addEventListener("click", sendPollSuggestion);
-  $("closePollSuggestion").addEventListener("click", () => {
-    $("overlayPollSuggestion").classList.remove("show");
-  });
 
   $("ownerCodeRewardAuraBtn").addEventListener("click", () => {
     ownerSelectedCodeReward = "aura";
@@ -8790,7 +8757,6 @@
       renderOwnerRegistrationNotifications();
       renderOwnerCodeStatus();
       renderOwnerFeedback();
-      renderPollSuggestions();
       renderPollResults();
     }
 

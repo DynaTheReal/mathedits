@@ -2842,7 +2842,7 @@
   const SUPER_USER_UIDS = [
     "fkjYMJotI5TwkD2rfaBj7Wdmy5Z2",
     "qO0WPgnttxavTOuW45VewSsUjD72",
-    "DEINE_UID_3_HIER",
+    "MFQgDThHGOgq0aQRipX2ujcBqvs1",
     "DEINE_UID_4_HIER",
     "DEINE_UID_5_HIER"
   ];
@@ -8546,13 +8546,6 @@
     if(!isValidUsername(normalizeUsername(uname))){
       return alert("Bitte gib einen gültigen Benutzernamen ein (3-20 Zeichen: a-z, 0-9, _).");
     }
-    // WICHTIG: vor einer Neu-Registrierung den lokalen Profilspeicher
-    // komplett zurücksetzen. Sonst könnten Reste eines vorherigen Accounts
-    // (z.B. von einem über die Firebase-Konsole gelöschten Account - das
-    // räumt NUR den Login auf, NICHT die zugehörigen Firestore-Daten oder
-    // diesen lokalen Browser-Speicher) in den neuen Account übernommen
-    // werden, inklusive eines alten Benutzernamens.
-    profile = { ...DEFAULT_PROFILE };
     registrationInProgress = true;
     firebase.auth().createUserWithEmailAndPassword(usernameToSyntheticEmail(uname), pass)
       .then(async (cred) => {

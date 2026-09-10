@@ -2840,9 +2840,9 @@
      SUPER VERSION (5 VIP-UIDs HIER EINTRAGEN)
   ======================================================== */
   const SUPER_USER_UIDS = [
-    "cV2Zn1VQWkVAxUXMPtr2qPgYUhJ3",
+    "fkjYMJotI5TwkD2rfaBj7Wdmy5Z2",
     "qO0WPgnttxavTOuW45VewSsUjD72",
-    "MFQgDThHGOgq0aQRipX2ujcBqvs1",
+    "DEINE_UID_3_HIER",
     "DEINE_UID_4_HIER",
     "DEINE_UID_5_HIER"
   ];
@@ -2933,7 +2933,7 @@
   const DEFAULT_PROFILE = {
     lives: 5,
     lastLifeChangeAt: Date.now(),
-    level: 1,
+    level: 0,
     levelProgress: 0, // 0,1,2 von 3 - man braucht 3 Lektionen für ein volles Level
     totalAura: 0,
     lessonsCompleted: 0,
@@ -4624,13 +4624,13 @@
       return;
     }
 
-    const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 1, avatarData: profile.avatarData, activeFont: profile.activeFont, lastActiveAt: profile.lastActiveAt, lastLessonAt: profile.lastLessonAt }];
+    const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 0, avatarData: profile.avatarData, activeFont: profile.activeFont, lastActiveAt: profile.lastActiveAt, lastLessonAt: profile.lastLessonAt }];
     for(const uid of mutualUids){
       const u = await fetchUserDoc(uid);
-      if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 1, avatarData: u.avatarData, activeFont: u.activeFont, lastActiveAt: u.lastActiveAt, lastLessonAt: u.lastLessonAt });
+      if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 0, avatarData: u.avatarData, activeFont: u.activeFont, lastActiveAt: u.lastActiveAt, lastLessonAt: u.lastLessonAt });
     }
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-    const filtered = entries.filter(e => (e.level || 0) > 1 && e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
+    const filtered = entries.filter(e => (e.level || 0) > 0 && e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
     if(filtered.length === 0){
       $("leaderboardEmptyMsg").textContent = "Niemand hat in den letzten 7 Tagen gelernt. Los geht's!";
       $("leaderboardEmptyMsg").style.display = "block";
@@ -4657,8 +4657,8 @@
         .get();
       let entries = snap.docs
         .map(d => ({ ...d.data(), uid: d.id }))
-        .filter(e => !!e.username && (e.level || 0) > 1) // Level 1 wird in keiner Rangliste angezeigt
-        .map(e => ({ uid: e.uid, username: e.username, level: e.level || 1, avatarData: e.avatarData, activeFont: e.activeFont, lastActiveAt: e.lastActiveAt, lastLessonAt: e.lastLessonAt }));
+        .filter(e => !!e.username && (e.level || 0) > 0) // Level 0 (noch nie eine Lektion beendet) wird in keiner Rangliste angezeigt
+        .map(e => ({ uid: e.uid, username: e.username, level: e.level || 0, avatarData: e.avatarData, activeFont: e.activeFont, lastActiveAt: e.lastActiveAt, lastLessonAt: e.lastLessonAt }));
 
       const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
       entries = entries.filter(e => e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
@@ -4946,7 +4946,7 @@
       $("friendProfileAvatarPlaceholder").style.display = "flex";
     }
 
-    $("friendProfileLevel").textContent = u.level || 1;
+    $("friendProfileLevel").textContent = u.level || 0;
     $("friendProfileAura").textContent = u.totalAura || 0;
     $("friendProfileStreak").textContent = u.streak || 0;
 
@@ -5650,13 +5650,18 @@
     // Level und levelProgress gehören zusammen (3 Lektionen = 1 Level) - beim
     // Abgleich als gemeinsame "Fortschrittseinheiten" vergleichen, statt Level
     // von einer Seite mit levelProgress von der anderen zu vermischen.
-    const localUnits = (localP.level || 1) * 3 + (localP.levelProgress || 0);
-    const cloudUnits = (cloudP.level || 1) * 3 + (cloudP.levelProgress || 0);
+    // WICHTIG: "|| 1" hätte ein echtes Level 0 (der neue Startpunkt) bei
+    // jedem Abgleich still zu Level 1 hochgesetzt, da 0 in JS falsy ist -
+    // deshalb hier explizit auf undefined/null prüfen statt auf falsy.
+    const localLevelSafe = (localP.level === undefined || localP.level === null) ? 0 : localP.level;
+    const cloudLevelSafe = (cloudP.level === undefined || cloudP.level === null) ? 0 : cloudP.level;
+    const localUnits = localLevelSafe * 3 + (localP.levelProgress || 0);
+    const cloudUnits = cloudLevelSafe * 3 + (cloudP.levelProgress || 0);
     if(cloudUnits > localUnits){
-      merged.level = cloudP.level || 1;
+      merged.level = cloudLevelSafe;
       merged.levelProgress = cloudP.levelProgress || 0;
     } else {
-      merged.level = localP.level || 1;
+      merged.level = localLevelSafe;
       merged.levelProgress = localP.levelProgress || 0;
     }
     // AURA (KRITISCH): Math.max() war hier vorher der Ansatz - das
@@ -5928,7 +5933,7 @@
     {id:"kopf_m",   name:"Kopfrechnen-Meister",       icon:"🧠",  timeMs: 11000, normalAura: 4, editAura: 8, gen: () => mixedHard()},
     {id:"mix_p",    name:"Gemischt Profi",            icon:"🏆",  timeMs: 18000, normalAura: 4, editAura: 8, gen: () => mixedHard()}
   ];
-  let _tierLevelCursor = 1;
+  let _tierLevelCursor = 0;
   const TIERS = TIER_DEFS.map((def, i) => {
     const span = TIER_LEVEL_OVERRIDES[def.id] || DEFAULT_LEVELS_PER_TIER;
     const from = _tierLevelCursor;
@@ -7349,7 +7354,7 @@
       ownerEditingOldUsernameLower = normalizeUsername(data.username || uname);
       $("ownerTargetLabel").textContent = "@" + (data.username || uname);
       $("ownerAuraInput").value = data.totalAura || 0;
-      $("ownerLevelInput").value = data.level || 1;
+      $("ownerLevelInput").value = data.level || 0;
       $("ownerStreakInput").value = data.streak || 0;
       $("ownerRenameInput").value = "";
       if(data.banned && (data.bannedUntil === null || data.bannedUntil > Date.now())){
@@ -7391,7 +7396,8 @@
   async function ownerSaveChanges(){
     if(!ownerEditingUid) return;
     const newAura = parseInt($("ownerAuraInput").value, 10) || 0;
-    const newLevel = Math.max(1, parseInt($("ownerLevelInput").value, 10) || 1);
+    const parsedOwnerLevel = parseInt($("ownerLevelInput").value, 10);
+    const newLevel = Math.max(0, isNaN(parsedOwnerLevel) ? 0 : parsedOwnerLevel);
     const newStreak = Math.max(0, parseInt($("ownerStreakInput").value, 10) || 0);
     const checkedThemes = [...$("ownerThemeCheckboxes").querySelectorAll("input[type=checkbox]:checked")].map(cb => cb.value);
     if(!checkedThemes.includes("black")) checkedThemes.push("black");
@@ -7661,7 +7667,7 @@
       modEditingUid = targetUid;
       $("modTargetLabel").textContent = "@" + (data.username || uname);
       $("modAuraInput").value = data.totalAura || 0;
-      $("modLevelInput").value = data.level || 1;
+      $("modLevelInput").value = data.level || 0;
       if(data.banned && (data.bannedUntil === null || data.bannedUntil > Date.now())){
         $("modBanStatus").textContent = data.bannedUntil === null
           ? "🚫 Aktuell für immer gesperrt."
@@ -7681,7 +7687,8 @@
     const ok = await requestModPasswordConfirm();
     if(!ok) return;
     const newAura = parseInt($("modAuraInput").value, 10) || 0;
-    const newLevel = Math.max(1, parseInt($("modLevelInput").value, 10) || 1);
+    const parsedModLevel = parseInt($("modLevelInput").value, 10);
+    const newLevel = Math.max(0, isNaN(parsedModLevel) ? 0 : parsedModLevel);
     try{
       await db().collection("users").doc(modEditingUid).set({
         totalAura: newAura, level: newLevel, levelProgress: 0, lastLocalSaveAt: Date.now()
@@ -8143,14 +8150,14 @@
   });
 
   $("difficultyContinueBtn").addEventListener("click", () => {
-    // Das Level wird jetzt passend zur gewählten Stufe gesetzt (statt immer
-    // bei 1 zu bleiben) - sonst würde die gewählte Schwierigkeit nicht der
-    // "aktiven" Stufe entsprechen und man bekäme für die ersten Lektionen
-    // gar keinen Level-/Aura-Fortschritt (nur reines Üben ohne Belohnung).
+    // Kein Level-Vorsprung mehr für die gewählte Schwierigkeit - jeder
+    // startet bei Level 0. Die Auswahl bestimmt nur, welche Stufe direkt
+    // zum Üben ausgewählt ist (alle vier Grund-Stufen sind sowieso
+    // kostenlos wählbar).
     const tierIdForDifficulty = { beginner: "kl_mult", medium: "mult_m", hard: "gr_mult" };
     const tierId = tierIdForDifficulty[selectedDifficulty] || "kl_mult";
     const tierIdx = TIERS.findIndex(t => t.id === tierId);
-    profile.level = tierIdx >= 0 ? TIERS[tierIdx].from : 1;
+    profile.level = 0;
     profile.levelProgress = 0;
     selectedTierIndex = tierIdx >= 0 ? tierIdx : null;
     saveProfile();
@@ -8546,6 +8553,13 @@
     if(!isValidUsername(normalizeUsername(uname))){
       return alert("Bitte gib einen gültigen Benutzernamen ein (3-20 Zeichen: a-z, 0-9, _).");
     }
+    // WICHTIG: vor einer Neu-Registrierung den lokalen Profilspeicher
+    // komplett zurücksetzen. Sonst könnten Reste eines vorherigen Accounts
+    // (z.B. von einem über die Firebase-Konsole gelöschten Account - das
+    // räumt NUR den Login auf, NICHT die zugehörigen Firestore-Daten oder
+    // diesen lokalen Browser-Speicher) in den neuen Account übernommen
+    // werden, inklusive eines alten Benutzernamens.
+    profile = { ...DEFAULT_PROFILE };
     registrationInProgress = true;
     firebase.auth().createUserWithEmailAndPassword(usernameToSyntheticEmail(uname), pass)
       .then(async (cred) => {

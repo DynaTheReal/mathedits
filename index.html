@@ -1155,7 +1155,7 @@
   /* ---------- lesson screen ---------- */
   .lesson-top{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
   .exit-x{
-    width:36px;height:36px;border-radius:50%; background:var(--card); border:1px solid var(--border);
+    width:44px;height:44px;border-radius:50%; background:var(--card); border:1px solid var(--border);
     display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); font-size:15px;
     flex-shrink:0;
   }
@@ -1552,46 +1552,47 @@
   }
   .font-glitch{
     color:#000 !important;
-    -webkit-text-stroke: 0.6px rgba(255,255,255,.6);
-    text-stroke: 0.6px rgba(255,255,255,.6);
     font-weight:900;
-    text-shadow: 2px 0 0 #a855f7, -2px 0 0 #7c3aed;
     display:inline-block;
     position:relative;
     animation: fontGlitchJitter .45s steps(1) infinite;
   }
   @keyframes fontGlitchJitter{
-    0%{ transform:translate(0,0); text-shadow: 2px 0 0 #a855f7, -2px 0 0 #7c3aed; }
-    12%{ transform:translate(-2px,-2px); text-shadow: 3px 1px 0 #a855f7, -3px -1px 0 #7c3aed; }
-    24%{ transform:translate(2px,1px); text-shadow: -2px 0 0 #a855f7, 2px 0 0 #7c3aed; }
-    36%{ transform:translate(-1px,2px); text-shadow: 3px -1px 0 #a855f7, -3px 1px 0 #7c3aed; }
-    48%{ transform:translate(1px,-2px); text-shadow: -1px 0 0 #a855f7, 1px 0 0 #7c3aed; }
-    60%{ transform:translate(-2px,1px); text-shadow: 2px 1px 0 #a855f7, -2px -1px 0 #7c3aed; }
-    72%{ transform:translate(2px,-1px); text-shadow: -2px 0 0 #a855f7, 2px 0 0 #7c3aed; }
-    84%{ transform:translate(-1px,-2px); text-shadow: 3px 0 0 #a855f7, -3px 0 0 #7c3aed; }
-    100%{ transform:translate(0,0); text-shadow: 2px 0 0 #a855f7, -2px 0 0 #7c3aed; }
+    0%{ transform:translate(0,0); }
+    12%{ transform:translate(-2px,-2px); }
+    24%{ transform:translate(2px,1px); }
+    36%{ transform:translate(-1px,2px); }
+    48%{ transform:translate(1px,-2px); }
+    60%{ transform:translate(-2px,1px); }
+    72%{ transform:translate(2px,-1px); }
+    84%{ transform:translate(-1px,-2px); }
+    100%{ transform:translate(0,0); }
   }
-  /* Viele schwarze Glitch-Partikel rings um die Schrift selbst - nicht nur
-     in der Rangliste, sondern überall wo die Glitch-Schrift angezeigt wird
-     (Profil, Freundes-Profil, Rangliste). Nutzt den box-shadow-Trick, um
-     mit EINEM Punkt viele Kopien gleichzeitig zu erzeugen. */
+  /* Eckige, groessere lila Glitch-Partikel rings um die Schrift, die
+     unruhig hin- und herspringen - nicht nur in der Rangliste, sondern
+     überall wo die Glitch-Schrift angezeigt wird (Profil, Freundes-Profil,
+     Rangliste). Nutzt den box-shadow-Trick, um mit EINEM Element viele
+     Kopien gleichzeitig zu erzeugen. border-radius:0 hält sie eckig. */
   .font-glitch::before, .font-glitch::after{
-    content:""; position:absolute; width:2px; height:2px; background:#000;
+    content:""; position:absolute; width:4px; height:4px; background:#a855f7;
+    border-radius:0;
     box-shadow:
-      -14px -8px 0 0 #000, 16px -10px 0 0 #000, -18px 4px 0 0 #000,
-      14px 8px 0 0 #000, -10px 12px 0 0 #000, 18px -3px 0 0 #000,
-      -6px -12px 0 0 #000, 8px 12px 0 0 #000, -16px -2px 0 0 #000,
-      20px 2px 0 0 #000;
+      -16px -9px 0 0 #7c3aed, 18px -12px 0 0 #a855f7, -20px 5px 0 0 #a855f7,
+      16px 9px 0 0 #7c3aed, -12px 14px 0 0 #a855f7, 20px -4px 0 0 #7c3aed,
+      -7px -14px 0 0 #a855f7, 9px 14px 0 0 #7c3aed, -18px -2px 0 0 #7c3aed,
+      22px 2px 0 0 #a855f7;
     pointer-events:none;
-    animation: glitchFontParticles .7s steps(2) infinite;
+    animation: glitchFontParticles .5s steps(2) infinite;
   }
   .font-glitch::before{ top:40%; left:0; }
-  .font-glitch::after{ top:60%; left:50%; animation-delay:.35s; }
+  .font-glitch::after{ top:60%; left:50%; animation-delay:.25s; }
   @keyframes glitchFontParticles{
-    0%, 100%{ opacity:0; }
-    35%{ opacity:1; }
-    50%{ opacity:.3; }
-    65%{ opacity:1; }
+    0%{ opacity:0; transform:translate(0,0); }
+    20%{ opacity:1; transform:translate(3px,-2px); }
+    40%{ opacity:.2; transform:translate(-2px,3px); }
+    60%{ opacity:1; transform:translate(2px,2px); }
+    80%{ opacity:.4; transform:translate(-3px,-1px); }
+    100%{ opacity:0; transform:translate(0,0); }
   }
   /* Schwarze Partikel um die Zeile in der Rangliste, wenn die Person die
      Glitch-Schrift trägt - analog zu den Glow-/Pink-Glow-Partikeln. */

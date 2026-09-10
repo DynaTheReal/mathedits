@@ -357,14 +357,31 @@
   [data-theme="galaxy"] body::after{
     content:""; position:fixed; inset:0; pointer-events:none; z-index:400;
     background-image:
-      radial-gradient(1.5px 1.5px at 20% 30%, #fff, transparent),
-      radial-gradient(1.5px 1.5px at 70% 60%, #cbd5ff, transparent),
-      radial-gradient(1px 1px at 40% 80%, #fff, transparent),
-      radial-gradient(1px 1px at 90% 15%, #cbd5ff, transparent),
-      radial-gradient(1.5px 1.5px at 55% 40%, #fff, transparent);
+      radial-gradient(1.5px 1.5px at 8% 12%, #fff, transparent),
+      radial-gradient(1px 1px at 18% 28%, #cbd5ff, transparent),
+      radial-gradient(2px 2px at 26% 8%, #fff, transparent),
+      radial-gradient(1px 1px at 33% 45%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 42% 20%, #cbd5ff, transparent),
+      radial-gradient(1px 1px at 50% 60%, #fff, transparent),
+      radial-gradient(2px 2px at 58% 15%, #cbd5ff, transparent),
+      radial-gradient(1px 1px at 65% 35%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 72% 55%, #fff, transparent),
+      radial-gradient(1px 1px at 80% 10%, #cbd5ff, transparent),
+      radial-gradient(2px 2px at 88% 40%, #fff, transparent),
+      radial-gradient(1px 1px at 94% 65%, #cbd5ff, transparent),
+      radial-gradient(1.5px 1.5px at 12% 70%, #fff, transparent),
+      radial-gradient(1px 1px at 22% 85%, #cbd5ff, transparent),
+      radial-gradient(2px 2px at 36% 78%, #fff, transparent),
+      radial-gradient(1px 1px at 47% 92%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 60% 82%, #cbd5ff, transparent),
+      radial-gradient(1px 1px at 70% 95%, #fff, transparent),
+      radial-gradient(2px 2px at 84% 88%, #cbd5ff, transparent),
+      radial-gradient(1px 1px at 96% 78%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 5% 50%, #fff, transparent),
+      radial-gradient(1px 1px at 90% 92%, #cbd5ff, transparent);
     animation: galaxyTwinkle 4s ease-in-out infinite alternate;
   }
-  @keyframes galaxyTwinkle{ 0%{ opacity:.4; } 100%{ opacity:1; } }
+  @keyframes galaxyTwinkle{ 0%{ opacity:.5; } 100%{ opacity:1; } }
   [data-theme="galaxy"] .topbar, [data-theme="galaxy"] .bottom-nav{
     box-shadow: 0 0 26px rgba(139,92,246,.3);
   }
@@ -1535,22 +1552,46 @@
   }
   .font-glitch{
     color:#000 !important;
+    -webkit-text-stroke: 0.6px rgba(255,255,255,.6);
+    text-stroke: 0.6px rgba(255,255,255,.6);
     font-weight:900;
-    text-shadow: 0 0 5px rgba(168,85,247,.95), 2px 0 0 #a855f7, -2px 0 0 #7c3aed;
+    text-shadow: 2px 0 0 #a855f7, -2px 0 0 #7c3aed;
     display:inline-block;
     position:relative;
     animation: fontGlitchJitter .45s steps(1) infinite;
   }
   @keyframes fontGlitchJitter{
-    0%{ transform:translate(0,0); text-shadow: 0 0 5px rgba(168,85,247,.95), 2px 0 0 #a855f7, -2px 0 0 #7c3aed; }
-    12%{ transform:translate(-2px,-2px); text-shadow: 0 0 7px rgba(168,85,247,1), 3px 1px 0 #a855f7, -3px -1px 0 #7c3aed; }
-    24%{ transform:translate(2px,1px); text-shadow: 0 0 5px rgba(168,85,247,.9), -2px 0 0 #a855f7, 2px 0 0 #7c3aed; }
-    36%{ transform:translate(-1px,2px); text-shadow: 0 0 8px rgba(168,85,247,1), 3px -1px 0 #a855f7, -3px 1px 0 #7c3aed; }
-    48%{ transform:translate(1px,-2px); text-shadow: 0 0 5px rgba(168,85,247,.9), -1px 0 0 #a855f7, 1px 0 0 #7c3aed; }
-    60%{ transform:translate(-2px,1px); text-shadow: 0 0 7px rgba(168,85,247,1), 2px 1px 0 #a855f7, -2px -1px 0 #7c3aed; }
-    72%{ transform:translate(2px,-1px); text-shadow: 0 0 5px rgba(168,85,247,.9), -2px 0 0 #a855f7, 2px 0 0 #7c3aed; }
-    84%{ transform:translate(-1px,-2px); text-shadow: 0 0 8px rgba(168,85,247,1), 3px 0 0 #a855f7, -3px 0 0 #7c3aed; }
-    100%{ transform:translate(0,0); text-shadow: 0 0 5px rgba(168,85,247,.95), 2px 0 0 #a855f7, -2px 0 0 #7c3aed; }
+    0%{ transform:translate(0,0); text-shadow: 2px 0 0 #a855f7, -2px 0 0 #7c3aed; }
+    12%{ transform:translate(-2px,-2px); text-shadow: 3px 1px 0 #a855f7, -3px -1px 0 #7c3aed; }
+    24%{ transform:translate(2px,1px); text-shadow: -2px 0 0 #a855f7, 2px 0 0 #7c3aed; }
+    36%{ transform:translate(-1px,2px); text-shadow: 3px -1px 0 #a855f7, -3px 1px 0 #7c3aed; }
+    48%{ transform:translate(1px,-2px); text-shadow: -1px 0 0 #a855f7, 1px 0 0 #7c3aed; }
+    60%{ transform:translate(-2px,1px); text-shadow: 2px 1px 0 #a855f7, -2px -1px 0 #7c3aed; }
+    72%{ transform:translate(2px,-1px); text-shadow: -2px 0 0 #a855f7, 2px 0 0 #7c3aed; }
+    84%{ transform:translate(-1px,-2px); text-shadow: 3px 0 0 #a855f7, -3px 0 0 #7c3aed; }
+    100%{ transform:translate(0,0); text-shadow: 2px 0 0 #a855f7, -2px 0 0 #7c3aed; }
+  }
+  /* Viele schwarze Glitch-Partikel rings um die Schrift selbst - nicht nur
+     in der Rangliste, sondern überall wo die Glitch-Schrift angezeigt wird
+     (Profil, Freundes-Profil, Rangliste). Nutzt den box-shadow-Trick, um
+     mit EINEM Punkt viele Kopien gleichzeitig zu erzeugen. */
+  .font-glitch::before, .font-glitch::after{
+    content:""; position:absolute; width:2px; height:2px; background:#000;
+    box-shadow:
+      -14px -8px 0 0 #000, 16px -10px 0 0 #000, -18px 4px 0 0 #000,
+      14px 8px 0 0 #000, -10px 12px 0 0 #000, 18px -3px 0 0 #000,
+      -6px -12px 0 0 #000, 8px 12px 0 0 #000, -16px -2px 0 0 #000,
+      20px 2px 0 0 #000;
+    pointer-events:none;
+    animation: glitchFontParticles .7s steps(2) infinite;
+  }
+  .font-glitch::before{ top:40%; left:0; }
+  .font-glitch::after{ top:60%; left:50%; animation-delay:.35s; }
+  @keyframes glitchFontParticles{
+    0%, 100%{ opacity:0; }
+    35%{ opacity:1; }
+    50%{ opacity:.3; }
+    65%{ opacity:1; }
   }
   /* Schwarze Partikel um die Zeile in der Rangliste, wenn die Person die
      Glitch-Schrift trägt - analog zu den Glow-/Pink-Glow-Partikeln. */
@@ -3551,6 +3592,7 @@
         message: text.slice(0, 500),
         ownerUsername: profile.username || OWNER_USERNAME,
         ownerFrame: profile.activeFrame || "none",
+        ownerTheme: profile.theme || "black",
         createdAt: Date.now()
       });
       showToast("📢 Broadcast an alle gesendet!");
@@ -3594,7 +3636,7 @@
         // optimistisch lokal, einmal nach Server-Bestätigung).
         if(doc.id === broadcastToastShownDocId) return;
         broadcastToastShownDocId = doc.id;
-        $("broadcastToastText").innerHTML = `<b>${data.ownerUsername || OWNER_USERNAME}:</b> ${data.message || ""}`;
+        $("broadcastToastText").innerHTML = `<b style="color:${broadcastNameColorFor(data.ownerTheme)};">${data.ownerUsername || OWNER_USERNAME}:</b> ${data.message || ""}`;
         applyBroadcastFrameStyle(data.ownerFrame);
         $("broadcastToast").classList.add("show");
         clearTimeout(broadcastToastHideTimer);
@@ -3617,6 +3659,19 @@
     const toast = $("broadcastToast");
     toast.style.border = style.border;
     toast.style.boxShadow = `0 18px 42px rgba(0,0,0,.45), 0 0 26px ${style.glow}`;
+  }
+
+  // Die Namensfarbe im Broadcast-Banner richtet sich nach dem Theme, das der
+  // Owner beim Senden gerade selbst aktiv hatte - unabhängig davon, welches
+  // Theme die empfangende Person selbst eingestellt hat.
+  const THEME_ACCENT_COLORS = {
+    black: "#ffd700", white_clean: "#2563eb", clean: "#22c55e", pink: "#ec4899",
+    glass: "#60a5fa", glow: "#c084fc", glitch: "#a855f7", galaxy: "#8b5cf6",
+    sunset: "#f97316", cyber: "#00e5ff", royal: "#ffd700", cloud: "#60a5fa",
+    toxic: "#7fff00", crimson: "#dc2626", minimal: "#1a1a1a"
+  };
+  function broadcastNameColorFor(themeId){
+    return THEME_ACCENT_COLORS[themeId] || THEME_ACCENT_COLORS.black;
   }
 
 
@@ -4897,10 +4952,14 @@
     }
 
     const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 0, avatarData: profile.avatarData, activeFont: profile.activeFont, lastActiveAt: profile.lastActiveAt, lastLessonAt: profile.lastLessonAt }];
-    for(const uid of mutualUids){
-      const u = await fetchUserDoc(uid);
+    // Alle Freunde GLEICHZEITIG laden statt nacheinander - das war der
+    // Hauptgrund, warum die Rangliste bei mehreren Freunden spürbar
+    // langsam war (jeder einzelne Abruf musste vorher auf den vorherigen
+    // warten, statt parallel zu laufen).
+    const friendDocs = await Promise.all(mutualUids.map(uid => fetchUserDoc(uid)));
+    friendDocs.forEach(u => {
       if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 0, avatarData: u.avatarData, activeFont: u.activeFont, lastActiveAt: u.lastActiveAt, lastLessonAt: u.lastLessonAt });
-    }
+    });
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
     const filtered = entries.filter(e => (e.level || 0) > 0 && e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
     if(filtered.length === 0){
@@ -6960,7 +7019,21 @@
   function showScreen(name){
     Object.values(screens).forEach(s => s.classList.remove("active"));
     screens[name].classList.add("active");
-    
+
+    // Absicherung gegen einen auf dem iPad gelegentlich hängen bleibenden,
+    // unsichtbaren Vollbild-Overlay (der "Dein Ernst?"-Schreckmoment) - der
+    // liegt mit hohem z-index über ALLEM und würde, falls er nicht richtig
+    // geschlossen wurde, auf jedem anderen Bildschirm (z.B. Duell-Lobby)
+    // stillschweigend jeden Klick/Touch blockieren, obwohl nichts davon zu
+    // sehen ist. Diese Overlays gehören NUR zur Lektion, deshalb hier bei
+    // jedem Bildschirmwechsel weg von der Lektion hart zurücksetzen.
+    if(name !== "lesson"){
+      ["overlayComboScare", "overlayGameOverScare"].forEach(id => {
+        const el = $(id);
+        if(el) el.classList.remove("show");
+      });
+    }
+
     // Navigation Leiste nur im Hauptmenü/Shop/Rangliste/Profil anzeigen
     const nav = $("bottomNav");
     if(NAV_SCREENS.includes(name)){

@@ -4589,9 +4589,12 @@
           ev.stopPropagation();
           const uid = btn.dataset.uid;
           const uname = btn.dataset.name;
-          if(!confirm(`@${uname} unwiderruflich aus der Rangliste löschen (Account-Daten werden gelöscht)?`)) return;
+          if(!confirm(`@${uname} unwiderruflich aus der Rangliste löschen (Account-Daten werden gelöscht, Benutzername wird wieder frei)?`)) return;
           try{
             await db().collection("users").doc(uid).delete();
+            // Auch die Benutzername-Reservierung freigeben - sonst bleibt
+            // der Name für immer "vergeben", obwohl der Account weg ist.
+            try{ await db().collection("usernames").doc(normalizeUsername(uname)).delete(); }catch(e){ /* notfalls stehen lassen */ }
             showToast(`🗑️ @${uname} gelöscht.`);
             renderLeaderboard();
           }catch(err){
@@ -7418,6 +7421,13 @@
         levelProgress: 0,
         streak: newStreak,
         unlockedThemes: checkedThemes,
+        // WICHTIG: lastLocalSaveAt muss hier mit aktualisiert werden, sonst
+        // gewinnt beim nächsten Geräte-Abgleich der Zielperson deren eigener,
+        // noch veralteter lokaler Aura-Stand wieder gegen diese Änderung
+        // (genau der gemeldete Bug: "er hat die Aura trotzdem nicht
+        // bekommen") - der Zeitstempel-Vergleich beim Abgleich kennt sonst
+        // nicht, dass diese Bearbeitung gerade JETZT passiert ist.
+        lastLocalSaveAt: Date.now(),
         ...(newUsernameRaw ? { username: newUsernameRaw, usernameLower: normalizeUsername(newUsernameRaw) } : {})
       }, { merge: true });
 
@@ -7674,7 +7684,7 @@
     const newLevel = Math.max(1, parseInt($("modLevelInput").value, 10) || 1);
     try{
       await db().collection("users").doc(modEditingUid).set({
-        totalAura: newAura, level: newLevel, levelProgress: 0
+        totalAura: newAura, level: newLevel, levelProgress: 0, lastLocalSaveAt: Date.now()
       }, { merge: true });
       showToast("✅ Änderungen gespeichert!");
     }catch(err){

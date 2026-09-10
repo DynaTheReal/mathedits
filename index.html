@@ -488,6 +488,64 @@
     --rainbow-header: linear-gradient(90deg, #4a4a4a, #1a1a1a, #4a4a4a);
   }
 
+  /* ---------- Aura-Booster-Animation (NEU) ---------- */
+  .ab-bubbles-container{ position:absolute; inset:0; overflow:hidden; z-index:1; }
+  .ab-bubble, .ab-bubble-large{
+    position:absolute; bottom:5px; border-radius:50%;
+    animation: abPopAndSway linear forwards;
+  }
+  .ab-bubble{ background:#000; border:2px solid #a855f7; box-shadow:0 0 12px #a855f7; }
+  .ab-bubble-large{
+    background:rgba(20,5,30,.9); border:3px solid #c084fc;
+    box-shadow:0 0 25px #a855f7, inset 0 0 15px #a855f7;
+  }
+  @keyframes abPopAndSway{
+    0%{ opacity:0; transform:translateY(0) scale(0) translateX(0); }
+    8%{ opacity:1; transform:translateY(-10px) scale(1.35) translateX(5px); }
+    14%{ transform:translateY(-25px) scale(.9) translateX(-5px); }
+    20%{ transform:translateY(-50px) scale(1) translateX(10px); }
+    50%{ transform:translateY(-50vh) scale(1.05) translateX(-20px); }
+    80%{ transform:translateY(-80vh) scale(.95) translateX(15px); }
+    100%{ opacity:1; transform:translateY(-115vh) scale(1.1) translateX(-5px); }
+  }
+  .ab-xxl-center-bubble{
+    position:absolute; top:50%; left:50%; width:min(420px, 82vw); height:min(420px, 82vw);
+    background:rgba(18,4,28,.92); border:4px solid #c084fc; border-radius:50%;
+    box-shadow:0 0 50px #a855f7, inset 0 0 30px #a855f7;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    z-index:10; opacity:0; transform:translate(-50%,-50%) scale(0);
+    animation: abPopInXXL .8s cubic-bezier(.175,.885,.32,1.275) forwards 1.6s;
+    padding:20px; text-align:center;
+  }
+  @keyframes abPopInXXL{
+    0%{ opacity:0; transform:translate(-50%,-50%) scale(0); }
+    70%{ opacity:1; transform:translate(-50%,-50%) scale(1.15); }
+    100%{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+  }
+  .ab-booster-title{
+    color:#c084fc; font-size:clamp(1.8rem,7vw,3.2rem); font-weight:900; text-transform:uppercase;
+    letter-spacing:2px; font-family:'Baloo 2',sans-serif;
+    text-shadow:0 0 15px #a855f7, 0 0 35px #a855f7, 0 0 60px #7e22ce;
+  }
+  .ab-booster-subtitle{
+    color:#f3e8ff; font-size:1.2rem; margin-top:10px; font-weight:600;
+    text-shadow:0 0 10px rgba(168,85,247,.9);
+  }
+  .ab-pop-burst{ animation: abBurstEffect .35s forwards !important; }
+  @keyframes abBurstEffect{
+    0%{ opacity:1; }
+    50%{ border-color:#f3e8ff; box-shadow:0 0 60px #e9d5ff, inset 0 0 30px #e9d5ff; }
+    100%{ transform:translate(-50%,-50%) scale(1.6) !important; opacity:0; }
+  }
+  .ab-bubble.ab-pop-burst, .ab-bubble-large.ab-pop-burst{
+    animation: abBurstEffectNormal .35s forwards !important;
+  }
+  @keyframes abBurstEffectNormal{
+    0%{ opacity:1; }
+    50%{ border-color:#f3e8ff; box-shadow:0 0 50px #e9d5ff, inset 0 0 20px #e9d5ff; }
+    100%{ transform:scale(2.2) !important; opacity:0; }
+  }
+
   *{
     box-sizing:border-box; 
     -webkit-tap-highlight-color: transparent;
@@ -1847,15 +1905,6 @@
     </div>
 
     <div class="shop-item">
-      <div class="item-icon">✨</div>
-      <div class="item-info">
-        <div class="item-title">2× Aura</div>
-        <div class="item-desc">Für 15 Minuten doppelte Aura-Punkte sammeln.</div>
-      </div>
-      <button class="buy-btn" id="buyDoubleAura">300 Aura</button>
-    </div>
-
-    <div class="shop-item">
       <div class="item-icon">🔁</div>
       <div class="item-info">
         <div class="item-title">Streak-Reparatur</div>
@@ -2324,6 +2373,11 @@
             <button class="btn btn-ghost btn-small" id="modRemoveOtherModBtn" style="flex:1;">Mod entfernen</button>
           </div>
         </div>
+
+        <div style="background:rgba(168,85,247,.1); border:1.5px solid #a855f7; border-radius:12px; padding:10px; margin-top:14px;">
+          <div class="d" style="font-weight:800; margin-bottom:8px; color:#a855f7;">✨ Aura-Booster verleihen</div>
+          <button class="btn btn-primary btn-small" id="modGiveBoosterBtn" style="width:100%; background:#a855f7; border-color:#a855f7;">15 Min Aura-Booster geben</button>
+        </div>
       </div>
 
       <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-top:24px;">
@@ -2538,6 +2592,11 @@
             <button class="btn btn-primary btn-small" id="ownerMakeModBtn" style="flex:1; background:#facc15; color:#000; border-color:#facc15;">Zum Mod ernennen</button>
             <button class="btn btn-ghost btn-small" id="ownerRemoveModBtn" style="flex:1;">Mod entfernen</button>
           </div>
+        </div>
+
+        <div style="background:rgba(168,85,247,.1); border:1.5px solid #a855f7; border-radius:12px; padding:10px; margin-top:14px;">
+          <div class="d" style="font-weight:800; margin-bottom:8px; color:#a855f7;">✨ Aura-Booster verleihen</div>
+          <button class="btn btn-primary btn-small" id="ownerGiveBoosterBtn" style="width:100%; background:#a855f7; border-color:#a855f7;">15 Min Aura-Booster geben</button>
         </div>
 
         <button class="btn btn-primary" id="ownerSaveBtn" style="margin-top:16px;">Änderungen speichern</button>
@@ -3078,6 +3137,16 @@
   <!-- Letztes Leben verloren: Herz zerbricht (NEU) -->
   <div class="scare-overlay" id="overlayGameOverScare">
     <div class="gameover-heart" id="gameOverHeartIcon">❤️</div>
+  </div>
+
+  <!-- Aura-Booster-Animation (NEU): spielt ab, sobald man einen Aura-Booster
+       bekommt (durch Truhe oder vom Owner/Mod verliehen). -->
+  <div id="auraBoosterScreen" style="display:none; position:fixed; inset:0; z-index:600; background:#000; overflow:hidden;">
+    <div class="ab-bubbles-container" id="auraBoosterBubbles"></div>
+    <div class="ab-xxl-center-bubble" id="auraBoosterXxlBubble">
+      <div class="ab-booster-title">Aura Booster</div>
+      <div class="ab-booster-subtitle" id="auraBoosterSubtitle">für 15 Minuten</div>
+    </div>
   </div>
 
   <!-- Konto gesperrt (NEU): volles, nicht wegklickbares Overlay -->
@@ -5948,6 +6017,7 @@
     } else if(chest.tier === "epic"){
       profile.inventory.doubleAuraUntil = Date.now() + (15 * 60 * 1000);
       bonusText = " + 2× Aura-Booster (15 Min)";
+      playAuraBoosterAnimation(15);
     }
 
     // Bei Achievement-Truhen: falls das Achievement einen Titel freischaltet,
@@ -7754,11 +7824,6 @@
     $("buyIcecube").disabled = profile.totalAura < 150;
     $("buyLife").disabled = profile.totalAura < 100 || profile.lives >= MAX_LIVES;
     $("buyTimeBooster").disabled = profile.totalAura < 200;
-    
-    const doubleActive = profile.inventory.doubleAuraUntil > Date.now();
-    $("buyDoubleAura").disabled = profile.totalAura < 300 || doubleActive;
-    if(doubleActive) $("buyDoubleAura").textContent = "Aktiv!";
-    else $("buyDoubleAura").textContent = "300 Aura";
 
     const canRepair = profile.lastBrokenStreak > 0;
     $("buyStreakRepair").disabled = !canRepair || profile.totalAura < STREAK_REPAIR_COST;
@@ -7798,16 +7863,6 @@
 
   $("buyStreakRepair").addEventListener("click", () => {
     repairStreak();
-  });
-
-  $("buyDoubleAura").addEventListener("click", () => {
-    if(profile.totalAura >= 300){
-      profile.totalAura -= 300;
-      profile.inventory.doubleAuraUntil = Date.now() + (15 * 60 * 1000); // 15 Min
-      saveProfile();
-      renderShop();
-      showToast("✨ 2× Aura aktiviert für 15 Minuten!");
-    }
   });
 
   function buyTheme(themeKey, cost, name){
@@ -8336,6 +8391,27 @@
     }
   }
 
+  // Aura-Booster verleihen (NEU): schreibt direkt in das Inventar der
+  // Zielperson - lastLocalSaveAt wird mit aktualisiert, sonst könnte der
+  // eigene, noch veraltete lokale Stand der Zielperson das beim nächsten
+  // Abgleich wieder überschreiben (derselbe Mechanismus wie beim
+  // Aura-Bearbeiten im Panel).
+  async function ownerGiveBooster(){
+    if(!ownerEditingUid || !isOwner()) return;
+    try{
+      const doc = await db().collection("users").doc(ownerEditingUid).get();
+      const inventory = (doc.exists && doc.data().inventory) ? doc.data().inventory : {};
+      await db().collection("users").doc(ownerEditingUid).set({
+        inventory: { ...inventory, doubleAuraUntil: Date.now() + 15 * 60 * 1000 },
+        lastLocalSaveAt: Date.now()
+      }, { merge: true });
+      showToast("✨ Aura-Booster verliehen!");
+    }catch(err){
+      showToast("Fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
   async function saveAdminActionPassword(){
     if(!isOwner()) return;
     const pass = $("adminActionPasswordInput").value;
@@ -8503,6 +8579,24 @@
     }
   }
 
+  async function modGiveBooster(){
+    if(!modEditingUid) return;
+    const ok = await requestModPasswordConfirm();
+    if(!ok) return;
+    try{
+      const doc = await db().collection("users").doc(modEditingUid).get();
+      const inventory = (doc.exists && doc.data().inventory) ? doc.data().inventory : {};
+      await db().collection("users").doc(modEditingUid).set({
+        inventory: { ...inventory, doubleAuraUntil: Date.now() + 15 * 60 * 1000 },
+        lastLocalSaveAt: Date.now()
+      }, { merge: true });
+      showToast("✨ Aura-Booster verliehen!");
+    }catch(err){
+      showToast("Fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
   async function modSendBroadcast(){
     const text = ($("modBroadcastInput").value || "").trim();
     if(!text) return;
@@ -8579,6 +8673,7 @@
   $("siteResumeBtn").addEventListener("click", ownerResumeSite);
   $("ownerMakeModBtn").addEventListener("click", ownerMakeMod);
   $("ownerRemoveModBtn").addEventListener("click", ownerRemoveModOfTarget);
+  $("ownerGiveBoosterBtn").addEventListener("click", ownerGiveBooster);
   $("saveAdminActionPasswordBtn").addEventListener("click", saveAdminActionPassword);
 
   $("modPanelBtn").addEventListener("click", () => {
@@ -8596,6 +8691,7 @@
   $("modUnbanBtn").addEventListener("click", modUnbanUser);
   $("modMakeModBtn").addEventListener("click", modMakeMod);
   $("modRemoveOtherModBtn").addEventListener("click", modRemoveOtherMod);
+  $("modGiveBoosterBtn").addEventListener("click", modGiveBooster);
   $("modSendBroadcastBtn").addEventListener("click", modSendBroadcast);
   $("modSiteStopBtn").addEventListener("click", modStopSite);
   $("modSiteResumeBtn").addEventListener("click", modResumeSite);
@@ -9266,6 +9362,7 @@
               // den lokalen Stand mit dem Cloud-Stand abgleichen (höhere Werte
               // gewinnen). Erst danach dürfen wieder eigene Änderungen in die
               // Cloud geschrieben werden (cloudSyncReady).
+              const previousDoubleAuraUntil = (profile.inventory && profile.inventory.doubleAuraUntil) || 0;
               profile = reconcileProfiles(profile, normalizedCloud);
               profile.lastFirebaseUid = user.uid;
               // isMod ist vom Owner gesteuert und muss IMMER dem
@@ -9282,6 +9379,16 @@
               // dass man erst wegnavigieren und zurückkommen muss.
               if(screens.settings && screens.settings.classList.contains("active")){
                 renderSettings();
+              }
+              // Aura-Booster wurde gerade neu verliehen (z.B. vom Owner/Mod
+              // remote gesetzt) - erkannt daran, dass der neue Wert höher
+              // als der bisherige lokale Stand UND noch in der Zukunft ist.
+              // Direkt nach dem eigenen Öffnen einer Truhe wird die
+              // Animation schon an anderer Stelle lokal ausgelöst, hier
+              // geht es nur um den Fall "von außen bekommen".
+              const nowDoubleAuraUntil = (profile.inventory && profile.inventory.doubleAuraUntil) || 0;
+              if(nowDoubleAuraUntil > previousDoubleAuraUntil && nowDoubleAuraUntil > Date.now()){
+                playAuraBoosterAnimation(Math.ceil((nowDoubleAuraUntil - Date.now()) / 60000));
               }
             }
 
@@ -10070,6 +10177,55 @@
         callback();
       }, 2000);
     });
+  }
+
+  // Aura-Booster-Animation (NEU): spielt ab, sobald man einen Aura-Booster
+  // bekommt - egal ob durch eine Truhe (lokal ausgelöst) oder weil der
+  // Owner/Mod einem einen verliehen hat (durch den Geräte-Abgleich erkannt).
+  let auraBoosterAnimTimers = [];
+  function playAuraBoosterAnimation(minutes){
+    const screen = $("auraBoosterScreen");
+    const bubblesWrap = $("auraBoosterBubbles");
+    const xxl = $("auraBoosterXxlBubble");
+    bubblesWrap.innerHTML = "";
+    xxl.classList.remove("ab-pop-burst");
+    void xxl.offsetWidth; // Reflow, damit die Pop-In-Animation sicher neu startet
+    $("auraBoosterSubtitle").textContent = `für ${minutes || 15} Minuten`;
+    screen.style.display = "block";
+
+    auraBoosterAnimTimers.forEach(t => clearTimeout(t));
+    auraBoosterAnimTimers = [];
+
+    function spawnBubble(type){
+      const bubble = document.createElement("div");
+      bubble.className = type;
+      const size = type === "ab-bubble-large"
+        ? (Math.random() * 45 + 55) + "px"
+        : (Math.random() * 25 + 20) + "px";
+      bubble.style.width = size;
+      bubble.style.height = size;
+      bubble.style.left = (Math.random() * 88 + 6) + "%";
+      const duration = type === "ab-bubble-large"
+        ? (Math.random() * 1.2 + 3.2) + "s"
+        : (Math.random() * 1.5 + 2.6) + "s";
+      bubble.style.animationDuration = duration;
+      bubblesWrap.appendChild(bubble);
+    }
+
+    auraBoosterAnimTimers.push(setTimeout(() => spawnBubble("ab-bubble"), 10));
+    for(let i = 1; i <= 15; i++){
+      auraBoosterAnimTimers.push(setTimeout(() => spawnBubble("ab-bubble"), 100 + i * 120));
+    }
+    for(let i = 0; i < 12; i++){
+      auraBoosterAnimTimers.push(setTimeout(() => spawnBubble("ab-bubble-large"), 1200 + i * 180));
+    }
+    auraBoosterAnimTimers.push(setTimeout(() => {
+      bubblesWrap.querySelectorAll(".ab-bubble, .ab-bubble-large").forEach(b => b.classList.add("ab-pop-burst"));
+      xxl.classList.add("ab-pop-burst");
+    }, 4800));
+    auraBoosterAnimTimers.push(setTimeout(() => {
+      screen.style.display = "none";
+    }, 5200));
   }
 
   function regenerateCurrentQuestion(){

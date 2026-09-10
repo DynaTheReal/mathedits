@@ -1555,6 +1555,9 @@
     font-weight:900;
     display:inline-block;
     position:relative;
+    background:#a855f7;
+    padding:1px 7px;
+    border-radius:6px;
     animation: fontGlitchJitter .45s steps(1) infinite;
   }
   @keyframes fontGlitchJitter{
@@ -2371,6 +2374,11 @@
       <div style="font-size:36px; margin-bottom:6px;">📊</div>
       <h2 id="livePollQuestion">Frage?</h2>
       <div id="livePollOptions" style="display:flex; flex-direction:column; gap:8px; margin-top:10px;"></div>
+      <div id="livePollTextWrap" style="display:none; margin-top:10px;">
+        <textarea id="livePollTextInput" class="input-field" rows="3" placeholder="Deine Antwort..." style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
+        <button class="btn btn-primary" id="livePollTextSubmitBtn" style="width:100%;">Einschicken</button>
+      </div>
+      <div class="d" id="livePollAlreadyAnswered" style="display:none; margin-top:10px;">✅ Du hast diese Umfrage schon beantwortet.</div>
       <div class="d" id="livePollCountdown" style="margin-top:12px; font-size:11.5px;"></div>
     </div>
   </div>
@@ -2465,11 +2473,22 @@
       <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:16px;">
         <div style="font-weight:800; margin-bottom:8px;">📊 Umfrage senden</div>
         <input type="text" id="pollQuestionInput" class="input-field" placeholder="Frage..." style="margin-bottom:8px;">
-        <input type="text" id="pollOption1Input" class="input-field" placeholder="Option 1" style="margin-bottom:8px;">
-        <input type="text" id="pollOption2Input" class="input-field" placeholder="Option 2" style="margin-bottom:8px;">
-        <input type="text" id="pollOption3Input" class="input-field" placeholder="Option 3 (optional)" style="margin-bottom:8px;">
-        <input type="text" id="pollOption4Input" class="input-field" placeholder="Option 4 (optional)" style="margin-bottom:8px;">
+        <select id="pollTypeSelect" class="input-field" style="margin-bottom:8px;">
+          <option value="options">Feste Antwortmöglichkeiten</option>
+          <option value="text">Freitext (Nutzer schreiben eigene Antwort)</option>
+        </select>
+        <div id="pollOptionsFields">
+          <input type="text" id="pollOption1Input" class="input-field" placeholder="Option 1" style="margin-bottom:8px;">
+          <input type="text" id="pollOption2Input" class="input-field" placeholder="Option 2" style="margin-bottom:8px;">
+          <input type="text" id="pollOption3Input" class="input-field" placeholder="Option 3 (optional)" style="margin-bottom:8px;">
+          <input type="text" id="pollOption4Input" class="input-field" placeholder="Option 4 (optional)" style="margin-bottom:8px;">
+        </div>
         <button class="btn btn-primary btn-small" id="sendPollBtn" style="width:100%;">Umfrage senden (2 Min live)</button>
+      </div>
+
+      <div id="pollResultsBox" style="display:none; background:rgba(34,197,94,.1); border:1.5px solid #22c55e; border-radius:14px; padding:12px; margin-bottom:16px;">
+        <div style="font-weight:800; margin-bottom:8px;">📈 Umfrage-Ergebnisse</div>
+        <div id="pollResultsList" style="max-height:280px; overflow-y:auto;"></div>
       </div>
 
       <div id="pollSuggestionsBox" style="display:none; background:rgba(59,130,246,.1); border:1.5px solid #3b82f6; border-radius:14px; padding:12px; margin-bottom:16px;">
@@ -3391,6 +3410,7 @@
     installChest: null, // Truhe fürs Hinzufügen zum Home-Bildschirm
     lastLocalSaveAt: 0, // Zeitstempel des letzten lokalen Speicherns - entscheidet bei Aura, welche Seite beim Abgleich gewinnt
     isMod: false, // vom Owner ernannte Mod-Rolle mit eingeschränktem Zugriff aufs Owner-Panel
+    answeredPollIds: [], // verhindert mehrfaches Einschicken derselben Umfrage
     dismissedFeedbackIds: [], // nur für den Owner relevant: einzeln weggeklicktes Feedback
     lastSeenFeedbackAt: 0, // nur für den Owner relevant: bis wann Feedback schon gesehen wurde
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
@@ -3781,19 +3801,20 @@
   async function sendPoll(){
     if(!isOwner() || !firebaseInitialized || !currentUser) return;
     const question = $("pollQuestionInput").value.trim();
-    const options = [
+    const type = $("pollTypeSelect").value === "text" ? "text" : "options";
+    const options = type === "text" ? [] : [
       $("pollOption1Input").value.trim(),
       $("pollOption2Input").value.trim(),
       $("pollOption3Input").value.trim(),
       $("pollOption4Input").value.trim()
     ].filter(o => o.length > 0);
-    if(!question || options.length < 2){
-      return alert("Bitte eine Frage und mindestens 2 Optionen eingeben.");
+    if(!question || (type === "options" && options.length < 2)){
+      return alert("Bitte eine Frage eingeben - bei festen Antworten mindestens 2 Optionen.");
     }
     try{
       await db().collection("polls").add({
         question: question.slice(0, 200),
-        options,
+        type, options,
         createdAt: Date.now(),
         createdBy: currentUser.uid
       });
@@ -3836,15 +3857,38 @@
     livePollActiveId = pollId;
     $("livePollQuestion").textContent = data.question || "";
     const optWrap = $("livePollOptions");
+    const textWrap = $("livePollTextWrap");
+    const alreadyMsg = $("livePollAlreadyAnswered");
     optWrap.innerHTML = "";
-    (data.options || []).forEach(opt => {
-      const btn = document.createElement("button");
-      btn.className = "btn btn-primary btn-small";
-      btn.style.width = "100%";
-      btn.textContent = opt;
-      btn.addEventListener("click", () => answerPoll(pollId, opt));
-      optWrap.appendChild(btn);
-    });
+    optWrap.style.display = "none";
+    textWrap.style.display = "none";
+    alreadyMsg.style.display = "none";
+
+    // Schon beantwortet? Dann keine erneute Einreichung erlauben - nur EIN
+    // Mal pro Umfrage, wie gewünscht ("nicht die ganze Zeit").
+    const alreadyAnswered = (profile.answeredPollIds || []).includes(pollId);
+    if(alreadyAnswered){
+      alreadyMsg.style.display = "block";
+    } else if(data.type === "text"){
+      textWrap.style.display = "block";
+      $("livePollTextInput").value = "";
+      const submitBtn = $("livePollTextSubmitBtn");
+      submitBtn.onclick = () => {
+        const val = $("livePollTextInput").value.trim();
+        if(!val) return showToast("Bitte etwas eingeben.");
+        answerPoll(pollId, val);
+      };
+    } else {
+      optWrap.style.display = "flex";
+      (data.options || []).forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "btn btn-primary btn-small";
+        btn.style.width = "100%";
+        btn.textContent = opt;
+        btn.addEventListener("click", () => answerPoll(pollId, opt));
+        optWrap.appendChild(btn);
+      });
+    }
     $("overlayLivePoll").classList.add("show");
 
     const endsAt = Date.now() + 2 * 60 * 1000;
@@ -3870,6 +3914,10 @@
   async function answerPoll(pollId, answer){
     hideLivePoll();
     if(!firebaseInitialized || !currentUser) return;
+    // Merkt sich lokal+in der Cloud, dass diese Umfrage schon beantwortet
+    // wurde - verhindert mehrfaches Einschicken derselben Umfrage.
+    profile.answeredPollIds = [...(profile.answeredPollIds || []), pollId];
+    saveProfile();
     try{
       await db().collection("pollResponses").add({
         pollId, uid: currentUser.uid, username: profile.username || "?",
@@ -3878,6 +3926,57 @@
       showToast("✅ Danke für deine Antwort!");
     }catch(err){
       console.error("Umfrage-Antwort speichern Fehler:", err);
+    }
+  }
+
+  // Umfrage-Ergebnisse (NEU): der Owner sieht für die letzte Umfrage alle
+  // Antworten - bei festen Optionen als Auszählung, bei Freitext als Liste.
+  async function renderPollResults(){
+    if(!isOwner() || !firebaseInitialized) return;
+    const box = $("pollResultsBox");
+    const listEl = $("pollResultsList");
+    try{
+      const pollSnap = await db().collection("polls").orderBy("createdAt", "desc").limit(1).get();
+      if(pollSnap.empty){
+        box.style.display = "none";
+        return;
+      }
+      const pollDoc = pollSnap.docs[0];
+      const poll = pollDoc.data();
+      const respSnap = await db().collection("pollResponses").where("pollId", "==", pollDoc.id).get();
+      const responses = respSnap.docs.map(d => d.data());
+      if(responses.length === 0){
+        box.style.display = "none";
+        return;
+      }
+      box.style.display = "block";
+      listEl.innerHTML = `<div style="font-weight:700; margin-bottom:8px;">${poll.question}</div>`;
+      if(poll.type === "text"){
+        responses.forEach(r => {
+          const row = document.createElement("div");
+          row.style.cssText = "padding:6px 0; border-bottom:1px solid rgba(34,197,94,.2); font-size:12.5px;";
+          row.innerHTML = `<b>@${r.username || "?"}</b>: ${r.answer || ""}`;
+          listEl.appendChild(row);
+        });
+      } else {
+        const tally = {};
+        (poll.options || []).forEach(o => { tally[o] = 0; });
+        responses.forEach(r => { tally[r.answer] = (tally[r.answer] || 0) + 1; });
+        const total = responses.length;
+        Object.entries(tally).forEach(([opt, count]) => {
+          const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+          const row = document.createElement("div");
+          row.style.cssText = "padding:5px 0; font-size:12.5px;";
+          row.innerHTML = `${opt}: <b>${count}</b> (${pct}%)`;
+          listEl.appendChild(row);
+        });
+        const totalRow = document.createElement("div");
+        totalRow.style.cssText = "margin-top:6px; font-size:11px; opacity:.7;";
+        totalRow.textContent = `Insgesamt ${total} Antworten`;
+        listEl.appendChild(totalRow);
+      }
+    }catch(err){
+      console.error("Umfrage-Ergebnisse anzeigen Fehler:", err);
     }
   }
 
@@ -5216,7 +5315,7 @@
       if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 0, avatarData: u.avatarData, activeFont: u.activeFont, lastActiveAt: u.lastActiveAt, lastLessonAt: u.lastLessonAt });
     });
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-    const filtered = entries.filter(e => (e.level || 0) > 0 && e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
+    const filtered = entries.filter(e => (e.level || 0) >= 2 && e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
     if(filtered.length === 0){
       $("leaderboardEmptyMsg").textContent = "Niemand hat in den letzten 7 Tagen gelernt. Los geht's!";
       $("leaderboardEmptyMsg").style.display = "block";
@@ -5243,7 +5342,7 @@
         .get();
       let entries = snap.docs
         .map(d => ({ ...d.data(), uid: d.id }))
-        .filter(e => !!e.username && (e.level || 0) > 0) // Level 0 (noch nie eine Lektion beendet) wird in keiner Rangliste angezeigt
+        .filter(e => !!e.username && (e.level || 0) >= 2) // erst ab Level 2 in der Rangliste
         .map(e => ({ uid: e.uid, username: e.username, level: e.level || 0, avatarData: e.avatarData, activeFont: e.activeFont, lastActiveAt: e.lastActiveAt, lastLessonAt: e.lastLessonAt }));
 
       const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -8564,6 +8663,9 @@
 
   $("ownerSendUpdateNoticeBtn").addEventListener("click", sendOwnerUpdateNotice);
   $("sendPollBtn").addEventListener("click", sendPoll);
+  $("pollTypeSelect").addEventListener("change", (e) => {
+    $("pollOptionsFields").style.display = e.target.value === "text" ? "none" : "block";
+  });
   $("closeLivePoll").addEventListener("click", hideLivePoll);
   $("pollSuggestionRow").addEventListener("click", () => {
     $("pollSuggestionInput").value = "";
@@ -8689,6 +8791,7 @@
       renderOwnerCodeStatus();
       renderOwnerFeedback();
       renderPollSuggestions();
+      renderPollResults();
     }
 
     if(currentUser){

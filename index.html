@@ -8410,6 +8410,13 @@
               // rohen Cloud-Daten übernehmen, genau wie beim Sperr-Status.
               profile.isMod = !!cloudData.isMod;
               cloudSyncReady = true;
+              // Falls die Person GERADE auf dem Einstellungen-Bildschirm ist,
+              // wenn der Owner sie zum Mod ernennt (oder die Rolle entzieht),
+              // soll der Schild-Button sofort erscheinen/verschwinden, ohne
+              // dass man erst wegnavigieren und zurückkommen muss.
+              if(screens.settings && screens.settings.classList.contains("active")){
+                renderSettings();
+              }
             }
 
             checkStreakDecay();

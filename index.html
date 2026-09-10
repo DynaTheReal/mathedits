@@ -1611,14 +1611,16 @@
   .font-glitch{
     color:#000;
     font-weight:900;
-    -webkit-text-stroke: 0.7px currentColor;
-    text-shadow: 0.6px 0 0 currentColor, -0.6px 0 0 currentColor, 0 0.6px 0 currentColor, 0 -0.6px 0 currentColor;
+    -webkit-text-stroke: 1px #a855f7;
+    text-shadow: 1px 0 0 #a855f7, -1px 0 0 #a855f7, 0 1px 0 #a855f7, 0 -1px 0 #a855f7,
+                 1px 1px 0 #a855f7, -1px -1px 0 #a855f7, 1px -1px 0 #a855f7, -1px 1px 0 #a855f7;
     display:inline-block;
     position:relative;
     animation: fontGlitchJitter .45s steps(1) infinite;
   }
-  /* Auf dunklen Themes wird die Schrift lila statt schwarz, damit sie dort
-     immer gut lesbar bleibt - sonst nur schwarz. */
+  /* Auf dunklen Themes wird die Schrift lila mit schwarzer Umrandung statt
+     schwarz mit lila Umrandung, damit sie dort immer gut lesbar bleibt -
+     beide Farben bleiben so immer gleichzeitig sichtbar. */
   [data-theme="black"] .font-glitch,
   [data-theme="glow"] .font-glitch,
   [data-theme="glitch"] .font-glitch,
@@ -1629,6 +1631,9 @@
   [data-theme="royal"] .font-glitch,
   [data-theme="sunset"] .font-glitch{
     color:#a855f7;
+    -webkit-text-stroke: 1px #000;
+    text-shadow: 1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000,
+                 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
   }
   @keyframes fontGlitchJitter{
     0%{ transform:translate(0,0); }
@@ -1867,11 +1872,11 @@
       </div>
     </div>
 
-    <div class="shop-category-menu" style="display:flex; gap:8px; overflow-x:auto; padding:12px 20px 10px; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
-      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionItems" style="flex-shrink:0;">🧊 Items</button>
-      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionThemes" style="flex-shrink:0;">🎨 Designs</button>
-      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionFrames" style="flex-shrink:0;">🖼️ Rahmen</button>
-      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionFonts" style="flex-shrink:0;">🔤 Schriften</button>
+    <div class="shop-category-menu" style="display:flex; gap:10px; overflow-x:auto; padding:14px 20px 14px; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
+      <button class="btn btn-ghost shop-cat-btn" data-target="shopSectionItems" style="flex-shrink:0; width:auto; padding:13px 20px; font-size:15px;">🧊 Items</button>
+      <button class="btn btn-ghost shop-cat-btn" data-target="shopSectionThemes" style="flex-shrink:0; width:auto; padding:13px 20px; font-size:15px;">🎨 Designs</button>
+      <button class="btn btn-ghost shop-cat-btn" data-target="shopSectionFrames" style="flex-shrink:0; width:auto; padding:13px 20px; font-size:15px;">🖼️ Rahmen</button>
+      <button class="btn btn-ghost shop-cat-btn" data-target="shopSectionFonts" style="flex-shrink:0; width:auto; padding:13px 20px; font-size:15px;">🔤 Schriften</button>
     </div>
 
     <div class="shop-header">

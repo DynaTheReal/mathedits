@@ -2293,6 +2293,8 @@
         <input type="number" id="modAuraInput" class="input-field">
         <div class="d" style="margin-bottom:4px; margin-top:10px;">Level</div>
         <input type="number" id="modLevelInput" class="input-field">
+        <div class="d" style="margin-bottom:4px; margin-top:10px;">Streak</div>
+        <input type="number" id="modStreakInput" class="input-field">
         <button class="btn btn-primary" id="modSaveBtn" style="margin-top:14px; width:100%;">Änderungen speichern</button>
 
         <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:12px; padding:10px; margin-top:16px;">
@@ -2310,6 +2312,39 @@
             <button class="btn btn-ghost btn-small" id="modUnbanBtn" style="flex:1;">Entsperren</button>
           </div>
         </div>
+
+        <div style="background:rgba(250,204,21,.1); border:1.5px solid #facc15; border-radius:12px; padding:10px; margin-top:14px;">
+          <div class="d" style="font-weight:800; margin-bottom:8px; color:#facc15;">🛡️ Mod-Rolle</div>
+          <div id="modModStatus" class="d" style="margin-bottom:8px;">Aktuell kein Mod.</div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary btn-small" id="modMakeModBtn" style="flex:1; background:#facc15; color:#000; border-color:#facc15;">Zum Mod ernennen</button>
+            <button class="btn btn-ghost btn-small" id="modRemoveOtherModBtn" style="flex:1;">Mod entfernen</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-top:24px;">
+        <div style="font-weight:800; margin-bottom:8px;">📢 Nachricht an alle senden</div>
+        <input type="text" id="modBroadcastInput" class="input-field" placeholder="Deine Nachricht..." style="margin-bottom:8px;">
+        <button class="btn btn-primary btn-small" id="modSendBroadcastBtn" style="width:100%;">Senden</button>
+      </div>
+
+      <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:14px; padding:12px; margin-top:16px;">
+        <div style="font-weight:800; margin-bottom:8px; color:#ef4444;">🛑 Website Not-Stopp</div>
+        <div class="d" id="modSiteStopStatus" style="margin-bottom:8px;">Aktuell nicht gestoppt.</div>
+        <select id="modSiteStopDurationSelect" class="input-field" style="margin-bottom:8px;">
+          <option value="15">15 Minuten</option>
+          <option value="30">30 Minuten</option>
+          <option value="60">1 Stunde</option>
+          <option value="180">3 Stunden</option>
+          <option value="1440">1 Tag</option>
+          <option value="indefinite">Bis manuell entsperrt</option>
+        </select>
+        <input type="text" id="modSiteStopReasonInput" class="input-field" placeholder="Grund (optional)" style="margin-bottom:8px;">
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary btn-small" id="modSiteStopBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Stoppen</button>
+          <button class="btn btn-ghost btn-small" id="modSiteResumeBtn" style="flex:1;">Wieder freigeben</button>
+        </div>
       </div>
 
       <button class="btn btn-ghost" id="modRemoveSelfBtn" style="width:100%; margin-top:24px; border-color:#ff4d6d; color:#ff4d6d;">🚪 Meine Mod-Rolle selbst entfernen</button>
@@ -2325,6 +2360,30 @@
       <input type="password" id="modPasswordConfirmInput" class="input-field" placeholder="Admin-Aktions-Passwort" style="margin-bottom:12px;">
       <button class="btn btn-primary" id="modPasswordConfirmBtn">Bestätigen</button>
       <button class="btn btn-ghost" id="modPasswordConfirmCancelBtn" style="margin-top:10px;">Abbrechen</button>
+    </div>
+  </div>
+
+  <!-- Live-Umfrage (NEU): erscheint für alle live, 2 Minuten lang, kann
+       aber auch vorher weggeklickt werden. -->
+  <div class="overlay" id="overlayLivePoll">
+    <div class="modal-card" style="max-width:340px;">
+      <button class="banner-close-x" id="closeLivePoll" style="position:absolute; top:10px; right:12px;">✕</button>
+      <div style="font-size:36px; margin-bottom:6px;">📊</div>
+      <h2 id="livePollQuestion">Frage?</h2>
+      <div id="livePollOptions" style="display:flex; flex-direction:column; gap:8px; margin-top:10px;"></div>
+      <div class="d" id="livePollCountdown" style="margin-top:12px; font-size:11.5px;"></div>
+    </div>
+  </div>
+
+  <!-- Eigene Umfrage-Idee einreichen (NEU) -->
+  <div class="overlay" id="overlayPollSuggestion">
+    <div class="modal-card" style="max-width:340px;">
+      <div style="font-size:36px; margin-bottom:6px;">💡</div>
+      <h2>Umfrage-Idee einreichen</h2>
+      <p>Schick dem Owner eine Idee für eine Umfrage.</p>
+      <textarea id="pollSuggestionInput" class="input-field" rows="3" placeholder="Deine Idee..." style="width:100%; resize:vertical; font-family:inherit; margin-bottom:12px;"></textarea>
+      <button class="btn btn-primary" id="sendPollSuggestionBtn">Senden</button>
+      <button class="btn btn-ghost" id="closePollSuggestion" style="margin-top:10px;">Abbrechen</button>
     </div>
   </div>
 
@@ -2404,6 +2463,21 @@
       <button class="btn btn-primary btn-small" id="ownerSendUpdateNoticeBtn" style="width:100%; margin-bottom:16px;">🔄 Update-Nachricht senden</button>
 
       <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:16px;">
+        <div style="font-weight:800; margin-bottom:8px;">📊 Umfrage senden</div>
+        <input type="text" id="pollQuestionInput" class="input-field" placeholder="Frage..." style="margin-bottom:8px;">
+        <input type="text" id="pollOption1Input" class="input-field" placeholder="Option 1" style="margin-bottom:8px;">
+        <input type="text" id="pollOption2Input" class="input-field" placeholder="Option 2" style="margin-bottom:8px;">
+        <input type="text" id="pollOption3Input" class="input-field" placeholder="Option 3 (optional)" style="margin-bottom:8px;">
+        <input type="text" id="pollOption4Input" class="input-field" placeholder="Option 4 (optional)" style="margin-bottom:8px;">
+        <button class="btn btn-primary btn-small" id="sendPollBtn" style="width:100%;">Umfrage senden (2 Min live)</button>
+      </div>
+
+      <div id="pollSuggestionsBox" style="display:none; background:rgba(59,130,246,.1); border:1.5px solid #3b82f6; border-radius:14px; padding:12px; margin-bottom:16px;">
+        <div style="font-weight:800; margin-bottom:8px;">💡 Umfrage-Ideen von Nutzern</div>
+        <div id="pollSuggestionsList" style="max-height:220px; overflow-y:auto;"></div>
+      </div>
+
+      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:16px;">
         <div style="font-weight:800; margin-bottom:8px;">🎁 Einlöse-Codes</div>
         <div class="d" id="ownerCodeStatus" style="margin-bottom:8px;">Aktuell: keine aktiven Codes.</div>
         <input type="text" id="ownerCodeInput" class="input-field" placeholder="Neuer Code (z.B. MATHY500)" style="margin-bottom:8px; text-transform:uppercase;">
@@ -2481,6 +2555,14 @@
         <div class="d">Aura-Edits und Memes bleiben 4 Sekunden statt kurz sichtbar.</div>
       </div>
       <div class="switch" id="longModeSwitch"><div class="knob"></div></div>
+    </div>
+
+    <div class="settings-row" id="pollSuggestionRow" style="cursor:pointer;">
+      <div class="info">
+        <div class="t">💡 Umfrage-Idee einreichen</div>
+        <div class="d">Schick dem Owner deine Idee für eine Umfrage.</div>
+      </div>
+      <div class="exit-x" style="pointer-events:none;">→</div>
     </div>
 
     <div class="settings-row">
@@ -3146,8 +3228,8 @@
   const SUPER_USER_UIDS = [
     "fkjYMJotI5TwkD2rfaBj7Wdmy5Z2",
     "qO0WPgnttxavTOuW45VewSsUjD72",
-    "DEINE_UID_3_HIER",
-    "DEINE_UID_4_HIER",
+    "MFQgDThHGOgq0aQRipX2ujcBqvs1",
+    "cV2Zn1VQWkVAxUXMPtr2qPgYUhJ3",
     "DEINE_UID_5_HIER"
   ];
 
@@ -3687,6 +3769,178 @@
     }catch(err){
       showToast("Update-Nachricht konnte nicht gesendet werden.");
       console.error("Update-Nachricht senden Fehler:", err);
+    }
+  }
+
+  /* ========================================================
+     UMFRAGEN (NEU): Owner schickt eine Frage mit 2-4 Antwortmöglichkeiten,
+     die live für 2 Minuten bei allen erscheint (kann auch vorher
+     weggeklickt werden). Wer offline war, bekommt sie nicht nachträglich
+     angezeigt - genau wie bei Broadcasts/Update-Hinweisen.
+  ======================================================== */
+  async function sendPoll(){
+    if(!isOwner() || !firebaseInitialized || !currentUser) return;
+    const question = $("pollQuestionInput").value.trim();
+    const options = [
+      $("pollOption1Input").value.trim(),
+      $("pollOption2Input").value.trim(),
+      $("pollOption3Input").value.trim(),
+      $("pollOption4Input").value.trim()
+    ].filter(o => o.length > 0);
+    if(!question || options.length < 2){
+      return alert("Bitte eine Frage und mindestens 2 Optionen eingeben.");
+    }
+    try{
+      await db().collection("polls").add({
+        question: question.slice(0, 200),
+        options,
+        createdAt: Date.now(),
+        createdBy: currentUser.uid
+      });
+      ["pollQuestionInput", "pollOption1Input", "pollOption2Input", "pollOption3Input", "pollOption4Input"].forEach(id => { $(id).value = ""; });
+      showToast("📊 Umfrage an alle gesendet!");
+    }catch(err){
+      showToast("Umfrage konnte nicht gesendet werden.");
+      console.error("Umfrage senden Fehler:", err);
+    }
+  }
+
+  let livePollUnsubscribe = null;
+  let livePollStartedAt = null;
+  let livePollShownDocId = null;
+  let livePollActiveId = null;
+  let livePollHideTimer = null;
+  let livePollCountdownTimer = null;
+
+  function watchLivePoll(){
+    if(livePollUnsubscribe){ livePollUnsubscribe(); livePollUnsubscribe = null; }
+    if(!firebaseInitialized || !currentUser) return;
+    livePollStartedAt = Date.now();
+    livePollShownDocId = null;
+    livePollUnsubscribe = db().collection("polls")
+      .orderBy("createdAt", "desc")
+      .limit(1)
+      .onSnapshot((snap) => {
+        if(snap.empty) return;
+        const doc = snap.docs[0];
+        const data = doc.data();
+        if(!data || typeof data.createdAt !== "number") return;
+        if(data.createdAt <= livePollStartedAt) return;
+        if(doc.id === livePollShownDocId) return;
+        livePollShownDocId = doc.id;
+        showLivePoll(doc.id, data);
+      }, (err) => console.error("Live-Umfrage beobachten Fehler:", err));
+  }
+
+  function showLivePoll(pollId, data){
+    livePollActiveId = pollId;
+    $("livePollQuestion").textContent = data.question || "";
+    const optWrap = $("livePollOptions");
+    optWrap.innerHTML = "";
+    (data.options || []).forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "btn btn-primary btn-small";
+      btn.style.width = "100%";
+      btn.textContent = opt;
+      btn.addEventListener("click", () => answerPoll(pollId, opt));
+      optWrap.appendChild(btn);
+    });
+    $("overlayLivePoll").classList.add("show");
+
+    const endsAt = Date.now() + 2 * 60 * 1000;
+    clearInterval(livePollCountdownTimer);
+    function tick(){
+      const remain = Math.max(0, endsAt - Date.now());
+      const s = Math.ceil(remain / 1000);
+      $("livePollCountdown").textContent = remain > 0 ? `Noch ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}` : "";
+    }
+    tick();
+    livePollCountdownTimer = setInterval(tick, 1000);
+    clearTimeout(livePollHideTimer);
+    livePollHideTimer = setTimeout(hideLivePoll, 2 * 60 * 1000);
+  }
+
+  function hideLivePoll(){
+    $("overlayLivePoll").classList.remove("show");
+    clearTimeout(livePollHideTimer);
+    clearInterval(livePollCountdownTimer);
+    livePollActiveId = null;
+  }
+
+  async function answerPoll(pollId, answer){
+    hideLivePoll();
+    if(!firebaseInitialized || !currentUser) return;
+    try{
+      await db().collection("pollResponses").add({
+        pollId, uid: currentUser.uid, username: profile.username || "?",
+        answer, createdAt: Date.now()
+      });
+      showToast("✅ Danke für deine Antwort!");
+    }catch(err){
+      console.error("Umfrage-Antwort speichern Fehler:", err);
+    }
+  }
+
+  async function sendPollSuggestion(){
+    const text = $("pollSuggestionInput").value.trim();
+    if(!text) return showToast("Bitte etwas Text eingeben.");
+    if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
+    try{
+      await db().collection("pollSuggestions").add({
+        text: text.slice(0, 500),
+        fromUid: currentUser.uid,
+        fromUsername: profile.username || "?",
+        createdAt: Date.now()
+      });
+      $("pollSuggestionInput").value = "";
+      $("overlayPollSuggestion").classList.remove("show");
+      showToast("💡 Idee gesendet, danke!");
+    }catch(err){
+      showToast("Senden fehlgeschlagen.");
+      console.error("Umfrage-Idee senden Fehler:", err);
+    }
+  }
+
+  async function renderPollSuggestions(){
+    if(!isOwner() || !firebaseInitialized) return;
+    const box = $("pollSuggestionsBox");
+    const listEl = $("pollSuggestionsList");
+    try{
+      const snap = await db().collection("pollSuggestions").orderBy("createdAt", "desc").limit(30).get();
+      if(snap.empty){
+        box.style.display = "none";
+        return;
+      }
+      box.style.display = "block";
+      listEl.innerHTML = "";
+      snap.docs.forEach(d => {
+        const data = d.data();
+        const row = document.createElement("div");
+        row.style.cssText = "padding:8px 0; border-bottom:1px solid rgba(59,130,246,.2); font-size:12.5px; display:flex; align-items:flex-start; gap:8px;";
+        row.innerHTML = `
+          <div style="flex:1;"><b>@${data.fromUsername || "?"}</b>: ${data.text || ""}<br><span style="opacity:.6; font-size:11px;">${formatRelativeTime(data.createdAt)}</span></div>
+          <button class="poll-suggestion-dismiss-btn" data-id="${d.id}" style="background:none; border:none; color:var(--text-dim); font-size:16px; font-weight:800; cursor:pointer; padding:2px 6px; flex-shrink:0;">✕</button>
+        `;
+        listEl.appendChild(row);
+      });
+      listEl.querySelectorAll(".poll-suggestion-dismiss-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.dataset.id;
+          const row = btn.closest("div").parentElement;
+          btn.disabled = true;
+          try{
+            await db().collection("pollSuggestions").doc(id).delete();
+            row.remove();
+            if(listEl.children.length === 0) box.style.display = "none";
+          }catch(err){
+            showToast("Löschen fehlgeschlagen.");
+            console.error(err);
+            btn.disabled = false;
+          }
+        });
+      });
+    }catch(err){
+      console.error("Umfrage-Ideen anzeigen Fehler:", err);
     }
   }
 
@@ -8080,6 +8334,7 @@
       $("modTargetLabel").textContent = "@" + (data.username || uname);
       $("modAuraInput").value = data.totalAura || 0;
       $("modLevelInput").value = data.level || 0;
+      $("modStreakInput").value = data.streak || 0;
       if(data.banned && (data.bannedUntil === null || data.bannedUntil > Date.now())){
         $("modBanStatus").textContent = data.bannedUntil === null
           ? "🚫 Aktuell für immer gesperrt."
@@ -8087,6 +8342,7 @@
       } else {
         $("modBanStatus").textContent = "Aktuell nicht gesperrt.";
       }
+      $("modModStatus").textContent = data.isMod ? "🛡️ Ist aktuell Mod." : "Aktuell kein Mod.";
       $("modEditPanel").style.display = "block";
     }catch(err){
       showToast("Suche fehlgeschlagen.");
@@ -8101,9 +8357,10 @@
     const newAura = parseInt($("modAuraInput").value, 10) || 0;
     const parsedModLevel = parseInt($("modLevelInput").value, 10);
     const newLevel = Math.max(0, isNaN(parsedModLevel) ? 0 : parsedModLevel);
+    const newStreak = Math.max(0, parseInt($("modStreakInput").value, 10) || 0);
     try{
       await db().collection("users").doc(modEditingUid).set({
-        totalAura: newAura, level: newLevel, levelProgress: 0, lastLocalSaveAt: Date.now()
+        totalAura: newAura, level: newLevel, levelProgress: 0, streak: newStreak, lastLocalSaveAt: Date.now()
       }, { merge: true });
       showToast("✅ Änderungen gespeichert!");
     }catch(err){
@@ -8140,6 +8397,84 @@
       showToast("✅ Konto entsperrt.");
     }catch(err){
       showToast("Entsperren fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  async function modMakeMod(){
+    if(!modEditingUid) return;
+    const ok = await requestModPasswordConfirm();
+    if(!ok) return;
+    try{
+      await db().collection("users").doc(modEditingUid).set({ isMod: true }, { merge: true });
+      $("modModStatus").textContent = "🛡️ Ist aktuell Mod.";
+      showToast("🛡️ Zum Mod ernannt.");
+    }catch(err){
+      showToast("Fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  async function modRemoveOtherMod(){
+    if(!modEditingUid) return;
+    const ok = await requestModPasswordConfirm();
+    if(!ok) return;
+    try{
+      await db().collection("users").doc(modEditingUid).set({ isMod: false }, { merge: true });
+      $("modModStatus").textContent = "Aktuell kein Mod.";
+      showToast("Mod-Rolle entfernt.");
+    }catch(err){
+      showToast("Fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  async function modSendBroadcast(){
+    const text = ($("modBroadcastInput").value || "").trim();
+    if(!text) return;
+    const ok = await requestModPasswordConfirm();
+    if(!ok) return;
+    try{
+      await db().collection("broadcasts").add({
+        message: text.slice(0, 500),
+        ownerUsername: profile.username || "?",
+        ownerFrame: profile.activeFrame || "none",
+        ownerTheme: profile.theme || "black",
+        createdAt: Date.now()
+      });
+      $("modBroadcastInput").value = "";
+      showToast("📢 Broadcast an alle gesendet!");
+    }catch(err){
+      showToast("Broadcast konnte nicht gesendet werden.");
+      console.error(err);
+    }
+  }
+
+  async function modStopSite(){
+    const ok = await requestModPasswordConfirm();
+    if(!ok) return;
+    const duration = $("modSiteStopDurationSelect").value;
+    const reason = $("modSiteStopReasonInput").value.trim();
+    const stoppedUntil = duration === "indefinite" ? null : (Date.now() + parseInt(duration, 10) * 60 * 1000);
+    try{
+      await db().collection("siteStatus").doc("current").set({
+        stopped: true, stoppedUntil, reason, stoppedAt: Date.now()
+      });
+      showToast("🛑 Website gestoppt.");
+    }catch(err){
+      showToast("Stoppen fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  async function modResumeSite(){
+    const ok = await requestModPasswordConfirm();
+    if(!ok) return;
+    try{
+      await db().collection("siteStatus").doc("current").set({ stopped: false, stoppedUntil: null, reason: "" }, { merge: true });
+      showToast("✅ Website wieder freigegeben.");
+    }catch(err){
+      showToast("Freigeben fehlgeschlagen.");
       console.error(err);
     }
   }
@@ -8185,6 +8520,11 @@
   $("modSaveBtn").addEventListener("click", modSaveChanges);
   $("modBanBtn").addEventListener("click", modBanUser);
   $("modUnbanBtn").addEventListener("click", modUnbanUser);
+  $("modMakeModBtn").addEventListener("click", modMakeMod);
+  $("modRemoveOtherModBtn").addEventListener("click", modRemoveOtherMod);
+  $("modSendBroadcastBtn").addEventListener("click", modSendBroadcast);
+  $("modSiteStopBtn").addEventListener("click", modStopSite);
+  $("modSiteResumeBtn").addEventListener("click", modResumeSite);
   $("modRemoveSelfBtn").addEventListener("click", modRemoveSelf);
   $("ownerSendBroadcastBtn").addEventListener("click", () => {
     const input = $("ownerBroadcastInput");
@@ -8223,6 +8563,16 @@
   });
 
   $("ownerSendUpdateNoticeBtn").addEventListener("click", sendOwnerUpdateNotice);
+  $("sendPollBtn").addEventListener("click", sendPoll);
+  $("closeLivePoll").addEventListener("click", hideLivePoll);
+  $("pollSuggestionRow").addEventListener("click", () => {
+    $("pollSuggestionInput").value = "";
+    $("overlayPollSuggestion").classList.add("show");
+  });
+  $("sendPollSuggestionBtn").addEventListener("click", sendPollSuggestion);
+  $("closePollSuggestion").addEventListener("click", () => {
+    $("overlayPollSuggestion").classList.remove("show");
+  });
 
   $("ownerCodeRewardAuraBtn").addEventListener("click", () => {
     ownerSelectedCodeReward = "aura";
@@ -8338,6 +8688,7 @@
       renderOwnerRegistrationNotifications();
       renderOwnerCodeStatus();
       renderOwnerFeedback();
+      renderPollSuggestions();
     }
 
     if(currentUser){
@@ -8747,6 +9098,11 @@
         updateNoticeUnsubscribe();
         updateNoticeUnsubscribe = null;
       }
+      if(livePollUnsubscribe){
+        livePollUnsubscribe();
+        livePollUnsubscribe = null;
+      }
+      hideLivePoll();
       leaveDuelLobbyLocally();
       if(unreadMessageUnsubscribe){
         unreadMessageUnsubscribe();
@@ -8874,6 +9230,7 @@
             watchAuraDonations();
             initFcmAndSaveToken();
             watchLiveUpdateNotice();
+            watchLivePoll();
           } else {
             cloudSyncReady = true;
             // Nur EINMAL versuchen, das Dokument anzulegen - nicht bei jedem

@@ -1867,19 +1867,19 @@
       </div>
     </div>
 
+    <div class="shop-category-menu" style="display:flex; gap:8px; overflow-x:auto; padding:12px 20px 10px; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
+      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionItems" style="flex-shrink:0;">🧊 Items</button>
+      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionThemes" style="flex-shrink:0;">🎨 Designs</button>
+      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionFrames" style="flex-shrink:0;">🖼️ Rahmen</button>
+      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionFonts" style="flex-shrink:0;">🔤 Schriften</button>
+    </div>
+
     <div class="shop-header">
       <h2>🛒 Aura-Shop</h2>
       <div class="shop-aura-badge">
         <span>⚡</span>
         <span id="shopAuraVal">0</span> Aura
       </div>
-    </div>
-
-    <div class="shop-category-menu" style="display:flex; gap:8px; overflow-x:auto; padding:2px 20px 10px; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
-      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionItems" style="flex-shrink:0;">🧊 Items</button>
-      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionThemes" style="flex-shrink:0;">🎨 Designs</button>
-      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionFrames" style="flex-shrink:0;">🖼️ Rahmen</button>
-      <button class="btn btn-ghost btn-small shop-cat-btn" data-target="shopSectionFonts" style="flex-shrink:0;">🔤 Schriften</button>
     </div>
 
     <div class="referral-banner">
@@ -8447,11 +8447,25 @@
     try{
       const doc = await db().collection("users").doc(ownerEditingUid).get();
       const inventory = (doc.exists && doc.data().inventory) ? doc.data().inventory : {};
+      const newDoubleAuraUntil = Date.now() + 15 * 60 * 1000;
       await db().collection("users").doc(ownerEditingUid).set({
-        inventory: { ...inventory, doubleAuraUntil: Date.now() + 15 * 60 * 1000 },
+        inventory: { ...inventory, doubleAuraUntil: newDoubleAuraUntil },
         lastLocalSaveAt: Date.now()
       }, { merge: true });
       showToast("✨ Aura-Booster verliehen!");
+      // Verleiht sich der Owner den Booster selbst, kommt das nicht
+      // zuverlässig über den normalen Geräte-Abgleich zurück (derselbe
+      // Grund, warum ownerSaveChanges() beim eigenen Account den lokalen
+      // Stand direkt mit aktualisiert) - deshalb hier genauso direkt lokal
+      // setzen und die Animation sofort abspielen, statt auf den
+      // Rundlauf über Firestore zu warten.
+      if(currentUser && ownerEditingUid === currentUser.uid){
+        profile.inventory = profile.inventory || {};
+        profile.inventory.doubleAuraUntil = newDoubleAuraUntil;
+        lastWrittenProfileJSON = JSON.stringify(profile);
+        saveProfile();
+        playAuraBoosterAnimation(15);
+      }
     }catch(err){
       showToast("Fehlgeschlagen.");
       console.error(err);
@@ -8642,11 +8656,19 @@
     try{
       const doc = await db().collection("users").doc(modEditingUid).get();
       const inventory = (doc.exists && doc.data().inventory) ? doc.data().inventory : {};
+      const newDoubleAuraUntil = Date.now() + 15 * 60 * 1000;
       await db().collection("users").doc(modEditingUid).set({
-        inventory: { ...inventory, doubleAuraUntil: Date.now() + 15 * 60 * 1000 },
+        inventory: { ...inventory, doubleAuraUntil: newDoubleAuraUntil },
         lastLocalSaveAt: Date.now()
       }, { merge: true });
       showToast("✨ Aura-Booster verliehen!");
+      if(currentUser && modEditingUid === currentUser.uid){
+        profile.inventory = profile.inventory || {};
+        profile.inventory.doubleAuraUntil = newDoubleAuraUntil;
+        lastWrittenProfileJSON = JSON.stringify(profile);
+        saveProfile();
+        playAuraBoosterAnimation(15);
+      }
     }catch(err){
       showToast("Fehlgeschlagen.");
       console.error(err);

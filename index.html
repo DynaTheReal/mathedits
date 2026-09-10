@@ -1974,12 +1974,73 @@
     <button class="btn btn-primary" id="duelResultsHomeBtn" style="display:none;">Zurück zum Home</button>
   </section>
 
+  <!-- ============ MOD-PANEL (NEU) - eingeschränkte Owner-Ansicht für ernannte Mods ============ -->
+  <section class="screen" id="screen-modpanel">
+    <div class="topbar">
+      <div class="exit-x" id="modPanelBack">←</div>
+      <div class="settings-title">Mod-Panel</div>
+      <div></div>
+    </div>
+    <div class="shop-header">
+      <h2>🛡️ Mod-Panel</h2>
+      <div class="d" style="font-size:12px; opacity:.75;">Jede Aktion hier braucht das Admin-Aktions-Passwort des Owners.</div>
+    </div>
+
+    <div style="padding:0 20px;">
+      <div class="d" style="margin-bottom:4px;">Benutzername suchen</div>
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <input type="text" id="modSearchInput" class="input-field" placeholder="Benutzername" style="flex:1;">
+        <button class="btn btn-primary btn-small" id="modSearchBtn">Suchen</button>
+      </div>
+
+      <div id="modEditPanel" style="display:none; margin-top:6px;">
+        <div class="d" id="modTargetLabel" style="margin-bottom:10px; font-weight:700;"></div>
+        <div class="d" style="margin-bottom:4px;">Aura</div>
+        <input type="number" id="modAuraInput" class="input-field">
+        <div class="d" style="margin-bottom:4px; margin-top:10px;">Level</div>
+        <input type="number" id="modLevelInput" class="input-field">
+        <button class="btn btn-primary" id="modSaveBtn" style="margin-top:14px; width:100%;">Änderungen speichern</button>
+
+        <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:12px; padding:10px; margin-top:16px;">
+          <div class="d" style="font-weight:800; margin-bottom:8px; color:#ef4444;">🚫 Konto sperren</div>
+          <div id="modBanStatus" class="d" style="margin-bottom:8px;">Aktuell nicht gesperrt.</div>
+          <select id="modBanDurationSelect" class="input-field" style="margin-bottom:8px;">
+            <option value="1">1 Tag</option>
+            <option value="3">3 Tage</option>
+            <option value="7">7 Tage</option>
+            <option value="30">30 Tage</option>
+            <option value="forever">Für immer</option>
+          </select>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary btn-small" id="modBanBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Sperren</button>
+            <button class="btn btn-ghost btn-small" id="modUnbanBtn" style="flex:1;">Entsperren</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-ghost" id="modRemoveSelfBtn" style="width:100%; margin-top:24px; border-color:#ff4d6d; color:#ff4d6d;">🚪 Meine Mod-Rolle selbst entfernen</button>
+    </div>
+  </section>
+
+  <!-- Mod-Panel: Admin-Aktions-Passwort abfragen (NEU) -->
+  <div class="overlay" id="overlayModPasswordConfirm">
+    <div class="modal-card" style="max-width:320px;">
+      <div style="font-size:36px; margin-bottom:6px;">🔐</div>
+      <h2>Admin-Aktions-Passwort</h2>
+      <p>Für diese Aktion braucht es das Admin-Passwort des Owners.</p>
+      <input type="password" id="modPasswordConfirmInput" class="input-field" placeholder="Admin-Aktions-Passwort" style="margin-bottom:12px;">
+      <button class="btn btn-primary" id="modPasswordConfirmBtn">Bestätigen</button>
+      <button class="btn btn-ghost" id="modPasswordConfirmCancelBtn" style="margin-top:10px;">Abbrechen</button>
+    </div>
+  </div>
+
   <!-- ============ SETTINGS ============ -->
   <section class="screen" id="screen-settings">
     <div class="topbar">
       <div class="exit-x" id="settingsBack">←</div>
       <div class="settings-title">Einstellungen</div>
       <div style="display:flex; gap:8px;">
+        <div class="exit-x" id="modPanelBtn" title="Mod-Panel" style="display:none;">🛡️</div>
         <div class="exit-x" id="feedbackBtn" title="Feedback geben" style="font-family:'Baloo 2',sans-serif; font-weight:900;">!</div>
         <div class="exit-x" id="redeemCodeBtn" title="Code einlösen" style="font-family:'Baloo 2',sans-serif; font-weight:900;">C</div>
       </div>
@@ -2092,8 +2153,24 @@
           </div>
         </div>
 
+        <div style="background:rgba(250,204,21,.1); border:1.5px solid #facc15; border-radius:12px; padding:10px; margin-top:14px;">
+          <div class="d" style="font-weight:800; margin-bottom:8px; color:#facc15;">🛡️ Mod-Rolle</div>
+          <div id="ownerModStatus" class="d" style="margin-bottom:8px;">Aktuell kein Mod.</div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary btn-small" id="ownerMakeModBtn" style="flex:1; background:#facc15; color:#000; border-color:#facc15;">Zum Mod ernennen</button>
+            <button class="btn btn-ghost btn-small" id="ownerRemoveModBtn" style="flex:1;">Mod entfernen</button>
+          </div>
+        </div>
+
         <button class="btn btn-primary" id="ownerSaveBtn" style="margin-top:16px;">Änderungen speichern</button>
       </div>
+    </div>
+
+    <div style="background:rgba(250,204,21,.1); border:1.5px solid #facc15; border-radius:14px; padding:12px; margin:0 20px 16px;" id="ownerAdminPassBox">
+      <div style="font-weight:800; margin-bottom:8px; color:#facc15;">🔐 Admin-Aktions-Passwort</div>
+      <div class="d" style="margin-bottom:8px; font-size:11.5px;">Dieses Passwort müssen Mods bei JEDER Aktion im Mod-Panel eingeben - getrennt von deinem eigenen Login-Passwort.</div>
+      <input type="password" id="adminActionPasswordInput" class="input-field" placeholder="Neues Admin-Aktions-Passwort" style="margin-bottom:8px;">
+      <button class="btn btn-primary btn-small" id="saveAdminActionPasswordBtn" style="width:100%;">Speichern</button>
     </div>
 
     <div class="settings-row">
@@ -2150,6 +2227,9 @@
         <button class="btn btn-primary btn-small" id="loginBtn">Einloggen</button>
         <button class="btn btn-ghost btn-small" id="registerBtn">Registrieren</button>
         <button class="btn btn-ghost btn-small" id="logoutBtn" style="display:none;">Ausloggen</button>
+      </div>
+      <div style="text-align:center; margin-top:8px;">
+        <span id="emailLoginToggle" style="font-size:11.5px; color:var(--text-dim); text-decoration:underline; cursor:pointer;">Alter Account mit echter E-Mail? Hier mit E-Mail einloggen</span>
       </div>
     </div>
 
@@ -2780,6 +2860,10 @@
       profile.username.toLowerCase() === OWNER_USERNAME.toLowerCase());
   }
 
+  function isMod(){
+    return !!profile.isMod && !isOwner();
+  }
+
   /* ========================================================
      FIREBASE INITIALISIERUNG
   ======================================================== */
@@ -2920,6 +3004,7 @@
     hasReceivedInstallChest: false, // ob die Truhe fürs Hinzufügen zum Home-Bildschirm schon vergeben wurde
     installChest: null, // Truhe fürs Hinzufügen zum Home-Bildschirm
     lastLocalSaveAt: 0, // Zeitstempel des letzten lokalen Speicherns - entscheidet bei Aura, welche Seite beim Abgleich gewinnt
+    isMod: false, // vom Owner ernannte Mod-Rolle mit eingeschränktem Zugriff aufs Owner-Panel
     dismissedFeedbackIds: [], // nur für den Owner relevant: einzeln weggeklicktes Feedback
     lastSeenFeedbackAt: 0, // nur für den Owner relevant: bis wann Feedback schon gesehen wurde
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
@@ -4478,6 +4563,7 @@
   function renderLeaderboardRows(entries, meUid){
     const list = $("leaderboardList");
     list.innerHTML = "";
+    const ownerMode = isOwner();
     entries.forEach((e, i) => {
       const row = document.createElement("div");
       const ambientClass = e.activeFont === "glow" ? " lb-row-glow" : (e.activeFont === "pinkglow" ? " lb-row-pinkglow" : "");
@@ -4487,10 +4573,34 @@
       const avatarHtml = e.avatarData
         ? `<img src="${e.avatarData}" class="lb-avatar-img">`
         : `<div class="lb-avatar-placeholder">👤</div>`;
-      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-avatar">${avatarHtml}</div><div class="lb-name ${fontClass}">${isOnline(e) ? '<span class="online-dot"></span>' : ""}@${e.username || "?"}</div><div class="lb-aura">🎯 Lvl ${e.level}</div>`;
-      row.addEventListener("click", () => openFriendProfile(e.uid));
+      const deleteBtnHtml = ownerMode
+        ? `<button class="lb-owner-delete-btn" data-uid="${e.uid}" data-name="${e.username || "?"}" style="background:none; border:none; color:#ff4d6d; font-size:16px; padding:4px 8px; cursor:pointer;" title="Aus der Rangliste entfernen (Owner)">🗑️</button>`
+        : "";
+      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-avatar">${avatarHtml}</div><div class="lb-name ${fontClass}">${isOnline(e) ? '<span class="online-dot"></span>' : ""}@${e.username || "?"}</div><div class="lb-aura">🎯 Lvl ${e.level}</div>${deleteBtnHtml}`;
+      row.addEventListener("click", (ev) => {
+        if(ev.target.closest(".lb-owner-delete-btn")) return;
+        openFriendProfile(e.uid);
+      });
       list.appendChild(row);
     });
+    if(ownerMode){
+      list.querySelectorAll(".lb-owner-delete-btn").forEach(btn => {
+        btn.addEventListener("click", async (ev) => {
+          ev.stopPropagation();
+          const uid = btn.dataset.uid;
+          const uname = btn.dataset.name;
+          if(!confirm(`@${uname} unwiderruflich aus der Rangliste löschen (Account-Daten werden gelöscht)?`)) return;
+          try{
+            await db().collection("users").doc(uid).delete();
+            showToast(`🗑️ @${uname} gelöscht.`);
+            renderLeaderboard();
+          }catch(err){
+            showToast("Löschen fehlgeschlagen.");
+            console.error("Rangliste-Eintrag löschen Fehler:", err);
+          }
+        });
+      });
+    }
   }
 
   async function renderFriendsLeaderboard(){
@@ -6519,7 +6629,8 @@
     home: $("screen-home"), shop: $("screen-shop"), locked: $("screen-locked"), 
     lesson: $("screen-lesson"), result: $("screen-result"), settings: $("screen-settings"),
     profile: $("screen-profile"), leaderboard: $("screen-leaderboard"), missions: $("screen-missions"),
-    trends: $("screen-trends"), duellobby: $("screen-duellobby"), duelresults: $("screen-duelresults")
+    trends: $("screen-trends"), duellobby: $("screen-duellobby"), duelresults: $("screen-duelresults"),
+    modpanel: $("screen-modpanel")
   };
   const NAV_SCREENS = ["home", "shop", "leaderboard", "missions", "profile", "trends"];
 
@@ -7245,6 +7356,7 @@
       } else {
         $("ownerBanStatus").textContent = "Aktuell nicht gesperrt.";
       }
+      $("ownerModStatus").textContent = data.isMod ? "🛡️ Ist aktuell Mod." : "Aktuell kein Mod.";
 
       const unlockedThemes = data.unlockedThemes || ["black"];
       const box = $("ownerThemeCheckboxes");
@@ -7440,12 +7552,211 @@
     }
   }
 
+  // Mod-Rolle (NEU): der Owner ernennt/entfernt über das schon offene
+  // Such-Panel. Mods sehen dann im eigenen Profil einen kleinen
+  // Schild-Knopf in den Einstellungen, der zu einem eingeschränkten
+  // Mod-Panel führt (jede Aktion dort braucht zusätzlich das separate
+  // Admin-Aktions-Passwort, siehe unten).
+  async function ownerMakeMod(){
+    if(!ownerEditingUid || !isOwner()) return;
+    try{
+      await db().collection("users").doc(ownerEditingUid).set({ isMod: true }, { merge: true });
+      $("ownerModStatus").textContent = "🛡️ Ist aktuell Mod.";
+      showToast("🛡️ Zum Mod ernannt.");
+    }catch(err){
+      showToast("Fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+  async function ownerRemoveModOfTarget(){
+    if(!ownerEditingUid || !isOwner()) return;
+    try{
+      await db().collection("users").doc(ownerEditingUid).set({ isMod: false }, { merge: true });
+      $("ownerModStatus").textContent = "Aktuell kein Mod.";
+      showToast("Mod-Rolle entfernt.");
+    }catch(err){
+      showToast("Fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  async function saveAdminActionPassword(){
+    if(!isOwner()) return;
+    const pass = $("adminActionPasswordInput").value;
+    if(!pass || pass.length < 4){
+      return alert("Bitte mindestens 4 Zeichen eingeben.");
+    }
+    try{
+      await db().collection("adminSettings").doc("current").set({ actionPassword: pass }, { merge: true });
+      $("adminActionPasswordInput").value = "";
+      showToast("🔐 Admin-Aktions-Passwort gespeichert.");
+    }catch(err){
+      showToast("Speichern fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  /* ========================================================
+     MOD-PANEL (NEU): eingeschränkte Owner-Ansicht für ernannte Mods.
+     JEDE Aktion (Speichern, Sperren, Entsperren) verlangt zusätzlich das
+     separate Admin-Aktions-Passwort - getrennt vom eigenen Login des Mods
+     und vom Login-Passwort des Owners.
+  ======================================================== */
+  let modEditingUid = null;
+
+  function requestModPasswordConfirm(){
+    return new Promise((resolve) => {
+      $("modPasswordConfirmInput").value = "";
+      $("overlayModPasswordConfirm").classList.add("show");
+      function cleanup(){
+        $("overlayModPasswordConfirm").classList.remove("show");
+        $("modPasswordConfirmBtn").removeEventListener("click", onConfirm);
+        $("modPasswordConfirmCancelBtn").removeEventListener("click", onCancel);
+      }
+      async function onConfirm(){
+        const entered = $("modPasswordConfirmInput").value;
+        cleanup();
+        try{
+          const doc = await db().collection("adminSettings").doc("current").get();
+          const stored = doc.exists ? doc.data().actionPassword : null;
+          if(stored && entered === stored){
+            resolve(true);
+          } else {
+            showToast("❌ Falsches Admin-Passwort.");
+            resolve(false);
+          }
+        }catch(err){
+          showToast("Passwort konnte nicht geprüft werden.");
+          console.error(err);
+          resolve(false);
+        }
+      }
+      function onCancel(){ cleanup(); resolve(false); }
+      $("modPasswordConfirmBtn").addEventListener("click", onConfirm);
+      $("modPasswordConfirmCancelBtn").addEventListener("click", onCancel);
+    });
+  }
+
+  async function modSearchUser(){
+    if(!firebaseInitialized || !currentUser) return;
+    const uname = normalizeUsername($("modSearchInput").value);
+    if(!uname) return;
+    try{
+      const unameDoc = await db().collection("usernames").doc(uname).get();
+      if(!unameDoc.exists){ showToast("Benutzername nicht gefunden."); return; }
+      const targetUid = unameDoc.data().uid;
+      const userDoc = await db().collection("users").doc(targetUid).get();
+      if(!userDoc.exists){ showToast("Keine Nutzerdaten gefunden."); return; }
+      const data = userDoc.data();
+      modEditingUid = targetUid;
+      $("modTargetLabel").textContent = "@" + (data.username || uname);
+      $("modAuraInput").value = data.totalAura || 0;
+      $("modLevelInput").value = data.level || 1;
+      if(data.banned && (data.bannedUntil === null || data.bannedUntil > Date.now())){
+        $("modBanStatus").textContent = data.bannedUntil === null
+          ? "🚫 Aktuell für immer gesperrt."
+          : `🚫 Aktuell gesperrt bis ${new Date(data.bannedUntil).toLocaleString("de-DE")}.`;
+      } else {
+        $("modBanStatus").textContent = "Aktuell nicht gesperrt.";
+      }
+      $("modEditPanel").style.display = "block";
+    }catch(err){
+      showToast("Suche fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  async function modSaveChanges(){
+    if(!modEditingUid) return;
+    const ok = await requestModPasswordConfirm();
+    if(!ok) return;
+    const newAura = parseInt($("modAuraInput").value, 10) || 0;
+    const newLevel = Math.max(1, parseInt($("modLevelInput").value, 10) || 1);
+    try{
+      await db().collection("users").doc(modEditingUid).set({
+        totalAura: newAura, level: newLevel, levelProgress: 0
+      }, { merge: true });
+      showToast("✅ Änderungen gespeichert!");
+    }catch(err){
+      showToast("Speichern fehlgeschlagen - Firestore-Regeln geändert?");
+      console.error(err);
+    }
+  }
+
+  async function modBanUser(){
+    if(!modEditingUid) return;
+    const ok = await requestModPasswordConfirm();
+    if(!ok) return;
+    const duration = $("modBanDurationSelect").value;
+    const bannedUntil = duration === "forever" ? null : (Date.now() + parseInt(duration, 10) * 24 * 60 * 60 * 1000);
+    try{
+      await db().collection("users").doc(modEditingUid).set({ banned: true, bannedUntil }, { merge: true });
+      $("modBanStatus").textContent = bannedUntil === null
+        ? "🚫 Aktuell für immer gesperrt."
+        : `🚫 Aktuell gesperrt bis ${new Date(bannedUntil).toLocaleString("de-DE")}.`;
+      showToast("🚫 Konto gesperrt.");
+    }catch(err){
+      showToast("Sperren fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  async function modUnbanUser(){
+    if(!modEditingUid) return;
+    const ok = await requestModPasswordConfirm();
+    if(!ok) return;
+    try{
+      await db().collection("users").doc(modEditingUid).set({ banned: false, bannedUntil: null }, { merge: true });
+      $("modBanStatus").textContent = "Aktuell nicht gesperrt.";
+      showToast("✅ Konto entsperrt.");
+    }catch(err){
+      showToast("Entsperren fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  // Mod-Rolle selbst entfernen (NEU): braucht KEIN Admin-Passwort, da es
+  // nur die eigene Rolle betrifft und keine fremden Daten ändert.
+  async function modRemoveSelf(){
+    if(!currentUser) return;
+    if(!confirm("Deine Mod-Rolle wirklich selbst entfernen?")) return;
+    try{
+      await db().collection("users").doc(currentUser.uid).set({ isMod: false }, { merge: true });
+      profile.isMod = false;
+      saveProfile();
+      showToast("Mod-Rolle entfernt.");
+      showScreen("settings");
+      renderSettings();
+    }catch(err){
+      showToast("Fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
   $("ownerSearchBtn").addEventListener("click", ownerSearchUser);
   $("ownerSaveBtn").addEventListener("click", ownerSaveChanges);
   $("ownerBanBtn").addEventListener("click", ownerBanUser);
   $("ownerUnbanBtn").addEventListener("click", ownerUnbanUser);
   $("siteStopBtn").addEventListener("click", ownerStopSite);
   $("siteResumeBtn").addEventListener("click", ownerResumeSite);
+  $("ownerMakeModBtn").addEventListener("click", ownerMakeMod);
+  $("ownerRemoveModBtn").addEventListener("click", ownerRemoveModOfTarget);
+  $("saveAdminActionPasswordBtn").addEventListener("click", saveAdminActionPassword);
+
+  $("modPanelBtn").addEventListener("click", () => {
+    $("modEditPanel").style.display = "none";
+    $("modSearchInput").value = "";
+    showScreen("modpanel");
+  });
+  $("modPanelBack").addEventListener("click", () => {
+    showScreen("settings");
+    renderSettings();
+  });
+  $("modSearchBtn").addEventListener("click", modSearchUser);
+  $("modSaveBtn").addEventListener("click", modSaveChanges);
+  $("modBanBtn").addEventListener("click", modBanUser);
+  $("modUnbanBtn").addEventListener("click", modUnbanUser);
+  $("modRemoveSelfBtn").addEventListener("click", modRemoveSelf);
   $("ownerSendBroadcastBtn").addEventListener("click", () => {
     const input = $("ownerBroadcastInput");
     sendOwnerBroadcast(input.value);
@@ -7583,6 +7894,7 @@
     }
 
     $("ownerPanelRow").style.display = isOwner() ? "flex" : "none";
+    $("modPanelBtn").style.display = isMod() ? "block" : "none";
     $("ownerResetOwnPasswordBtn").style.display = isOwner() ? "block" : "none";
     $("ownerResetPasswordHint").style.display = isOwner() ? "block" : "none";
     if(isOwner()){
@@ -8161,12 +8473,36 @@
     return err && err.message ? err.message : "Unbekannter Fehler.";
   }
 
+  let useEmailLoginMode = false;
+  $("emailLoginToggle").addEventListener("click", () => {
+    useEmailLoginMode = !useEmailLoginMode;
+    $("authUsername").placeholder = useEmailLoginMode ? "E-Mail-Adresse" : "Benutzername";
+    $("authUsername").type = useEmailLoginMode ? "email" : "text";
+    $("emailLoginToggle").textContent = useEmailLoginMode
+      ? "Zurück zum normalen Benutzername-Login"
+      : "Alter Account mit echter E-Mail? Hier mit E-Mail einloggen";
+  });
+
   $("loginBtn").addEventListener("click", () => {
     if(!firebaseInitialized) return showToast("Firebase API Key nicht konfiguriert");
-    const uname = normalizeUsername($("authUsername").value);
     const pass = $("authPassword").value;
-    if(!isValidUsername(uname)){
-      return alert("Bitte gib deinen Benutzernamen ein.");
+    let emailToUse;
+    if(useEmailLoginMode){
+      // Für alte Accounts, die noch ihre ursprüngliche echte E-Mail nutzen
+      // (von vor der Umstellung auf reines Benutzername-Login) - hier wird
+      // NICHT in eine künstliche @mathedits.app-Adresse umgewandelt,
+      // sondern die eingegebene E-Mail direkt verwendet.
+      const rawEmail = $("authUsername").value.trim();
+      if(!rawEmail || !rawEmail.includes("@")){
+        return alert("Bitte gib deine vollständige E-Mail-Adresse ein.");
+      }
+      emailToUse = rawEmail;
+    } else {
+      const uname = normalizeUsername($("authUsername").value);
+      if(!isValidUsername(uname)){
+        return alert("Bitte gib deinen Benutzernamen ein.");
+      }
+      emailToUse = usernameToSyntheticEmail(uname);
     }
     // Vor dem eigentlichen Login wird zuerst eine eventuell noch im
     // Hintergrund hängende, abgelaufene Sitzung sauber beendet - das war
@@ -8174,7 +8510,7 @@
     // expired"-Fehler beim Einloggen (ein Rest einer alten Sitzung, der mit
     // dem neuen Login-Versuch kollidiert ist).
     firebase.auth().signOut().catch(() => {}).then(() => {
-      return firebase.auth().signInWithEmailAndPassword(usernameToSyntheticEmail(uname), pass);
+      return firebase.auth().signInWithEmailAndPassword(emailToUse, pass);
     }).then(() => showToast("Erfolgreich eingeloggt!"))
       .catch((err) => alert(friendlyAuthError(err)));
   });

@@ -7580,6 +7580,8 @@
     }
   }
 
+  let duelLobbyFinishedId = null; // merkt sich, für welche Lobby man die eigenen Fragen schon fertig hat - verhindert einen Neustart der Lektion, während man auf die anderen wartet
+
   function watchDuelLobby(lobbyId){
     if(duelLobbyUnsubscribe){ duelLobbyUnsubscribe(); duelLobbyUnsubscribe = null; }
     duelLobbyUnsubscribe = db().collection("duelLobbies").doc(lobbyId).onSnapshot((doc) => {
@@ -7594,12 +7596,18 @@
       if(data.status === "waiting"){
         renderDuelLobbyMembers(data);
       } else if(data.status === "active"){
-        if(!lesson || !lesson.isDuelLobby || lesson.duelLobbyId !== lobbyId){
+        if(duelLobbyFinishedId === lobbyId){
+          // Eigene Fragen schon fertig - nur noch auf die anderen warten,
+          // NICHT nochmal von vorne starten (auch wenn der Status wegen
+          // des eigenen Ergebnis-Eintrags erneut "active" meldet).
+          renderDuelOpponentProgress(data);
+        } else if(!lesson || !lesson.isDuelLobby || lesson.duelLobbyId !== lobbyId){
           beginDuelLobbyLesson(data, lobbyId);
         } else {
           renderDuelOpponentProgress(data);
         }
       } else if(data.status === "finished"){
+        duelLobbyFinishedId = null;
         renderDuelResultsScreen(data);
       }
     }, (err) => console.error("Duell-Lobby beobachten Fehler:", err));
@@ -7787,6 +7795,7 @@
   }
 
   function beginDuelLobbyLesson(data, lobbyId){
+    duelLobbyFinishedId = null;
     lesson = {
       tier: { name: "⚔️ Duell-Lobby", timeMs: data.timeMs || 9000, normalAura: 2, editAura: 4 },
       isMainProgression: false,
@@ -7807,6 +7816,7 @@
 
   async function finishDuelLobbyLesson(){
     const lobbyId = lesson.duelLobbyId;
+    duelLobbyFinishedId = lobbyId;
     const timeMs = performance.now() - (lesson.startedAt || performance.now());
     const correctCount = lesson.correct;
     profile.lastLessonAt = Date.now();
@@ -7908,6 +7918,7 @@
     if(duelLobbyUnsubscribe){ duelLobbyUnsubscribe(); duelLobbyUnsubscribe = null; }
     activeDuelLobbyId = null;
     isDuelLobbyHost = false;
+    duelLobbyFinishedId = null;
   }
 
   /* ========================================================

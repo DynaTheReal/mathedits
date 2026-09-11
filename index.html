@@ -1613,17 +1613,22 @@
     text-shadow: 0 0 8px rgba(168,85,247,.8), 0 0 16px rgba(168,85,247,.4);
     display:inline-block;
     position:relative;
-    animation: fontGlitchTeleport .6s steps(1) infinite;
+    animation: fontGlitchTeleport .28s steps(1) infinite;
   }
-  /* "Teleportiert" statt sich sanft zu bewegen - steps(1) sorgt dafür,
-     dass jeder Sprung sofort passiert statt sanft dorthin zu gleiten. */
+  /* "Teleportiert" staendig und schnell, statt sich sanft zu bewegen oder
+     rhythmisch zu pulsieren - steps(1) sorgt dafür, dass jeder Sprung
+     sofort passiert statt sanft dorthin zu gleiten, und die Sprünge sind
+     über den GANZEN Zyklus verteilt statt nur am Ende gebündelt. */
   @keyframes fontGlitchTeleport{
-    0%, 82%{ transform:translate(0,0); }
-    85%{ transform:translate(-3px,2px); }
-    88%{ transform:translate(2px,-2px); }
-    91%{ transform:translate(-2px,-1px); }
-    94%{ transform:translate(1px,2px); }
-    97%, 100%{ transform:translate(0,0); }
+    0%{ transform:translate(0,0); }
+    12%{ transform:translate(-3px,2px); }
+    24%{ transform:translate(2px,-3px); }
+    36%{ transform:translate(-2px,-1px); }
+    48%{ transform:translate(3px,1px); }
+    60%{ transform:translate(-1px,3px); }
+    72%{ transform:translate(2px,2px); }
+    84%{ transform:translate(-3px,-2px); }
+    100%{ transform:translate(0,0); }
   }
   /* Schwarze Partikel um die Zeile in der Rangliste, wenn die Person die
      Glitch-Schrift trägt - analog zu den Glow-/Pink-Glow-Partikeln. */
@@ -1825,7 +1830,7 @@
       </div>
     </div>
 
-    <div class="shop-category-menu" style="display:flex; gap:10px; overflow-x:auto; overflow-y:hidden; overscroll-behavior:contain; touch-action:pan-x; padding:16px 20px 16px; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
+    <div class="shop-category-menu" style="display:flex; align-items:center; gap:10px; overflow-x:auto; overflow-y:hidden; overscroll-behavior:contain; touch-action:pan-x; padding:18px 20px; min-height:62px; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
       <button class="btn btn-ghost shop-cat-btn" data-target="shopSectionItems" style="flex-shrink:0; width:auto; padding:16px 24px; font-size:16px;">🧊 Items</button>
       <button class="btn btn-ghost shop-cat-btn" data-target="shopSectionThemes" style="flex-shrink:0; width:auto; padding:16px 24px; font-size:16px;">🎨 Designs</button>
       <button class="btn btn-ghost shop-cat-btn" data-target="shopSectionFrames" style="flex-shrink:0; width:auto; padding:16px 24px; font-size:16px;">🖼️ Rahmen</button>
@@ -2233,13 +2238,17 @@
 
     <div class="shop-header">
       <h2>📈 Trends</h2>
-      <div style="font-size:12px; opacity:.75;">Wie gut du das kleine Einmaleins pro Zahl kannst</div>
+      <div style="font-size:12px; opacity:.75;" id="trendsSubtitle">Wie gut du das kleine Einmaleins pro Zahl kannst</div>
     </div>
 
-    <button class="btn btn-primary" id="startWeakTasksBtn" style="width:100%; padding:15px; margin-bottom:6px;">💪 Schwierige Aufgaben starten</button>
+    <div class="levels-heading">Stufe wählen · nach rechts wischen</div>
+    <div class="tier-carousel" id="trendsTierCarousel"></div>
+
+    <button class="btn btn-primary" id="startWeakTasksBtn" style="width:100%; padding:15px; margin-bottom:6px; margin-top:6px;">💪 Schwierige Aufgaben starten</button>
     <div class="d" style="text-align:center; margin-bottom:18px;">Die Aufgaben, mit denen du am meisten struggelst - gibt Aura, kostet aber kein Level und keine Leben.</div>
 
     <div class="times-table-grid" id="trendsGrid" style="grid-template-columns:repeat(6,1fr); gap:7px; margin-bottom:18px;"></div>
+    <div class="d" id="trendsPlaceholder" style="display:none; text-align:center; padding:30px 20px; opacity:.75;">Für diese Stufe werden noch keine Detail-Trends pro Zahl erfasst.</div>
 
     <div style="display:flex; gap:14px; align-items:center; justify-content:center; margin-bottom:18px; font-size:12px; opacity:.8;">
       <span>🔴 Schwach</span><span>🟡 Okay</span><span>🟢 Stark</span>
@@ -6111,10 +6120,67 @@
     return "trend-green";
   }
 
+  // Trends-Stufenauswahl (NEU): jede Stufe hat einen eigenen Zahlenbereich
+  // für die Reihen-Anzeige - nur Stufen mit echtem Einmaleins-Bezug haben
+  // hier einen Eintrag, alle anderen zeigen stattdessen einen Hinweistext.
+  const TREND_ROW_RANGES = {
+    kl_mult: { min: 1, max: 5 },
+    mult: { min: 1, max: 10 },
+    mult_m: { min: 1, max: 12 },
+    gr_mult: { min: 1, max: 20 },
+    blitz_m: { min: 1, max: 20 }
+  };
+  let trendsSelectedTierIndex = null;
+
+  function renderTrendsTierCarousel(){
+    const wrap = $("trendsTierCarousel");
+    if(!wrap) return;
+    const activeIdx = tierIndexForLevel(profile.level);
+    if(trendsSelectedTierIndex === null) trendsSelectedTierIndex = activeIdx;
+    wrap.innerHTML = "";
+    TIERS.forEach((tier, i) => {
+      const needsLevel = !isTierSelectable(i, activeIdx);
+      const manuallyUnlocked = (profile.manuallyUnlockedFreeTiers || []).includes(i);
+      const showsLocked = needsLevel || (i > activeIdx && !manuallyUnlocked);
+      const card = document.createElement("div");
+      card.className = "tier-card" + (i === trendsSelectedTierIndex ? " active" : "") + (showsLocked ? " locked" : "") + (i === activeIdx ? " tier-ranked" : "");
+      card.innerHTML = `
+        ${i === activeIdx ? '<span class="ranked-label">🌈 RANKED</span>' : ""}
+        ${showsLocked ? '<span class="lock">🔒</span>' : ""}
+        <span class="icon">${tier.icon}</span>
+        <span class="name">${tier.name}</span>
+        ${needsLevel ? `<span class="level-req">Lvl ${tier.from}</span>` : ""}
+      `;
+      card.addEventListener("click", () => {
+        if(showsLocked){
+          card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
+          showToast(needsLevel ? `Freigeschaltet ab Level ${tier.from}` : "Diese Stufe ist noch gesperrt.");
+          return;
+        }
+        trendsSelectedTierIndex = i;
+        renderTrendsTierCarousel();
+        renderTrends();
+      });
+      wrap.appendChild(card);
+    });
+  }
+
   function renderTrends(){
+    renderTrendsTierCarousel();
     const grid = $("trendsGrid");
+    const placeholder = $("trendsPlaceholder");
+    const tier = TIERS[trendsSelectedTierIndex];
+    $("trendsSubtitle").textContent = `Wie gut du "${tier.name}" pro Zahl kannst`;
+    const range = TREND_ROW_RANGES[tier.id];
+    if(!range){
+      grid.style.display = "none";
+      placeholder.style.display = "block";
+      return;
+    }
+    grid.style.display = "grid";
+    placeholder.style.display = "none";
     grid.innerHTML = "";
-    for(let n = 1; n <= 20; n++){
+    for(let n = range.min; n <= range.max; n++){
       const stat = (profile.factStats || {})[String(n)];
       const total = stat ? stat.correct + stat.wrong : 0;
       const acc = total > 0 ? Math.round((stat.correct / total) * 100) : null;

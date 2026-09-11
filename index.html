@@ -850,6 +850,11 @@
 
   /* ---------- Rangliste: Lade-Anzeige (NEU) ---------- */
   /* ---------- Trends: Logo-Punkt + Sprechblasen-Tipp (NEU) ---------- */
+  /* Mehr Abstand nach oben, damit die Stufen-Auswahl beim ersten Laden
+     nicht mit dem Bereich darüber überlappt. */
+  .trends-levels-heading{
+    margin-top:18px;
+  }
   /* Kleinere Stufen-Kästchen NUR im Trends-Tab (nicht global, damit das
      Home-Karussell unverändert bleibt) - macht mehr Platz für die
      Sprechblase darunter und beugt Überlappungen vor. */
@@ -2455,7 +2460,7 @@
       <div style="font-size:12px; opacity:.75;" id="trendsSubtitle">Wie gut du das kleine Einmaleins pro Zahl kannst</div>
     </div>
 
-    <div class="levels-heading">Stufe wählen · nach rechts wischen</div>
+    <div class="levels-heading trends-levels-heading">Stufe wählen · nach rechts wischen</div>
     <div class="tier-carousel" id="trendsTierCarousel"></div>
 
     <div class="trends-tip-row" id="trendsTipRow">
@@ -7334,19 +7339,54 @@
     try{
       audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
       if(audioCtx.state === "suspended") audioCtx.resume();
-      const notes = [523.25, 659.25, 783.99, 1046.50];
+      const t00 = audioCtx.currentTime;
+
+      // Weicher, tiefer "Thump" ganz am Anfang - gibt dem Sound etwas
+      // Gewicht/Punch, bevor die helle Melodie einsetzt.
+      const thump = audioCtx.createOscillator();
+      const thumpGain = audioCtx.createGain();
+      thump.type = "sine";
+      thump.frequency.setValueAtTime(180, t00);
+      thump.frequency.exponentialRampToValueAtTime(70, t00 + 0.12);
+      thumpGain.gain.setValueAtTime(0.0001, t00);
+      thumpGain.gain.exponentialRampToValueAtTime(0.22, t00 + 0.015);
+      thumpGain.gain.exponentialRampToValueAtTime(0.0001, t00 + 0.16);
+      thump.connect(thumpGain).connect(audioCtx.destination);
+      thump.start(t00);
+      thump.stop(t00 + 0.18);
+
+      // Helle Melodie: C-Dur-Add9-Akkord (C5, E5, G5, D6) statt der reinen
+      // Arpeggio-Oktave - klingt runder/moderner. Jeder Ton besteht aus
+      // einer sanften Sinus-Grundwelle PLUS einer leisen Oktave darüber für
+      // etwas Schimmer, statt der etwas "billig" klingenden Dreieckwelle.
+      const notes = [523.25, 659.25, 783.99, 1174.66];
       notes.forEach((freq, i) => {
-        const t0 = audioCtx.currentTime + i * 0.1;
+        const t0 = t00 + 0.08 + i * 0.095;
+        const dur = 0.5;
+
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.type = "triangle";
+        osc.type = "sine";
         osc.frequency.value = freq;
         gain.gain.setValueAtTime(0.0001, t0);
-        gain.gain.exponentialRampToValueAtTime(0.16, t0 + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.32);
+        gain.gain.exponentialRampToValueAtTime(0.17, t0 + 0.018);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
         osc.connect(gain).connect(audioCtx.destination);
         osc.start(t0);
-        osc.stop(t0 + 0.34);
+        osc.stop(t0 + dur + 0.02);
+
+        // Leiser Schimmer eine Oktave höher, etwas kürzer - macht den Ton
+        // heller/klarer statt platt, ohne aufdringlich zu wirken.
+        const shimmer = audioCtx.createOscillator();
+        const shimmerGain = audioCtx.createGain();
+        shimmer.type = "sine";
+        shimmer.frequency.value = freq * 2;
+        shimmerGain.gain.setValueAtTime(0.0001, t0);
+        shimmerGain.gain.exponentialRampToValueAtTime(0.05, t0 + 0.018);
+        shimmerGain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur * 0.6);
+        shimmer.connect(shimmerGain).connect(audioCtx.destination);
+        shimmer.start(t0);
+        shimmer.stop(t0 + dur * 0.6 + 0.02);
       });
     }catch(e){ }
   }
@@ -10518,6 +10558,7 @@
 
   function handleKeyPress(k){
     if(!lesson || lesson.locked) return;
+    triggerHaptic(10);
     if(k === "back"){
       lesson.answer = lesson.answer.slice(0,-1);
     } else if(k === "minus"){
@@ -11147,11 +11188,13 @@
     if(style === "simple"){
       $("introScreenSimple").style.display = "flex";
       $("introScreenMath").style.display = "none";
+      setTimeout(() => triggerHaptic(15), 1400); // leichtes Vibrieren, wenn der Punkt landet
       setTimeout(callback, 2850);
     } else {
       $("introScreenMath").style.display = "flex";
       $("introScreenSimple").style.display = "none";
       buildMathIntroParticles();
+      setTimeout(() => triggerHaptic(15), 1900); // leichtes Vibrieren beim Punkt-Bounce
       setTimeout(callback, 2650);
     }
   }

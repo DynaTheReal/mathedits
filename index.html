@@ -848,6 +848,18 @@
     font-size:17px; font-weight:700; margin-top:2px;
   }
 
+  /* ---------- Entwicklermodus: Debug-Beschriftungen (NEU) ---------- */
+  .dev-label-badge{
+    position:absolute; top:0; left:0; z-index:9000;
+    background:#ff004c; color:#fff; font-family:monospace; font-size:8.5px;
+    font-weight:700; padding:1px 4px; border-radius:0 0 6px 0;
+    pointer-events:none; white-space:nowrap; line-height:1.4;
+    box-shadow:0 1px 4px rgba(0,0,0,.4);
+  }
+  body.dev-mode-active [data-devlabeled]{
+    outline:1px dashed rgba(255,0,76,.5); outline-offset:-1px;
+  }
+
   /* ---------- Rangliste: Lade-Anzeige (NEU) ---------- */
   /* ---------- Trends: Logo-Punkt + Sprechblasen-Tipp (NEU) ---------- */
   /* Mehr Abstand nach oben, damit die Stufen-Auswahl beim ersten Laden
@@ -855,17 +867,9 @@
   .trends-levels-heading{
     margin-top:18px;
   }
-  /* Kleinere Stufen-Kästchen NUR im Trends-Tab (nicht global, damit das
-     Home-Karussell unverändert bleibt) - macht mehr Platz für die
-     Sprechblase darunter und beugt Überlappungen vor. */
-  #trendsTierCarousel .tier-card{
-    width:92px; padding:11px 6px 9px; gap:4px;
-  }
-  #trendsTierCarousel .tier-card .icon{ font-size:19px; }
-  #trendsTierCarousel .tier-card .name{ font-size:10px; }
 
   .trends-tip-row{
-    display:flex; align-items:center; gap:12px; margin:18px 0 10px;
+    display:flex; align-items:center; gap:12px; margin:30px 0 10px;
   }
   .trends-tip-dot{
     width:30px; height:30px; border-radius:50%; flex-shrink:0;
@@ -1353,7 +1357,7 @@
     margin-top:-40px;
   }
   .tier-carousel{
-    display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x proximity;
+    display:flex; gap:10px; overflow-x:auto; overflow-y:visible; scroll-snap-type:x proximity;
     padding:2px 2px clamp(4px,1.5vh,10px); margin:0 -2px;
     -webkit-overflow-scrolling:touch; scrollbar-width:none;
   }
@@ -2696,6 +2700,12 @@
         <div id="ownerFeedbackList" style="max-height:260px; overflow-y:auto;"></div>
       </div>
 
+      <div style="background:rgba(148,163,184,.1); border:1.5px solid #94a3b8; border-radius:14px; padding:12px; margin-bottom:16px;">
+        <div style="font-weight:800; margin-bottom:8px; color:#94a3b8;">🛠️ Entwicklermodus</div>
+        <div class="d" style="margin-bottom:8px;">Zeigt bei jedem Element eine kleine Beschriftung wie "trends_tier_carousel" - praktisch, um genau zu beschreiben, was gemeint ist.</div>
+        <button class="btn btn-primary btn-small" id="devModeToggleBtn" style="width:100%; background:#94a3b8; border-color:#94a3b8; color:#0a0a10;">Entwicklermodus umschalten</button>
+      </div>
+
       <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:14px; padding:12px; margin-bottom:16px;">
         <div style="font-weight:800; margin-bottom:8px; color:#ef4444;">🛑 Website Not-Stopp</div>
         <div class="d" id="siteStopStatus" style="margin-bottom:8px;">Aktuell nicht gestoppt.</div>
@@ -3640,6 +3650,7 @@
     referredBy: null,
     claimedReferralRewardIds: [], // welche referralRewards-Dokumente lokal schon gutgeschrieben wurden
     lastBrokenStreak: 0, // für die Streak-Reparatur im Shop
+    usedStreakRestoreViaInvite: false, // einmalige Streak-Rettung durch Freundes-Einladung - schon genutzt?
     unlockedFrames: ["none"],
     activeFrame: "none",
     unlockedFonts: ["none"],
@@ -3689,6 +3700,7 @@
     isMod: false, // vom Owner ernannte Mod-Rolle mit eingeschränktem Zugriff aufs Owner-Panel
     answeredPollIds: [], // verhindert mehrfaches Einschicken derselben Umfrage
     appIntroStyle: "math", // "math" (Standard) oder "simple" - welche Start-Animation beim App-Öffnen läuft
+    devModeEnabled: false, // Entwicklermodus: zeigt Debug-Beschriftungen an allen Elementen (nur Owner)
     dismissedFeedbackIds: [], // nur für den Owner relevant: einzeln weggeklicktes Feedback
     lastSeenFeedbackAt: 0, // nur für den Owner relevant: bis wann Feedback schon gesehen wurde
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
@@ -4623,8 +4635,22 @@
       profile.totalAura += totalCredit;
       profile.claimedReferralRewardIds = [...(profile.claimedReferralRewardIds || []), ...newIds];
       profile.weeklyReferralCount = (profile.weeklyReferralCount || 0) + newIds.length;
+
+      // Einmalige Streak-Rettung (NEU): wenn gerade ein Freund über die
+      // eigene Einladung beigetreten ist und der Streak zuvor verloren
+      // wurde, wird er einmalig automatisch wiederhergestellt - danach
+      // steht diese Möglichkeit nicht nochmal zur Verfügung.
+      let streakRestoredNote = "";
+      if(!profile.usedStreakRestoreViaInvite && profile.lastBrokenStreak > 0){
+        profile.streak = profile.lastBrokenStreak;
+        profile.lastStreakDate = yesterdayStr(); // heute noch eine Lektion machen setzt den Streak fort
+        profile.lastBrokenStreak = 0;
+        profile.usedStreakRestoreViaInvite = true;
+        streakRestoredNote = ` 🔥 Dein Streak wurde außerdem gerettet, weil dein Freund beigetreten ist!`;
+      }
+
       saveProfile();
-      showToast(`🎉 +${totalCredit} Aura durch Einladungen erhalten!`);
+      showToast(`🎉 +${totalCredit} Aura durch Einladungen erhalten!${streakRestoredNote}`);
       renderShop();
       renderHome();
     }catch(err){
@@ -6769,6 +6795,7 @@
     merged.duelsPlayed = Math.max(localP.duelsPlayed || 0, cloudP.duelsPlayed || 0);
     merged.duelsWon = Math.max(localP.duelsWon || 0, cloudP.duelsWon || 0);
     merged.lastBrokenStreak = Math.max(localP.lastBrokenStreak || 0, cloudP.lastBrokenStreak || 0);
+    merged.usedStreakRestoreViaInvite = !!(localP.usedStreakRestoreViaInvite || cloudP.usedStreakRestoreViaInvite);
     merged.lastLessonAt = Math.max(localP.lastLessonAt || 0, cloudP.lastLessonAt || 0) || null;
     merged.lastActiveAt = Math.max(localP.lastActiveAt || 0, cloudP.lastActiveAt || 0) || null;
     merged.friendUsernameCache = { ...(cloudP.friendUsernameCache || {}), ...(localP.friendUsernameCache || {}) };
@@ -7325,6 +7352,74 @@
      Vibration API unterstützen (vor allem Android) - auf iOS Safari z.B.
      einfach wirkungslos, aber ohne Fehler.
   ======================================================== */
+  /* ========================================================
+     ENTWICKLERMODUS (NEU): zeigt bei jedem Element mit einer ID ein
+     kleines Beschriftungs-Badge (z.B. "trends_tier_carousel") - hilft beim
+     genauen Beschreiben, welcher Teil der App gemeint ist. Nur für den
+     Owner sichtbar/umschaltbar, wirkt sich aber rein optisch auf die
+     eigene Ansicht aus (keine Datenänderung).
+  ======================================================== */
+  function camelToSnakeLabel(id){
+    return id.replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/-/g, "_").toLowerCase();
+  }
+
+  function applyDevModeLabels(){
+    document.querySelectorAll("[id]").forEach(el => {
+      if(el.tagName === "STYLE" || el.tagName === "SCRIPT" || el.tagName === "LINK") return;
+      if(el.querySelector(":scope > .dev-label-badge")) return; // Badge existiert noch wirklich - nichts zu tun
+      const computedPos = getComputedStyle(el).position;
+      if(computedPos === "static"){
+        el.dataset.devOrigPosition = "static";
+        el.style.position = "relative";
+      }
+      const badge = document.createElement("div");
+      badge.className = "dev-label-badge";
+      badge.textContent = camelToSnakeLabel(el.id);
+      el.appendChild(badge);
+      el.dataset.devlabeled = "1";
+    });
+  }
+
+  function removeDevModeLabels(){
+    document.querySelectorAll(".dev-label-badge").forEach(b => b.remove());
+    document.querySelectorAll("[data-devlabeled]").forEach(el => {
+      if(el.dataset.devOrigPosition === "static"){
+        el.style.position = "";
+        delete el.dataset.devOrigPosition;
+      }
+      delete el.dataset.devlabeled;
+    });
+  }
+
+  function toggleDevMode(){
+    profile.devModeEnabled = !profile.devModeEnabled;
+    saveProfile();
+    document.body.classList.toggle("dev-mode-active", profile.devModeEnabled);
+    if(profile.devModeEnabled){
+      applyDevModeLabels();
+      startDevModeObserver();
+    } else {
+      removeDevModeLabels();
+      stopDevModeObserver();
+    }
+    showToast(profile.devModeEnabled ? "🛠️ Entwicklermodus AN" : "Entwicklermodus AUS");
+  }
+
+  // Beobachtet neu hinzugefügte Elemente (z.B. Shop-Artikel oder Ranglisten-
+  // Zeilen, die per innerHTML neu erzeugt werden) und beschriftet sie
+  // automatisch mit, solange der Entwicklermodus aktiv ist.
+  let devModeObserver = null;
+  function startDevModeObserver(){
+    if(devModeObserver) return;
+    devModeObserver = new MutationObserver(() => {
+      applyDevModeLabels();
+    });
+    devModeObserver.observe(document.body, { childList: true, subtree: true });
+  }
+  function stopDevModeObserver(){
+    if(devModeObserver){ devModeObserver.disconnect(); devModeObserver = null; }
+  }
+
   function triggerHaptic(pattern){
     try{
       if(navigator.vibrate) navigator.vibrate(pattern);
@@ -9163,6 +9258,7 @@
   $("ownerMakeModBtn").addEventListener("click", ownerMakeMod);
   $("ownerRemoveModBtn").addEventListener("click", ownerRemoveModOfTarget);
   $("ownerGiveBoosterBtn").addEventListener("click", ownerGiveBooster);
+  $("devModeToggleBtn").addEventListener("click", toggleDevMode);
   $("saveAdminActionPasswordBtn").addEventListener("click", saveAdminActionPassword);
 
   $("modPanelBtn").addEventListener("click", () => {
@@ -11584,6 +11680,11 @@
     updateMissionsBadge();
     grantInstallChestIfNeeded();
     setupShopItemBackgroundPatterns();
+    if(profile.devModeEnabled){
+      document.body.classList.add("dev-mode-active");
+      applyDevModeLabels();
+      startDevModeObserver();
+    }
 
     playStartupIntro(() => {
       if(!profile.hasSeenWelcome && !currentUser){

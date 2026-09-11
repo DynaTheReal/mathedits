@@ -11075,7 +11075,7 @@
     setTimeout(() => { $("androidInstallBanner").classList.add("show"); }, 1200);
   });
 
-  // Feuert auf Android/Chrome direkt beim erfolgreichen Installieren - so
+  // Feuer auf Android/Chrome direkt beim erfolgreichen Installieren - so
   // gibt es die Truhe sofort, ohne dass man die App erst neu starten muss.
   window.addEventListener("appinstalled", () => {
     grantInstallChestIfNeeded();

@@ -820,14 +820,24 @@
   /* ---------- Item-Hintergrundmuster im Shop (NEU) ---------- */
   /* Dezent wiederholtes Symbol im Hintergrund jeder Item-Kachel (z.B.
      lauter kleine Herzen hinter "Leben", Icecubes hinter "Icecube") -
-     der Inhalt wird per JS aus data-bg-icon erzeugt, siehe renderShop(). */
-  .item-bg-pattern{ position:relative; overflow:hidden; }
+     der Inhalt wird per JS aus data-bg-icon erzeugt, siehe renderShop().
+     WICHTIG: KEIN overflow:hidden auf .item-bg-pattern selbst - das ist
+     der Flex-Container (.shop-item ist display:flex) und overflow!=visible
+     setzt dann bei Flex-Kindern (Icon/Buy-Button) die automatische
+     Mindestgröße auf 0 zurück, wodurch sie zusammengequetscht werden.
+     Das Muster clippt sich stattdessen selbst über sein eigenes
+     border-radius+overflow. */
+  .item-bg-pattern{ position:relative; }
   .item-bg-pattern > .item-icon, .item-bg-pattern > .item-info, .item-bg-pattern > .buy-btn{
     position:relative; z-index:1;
   }
   .item-bg-pattern-fill{
-    position:absolute; inset:-10px; white-space:pre; line-height:1.7;
+    position:absolute; inset:0; overflow:hidden; border-radius:inherit;
+    white-space:pre; line-height:1.7;
     font-size:19px; opacity:.09; pointer-events:none; z-index:0;
+  }
+  .item-bg-pattern-fill span{
+    position:absolute; inset:-10px; display:block;
     transform:rotate(-8deg) scale(1.15);
   }
 
@@ -840,8 +850,17 @@
 
   /* ---------- Rangliste: Lade-Anzeige (NEU) ---------- */
   /* ---------- Trends: Logo-Punkt + Sprechblasen-Tipp (NEU) ---------- */
+  /* Kleinere Stufen-Kästchen NUR im Trends-Tab (nicht global, damit das
+     Home-Karussell unverändert bleibt) - macht mehr Platz für die
+     Sprechblase darunter und beugt Überlappungen vor. */
+  #trendsTierCarousel .tier-card{
+    width:92px; padding:11px 6px 9px; gap:4px;
+  }
+  #trendsTierCarousel .tier-card .icon{ font-size:19px; }
+  #trendsTierCarousel .tier-card .name{ font-size:10px; }
+
   .trends-tip-row{
-    display:flex; align-items:center; gap:12px; margin:14px 0 6px;
+    display:flex; align-items:center; gap:12px; margin:18px 0 10px;
   }
   .trends-tip-dot{
     width:30px; height:30px; border-radius:50%; flex-shrink:0;
@@ -1325,7 +1344,7 @@
   /* Auf dem iPad rutscht das Karussell sonst teilweise hinter den
      "Lektion starten"-Button - hier gezielt nur für iPad etwas nach oben
      versetzt, ohne den Button selbst zu verschieben. */
-  body.is-ipad .levels-heading{
+  body.is-ipad .home-levels-heading{
     margin-top:-40px;
   }
   .tier-carousel{
@@ -2005,7 +2024,7 @@
       <div class="level-tag" id="tierLabel">Kleines Einmaleins</div>
     </div>
 
-    <div class="levels-heading">Levels · nach rechts wischen</div>
+    <div class="levels-heading home-levels-heading">Levels · nach rechts wischen</div>
     <div class="tier-carousel" id="tierCarousel"></div>
 
     <button class="btn btn-primary" id="startBtn">Lektion starten</button>
@@ -8024,7 +8043,9 @@
       const row = Array(6).fill(icon).join(" ");
       const fill = document.createElement("div");
       fill.className = "item-bg-pattern-fill";
-      fill.textContent = Array(6).fill(row).join("\n");
+      const inner = document.createElement("span");
+      inner.textContent = Array(6).fill(row).join("\n");
+      fill.appendChild(inner);
       el.insertBefore(fill, el.firstChild);
     });
   }

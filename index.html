@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap" rel="stylesheet">
 
 <!-- Firebase SDKs (Compat Version) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -385,6 +385,10 @@
   [data-theme="galaxy"] .topbar, [data-theme="galaxy"] .bottom-nav{
     box-shadow: 0 0 26px rgba(139,92,246,.3);
   }
+  [data-theme="galaxy"] .shop-item, [data-theme="galaxy"] .tier-card,
+  [data-theme="galaxy"] .stat-pill, [data-theme="galaxy"] #profileHeaderCard{
+    box-shadow: 0 0 14px rgba(139,92,246,.3);
+  }
 
   /* THEME: SUNSET (NEU) - warmer Verlauf Orange/Pink/Lila. */
   [data-theme="sunset"]{
@@ -430,6 +434,10 @@
   }
   [data-theme="royal"] .topbar, [data-theme="royal"] .bottom-nav{
     box-shadow: 0 0 24px rgba(255,215,0,.2);
+  }
+  [data-theme="royal"] .shop-item, [data-theme="royal"] .tier-card,
+  [data-theme="royal"] .stat-pill, [data-theme="royal"] #profileHeaderCard{
+    box-shadow: 0 0 14px rgba(255,215,0,.25);
   }
   [data-theme="royal"] .btn-primary{
     box-shadow: 0 0 16px rgba(255,215,0,.4);
@@ -766,9 +774,9 @@
     gap: 12px;
   }
   .shop-item .item-icon {
-    font-size: 30px;
-    width: 48px;
-    height: 48px;
+    font-size: 36px;
+    width: 58px;
+    height: 58px;
     background: var(--card-2);
     border-radius: 14px;
     display: flex;
@@ -831,6 +839,29 @@
   }
 
   /* ---------- Rangliste: Lade-Anzeige (NEU) ---------- */
+  /* ---------- Trends: Logo-Punkt + Sprechblasen-Tipp (NEU) ---------- */
+  .trends-tip-row{
+    display:flex; align-items:center; gap:12px; margin:14px 0 6px;
+  }
+  .trends-tip-dot{
+    width:30px; height:30px; border-radius:50%; flex-shrink:0;
+    background:var(--accent); box-shadow:0 0 16px var(--accent);
+  }
+  .trends-tip-bubble{
+    position:relative; flex:1; background:var(--card); border:1.5px solid var(--border);
+    border-radius:14px; padding:10px 14px; font-size:12.5px; line-height:1.4;
+  }
+  .trends-tip-bubble::before{
+    content:""; position:absolute; left:-7px; top:50%; transform:translateY(-50%);
+    width:0; height:0; border-top:7px solid transparent; border-bottom:7px solid transparent;
+    border-right:8px solid var(--border);
+  }
+  .trends-tip-bubble::after{
+    content:""; position:absolute; left:-5.5px; top:50%; transform:translateY(-50%);
+    width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent;
+    border-right:7px solid var(--card);
+  }
+
   .lb-loading{
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:10px; padding:40px 20px; color:var(--text-dim); font-size:13px;
@@ -870,12 +901,12 @@
   .theme-preview-glass .item-icon{ background:rgba(255,255,255,.12); }
   .theme-preview-glass .buy-btn{ background:#60a5fa !important; color:#08172e !important; }
 
-  .theme-preview-glow{ background:#170b28; border-color:#a855f7; box-shadow:0 0 16px rgba(168,85,247,.25); }
+  .theme-preview-glow{ background:#170b28; border-color:#a855f7; box-shadow: 0 0 22px rgba(168,85,247,.5), inset 0 0 0 1px rgba(168,85,247,.35); }
   .theme-preview-glow .item-title, .theme-preview-glow .item-desc{ color:#f1e6ff; }
   .theme-preview-glow .item-icon{ background:#2a1245; }
   .theme-preview-glow .buy-btn{ background:#a855f7 !important; color:#fff !important; }
 
-  .theme-preview-glitch{ background:#000; border-color:#a855f7; }
+  .theme-preview-glitch{ background:#000; border-color:#a855f7; box-shadow: 0 0 20px rgba(168,85,247,.45), inset 0 0 0 1px rgba(168,85,247,.3); }
   .theme-preview-glitch .item-title, .theme-preview-glitch .item-desc{ color:#f1e6ff; }
   .theme-preview-glitch .item-icon{ background:#0f0f0f; }
   .theme-preview-glitch .buy-btn{ background:#a855f7 !important; color:#fff !important; }
@@ -889,37 +920,38 @@
       radial-gradient(1px 1px at 92% 40%, #fff, transparent),
       #07071a;
     border-color:#8b5cf6;
+    box-shadow: 0 0 20px rgba(139,92,246,.45), inset 0 0 0 1px rgba(139,92,246,.3);
   }
   .theme-preview-galaxy .item-title, .theme-preview-galaxy .item-desc{ color:#e8e6ff; }
   .theme-preview-galaxy .item-icon{ background:#12122b; }
   .theme-preview-galaxy .buy-btn{ background:#8b5cf6 !important; color:#fff !important; }
 
-  .theme-preview-sunset{ background:linear-gradient(135deg,#f97316,#ec4899 55%,#a855f7); border-color:#f97316; }
+  .theme-preview-sunset{ background:linear-gradient(135deg,#f97316,#ec4899 55%,#a855f7); border-color:#f97316; box-shadow: 0 0 20px rgba(249,115,22,.4); }
   .theme-preview-sunset .item-title, .theme-preview-sunset .item-desc{ color:#fff2e8; }
   .theme-preview-sunset .item-icon{ background:rgba(0,0,0,.25); }
   .theme-preview-sunset .buy-btn{ background:#2b1030 !important; color:#fff2e8 !important; }
 
-  .theme-preview-cyber{ background:#000; border-color:#00e5ff; box-shadow:0 0 14px rgba(0,229,255,.3); }
+  .theme-preview-cyber{ background:#000; border-color:#00e5ff; box-shadow: 0 0 22px rgba(0,229,255,.5), inset 0 0 0 1px rgba(0,229,255,.35); }
   .theme-preview-cyber .item-title, .theme-preview-cyber .item-desc{ color:#d0fff0; }
   .theme-preview-cyber .item-icon{ background:#0a0f0e; }
   .theme-preview-cyber .buy-btn{ background:#00e5ff !important; color:#001414 !important; }
 
-  .theme-preview-royal{ background:#170a2e; border-color:#ffd700; }
+  .theme-preview-royal{ background:#170a2e; border-color:#ffd700; box-shadow: 0 0 20px rgba(255,215,0,.4), inset 0 0 0 1px rgba(255,215,0,.3); }
   .theme-preview-royal .item-title, .theme-preview-royal .item-desc{ color:#f5ebff; }
   .theme-preview-royal .item-icon{ background:#241249; }
   .theme-preview-royal .buy-btn{ background:#ffd700 !important; color:#1a0e00 !important; }
 
-  .theme-preview-cloud{ background:#eef5ff; border-color:#93c5fd; }
+  .theme-preview-cloud{ background:#eef5ff; border-color:#93c5fd; box-shadow: 0 0 16px rgba(96,165,250,.3); }
   .theme-preview-cloud .item-title, .theme-preview-cloud .item-desc{ color:#17324f; }
   .theme-preview-cloud .item-icon{ background:#dbeafe; }
   .theme-preview-cloud .buy-btn{ background:#60a5fa !important; color:#fff !important; }
 
-  .theme-preview-toxic{ background:#060a03; border-color:#7fff00; box-shadow:0 0 14px rgba(127,255,0,.25); }
+  .theme-preview-toxic{ background:#060a03; border-color:#7fff00; box-shadow: 0 0 22px rgba(127,255,0,.5), inset 0 0 0 1px rgba(127,255,0,.35); }
   .theme-preview-toxic .item-title, .theme-preview-toxic .item-desc{ color:#eaffd8; }
   .theme-preview-toxic .item-icon{ background:#0e1408; }
   .theme-preview-toxic .buy-btn{ background:#7fff00 !important; color:#0a1400 !important; }
 
-  .theme-preview-crimson{ background:#0a0303; border-color:#dc2626; box-shadow:0 0 14px rgba(220,38,38,.25); }
+  .theme-preview-crimson{ background:#0a0303; border-color:#dc2626; box-shadow: 0 0 22px rgba(220,38,38,.5), inset 0 0 0 1px rgba(220,38,38,.35); }
   .theme-preview-crimson .item-title, .theme-preview-crimson .item-desc{ color:#ffe8e8; }
   .theme-preview-crimson .item-icon{ background:#150707; }
   .theme-preview-crimson .buy-btn{ background:#dc2626 !important; color:#fff !important; }
@@ -1091,6 +1123,44 @@
     100% { opacity: 0; }
   }
   @keyframes fadeOutIntro {
+    100% { opacity: 0; visibility: hidden; pointer-events: none; }
+  }
+
+  /* ---------- App-Start-Intro: "Math"-Variante (NEU) ---------- */
+  .math-intro-particle {
+    position: absolute;
+    color: rgba(211, 252, 85, 0.85);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    pointer-events: none;
+    opacity: 0;
+    animation: mathIntroSuckIn 0.8s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+  }
+  @keyframes mathIntroSuckIn {
+    0% { opacity: 0; transform: translate(var(--startX), var(--startY)) scale(var(--startScale)) rotate(0deg); }
+    20% { opacity: 1; }
+    100% { opacity: 0; transform: translate(0, 0) scale(0.01) rotate(720deg); }
+  }
+  @keyframes mathIntroDropIn {
+    0% { transform: translateY(-300px) scale(0.3); opacity: 0; }
+    60% { transform: translateY(20px) scale(1.2); opacity: 1; }
+    80% { transform: translateY(-8px) scale(0.9); }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  @keyframes mathIntroGlitchShake {
+    0% { transform: translate(0); text-shadow: -4px 0 #ff0055, 4px 0 #00ffff; }
+    20% { transform: translate(-6px, 3px); text-shadow: 5px 0 #ff0055, -5px 0 #00ffff; }
+    40% { transform: translate(5px, -4px); text-shadow: -4px 0 #d3fc55, 4px 0 #ff0055; }
+    60% { transform: translate(-4px, -2px); text-shadow: 4px 0 #00ffff, -4px 0 #d3fc55; }
+    80% { transform: translate(3px, 3px); text-shadow: -5px 0 #ff0055, 5px 0 #00ffff; }
+    100% { transform: translate(0); text-shadow: none; }
+  }
+  @keyframes mathIntroHyperScale {
+    0% { transform: scale(1); }
+    25% { transform: scale(0.5); }
+    100% { transform: scale(200); }
+  }
+  @keyframes mathIntroCleanExit {
     100% { opacity: 0; visibility: hidden; pointer-events: none; }
   }
 
@@ -2369,6 +2439,11 @@
     <div class="levels-heading">Stufe wählen · nach rechts wischen</div>
     <div class="tier-carousel" id="trendsTierCarousel"></div>
 
+    <div class="trends-tip-row" id="trendsTipRow">
+      <div class="trends-tip-dot"></div>
+      <div class="trends-tip-bubble" id="trendsTipBubble">Lade Tipp …</div>
+    </div>
+
     <button class="btn btn-primary" id="startWeakTasksBtn" style="width:100%; padding:15px; margin-bottom:6px; margin-top:6px;">💪 Schwierige Aufgaben starten</button>
     <div class="d" style="text-align:center; margin-bottom:18px;">Die Aufgaben, mit denen du am meisten struggelst - gibt Aura, kostet aber kein Level und keine Leben.</div>
 
@@ -2727,6 +2802,17 @@
         <div class="d">Aura-Edits und Memes bleiben 4 Sekunden statt kurz sichtbar.</div>
       </div>
       <div class="switch" id="longModeSwitch"><div class="knob"></div></div>
+    </div>
+
+    <div class="settings-row">
+      <div class="info">
+        <div class="t">🎬 App-Intro</div>
+        <div class="d">Welche Animation beim Öffnen der App läuft.</div>
+      </div>
+      <select id="appIntroStyleSelect" class="input-field" style="width:auto; padding:8px 10px;">
+        <option value="math">Math</option>
+        <option value="simple">Simple</option>
+      </select>
     </div>
 
     <div class="settings-row">
@@ -3297,14 +3383,26 @@
     <button class="banner-close-x" id="updateNoticeBannerClose">✕</button>
   </div>
 
-  <!-- App-Start-Intro (NEU) -->
-  <div id="intro-screen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #121212; display: flex; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; animation: fadeOutIntro 0.4s forwards 2.4s;">
+  <!-- App-Start-Intro: "Simple" Variante (NEU: umbenannt, jetzt eine von zwei
+       wählbaren Varianten - siehe playStartupIntro()) -->
+  <div id="introScreenSimple" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #121212; display: flex; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; animation: fadeOutIntro 0.4s forwards 2.4s;">
     <div style="display: flex; align-items: center; gap: 15px;">
       <!-- Der Punkt (Farbe wird per JS an das aktive Theme angepasst) -->
       <div id="introDot" style="width: 45px; height: 45px; background-color: #d3fc55; border-radius: 50%; box-shadow: 0 0 20px rgba(211, 252, 85, 0.3); animation: growDot 0.8s cubic-bezier(0.8, 0, 0.2, 1) forwards 1.4s;"></div>
 
       <!-- Der Text (hat jetzt zwei Animationen: reinkommen und später verschwinden) -->
       <div style="font-family: 'Nunito', sans-serif; color: white; font-size: 4rem; font-weight: 800; opacity: 0; animation: fadeInText 0.8s forwards, hideText 0.2s forwards 1.3s;">MathEdits</div>
+    </div>
+  </div>
+
+  <!-- App-Start-Intro: "Math" Variante (NEU) - Mathe-Symbole fliegen rein,
+       Text glitcht sich zu "MathEdits" zusammen. Standardmäßig aktiv,
+       umstellbar in den Einstellungen. -->
+  <div id="introScreenMath" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #0b0f19; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; animation: mathIntroCleanExit 0.3s forwards 2.3s;">
+    <div id="mathIntroParticleContainer" style="position: absolute; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none;"></div>
+    <div style="display: flex; align-items: center; gap: 20px; z-index: 2;">
+      <div id="mathIntroDot" style="width: 48px; height: 48px; background-color: #d3fc55; border-radius: 50%; box-shadow: 0 0 30px #d3fc55; animation: mathIntroDropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, mathIntroHyperScale 0.4s cubic-bezier(0.7, 0, 0.3, 1) forwards 1.8s;"></div>
+      <div id="mathIntroGlitchText" style="font-family: 'Nunito', sans-serif; color: #ffffff; font-size: 4.2rem; font-weight: 900; letter-spacing: -1px; user-select: none;">f(x)=∫x²</div>
     </div>
   </div>
 
@@ -3566,6 +3664,7 @@
     lastLocalSaveAt: 0, // Zeitstempel des letzten lokalen Speicherns - entscheidet bei Aura, welche Seite beim Abgleich gewinnt
     isMod: false, // vom Owner ernannte Mod-Rolle mit eingeschränktem Zugriff aufs Owner-Panel
     answeredPollIds: [], // verhindert mehrfaches Einschicken derselben Umfrage
+    appIntroStyle: "math", // "math" (Standard) oder "simple" - welche Start-Animation beim App-Öffnen läuft
     dismissedFeedbackIds: [], // nur für den Owner relevant: einzeln weggeklicktes Feedback
     lastSeenFeedbackAt: 0, // nur für den Owner relevant: bis wann Feedback schon gesehen wurde
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
@@ -6255,11 +6354,21 @@
   // für die Reihen-Anzeige - nur Stufen mit echtem Einmaleins-Bezug haben
   // hier einen Eintrag, alle anderen zeigen stattdessen einen Hinweistext.
   const TREND_ROW_RANGES = {
-    kl_mult: { min: 1, max: 5 },
-    mult: { min: 1, max: 10 },
-    mult_m: { min: 1, max: 12 },
-    gr_mult: { min: 1, max: 20 },
-    blitz_m: { min: 1, max: 20 }
+    kl_mult: { bucket: "factStats", min: 1, max: 5 },
+    mult: { bucket: "factStats", min: 1, max: 10 },
+    mult_m: { bucket: "factStats", min: 1, max: 12 },
+    gr_mult: { bucket: "factStats", min: 1, max: 20 },
+    blitz_m: { bucket: "factStats", min: 1, max: 20 },
+    div_e: { bucket: "factStats", min: 1, max: 8 },
+    div: { bucket: "factStats", min: 1, max: 12 },
+    div_p: { bucket: "factStats", min: 1, max: 15 },
+    frac_e: { bucket: "factStatsFrac", min: 2, max: 10 },
+    frac: { bucket: "factStatsFrac", min: 2, max: 10 },
+    frac_p: { bucket: "factStatsFrac", min: 2, max: 12 },
+    addsub_e: { bucket: "factStatsAddSub", min: 0, max: 20 },
+    addsub: { bucket: "factStatsAddSub", min: 0, max: 20 },
+    addsub_f: { bucket: "factStatsAddSub", min: 0, max: 20 },
+    addsub_p: { bucket: "factStatsAddSub", min: 0, max: 20 }
   };
   let trendsSelectedTierIndex = null;
 
@@ -6306,20 +6415,43 @@
     if(!range){
       grid.style.display = "none";
       placeholder.style.display = "block";
+      renderTrendsTip(null, tier);
       return;
     }
     grid.style.display = "grid";
     placeholder.style.display = "none";
     grid.innerHTML = "";
+    const statBucket = profile[range.bucket] || {};
+    const isMultDivBucket = range.bucket === "factStats"; // hat die Reihe×Spalte-Detailansicht
+    let weakest = null;
     for(let n = range.min; n <= range.max; n++){
-      const stat = (profile.factStats || {})[String(n)];
+      const stat = statBucket[String(n)];
       const total = stat ? stat.correct + stat.wrong : 0;
       const acc = total > 0 ? Math.round((stat.correct / total) * 100) : null;
       const cell = document.createElement("div");
       cell.className = "trend-cell " + trendColorFor(stat);
       cell.innerHTML = `${n}<span class="pct">${acc !== null ? acc + "%" : "-"}</span>`;
-      cell.addEventListener("click", () => openTrendRowDetail(n));
+      if(isMultDivBucket) cell.addEventListener("click", () => openTrendRowDetail(n));
       grid.appendChild(cell);
+      // Merkt sich die schwächste Zahl mit genug Datenpunkten für den Tipp.
+      if(total >= 3 && acc !== null && (!weakest || acc < weakest.acc)){
+        weakest = { n, acc };
+      }
+    }
+    renderTrendsTip(weakest, tier);
+  }
+
+  // Sprechblasen-Tipp (NEU): zeigt an, woran man am meisten arbeiten
+  // könnte - basierend auf der schwächsten Zahl in der gerade gewählten
+  // Stufe, oder eine allgemeine Ermutigung, falls noch zu wenig Daten da
+  // sind.
+  function renderTrendsTip(weakest, tier){
+    const bubble = $("trendsTipBubble");
+    if(!bubble) return;
+    if(weakest){
+      bubble.textContent = `Die ${weakest.n} läuft bei dir noch nicht so rund (${weakest.acc}% richtig) - da lohnt sich extra Übung!`;
+    } else {
+      bubble.textContent = `Übe "${tier.name}" noch etwas mehr, dann zeige ich dir hier, woran du am meisten arbeiten kannst.`;
     }
   }
 
@@ -6875,32 +7007,68 @@
   // Trends (NEU): merkt sich pro Zahl 1-12, wie oft Multiplikations-Aufgaben
   // mit dieser Zahl als Faktor richtig/falsch beantwortet wurden - Basis für
   // das Zahlen-Raster im Trends-Tab.
+  function bumpStat(bucket, key, isCorrect){
+    if(!bucket[key]) bucket[key] = { correct: 0, wrong: 0 };
+    if(isCorrect) bucket[key].correct++;
+    else bucket[key].wrong++;
+  }
+
   function recordFactStat(q, isCorrect){
-    if(!q || !q.text || !q.text.includes("×")) return;
-    const parts = q.text.split("×").map(s => parseInt(s.trim(), 10));
-    if(parts.length !== 2 || parts.some(n => isNaN(n))) return;
+    if(!q || !q.text) return;
     if(!profile.factStats) profile.factStats = {};
     if(!profile.factPairStats) profile.factPairStats = {};
-    const [a, b] = parts;
-    const seen = new Set();
-    parts.forEach(n => {
-      if(n < 1 || n > 20 || seen.has(n)) return;
-      seen.add(n);
-      const key = String(n);
-      if(!profile.factStats[key]) profile.factStats[key] = { correct: 0, wrong: 0 };
-      if(isCorrect) profile.factStats[key].correct++;
-      else profile.factStats[key].wrong++;
-    });
-    // Zusätzlich pro einzelner Aufgabe (Reihe × Spalte) für die
-    // Detailansicht einer Reihe - z.B. "7×3" landet unter Reihe 7, Spalte 3.
-    [[a, b], [b, a]].forEach(([row, col]) => {
-      if(row < 1 || row > 20 || col < 1 || col > 12) return;
-      if(!profile.factPairStats[row]) profile.factPairStats[row] = {};
-      const colKey = String(col);
-      if(!profile.factPairStats[row][colKey]) profile.factPairStats[row][colKey] = { correct: 0, wrong: 0 };
-      if(isCorrect) profile.factPairStats[row][colKey].correct++;
-      else profile.factPairStats[row][colKey].wrong++;
-    });
+    if(!profile.factStatsFrac) profile.factStatsFrac = {};
+    if(!profile.factStatsAddSub) profile.factStatsAddSub = {};
+
+    if(q.text.includes("×")){
+      const parts = q.text.split("×").map(s => parseInt(s.trim(), 10));
+      if(parts.length !== 2 || parts.some(n => isNaN(n))) return;
+      const [a, b] = parts;
+      const seen = new Set();
+      parts.forEach(n => {
+        if(n < 1 || n > 20 || seen.has(n)) return;
+        seen.add(n);
+        bumpStat(profile.factStats, String(n), isCorrect);
+      });
+      // Zusätzlich pro einzelner Aufgabe (Reihe × Spalte) für die
+      // Detailansicht einer Reihe - z.B. "7×3" landet unter Reihe 7, Spalte 3.
+      [[a, b], [b, a]].forEach(([row, col]) => {
+        if(row < 1 || row > 20 || col < 1 || col > 12) return;
+        if(!profile.factPairStats[row]) profile.factPairStats[row] = {};
+        bumpStat(profile.factPairStats[row], String(col), isCorrect);
+      });
+    } else if(q.text.includes("÷")){
+      // Geteilt-Aufgaben landen in DERSELBEN Sammlung wie Malaufgaben - "12
+      // ÷ 4 = 3" hängt an denselben Zahlenfakten wie "4 × 3 = 12", ist also
+      // dieselbe Sache aus der anderen Richtung betrachtet.
+      const parts = q.text.split("÷").map(s => parseInt(s.trim(), 10));
+      if(parts.length !== 2 || parts.some(n => isNaN(n))) return;
+      const divisor = parts[1];
+      const quotient = q.answer;
+      [divisor, quotient].forEach(n => {
+        if(n >= 1 && n <= 20) bumpStat(profile.factStats, String(n), isCorrect);
+      });
+    } else if(q.text.includes("⁄") && q.text.includes("von")){
+      // Bruchaufgaben ("3⁄4 von 20") werden nach ihrem Nenner erfasst -
+      // eigene Sammlung, da das eine andere Art von Zahlenfakt ist.
+      const match = q.text.match(/⁄(\d+)/);
+      if(match){
+        const denom = parseInt(match[1], 10);
+        if(denom >= 2 && denom <= 12) bumpStat(profile.factStatsFrac, String(denom), isCorrect);
+      }
+    } else if(q.text.includes("+") || q.text.includes("−")){
+      // Plus/Minus-Aufgaben werden nach jeder beteiligten Zahl erfasst -
+      // eigene Sammlung mit größerem Zahlenbereich (0-100).
+      const sep = q.text.includes("+") ? "+" : "−";
+      const parts = q.text.split(sep).map(s => parseInt(s.trim(), 10));
+      if(parts.length !== 2 || parts.some(n => isNaN(n))) return;
+      const seen = new Set();
+      parts.forEach(n => {
+        if(n < 0 || n > 100 || seen.has(n)) return;
+        seen.add(n);
+        bumpStat(profile.factStatsAddSub, String(n), isCorrect);
+      });
+    }
   }
 
   function mult(min, max){
@@ -7126,6 +7294,18 @@
     {emoji:"🐌", title:"Zu langsam, zu unsicher", sub:"Aber die Vibes waren immerhin okay."},
     {emoji:"🎭", title:"Plot Twist: Du hast verloren", sub:"Niemand hat's kommen sehen. Außer alle."}
   ];
+
+  /* ========================================================
+     HAPTISCHES FEEDBACK (NEU) - kurzes Vibrieren bei richtiger Antwort,
+     Levelaufstieg usw. Funktioniert nur auf Geräten/Browsern, die die
+     Vibration API unterstützen (vor allem Android) - auf iOS Safari z.B.
+     einfach wirkungslos, aber ohne Fehler.
+  ======================================================== */
+  function triggerHaptic(pattern){
+    try{
+      if(navigator.vibrate) navigator.vibrate(pattern);
+    }catch(e){ }
+  }
 
   /* ========================================================
      SOUND (Web Audio Jingle)
@@ -9051,6 +9231,7 @@
   ======================================================== */
   function renderSettings(){
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
+    $("appIntroStyleSelect").value = profile.appIntroStyle === "simple" ? "simple" : "math";
     $("streakReminderSwitch").classList.toggle("on", profile.streakReminderEnabled !== false);
     $("streakReminderTimeInput").value = profile.streakReminderTime || "20:00";
     updateNotificationAndInstallUI();
@@ -9145,6 +9326,11 @@
     saveProfile();
     renderSettings();
     if(profile.streakReminderEnabled) requestNotificationPermissionIfNeeded();
+  });
+
+  $("appIntroStyleSelect").addEventListener("change", (e) => {
+    profile.appIntroStyle = e.target.value === "simple" ? "simple" : "math";
+    saveProfile();
   });
 
   $("streakReminderTimeInput").addEventListener("change", (e) => {
@@ -10513,11 +10699,13 @@
     const el = $("answerDisplay");
     if(isCorrect){
       el.textContent = lesson.answer;
+      triggerHaptic(30);
     } else {
       // Löst die Frage auf (zeigt die richtige Antwort), damit man daraus
       // lernen kann - aber die nächste Frage ist eine ANDERE (nicht dieselbe
       // nochmal) und der Fortschritt in der Lektion bleibt trotzdem stehen.
       el.textContent = isTimeout ? `Zeit abgelaufen · richtig: ${q.answer}` : `${lesson.answer} · richtig: ${q.answer}`;
+      triggerHaptic([25, 40, 25]);
     }
     el.classList.remove("empty");
     el.classList.add(isCorrect ? "right" : "wrong");
@@ -10733,6 +10921,7 @@
         if(profile.levelProgress >= LESSONS_PER_LEVEL){
           profile.levelProgress = 0;
           profile.level += 1;
+          triggerHaptic([40, 60, 40, 60, 80]);
         }
         // Perfekte Lektion (alle richtig) am neuesten Level = +10 Bonus-Aura,
         // Teil des Combo-Systems.
@@ -10933,17 +11122,83 @@
   // 0.2s Pause, dann blendet ab 2.4s+0.4s=2.8s alles aus) - hier wird nur
   // noch passend zu dieser Dauer gewartet, bevor es weitergeht.
   function playStartupIntro(callback){
-    setTimeout(callback, 2850);
+    const style = profile.appIntroStyle === "simple" ? "simple" : "math"; // Math ist Standard
+    if(style === "simple"){
+      $("introScreenSimple").style.display = "flex";
+      $("introScreenMath").style.display = "none";
+      setTimeout(callback, 2850);
+    } else {
+      $("introScreenMath").style.display = "flex";
+      $("introScreenSimple").style.display = "none";
+      buildMathIntroParticles();
+      setTimeout(callback, 2650);
+    }
+  }
+
+  // Baut die fliegenden Mathe-Symbole und den Text-Glitch-Übergang für die
+  // "Math"-Intro-Variante auf (NEU).
+  function buildMathIntroParticles(){
+    const container = $("mathIntroParticleContainer");
+    if(!container) return;
+    container.innerHTML = "";
+    const symbols = ['π', '√x', '∫', '∞', '∑', '±', 'θ', 'α', 'β', 'Δ', '∂', '≈', '≠', '≤', '≥', '×', '÷', 'log', 'λ', 'Ω', 'f(x)', '∈', '∀', '∃', '∇', 'lim', 'sin', 'cos', 'tan', 'x²', 'y³', '%', '‰', '⊥', '∥'];
+    for(let i = 0; i < 90; i++){
+      const p = document.createElement("div");
+      p.className = "math-intro-particle";
+      p.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+      const angle = Math.random() * Math.PI * 2;
+      const distanceX = 25 + Math.random() * 35;
+      const distanceY = 25 + Math.random() * 35;
+      const startX = (Math.cos(angle) * distanceX).toFixed(2) + "vw";
+      const startY = (Math.sin(angle) * distanceY).toFixed(2) + "vh";
+      const startScale = (Math.random() * 1.3 + 0.8).toFixed(2);
+      const fontSize = (Math.random() * 1.4 + 1.0).toFixed(1) + "rem";
+      p.style.setProperty("--startX", startX);
+      p.style.setProperty("--startY", startY);
+      p.style.setProperty("--startScale", startScale);
+      p.style.fontSize = fontSize;
+      p.style.animationDelay = (Math.random() * 0.9 + 0.1) + "s";
+      container.appendChild(p);
+    }
+
+    const textEl = $("mathIntroGlitchText");
+    const targetText = "MathEdits";
+    const glitchChars = "!@#$%^&*()_+-=[]{}|;:,.<>?/π√∫∑∞±Δ";
+    textEl.textContent = "f(x)=∫x²";
+    textEl.style.animation = "";
+    setTimeout(() => {
+      textEl.style.animation = "mathIntroGlitchShake 0.5s ease-in-out infinite";
+      let iteration = 0;
+      const interval = setInterval(() => {
+        textEl.innerText = targetText.split("").map((char, index) => {
+          if(index < iteration) return char;
+          return glitchChars[Math.floor(Math.random() * glitchChars.length)];
+        }).join("");
+        if(iteration >= targetText.length){
+          clearInterval(interval);
+          textEl.style.animation = "";
+          const accent = getComputedStyle(app).getPropertyValue("--accent").trim() || "#d3fc55";
+          textEl.innerHTML = `Math<span style="color:${accent}; text-shadow: 0 0 20px ${accent}cc;">Edits</span>`;
+        }
+        iteration += 1 / 2.5;
+      }, 30);
+    }, 400);
   }
 
   // Färbt den wachsenden Punkt im Intro passend zum aktuell aktiven Theme,
   // statt ihn fest auf Grün zu belassen.
   function applyIntroThemeColor(){
     const dot = $("introDot");
-    if(!dot) return;
     const accent = getComputedStyle(app).getPropertyValue("--accent").trim() || "#d3fc55";
-    dot.style.backgroundColor = accent;
-    dot.style.boxShadow = `0 0 20px ${accent}88`;
+    if(dot){
+      dot.style.backgroundColor = accent;
+      dot.style.boxShadow = `0 0 20px ${accent}88`;
+    }
+    const mathDot = $("mathIntroDot");
+    if(mathDot){
+      mathDot.style.backgroundColor = accent;
+      mathDot.style.boxShadow = `0 0 30px ${accent}`;
+    }
   }
 
   /* ========================================================

@@ -809,6 +809,126 @@
     cursor: not-allowed;
   }
 
+  /* ---------- Item-Hintergrundmuster im Shop (NEU) ---------- */
+  /* Dezent wiederholtes Symbol im Hintergrund jeder Item-Kachel (z.B.
+     lauter kleine Herzen hinter "Leben", Icecubes hinter "Icecube") -
+     der Inhalt wird per JS aus data-bg-icon erzeugt, siehe renderShop(). */
+  .item-bg-pattern{ position:relative; overflow:hidden; }
+  .item-bg-pattern > .item-icon, .item-bg-pattern > .item-info, .item-bg-pattern > .buy-btn{
+    position:relative; z-index:1;
+  }
+  .item-bg-pattern-fill{
+    position:absolute; inset:-10px; white-space:pre; line-height:1.7;
+    font-size:19px; opacity:.09; pointer-events:none; z-index:0;
+    transform:rotate(-8deg) scale(1.15);
+  }
+
+  /* ---------- Schriftart-Vorschau im Shop (NEU) ---------- */
+  /* Zeigt den echten Namen in der tatsächlichen Kauf-Schriftart als
+     kleine Vorschau direkt in der Item-Kachel. */
+  .font-preview-sample{
+    font-size:17px; font-weight:700; margin-top:2px;
+  }
+
+  /* ---------- Rangliste: Lade-Anzeige (NEU) ---------- */
+  .lb-loading{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:10px; padding:40px 20px; color:var(--text-dim); font-size:13px;
+  }
+  .lb-loading-spinner{
+    width:26px; height:26px; border-radius:50%;
+    border:3px solid var(--border); border-top-color:var(--accent);
+    animation: lbSpin .7s linear infinite;
+  }
+  @keyframes lbSpin{ to{ transform:rotate(360deg); } }
+
+  /* ---------- Theme-Vorschau im Shop (NEU) ---------- */
+  /* Jede Design-Kachel im Shop sieht schon vor dem Kauf so aus wie das
+     jeweilige Theme selbst - Hintergrund, Rand und Buy-Button in den
+     echten Farben, Titel/Text bleiben aber immer gut lesbar. */
+  .theme-preview{ border-width:1.5px; }
+  .theme-preview .item-title, .theme-preview .item-desc{ position:relative; z-index:1; }
+  .theme-preview .item-icon{ position:relative; z-index:1; }
+
+  .theme-preview-clean{ background:#0d1f16; border-color:#1f4d33; }
+  .theme-preview-clean .item-title, .theme-preview-clean .item-desc{ color:#eafff2; }
+  .theme-preview-clean .item-icon{ background:#153a26; }
+  .theme-preview-clean .buy-btn{ background:#22c55e !important; color:#06210f !important; }
+
+  .theme-preview-white_clean{ background:#faf5ff; border-color:#d8c4f0; }
+  .theme-preview-white_clean .item-title, .theme-preview-white_clean .item-desc{ color:#3b1d5c; }
+  .theme-preview-white_clean .item-icon{ background:#eee0fb; }
+  .theme-preview-white_clean .buy-btn{ background:#8b5cf6 !important; color:#fff !important; }
+
+  .theme-preview-pink{ background:linear-gradient(135deg,#2b0e22,#4a1435); border-color:#ec4899; }
+  .theme-preview-pink .item-title, .theme-preview-pink .item-desc{ color:#ffe3f2; }
+  .theme-preview-pink .item-icon{ background:#5c1a42; }
+  .theme-preview-pink .buy-btn{ background:#ec4899 !important; color:#fff !important; }
+
+  .theme-preview-glass{ background:rgba(30,30,45,.85); border-color:rgba(255,255,255,.25); backdrop-filter:blur(6px); }
+  .theme-preview-glass .item-title, .theme-preview-glass .item-desc{ color:#eef0ff; }
+  .theme-preview-glass .item-icon{ background:rgba(255,255,255,.12); }
+  .theme-preview-glass .buy-btn{ background:#60a5fa !important; color:#08172e !important; }
+
+  .theme-preview-glow{ background:#170b28; border-color:#a855f7; box-shadow:0 0 16px rgba(168,85,247,.25); }
+  .theme-preview-glow .item-title, .theme-preview-glow .item-desc{ color:#f1e6ff; }
+  .theme-preview-glow .item-icon{ background:#2a1245; }
+  .theme-preview-glow .buy-btn{ background:#a855f7 !important; color:#fff !important; }
+
+  .theme-preview-glitch{ background:#000; border-color:#a855f7; }
+  .theme-preview-glitch .item-title, .theme-preview-glitch .item-desc{ color:#f1e6ff; }
+  .theme-preview-glitch .item-icon{ background:#0f0f0f; }
+  .theme-preview-glitch .buy-btn{ background:#a855f7 !important; color:#fff !important; }
+
+  .theme-preview-galaxy{
+    background:
+      radial-gradient(1px 1px at 15% 25%, #fff, transparent),
+      radial-gradient(1px 1px at 35% 65%, #cbd5ff, transparent),
+      radial-gradient(1px 1px at 60% 20%, #fff, transparent),
+      radial-gradient(1px 1px at 80% 70%, #cbd5ff, transparent),
+      radial-gradient(1px 1px at 92% 40%, #fff, transparent),
+      #07071a;
+    border-color:#8b5cf6;
+  }
+  .theme-preview-galaxy .item-title, .theme-preview-galaxy .item-desc{ color:#e8e6ff; }
+  .theme-preview-galaxy .item-icon{ background:#12122b; }
+  .theme-preview-galaxy .buy-btn{ background:#8b5cf6 !important; color:#fff !important; }
+
+  .theme-preview-sunset{ background:linear-gradient(135deg,#f97316,#ec4899 55%,#a855f7); border-color:#f97316; }
+  .theme-preview-sunset .item-title, .theme-preview-sunset .item-desc{ color:#fff2e8; }
+  .theme-preview-sunset .item-icon{ background:rgba(0,0,0,.25); }
+  .theme-preview-sunset .buy-btn{ background:#2b1030 !important; color:#fff2e8 !important; }
+
+  .theme-preview-cyber{ background:#000; border-color:#00e5ff; box-shadow:0 0 14px rgba(0,229,255,.3); }
+  .theme-preview-cyber .item-title, .theme-preview-cyber .item-desc{ color:#d0fff0; }
+  .theme-preview-cyber .item-icon{ background:#0a0f0e; }
+  .theme-preview-cyber .buy-btn{ background:#00e5ff !important; color:#001414 !important; }
+
+  .theme-preview-royal{ background:#170a2e; border-color:#ffd700; }
+  .theme-preview-royal .item-title, .theme-preview-royal .item-desc{ color:#f5ebff; }
+  .theme-preview-royal .item-icon{ background:#241249; }
+  .theme-preview-royal .buy-btn{ background:#ffd700 !important; color:#1a0e00 !important; }
+
+  .theme-preview-cloud{ background:#eef5ff; border-color:#93c5fd; }
+  .theme-preview-cloud .item-title, .theme-preview-cloud .item-desc{ color:#17324f; }
+  .theme-preview-cloud .item-icon{ background:#dbeafe; }
+  .theme-preview-cloud .buy-btn{ background:#60a5fa !important; color:#fff !important; }
+
+  .theme-preview-toxic{ background:#060a03; border-color:#7fff00; box-shadow:0 0 14px rgba(127,255,0,.25); }
+  .theme-preview-toxic .item-title, .theme-preview-toxic .item-desc{ color:#eaffd8; }
+  .theme-preview-toxic .item-icon{ background:#0e1408; }
+  .theme-preview-toxic .buy-btn{ background:#7fff00 !important; color:#0a1400 !important; }
+
+  .theme-preview-crimson{ background:#0a0303; border-color:#dc2626; box-shadow:0 0 14px rgba(220,38,38,.25); }
+  .theme-preview-crimson .item-title, .theme-preview-crimson .item-desc{ color:#ffe8e8; }
+  .theme-preview-crimson .item-icon{ background:#150707; }
+  .theme-preview-crimson .buy-btn{ background:#dc2626 !important; color:#fff !important; }
+
+  .theme-preview-minimal{ background:#fafafa; border-color:#d0d0d0; }
+  .theme-preview-minimal .item-title, .theme-preview-minimal .item-desc{ color:#1a1a1a; }
+  .theme-preview-minimal .item-icon{ background:#f0f0f0; }
+  .theme-preview-minimal .buy-btn{ background:#1a1a1a !important; color:#fff !important; }
+
   /* ---------- settings screen ---------- */
   .settings-title{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:20px; margin-left:8px; color: var(--text);}
   .settings-row{
@@ -1859,7 +1979,7 @@
 
     <div class="shop-section-title" id="shopSectionItems">Items & Boosts</div>
     
-    <div class="shop-item">
+    <div class="shop-item item-bg-pattern" data-bg-icon="🧊">
       <div class="item-icon">🧊</div>
       <div class="item-info">
         <div class="item-title">Icecube</div>
@@ -1868,7 +1988,7 @@
       <button class="buy-btn" id="buyIcecube">150 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item item-bg-pattern" data-bg-icon="❤️">
       <div class="item-icon">❤️</div>
       <div class="item-info">
         <div class="item-title">Leben</div>
@@ -1877,7 +1997,7 @@
       <button class="buy-btn" id="buyLife">100 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item item-bg-pattern" data-bg-icon="⏱️">
       <div class="item-icon">⏱️</div>
       <div class="item-info">
         <div class="item-title">Zeit-Booster</div>
@@ -1886,7 +2006,7 @@
       <button class="buy-btn" id="buyTimeBooster">200 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item item-bg-pattern" data-bg-icon="🔁">
       <div class="item-icon">🔁</div>
       <div class="item-info">
         <div class="item-title">Streak-Reparatur</div>
@@ -1898,7 +2018,7 @@
     <div class="shop-section-title" id="shopSectionThemes">Designs</div>
 
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-clean">
       <div class="item-icon">🍃</div>
       <div class="item-info">
         <div class="item-title">Clean Theme</div>
@@ -1907,7 +2027,7 @@
       <button class="buy-btn" id="buyCleanTheme">200 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-white_clean">
       <div class="item-icon">💜</div>
       <div class="item-info">
         <div class="item-title">White Clean Theme</div>
@@ -1916,7 +2036,7 @@
       <button class="buy-btn" id="buyWhiteTheme">500 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-pink">
       <div class="item-icon">🌸</div>
       <div class="item-info">
         <div class="item-title">Pink Theme</div>
@@ -1925,7 +2045,7 @@
       <button class="buy-btn" id="buyPinkTheme">500 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-glass">
       <div class="item-icon">🪟</div>
       <div class="item-info">
         <div class="item-title">Glass Theme</div>
@@ -1934,7 +2054,7 @@
       <button class="buy-btn" id="buyGlassTheme">600 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-glow">
       <div class="item-icon">💜</div>
       <div class="item-info">
         <div class="item-title">Glow Theme</div>
@@ -1943,7 +2063,7 @@
       <button class="buy-btn" id="buyGlowTheme">600 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-glitch">
       <div class="item-icon">🖤</div>
       <div class="item-info">
         <div class="item-title">Glitch Theme</div>
@@ -1952,7 +2072,7 @@
       <button class="buy-btn" id="buyGlitchTheme">1500 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-galaxy">
       <div class="item-icon">🌌</div>
       <div class="item-info">
         <div class="item-title">Galaxy Theme</div>
@@ -1961,7 +2081,7 @@
       <button class="buy-btn" id="buyGalaxyTheme">1800 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-sunset">
       <div class="item-icon">🌅</div>
       <div class="item-info">
         <div class="item-title">Sunset Theme</div>
@@ -1970,7 +2090,7 @@
       <button class="buy-btn" id="buySunsetTheme">1200 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-cyber">
       <div class="item-icon">⚡</div>
       <div class="item-info">
         <div class="item-title">Cyber Theme</div>
@@ -1979,7 +2099,7 @@
       <button class="buy-btn" id="buyCyberTheme">1600 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-royal">
       <div class="item-icon">👑</div>
       <div class="item-info">
         <div class="item-title">Royal Theme</div>
@@ -1988,7 +2108,7 @@
       <button class="buy-btn" id="buyRoyalTheme">2000 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-cloud">
       <div class="item-icon">☁️</div>
       <div class="item-info">
         <div class="item-title">Cloud Theme</div>
@@ -1997,7 +2117,7 @@
       <button class="buy-btn" id="buyCloudTheme">900 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-toxic">
       <div class="item-icon">🧪</div>
       <div class="item-info">
         <div class="item-title">Toxic Theme</div>
@@ -2006,7 +2126,7 @@
       <button class="buy-btn" id="buyToxicTheme">1400 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-crimson">
       <div class="item-icon">🩸</div>
       <div class="item-info">
         <div class="item-title">Crimson Theme</div>
@@ -2015,7 +2135,7 @@
       <button class="buy-btn" id="buyCrimsonTheme">1400 Aura</button>
     </div>
 
-    <div class="shop-item">
+    <div class="shop-item theme-preview theme-preview-minimal">
       <div class="item-icon">🤍</div>
       <div class="item-info">
         <div class="item-title">Minimal Theme</div>
@@ -2078,6 +2198,7 @@
       <div class="item-info">
         <div class="item-title">Glow-Schrift</div>
         <div class="item-desc">Dein Profilname wackelt leicht und leuchtet lila.</div>
+        <div class="font-preview-sample font-glow">DeinName</div>
       </div>
       <button class="buy-btn" id="buyGlowFont">2000 Aura</button>
     </div>
@@ -2087,6 +2208,7 @@
       <div class="item-info">
         <div class="item-title">Pink-Schrift</div>
         <div class="item-desc">Dein Profilname in Pink.</div>
+        <div class="font-preview-sample font-pink">DeinName</div>
       </div>
       <button class="buy-btn" id="buyPinkFont">500 Aura</button>
     </div>
@@ -2096,6 +2218,7 @@
       <div class="item-info">
         <div class="item-title">Gold-Schrift</div>
         <div class="item-desc">Dein Profilname in glänzendem Gold.</div>
+        <div class="font-preview-sample font-gold">DeinName</div>
       </div>
       <button class="buy-btn" id="buyGoldFont">1000 Aura</button>
     </div>
@@ -2105,6 +2228,7 @@
       <div class="item-info">
         <div class="item-title">Pink Glow-Schrift</div>
         <div class="item-desc">Dein Profilname wackelt leicht und leuchtet pink - mit Blütenpartikeln in der Rangliste.</div>
+        <div class="font-preview-sample font-pinkglow">DeinName</div>
       </div>
       <button class="buy-btn" id="buyPinkGlowFont">1000 Aura</button>
     </div>
@@ -2113,7 +2237,8 @@
       <div class="item-icon">🖤</div>
       <div class="item-info">
         <div class="item-title">Glitch-Schrift</div>
-        <div class="item-desc">Schwarze Schrift mit lila Glitch-Effekten, die leicht die Position ändert.</div>
+        <div class="item-desc">Lila leuchtende Schrift, die ständig kurz "teleportiert".</div>
+        <div class="font-preview-sample font-glitch">DeinName</div>
       </div>
       <button class="buy-btn" id="buyGlitchFont">1200 Aura</button>
     </div>
@@ -5323,6 +5448,7 @@
     $("leaderboardEmptyMsg").style.display = "none";
     $("leaderboardList").innerHTML = "";
     if(!loggedIn) return;
+    $("leaderboardList").innerHTML = '<div class="lb-loading"><div class="lb-loading-spinner"></div>Rangliste lädt …</div>';
 
     const following = profile.following || [];
     const followersData = await fetchFollowers(currentUser.uid);
@@ -5330,6 +5456,7 @@
     const mutualUids = following.filter(uid => followerUids.includes(uid));
 
     if(mutualUids.length === 0){
+      $("leaderboardList").innerHTML = "";
       $("leaderboardEmptyMsg").textContent = "Noch keine gegenseitigen Freunde. Adde welche in deinem Profil!";
       $("leaderboardEmptyMsg").style.display = "block";
       return;
@@ -5347,6 +5474,7 @@
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
     const filtered = entries.filter(e => (e.level || 0) >= 2 && e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
     if(filtered.length === 0){
+      $("leaderboardList").innerHTML = "";
       $("leaderboardEmptyMsg").textContent = "Niemand hat in den letzten 7 Tagen gelernt. Los geht's!";
       $("leaderboardEmptyMsg").style.display = "block";
       return;
@@ -5364,6 +5492,7 @@
       return;
     }
     $("leaderboardLoggedOutMsg").style.display = "none";
+    $("leaderboardList").innerHTML = '<div class="lb-loading"><div class="lb-loading-spinner"></div>Rangliste lädt …</div>';
 
     try{
       const snap = await db().collection("users")
@@ -5379,6 +5508,7 @@
       entries = entries.filter(e => e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
 
       if(entries.length === 0){
+        $("leaderboardList").innerHTML = "";
         $("leaderboardEmptyMsg").textContent = "Niemand hat in den letzten 7 Tagen gelernt.";
         $("leaderboardEmptyMsg").style.display = "block";
         return;
@@ -5387,6 +5517,7 @@
       renderLeaderboardRows(entries, currentUser ? currentUser.uid : null);
     }catch(err){
       console.error("Globale Rangliste Fehler:", err);
+      $("leaderboardList").innerHTML = "";
       $("leaderboardEmptyMsg").textContent = "Globale Rangliste konnte nicht geladen werden.";
       $("leaderboardEmptyMsg").style.display = "block";
     }
@@ -7701,6 +7832,21 @@
     }catch(e){
       showToast("Kopieren fehlgeschlagen - bitte manuell markieren.");
     }
+  }
+
+  // Erzeugt einmalig das dezente Hintergrundmuster (wiederholtes Symbol)
+  // hinter jeder Item-Kachel im Shop, z.B. lauter kleine Herzen hinter
+  // "Leben" oder Icecubes hinter "Icecube".
+  function setupShopItemBackgroundPatterns(){
+    document.querySelectorAll(".item-bg-pattern").forEach(el => {
+      if(el.querySelector(".item-bg-pattern-fill")) return; // schon erzeugt
+      const icon = el.dataset.bgIcon || "✨";
+      const row = Array(6).fill(icon).join(" ");
+      const fill = document.createElement("div");
+      fill.className = "item-bg-pattern-fill";
+      fill.textContent = Array(6).fill(row).join("\n");
+      el.insertBefore(fill, el.firstChild);
+    });
   }
 
   function renderShop(){
@@ -11118,6 +11264,7 @@
     renderHome();
     updateMissionsBadge();
     grantInstallChestIfNeeded();
+    setupShopItemBackgroundPatterns();
 
     playStartupIntro(() => {
       if(!profile.hasSeenWelcome && !currentUser){

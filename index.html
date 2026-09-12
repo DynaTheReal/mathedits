@@ -2707,6 +2707,25 @@
         <button class="btn btn-primary btn-small" id="devModeToggleBtn" style="width:100%; background:#94a3b8; border-color:#94a3b8; color:#0a0a10;">Entwicklermodus umschalten</button>
       </div>
 
+      <div style="background:rgba(96,165,250,.1); border:1.5px solid #60a5fa; border-radius:14px; padding:12px; margin-bottom:16px;">
+        <div style="font-weight:800; margin-bottom:8px; color:#60a5fa;">📣 Vollbild-Ankündigung</div>
+        <div class="d" id="announcementCurrentStatus" style="margin-bottom:8px;">Aktuell keine aktive Ankündigung.</div>
+        <textarea id="announcementTextInput" class="input-field" rows="3" placeholder="Text der Ankündigung..." style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
+        <input type="file" id="announcementImageInput" accept="image/*" style="margin-bottom:8px; width:100%; font-size:12px;">
+        <div id="announcementImagePreviewWrap" style="display:none; margin-bottom:8px;">
+          <img id="announcementImagePreview" style="max-width:100%; max-height:140px; border-radius:10px; display:block;">
+          <button class="btn btn-ghost btn-small" id="announcementImageRemoveBtn" style="margin-top:6px;">Bild entfernen</button>
+        </div>
+        <select id="announcementDurationSelect" class="input-field" style="margin-bottom:8px;">
+          <option value="1">1 Tag</option>
+          <option value="3" selected>3 Tage</option>
+          <option value="7">7 Tage</option>
+          <option value="14">14 Tage</option>
+          <option value="30">30 Tage</option>
+        </select>
+        <button class="btn btn-primary btn-small" id="announcementSendBtn" style="width:100%; background:#60a5fa; border-color:#60a5fa;">Ankündigung senden</button>
+      </div>
+
       <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:14px; padding:12px; margin-bottom:16px;">
         <div style="font-weight:800; margin-bottom:8px; color:#ef4444;">🛑 Website Not-Stopp</div>
         <div class="d" id="siteStopStatus" style="margin-bottom:8px;">Aktuell nicht gestoppt.</div>
@@ -2925,7 +2944,7 @@
       <div class="d" id="ownerResetPasswordHint" style="display:none; margin-top:8px; font-size:11px;">Setzt dein Owner-Passwort neu, OHNE das alte zu kennen - funktioniert nur, solange du gerade eingeloggt bist.</div>
     </div>
 
-    <div class="settings-foot">MathEdits · Dein Fortschritt wird synchronisiert.<br>Build: 2026-09-loop-fix-v2</div>
+    <div class="settings-foot">MathEdits · Version <span id="settingsVersionText">2.26</span><br>Dein Fortschritt wird synchronisiert.</div>
   </section>
 
   <!-- ============ LOCKED (no lives) ============ -->
@@ -3397,6 +3416,15 @@
     <div id="siteStoppedUntilText" style="font-size:13px; color:var(--text-dim); max-width:320px;"></div>
   </div>
 
+  <!-- Vollbild-Ankündigung vom Owner (NEU): erscheint einmalig pro Person,
+       solange die Ankündigung noch aktiv ist - danach nie wieder für diese
+       konkrete Ankündigung. Per X oben wegklickbar. -->
+  <div id="overlayAnnouncement" style="display:none; position:fixed; inset:0; z-index:98000; background:#0a0a10; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px; overflow-y:auto;">
+    <button class="banner-close-x" id="announcementCloseBtn" style="position:absolute; top:16px; right:16px; z-index:1;">✕</button>
+    <img id="announcementImageDisplay" style="display:none; max-width:100%; max-height:45vh; border-radius:16px; margin-bottom:20px; object-fit:contain;">
+    <div id="announcementTextDisplay" style="font-size:17px; color:var(--text, #fff); max-width:420px; white-space:pre-wrap; line-height:1.5;"></div>
+  </div>
+
   <!-- Owner-Broadcast: Nachricht an alle Nutzer (NEU, komplett neu aufgebaut) -->
   <div class="broadcast-toast" id="broadcastToast">
     <div class="broadcast-toast-icon">👤</div>
@@ -3428,6 +3456,7 @@
       <!-- Der Text (hat jetzt zwei Animationen: reinkommen und später verschwinden) -->
       <div style="font-family: 'Nunito', sans-serif; color: white; font-size: 4rem; font-weight: 800; opacity: 0; animation: fadeInText 0.8s forwards, hideText 0.2s forwards 1.3s;">MathEdits</div>
     </div>
+    <div id="introVersionTextSimple" style="position:absolute; bottom:24px; left:0; right:0; text-align:center; font-family:'Inter',sans-serif; color:rgba(255,255,255,.35); font-size:11px;"></div>
   </div>
 
   <!-- App-Start-Intro: "Math" Variante (NEU) - Mathe-Symbole fliegen rein,
@@ -3439,6 +3468,7 @@
       <div id="mathIntroDot" style="width: 48px; height: 48px; background-color: #d3fc55; border-radius: 50%; box-shadow: 0 0 30px #d3fc55; animation: mathIntroDropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, mathIntroHyperScale 0.4s cubic-bezier(0.7, 0, 0.3, 1) forwards 1.8s;"></div>
       <div id="mathIntroGlitchText" style="font-family: 'Nunito', sans-serif; color: #ffffff; font-size: 4.2rem; font-weight: 900; letter-spacing: -1px; user-select: none;">f(x)=∫x²</div>
     </div>
+    <div id="introVersionTextMath" style="position:absolute; bottom:24px; left:0; right:0; text-align:center; font-family:'Inter',sans-serif; color:rgba(255,255,255,.35); font-size:11px; z-index:2;"></div>
   </div>
 
   <!-- "Teile diese Website"-Hinweis nach der ersten Lektion (NEU) -->
@@ -3518,6 +3548,11 @@
   // geht. Das war der gemeldete Bug: direkt nach dem Öffnen der App
   // gesendete Einladungen kamen nie an.
   const appLoadTime = Date.now();
+
+  // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
+  // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
+  // Start-Intro und unten in den Einstellungen angezeigt.
+  const APP_VERSION = "2.26";
 
   // iOS "Zum Home-Bildschirm hinzufügen"-Apps haben einen bekannten WebKit-Bug:
   // der allererste Tap nach dem Start "weckt" nur die WebView, statt als Klick
@@ -3710,6 +3745,7 @@
     answeredPollIds: [], // verhindert mehrfaches Einschicken derselben Umfrage
     appIntroStyle: "math", // "math" (Standard) oder "simple" - welche Start-Animation beim App-Öffnen läuft
     devModeEnabled: false, // Entwicklermodus: zeigt Debug-Beschriftungen an allen Elementen (nur Owner)
+    dismissedAnnouncementIds: [], // welche Vollbild-Ankündigungen schon gesehen/weggeklickt wurden
     dismissedFeedbackIds: [], // nur für den Owner relevant: einzeln weggeklicktes Feedback
     lastSeenFeedbackAt: 0, // nur für den Owner relevant: bis wann Feedback schon gesehen wurde
     lastStreakReminderShownDate: null // verhindert, dass die Erinnerung mehrfach am selben Tag auftaucht
@@ -3815,6 +3851,7 @@
       if(nowDoubleAuraUntil > previousDoubleAuraUntil && nowDoubleAuraUntil > Date.now()){
         playAuraBoosterAnimation(Math.ceil((nowDoubleAuraUntil - Date.now()) / 60000));
       }
+      checkForAnnouncement();
     }catch(err){
       console.error("Sofort-Abgleich beim Öffnen Fehler:", err);
     }
@@ -4157,6 +4194,120 @@
      weggeklickt werden). Wer offline war, bekommt sie nicht nachträglich
      angezeigt - genau wie bei Broadcasts/Update-Hinweisen.
   ======================================================== */
+  /* ========================================================
+     VOLLBILD-ANKÜNDIGUNG (NEU): Owner kann Text + Bild + Dauer festlegen,
+     jede Person sieht sie genau einmal, solange sie noch aktiv ist.
+  ======================================================== */
+  let pendingAnnouncementImageDataUri = null;
+
+  // Verkleinert ein hochgeladenes Bild auf eine vernünftige Größe, bevor es
+  // als Data-URI in Firestore gespeichert wird (Dokumente dürfen dort nur
+  // ca. 1 MB groß sein - ein unverändertes Handyfoto wäre oft viel größer).
+  function compressImageFile(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1000;
+          let { width, height } = img;
+          if(width > maxDim || height > maxDim){
+            const scale = maxDim / Math.max(width, height);
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width; canvas.height = height;
+          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", 0.72));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function sendAnnouncement(){
+    if(!isOwner() || !firebaseInitialized || !currentUser) return;
+    const text = $("announcementTextInput").value.trim();
+    if(!text && !pendingAnnouncementImageDataUri){
+      return alert("Bitte Text und/oder ein Bild angeben.");
+    }
+    const days = parseInt($("announcementDurationSelect").value, 10) || 3;
+    try{
+      await db().collection("announcements").add({
+        text: text.slice(0, 1000),
+        imageDataUri: pendingAnnouncementImageDataUri || null,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + days * 24 * 60 * 60 * 1000,
+        createdBy: currentUser.uid
+      });
+      $("announcementTextInput").value = "";
+      $("announcementImageInput").value = "";
+      pendingAnnouncementImageDataUri = null;
+      $("announcementImagePreviewWrap").style.display = "none";
+      showToast("📣 Ankündigung gesendet!");
+      renderOwnerAnnouncementStatus();
+    }catch(err){
+      showToast("Ankündigung konnte nicht gesendet werden - eventuell ist das Bild zu groß.");
+      console.error("Ankündigung senden Fehler:", err);
+    }
+  }
+
+  async function renderOwnerAnnouncementStatus(){
+    if(!isOwner() || !firebaseInitialized) return;
+    const statusEl = $("announcementCurrentStatus");
+    try{
+      const snap = await db().collection("announcements").orderBy("createdAt", "desc").limit(1).get();
+      if(snap.empty){ statusEl.textContent = "Aktuell keine aktive Ankündigung."; return; }
+      const data = snap.docs[0].data();
+      if(data.expiresAt < Date.now()){
+        statusEl.textContent = "Aktuell keine aktive Ankündigung.";
+      } else {
+        statusEl.textContent = `Aktiv bis ${new Date(data.expiresAt).toLocaleString("de-DE")}.`;
+      }
+    }catch(err){
+      console.error("Ankündigungs-Status Fehler:", err);
+    }
+  }
+
+  // Prüft beim App-Start/Wiederöffnen, ob eine aktive Ankündigung existiert,
+  // die diese Person noch nicht gesehen hat - zeigt sie dann einmalig an.
+  async function checkForAnnouncement(){
+    if(!firebaseInitialized || !currentUser) return;
+    try{
+      const snap = await db().collection("announcements").orderBy("createdAt", "desc").limit(1).get();
+      if(snap.empty) return;
+      const doc = snap.docs[0];
+      const data = doc.data();
+      if(data.expiresAt < Date.now()) return; // abgelaufen
+      const seen = profile.dismissedAnnouncementIds || [];
+      if(seen.includes(doc.id)) return; // schon gesehen
+      $("announcementTextDisplay").textContent = data.text || "";
+      if(data.imageDataUri){
+        $("announcementImageDisplay").src = data.imageDataUri;
+        $("announcementImageDisplay").style.display = "block";
+      } else {
+        $("announcementImageDisplay").style.display = "none";
+      }
+      $("overlayAnnouncement").dataset.currentId = doc.id;
+      $("overlayAnnouncement").style.display = "flex";
+    }catch(err){
+      console.error("Ankündigung abrufen Fehler:", err);
+    }
+  }
+
+  function dismissAnnouncement(){
+    const id = $("overlayAnnouncement").dataset.currentId;
+    if(id){
+      profile.dismissedAnnouncementIds = [...new Set([...(profile.dismissedAnnouncementIds || []), id])];
+      saveProfile();
+    }
+    $("overlayAnnouncement").style.display = "none";
+  }
+
   async function sendPoll(){
     if(!isOwner() || !firebaseInitialized || !currentUser) return;
     const question = $("pollQuestionInput").value.trim();
@@ -9369,6 +9520,26 @@
   $("ownerRemoveModBtn").addEventListener("click", ownerRemoveModOfTarget);
   $("ownerGiveBoosterBtn").addEventListener("click", ownerGiveBooster);
   $("devModeToggleBtn").addEventListener("click", toggleDevMode);
+
+  $("announcementImageInput").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      pendingAnnouncementImageDataUri = await compressImageFile(file);
+      $("announcementImagePreview").src = pendingAnnouncementImageDataUri;
+      $("announcementImagePreviewWrap").style.display = "block";
+    }catch(err){
+      showToast("Bild konnte nicht geladen werden.");
+      console.error(err);
+    }
+  });
+  $("announcementImageRemoveBtn").addEventListener("click", () => {
+    pendingAnnouncementImageDataUri = null;
+    $("announcementImageInput").value = "";
+    $("announcementImagePreviewWrap").style.display = "none";
+  });
+  $("announcementSendBtn").addEventListener("click", sendAnnouncement);
+  $("announcementCloseBtn").addEventListener("click", dismissAnnouncement);
   $("saveAdminActionPasswordBtn").addEventListener("click", saveAdminActionPassword);
 
   $("modPanelBtn").addEventListener("click", () => {
@@ -9550,6 +9721,7 @@
       renderOwnerCodeStatus();
       renderOwnerFeedback();
       renderPollResults();
+      renderOwnerAnnouncementStatus();
     }
 
     if(currentUser){
@@ -10108,6 +10280,7 @@
             initFcmAndSaveToken();
             watchLiveUpdateNotice();
             watchLivePoll();
+            checkForAnnouncement();
           } else {
             cloudSyncReady = true;
             // Nur EINMAL versuchen, das Dokument anzulegen - nicht bei jedem
@@ -11765,6 +11938,9 @@
   });
 
   function init(){
+    $("introVersionTextSimple").textContent = "v" + APP_VERSION;
+    $("introVersionTextMath").textContent = "v" + APP_VERSION;
+    $("settingsVersionText").textContent = APP_VERSION;
     applyWideLayoutIfNeeded();
     loadProfile();
     refillLives();

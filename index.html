@@ -3420,10 +3420,10 @@
   <!-- Vollbild-Ankündigung vom Owner (NEU): erscheint einmalig pro Person,
        solange die Ankündigung noch aktiv ist - danach nie wieder für diese
        konkrete Ankündigung. Per X oben wegklickbar. -->
-  <div id="overlayAnnouncement" style="display:none; position:fixed; inset:0; z-index:98000; background:#0a0a10; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px; overflow-y:auto;">
-    <button class="banner-close-x" id="announcementCloseBtn" style="position:absolute; top:16px; right:16px; z-index:1;">✕</button>
+  <div id="overlayAnnouncement" style="display:none; position:fixed; inset:0; z-index:98000; background:rgba(10,10,16,.72); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px; overflow-y:auto;">
+    <button id="announcementCloseBtn" style="position:absolute; top:16px; right:16px; z-index:1; width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.3); color:#fff; font-size:20px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
     <img id="announcementImageDisplay" style="display:none; max-width:100%; max-height:45vh; border-radius:16px; margin-bottom:20px; object-fit:contain;">
-    <div id="announcementTextDisplay" style="font-size:17px; color:var(--text, #fff); max-width:420px; white-space:pre-wrap; line-height:1.5;"></div>
+    <div id="announcementTextDisplay" style="font-size:17px; color:#fff; max-width:420px; white-space:pre-wrap; line-height:1.5; text-shadow:0 2px 12px rgba(0,0,0,.6);"></div>
   </div>
 
   <!-- Owner-Broadcast: Nachricht an alle Nutzer (NEU, komplett neu aufgebaut) -->
@@ -3553,7 +3553,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.27";
+  const APP_VERSION = "2.28";
 
   // iOS "Zum Home-Bildschirm hinzufügen"-Apps haben einen bekannten WebKit-Bug:
   // der allererste Tap nach dem Start "weckt" nur die WebView, statt als Klick

@@ -1985,6 +1985,7 @@
 </head>
 <body>
 <div class="app" data-theme="dark" id="app">
+  <div id="offlineBanner" style="display:none; position:fixed; top:0; left:0; right:0; z-index:97000; background:#ef4444; color:#fff; text-align:center; font-size:12px; font-weight:700; padding:6px 10px; padding-top:calc(6px + env(safe-area-inset-top));">📴 Kein Internet - nur Lektionen sind offline verfügbar</div>
 
   <!-- ============ HOME ============ -->
   <section class="screen active" id="screen-home">
@@ -3421,9 +3422,11 @@
        solange die Ankündigung noch aktiv ist - danach nie wieder für diese
        konkrete Ankündigung. Per X oben wegklickbar. -->
   <div id="overlayAnnouncement" style="display:none; position:fixed; inset:0; z-index:98000; background:rgba(10,10,16,.72); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px; overflow-y:auto;">
-    <button id="announcementCloseBtn" style="position:absolute; top:16px; right:16px; z-index:1; width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.3); color:#fff; font-size:20px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
-    <img id="announcementImageDisplay" style="display:none; max-width:100%; max-height:45vh; border-radius:16px; margin-bottom:20px; object-fit:contain;">
-    <div id="announcementTextDisplay" style="font-size:17px; color:#fff; max-width:420px; white-space:pre-wrap; line-height:1.5; text-shadow:0 2px 12px rgba(0,0,0,.6);"></div>
+    <button id="announcementCloseBtn" style="position:absolute; top:16px; right:16px; z-index:2; width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.3); color:#fff; font-size:20px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+    <div id="announcementMediaWrap" style="position:relative; max-width:100%; display:flex; align-items:center; justify-content:center;">
+      <img id="announcementImageDisplay" style="display:none; max-width:100%; max-height:60vh; border-radius:16px; object-fit:contain;">
+      <div id="announcementTextDisplay" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:20px; font-size:26px; font-weight:900; color:#fff; white-space:pre-wrap; line-height:1.35; text-shadow:0 2px 14px rgba(0,0,0,.85), 0 0 30px rgba(0,0,0,.6);"></div>
+    </div>
   </div>
 
   <!-- Owner-Broadcast: Nachricht an alle Nutzer (NEU, komplett neu aufgebaut) -->
@@ -3553,7 +3556,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.28";
+  const APP_VERSION = "2.29";
 
   // iOS "Zum Home-Bildschirm hinzufügen"-Apps haben einen bekannten WebKit-Bug:
   // der allererste Tap nach dem Start "weckt" nur die WebView, statt als Klick
@@ -4326,8 +4329,17 @@
       if(data.imageDataUri){
         $("announcementImageDisplay").src = data.imageDataUri;
         $("announcementImageDisplay").style.display = "block";
+        // Text liegt ÜBER dem Bild (großer, fetter, weißer Text mit
+        // Schatten für Lesbarkeit egal wie hell/dunkel das Bild ist).
+        $("announcementTextDisplay").style.position = "absolute";
+        $("announcementTextDisplay").style.maxWidth = "";
       } else {
         $("announcementImageDisplay").style.display = "none";
+        // Kein Bild vorhanden - Text ganz normal mittig anzeigen, nicht
+        // absolut positioniert (sonst hätte er ohne Bild keine Größe, an
+        // der er sich ausrichten könnte).
+        $("announcementTextDisplay").style.position = "static";
+        $("announcementTextDisplay").style.maxWidth = "420px";
       }
       $("overlayAnnouncement").dataset.currentId = doc.id;
       $("overlayAnnouncement").style.display = "flex";
@@ -4817,6 +4829,18 @@
       return;
     }
     if(!donateAuraTargetUid || !firebaseInitialized || !currentUser) return;
+    // WICHTIG: sich selbst Aura zu "spenden" darf nie erlaubt sein - das
+    // war die eigentliche Lücke, die den Aura-Exploit im Flugmodus
+    // ermöglicht hat (lokal wird sofort abgezogen UND über den eigenen
+    // Live-Listener sofort wieder gutgeschrieben).
+    if(donateAuraTargetUid === currentUser.uid){
+      showToast("Du kannst dir nicht selbst Aura spenden.");
+      return;
+    }
+    if(isOffline()){
+      showToast("Aura spenden geht nur online.");
+      return;
+    }
     try{
       await db().collection("auraDonations").add({
         fromUid: currentUser.uid,
@@ -8221,7 +8245,39 @@
   };
   const NAV_SCREENS = ["home", "shop", "leaderboard", "missions", "profile", "trends"];
 
+  // Flugmodus-/Offline-Erkennung (NEU): verhindert, dass jemand offline zu
+  // Sachen wie dem Shop oder Aura spenden navigiert, wo sich der lokale
+  // Zustand ausnutzen ließe, ohne dass ein Server das je gegenprüfen kann.
+  // Nur Lektionen (die brauchen ohnehin keine Internetverbindung) bleiben
+  // offline erreichbar.
+  function isOffline(){
+    return !navigator.onLine;
+  }
+  const OFFLINE_ALLOWED_SCREENS = ["home", "lesson", "result", "locked"];
+
+  function updateOfflineBanner(){
+    const banner = $("offlineBanner");
+    if(!banner) return;
+    banner.style.display = isOffline() ? "block" : "none";
+  }
+  window.addEventListener("online", () => { updateOfflineBanner(); });
+  window.addEventListener("offline", () => {
+    updateOfflineBanner();
+    // Falls man genau in dem Moment auf einem gesperrten Bildschirm ist
+    // (z.B. im Shop), sofort zurück zum Home-Bildschirm.
+    const currentActive = Object.keys(screens).find(key => screens[key].classList.contains("active"));
+    if(currentActive && !OFFLINE_ALLOWED_SCREENS.includes(currentActive)){
+      showToast("📴 Verbindung verloren - nur Lektionen bleiben verfügbar.");
+      showScreen("home");
+      renderHome();
+    }
+  });
+
   function showScreen(name){
+    if(isOffline() && !OFFLINE_ALLOWED_SCREENS.includes(name)){
+      showToast("📴 Kein Internet - nur Lektionen sind offline verfügbar.");
+      name = "home";
+    }
     Object.values(screens).forEach(s => s.classList.remove("active"));
     screens[name].classList.add("active");
 
@@ -11955,6 +12011,7 @@
     $("introVersionTextSimple").textContent = "v" + APP_VERSION;
     $("introVersionTextMath").textContent = "v" + APP_VERSION;
     $("settingsVersionText").textContent = APP_VERSION;
+    updateOfflineBanner();
     applyWideLayoutIfNeeded();
     loadProfile();
     refillLives();

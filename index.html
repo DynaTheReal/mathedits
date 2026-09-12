@@ -3553,7 +3553,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.26";
+  const APP_VERSION = "2.27";
 
   // iOS "Zum Home-Bildschirm hinzufügen"-Apps haben einen bekannten WebKit-Bug:
   // der allererste Tap nach dem Start "weckt" nur die WebView, statt als Klick
@@ -11886,43 +11886,19 @@
       $("pwaManifestLink").setAttribute("href", URL.createObjectURL(manifestBlob));
       $("appleTouchIconLink").setAttribute("href", iconUri);
 
-      // Service Worker mit FCM-Unterstützung: importiert die Firebase-SDKs,
-      // initialisiert Messaging und zeigt Push-Nachrichten an, die
-      // eintreffen, während die App im Hintergrund oder ganz geschlossen
-      // ist (Voraussetzung dafür ist, dass ein Cloud-Functions-Backend die
-      // Nachrichten tatsächlich verschickt - siehe functions/index.js).
+      // Service Worker DEAKTIVIERT (NEU): war die Ursache dafür, dass
+      // Updates (z.B. die Versionsnummer) bei manchen Personen nicht
+      // ankamen, weil eine alte, zwischengespeicherte Version der App
+      // hängen blieb. Der einzige Nutzen wäre Push-Benachrichtigungen bei
+      // komplett geschlossener App gewesen - das braucht aber ein eigenes
+      // Cloud-Functions-Backend mit Bezahltarif, den es aktuell nicht gibt.
+      // Ein eventuell von einer früheren Version noch aktiver Service
+      // Worker wird hier aktiv entfernt, damit niemand mehr an alten
+      // Inhalten hängen bleibt.
       if("serviceWorker" in navigator){
-        const swCode = `
-          importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
-          importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
-          try{
-            firebase.initializeApp(${JSON.stringify(firebaseConfig)});
-            const messaging = firebase.messaging();
-            messaging.onBackgroundMessage(function(payload){
-              const title = (payload.notification && payload.notification.title) || 'MathEdits';
-              const options = {
-                body: (payload.notification && payload.notification.body) || '',
-                icon: ${JSON.stringify(iconUri)},
-                tag: (payload.data && payload.data.tag) || 'mathedits-push'
-              };
-              self.registration.showNotification(title, options);
-            });
-          }catch(e){ /* Messaging in diesem Kontext nicht verfügbar - Rest funktioniert trotzdem */ }
-
-          self.addEventListener('notificationclick', function(e){
-            e.notification.close();
-            e.waitUntil(clients.matchAll({type:'window', includeUncontrolled:true}).then(function(list){
-              for(const c of list){ if('focus' in c) return c.focus(); }
-              if(clients.openWindow) return clients.openWindow('/');
-            }));
-          });
-
-          self.addEventListener('fetch', function(e){ e.respondWith(fetch(e.request).catch(function(){ return caches.match(e.request); })); });
-        `;
-        const swBlob = new Blob([swCode], { type: "application/javascript" });
-        navigator.serviceWorker.register(URL.createObjectURL(swBlob))
-          .then(() => { if(Notification.permission === "granted") initFcmAndSaveToken(); })
-          .catch(err => console.warn("Service Worker Registrierung fehlgeschlagen:", err));
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          regs.forEach(reg => reg.unregister());
+        }).catch(() => {});
       }
     }catch(err){
       console.warn("PWA-Setup fehlgeschlagen:", err);

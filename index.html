@@ -2496,7 +2496,7 @@
 
   <!-- ============ DUELL-LOBBY (NEU, komplett überarbeitetes Duell-System) ============ -->
   <section class="screen" id="screen-duellobby">
-    <div class="topbar">
+    <div class="topbar" style="position:relative; z-index:300;">
       <div class="exit-x" id="duelLobbyBack">←</div>
       <div class="settings-title">Duell-Lobby</div>
     </div>
@@ -2507,7 +2507,7 @@
     <div id="duelLobbyMembersList" style="margin-bottom:16px;"></div>
     <button class="btn btn-primary" id="duelLobbyInviteBtn" style="width:100%; margin-bottom:10px;">+ Freund einladen</button>
     <button class="btn btn-primary" id="duelLobbyStartBtn" style="width:100%; margin-bottom:10px; display:none;">🚀 Duell starten</button>
-    <button class="btn btn-ghost" id="duelLobbyLeaveBtn" style="width:100%;">Lobby verlassen</button>
+    <button class="btn btn-ghost" id="duelLobbyLeaveBtn" style="width:100%; position:relative; z-index:300;">Lobby verlassen</button>
   </section>
 
   <!-- Duell-Lobby: Freund einladen (NEU) -->
@@ -3511,6 +3511,14 @@
 (function(){
   "use strict";
 
+  // Zeitpunkt, an dem die App WIRKLICH zu laden begann - genutzt als
+  // Grenzwert für "live" Duell-Einladungen (siehe watchIncomingDuelLobbyInvites),
+  // damit eine Einladung, die während der Start-Animation ankommt (bevor der
+  // eigentliche Listener ein paar Sekunden später live geht), nicht verloren
+  // geht. Das war der gemeldete Bug: direkt nach dem Öffnen der App
+  // gesendete Einladungen kamen nie an.
+  const appLoadTime = Date.now();
+
   // iOS "Zum Home-Bildschirm hinzufügen"-Apps haben einen bekannten WebKit-Bug:
   // der allererste Tap nach dem Start "weckt" nur die WebView, statt als Klick
   // zu zählen - danach funktioniert alles normal. Da Home immer der erste
@@ -3772,6 +3780,66 @@
       }
     }catch(e){ }
   }
+
+  // Sofort-Abgleich beim Öffnen/Schließen (NEU): bisher lief der Abgleich
+  // nur über den Live-Listener (kann bei kurz im Hintergrund pausierter
+  // App die Verbindung verlieren) und einen 10-Sekunden-Herzschlag. Das
+  // konnte dazu führen, dass zwei Geräte auseinanderlaufen (z.B. eins zeigt
+  // 300 Aura, das andere 700), weil eine Änderung nie rausging, bevor die
+  // App zu war, oder eine frische Änderung vom anderen Gerät nicht mehr
+  // ankam. Jetzt wird zusätzlich explizit synchronisiert.
+  async function forceFreshSyncOnResume(){
+    if(!firebaseInitialized || !currentUser || !cloudSyncReady) return;
+    try{
+      const doc = await db().collection("users").doc(currentUser.uid).get();
+      if(!doc.exists) return;
+      const cloudData = doc.data();
+      if(cloudData.banned && (cloudData.bannedUntil === null || cloudData.bannedUntil === undefined || cloudData.bannedUntil > Date.now())){
+        return; // die Sperr-Anzeige übernimmt der reguläre Live-Listener
+      }
+      const normalizedCloud = {
+        ...DEFAULT_PROFILE,
+        ...cloudData,
+        unlockedThemes: cloudData.unlockedThemes || ["black"],
+        inventory: { ...DEFAULT_PROFILE.inventory, ...(cloudData.inventory || {}) },
+        following: cloudData.following || []
+      };
+      const previousDoubleAuraUntil = (profile.inventory && profile.inventory.doubleAuraUntil) || 0;
+      profile = reconcileProfiles(profile, normalizedCloud);
+      profile.lastFirebaseUid = currentUser.uid;
+      saveProfile();
+      renderHome();
+      if(screens.shop && screens.shop.classList.contains("active")) renderShop();
+      if(screens.settings && screens.settings.classList.contains("active")) renderSettings();
+      const nowDoubleAuraUntil = (profile.inventory && profile.inventory.doubleAuraUntil) || 0;
+      if(nowDoubleAuraUntil > previousDoubleAuraUntil && nowDoubleAuraUntil > Date.now()){
+        playAuraBoosterAnimation(Math.ceil((nowDoubleAuraUntil - Date.now()) / 60000));
+      }
+    }catch(err){
+      console.error("Sofort-Abgleich beim Öffnen Fehler:", err);
+    }
+  }
+
+  function flushSyncOnPause(){
+    if(!firebaseInitialized || !currentUser) return;
+    try{
+      // Erzwingt einen Schreibvorgang, auch wenn saveProfile() zuletzt
+      // dachte, es gäbe nichts Neues zu speichern - stellt sicher, dass
+      // WIRKLICH nichts Lokales verloren geht, bevor die App zugeht.
+      lastWrittenProfileJSON = null;
+      saveProfile();
+    }catch(e){ }
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "hidden"){
+      flushSyncOnPause();
+    } else if(document.visibilityState === "visible"){
+      forceFreshSyncOnResume();
+    }
+  });
+  window.addEventListener("pagehide", flushSyncOnPause);
+  window.addEventListener("beforeunload", flushSyncOnPause);
 
   /* AUTOMATISCHER SYNC ALLE 10 SEKUNDEN - aktualisiert dabei auch die
      "zuletzt aktiv"-Zeit für den Online-Punkt bei Freunden. */
@@ -7607,6 +7675,18 @@
           renderDuelOpponentProgress(data);
         }
       } else if(data.status === "finished"){
+        // NEU: Wenn jemand anderes gerade als Erster fertig geworden ist,
+        // während ich noch mitten in meiner eigenen Lektion war, wird die
+        // hier sofort abgebrochen - ich habe verloren, muss nicht mehr
+        // weiterspielen. Ein einzelner Fehler bei EINER Aufgabe löst das
+        // NICHT aus - nur wenn jemand wirklich alle Fragen fertig hat.
+        if(lesson && lesson.isDuelLobby && lesson.duelLobbyId === lobbyId && duelLobbyFinishedId !== lobbyId){
+          stopTimer();
+          pendingAdvanceAt = null;
+          lesson = null;
+          clearLessonInProgress();
+          showScreen("duelresults");
+        }
         duelLobbyFinishedId = null;
         renderDuelResultsScreen(data);
       }
@@ -7722,13 +7802,13 @@
     if(!firebaseInitialized || !currentUser) return;
     // Nur EIN Gleichheits-Filter, kein zusammengesetzter Index nötig -
     // "pending" wird clientseitig gefiltert.
-    // WICHTIG: nur LIVE zustellen - ein Grenzwert wird beim Start des
-    // Listeners festgehalten, nur Einladungen die DANACH erstellt wurden,
-    // lösen den Banner aus. Sonst würde bei jedem Neustart der App jede
-    // alte, noch "pending" Einladung erneut angezeigt (das war der
-    // gemeldete Bug: "bekomme immer wieder dieselbe Duell-Anfrage", auch
-    // für Einladungen, die eintrafen, während man offline war).
-    const listenerStartedAt = Date.now();
+    // WICHTIG: nur LIVE zustellen - der Grenzwert ist der Zeitpunkt, an dem
+    // die App WIRKLICH zu laden begann (appLoadTime), nicht erst wenn dieser
+    // Listener hier ein paar Sekunden später live geht (z.B. wegen der
+    // Start-Animation). Sonst würden Einladungen, die genau in diesem
+    // Startfenster ankommen, nie zugestellt werden. Trotzdem wird KEINE
+    // alte, schon länger wartende Einladung nachgeholt, wie es der
+    // ursprüngliche Bug war.
     duelLobbyInviteUnsubscribe = db().collection("duelLobbyInvites")
       .where("toUid", "==", currentUser.uid)
       .onSnapshot((snap) => {
@@ -7736,7 +7816,7 @@
           if(change.type === "added"){
             const data = change.doc.data();
             if(data.status !== "pending") return;
-            if(!data.createdAt || data.createdAt <= listenerStartedAt) return;
+            if(!data.createdAt || data.createdAt <= appLoadTime) return;
             pendingDuelLobbyInvite = { id: change.doc.id, ...data };
             $("duelInviteText").innerHTML = `<b>@${data.fromUsername}</b> lädt dich zu einem Duell ein!`;
             $("duelInviteBanner").classList.add("show");
@@ -7839,11 +7919,14 @@
           timeMs, correctCount, username: profile.username || "?", finishedAt: Date.now()
         }
       });
+      // NEU: Wer zuerst alle Fragen schafft, gewinnt sofort - es wird NICHT
+      // mehr gewartet, bis auch alle anderen fertig sind. Ihre laufenden
+      // Lektionen werden dadurch (über den Live-Abgleich unten) abgebrochen
+      // und als "verloren" gewertet.
       const doc = await ref.get();
       const data = doc.data();
-      const allDone = (data.memberUids || []).every(uid => data.results && data.results[uid]);
-      if(allDone && data.status !== "finished"){
-        await ref.update({ status: "finished" });
+      if(data.status !== "finished"){
+        await ref.update({ status: "finished", winnerUid: currentUser.uid });
       }
     }catch(err){
       console.error("Duell-Ergebnis speichern Fehler:", err);
@@ -7854,32 +7937,47 @@
   function renderDuelResultsScreen(data){
     const results = data.results || {};
     const memberUids = data.memberUids || [];
-    const finishedCount = memberUids.filter(uid => results[uid]).length;
-    const allDone = memberUids.length > 0 && memberUids.every(uid => results[uid]);
 
-    if(!allDone){
-      $("duelResultsEmoji").textContent = "⏳";
-      $("duelResultsTitle").textContent = "Warte auf die anderen …";
-      $("duelResultsSub").textContent = `${finishedCount}/${memberUids.length} sind fertig.`;
-      $("duelResultsHomeBtn").style.display = "none";
-      return;
+    // NEU: sobald ein winnerUid gesetzt ist, steht das Ergebnis fest - auch
+    // wenn andere Mitspieler nie fertig geworden sind (die wurden ja gerade
+    // abgebrochen, weil sie verloren haben). Nur falls aus irgendeinem
+    // Grund noch kein winnerUid da ist (z.B. sehr alte Lobby-Daten), wird
+    // wie bisher auf alle gewartet.
+    if(!data.winnerUid){
+      const finishedCount = memberUids.filter(uid => results[uid]).length;
+      const allDone = memberUids.length > 0 && memberUids.every(uid => results[uid]);
+      if(!allDone){
+        $("duelResultsEmoji").textContent = "⏳";
+        $("duelResultsTitle").textContent = "Warte auf die anderen …";
+        $("duelResultsSub").textContent = `${finishedCount}/${memberUids.length} sind fertig.`;
+        $("duelResultsHomeBtn").style.display = "none";
+        return;
+      }
     }
 
-    const ranked = memberUids.map(uid => ({ uid, ...results[uid] })).sort((a, b) => a.timeMs - b.timeMs);
-    const winner = ranked[0];
-    const iWon = !!(currentUser && winner.uid === currentUser.uid);
+    const winnerUid = data.winnerUid || memberUids.map(uid => ({ uid, ...results[uid] })).sort((a, b) => a.timeMs - b.timeMs)[0].uid;
+    const winnerResult = results[winnerUid];
+    const iWon = !!(currentUser && winnerUid === currentUser.uid);
 
     $("duelResultsEmoji").textContent = iWon ? "🏆" : "⚔️";
-    $("duelResultsTitle").textContent = iWon ? "Du hast gewonnen!" : `@${winner.username} hat gewonnen!`;
+    $("duelResultsTitle").textContent = iWon ? "Du hast gewonnen!" : `@${(winnerResult && winnerResult.username) || "?"} hat gewonnen!`;
     $("duelResultsSub").textContent = "Endergebnis:";
     $("duelResultsHomeBtn").style.display = "block";
+
+    // Reihenfolge: wer ein Ergebnis hat, nach Zeit sortiert (Gewinner
+    // zuerst), danach alle, die nicht fertig geworden sind (verloren, ohne
+    // Zeit) in der Reihenfolge, wie sie in der Lobby stehen.
+    const finished = memberUids.filter(uid => results[uid]).map(uid => ({ uid, ...results[uid] })).sort((a, b) => a.timeMs - b.timeMs);
+    const notFinished = memberUids.filter(uid => !results[uid]).map(uid => ({ uid, username: (data.memberNames && data.memberNames[uid]) || "?", timeMs: null, correctCount: null }));
+    const ranked = [...finished, ...notFinished];
 
     const listEl = $("duelResultsList");
     listEl.innerHTML = "";
     ranked.forEach((r, i) => {
       const row = document.createElement("div");
       row.className = "lb-row" + (currentUser && r.uid === currentUser.uid ? " me" : "");
-      row.innerHTML = `<div class="lb-rank">#${i + 1}</div><div class="lb-name">@${r.username}</div><div class="lb-aura">${formatDuration(r.timeMs)} · ${r.correctCount}/${QUESTIONS_PER_LESSON}</div>`;
+      const statText = r.timeMs !== null ? `${formatDuration(r.timeMs)} · ${r.correctCount}/${QUESTIONS_PER_LESSON}` : "Abgebrochen";
+      row.innerHTML = `<div class="lb-rank">#${i + 1}</div><div class="lb-name">@${r.username}</div><div class="lb-aura">${statText}</div>`;
       listEl.appendChild(row);
     });
 

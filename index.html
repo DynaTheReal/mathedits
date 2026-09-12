@@ -2724,6 +2724,7 @@
           <option value="30">30 Tage</option>
         </select>
         <button class="btn btn-primary btn-small" id="announcementSendBtn" style="width:100%; background:#60a5fa; border-color:#60a5fa;">Ankündigung senden</button>
+        <button class="btn btn-ghost btn-small" id="announcementDeleteBtn" style="width:100%; margin-top:8px; border-color:#ef4444; color:#ef4444;">🗑️ Aktuelle Ankündigung löschen</button>
       </div>
 
       <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:14px; padding:12px; margin-bottom:16px;">
@@ -3456,7 +3457,7 @@
       <!-- Der Text (hat jetzt zwei Animationen: reinkommen und später verschwinden) -->
       <div style="font-family: 'Nunito', sans-serif; color: white; font-size: 4rem; font-weight: 800; opacity: 0; animation: fadeInText 0.8s forwards, hideText 0.2s forwards 1.3s;">MathEdits</div>
     </div>
-    <div id="introVersionTextSimple" style="position:absolute; bottom:24px; left:0; right:0; text-align:center; font-family:'Inter',sans-serif; color:rgba(255,255,255,.35); font-size:11px;"></div>
+    <div id="introVersionTextSimple" style="position:absolute; bottom:40px; left:0; right:0; text-align:center; font-family:'Inter',sans-serif; color:rgba(255,255,255,.75); font-size:13px; font-weight:600; z-index:5;"></div>
   </div>
 
   <!-- App-Start-Intro: "Math" Variante (NEU) - Mathe-Symbole fliegen rein,
@@ -3468,7 +3469,7 @@
       <div id="mathIntroDot" style="width: 48px; height: 48px; background-color: #d3fc55; border-radius: 50%; box-shadow: 0 0 30px #d3fc55; animation: mathIntroDropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, mathIntroHyperScale 0.4s cubic-bezier(0.7, 0, 0.3, 1) forwards 1.8s;"></div>
       <div id="mathIntroGlitchText" style="font-family: 'Nunito', sans-serif; color: #ffffff; font-size: 4.2rem; font-weight: 900; letter-spacing: -1px; user-select: none;">f(x)=∫x²</div>
     </div>
-    <div id="introVersionTextMath" style="position:absolute; bottom:24px; left:0; right:0; text-align:center; font-family:'Inter',sans-serif; color:rgba(255,255,255,.35); font-size:11px; z-index:2;"></div>
+    <div id="introVersionTextMath" style="position:absolute; bottom:40px; left:0; right:0; text-align:center; font-family:'Inter',sans-serif; color:rgba(255,255,255,.75); font-size:13px; font-weight:600; z-index:5;"></div>
   </div>
 
   <!-- "Teile diese Website"-Hinweis nach der ersten Lektion (NEU) -->
@@ -3905,6 +3906,16 @@
     }
   }, 15000);
 
+  // Regelmäßig auf eine neue Vollbild-Ankündigung prüfen (NEU) - vorher
+  // wurde nur beim Einloggen/Wiederöffnen geprüft. Wer die App einfach
+  // offen lässt (auch der Owner selbst nach dem Senden), hätte eine neue
+  // Ankündigung sonst nie zu Gesicht bekommen, ohne die App neu zu starten.
+  setInterval(() => {
+    if(firebaseInitialized && currentUser && cloudSyncReady){
+      checkForAnnouncement();
+    }
+  }, 60000);
+
   function isOnline(u){
     return !!(u && u.lastActiveAt && (Date.now() - u.lastActiveAt) < ONLINE_THRESHOLD_MS);
   }
@@ -4250,26 +4261,52 @@
       $("announcementImagePreviewWrap").style.display = "none";
       showToast("📣 Ankündigung gesendet!");
       renderOwnerAnnouncementStatus();
+      checkForAnnouncement();
     }catch(err){
-      showToast("Ankündigung konnte nicht gesendet werden - eventuell ist das Bild zu groß.");
       console.error("Ankündigung senden Fehler:", err);
+      let reason = "Unbekannter Fehler.";
+      if(err && err.code === "permission-denied"){
+        reason = "Keine Berechtigung - sind die aktuellen Firestore-Regeln in der Firebase-Konsole veröffentlicht?";
+      } else if(err && (err.message || "").toLowerCase().includes("longer than")){
+        reason = "Das Bild ist zu groß, bitte ein kleineres wählen.";
+      } else if(err && err.message){
+        reason = err.message;
+      }
+      alert("Ankündigung konnte nicht gesendet werden:\n" + reason);
     }
   }
 
+  let currentAnnouncementId = null;
   async function renderOwnerAnnouncementStatus(){
     if(!isOwner() || !firebaseInitialized) return;
     const statusEl = $("announcementCurrentStatus");
     try{
       const snap = await db().collection("announcements").orderBy("createdAt", "desc").limit(1).get();
-      if(snap.empty){ statusEl.textContent = "Aktuell keine aktive Ankündigung."; return; }
+      if(snap.empty){ statusEl.textContent = "Aktuell keine aktive Ankündigung."; currentAnnouncementId = null; return; }
       const data = snap.docs[0].data();
       if(data.expiresAt < Date.now()){
         statusEl.textContent = "Aktuell keine aktive Ankündigung.";
+        currentAnnouncementId = null;
       } else {
         statusEl.textContent = `Aktiv bis ${new Date(data.expiresAt).toLocaleString("de-DE")}.`;
+        currentAnnouncementId = snap.docs[0].id;
       }
     }catch(err){
       console.error("Ankündigungs-Status Fehler:", err);
+    }
+  }
+
+  async function deleteCurrentAnnouncement(){
+    if(!isOwner() || !firebaseInitialized || !currentAnnouncementId) return showToast("Keine aktive Ankündigung zum Löschen.");
+    if(!confirm("Aktuelle Ankündigung wirklich löschen?")) return;
+    try{
+      await db().collection("announcements").doc(currentAnnouncementId).delete();
+      currentAnnouncementId = null;
+      showToast("🗑️ Ankündigung gelöscht.");
+      renderOwnerAnnouncementStatus();
+    }catch(err){
+      showToast("Löschen fehlgeschlagen.");
+      console.error("Ankündigung löschen Fehler:", err);
     }
   }
 
@@ -9539,6 +9576,7 @@
     $("announcementImagePreviewWrap").style.display = "none";
   });
   $("announcementSendBtn").addEventListener("click", sendAnnouncement);
+  $("announcementDeleteBtn").addEventListener("click", deleteCurrentAnnouncement);
   $("announcementCloseBtn").addEventListener("click", dismissAnnouncement);
   $("saveAdminActionPasswordBtn").addEventListener("click", saveAdminActionPassword);
 

@@ -3423,10 +3423,8 @@
        konkrete Ankündigung. Per X oben wegklickbar. -->
   <div id="overlayAnnouncement" style="display:none; position:fixed; inset:0; z-index:98000; background:rgba(10,10,16,.72); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px; overflow-y:auto;">
     <button id="announcementCloseBtn" style="position:absolute; top:16px; right:16px; z-index:2; width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.3); color:#fff; font-size:20px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
-    <div id="announcementMediaWrap" style="position:relative; max-width:100%; display:flex; align-items:center; justify-content:center;">
-      <img id="announcementImageDisplay" style="display:none; max-width:100%; max-height:60vh; border-radius:16px; object-fit:contain;">
-      <div id="announcementTextDisplay" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:20px; font-size:26px; font-weight:900; color:#fff; white-space:pre-wrap; line-height:1.35; text-shadow:0 2px 14px rgba(0,0,0,.85), 0 0 30px rgba(0,0,0,.6);"></div>
-    </div>
+    <div id="announcementTextDisplay" style="font-size:26px; font-weight:900; color:#fff; white-space:pre-wrap; line-height:1.35; max-width:440px; margin-bottom:18px;"></div>
+    <img id="announcementImageDisplay" style="display:none; max-width:100%; max-height:55vh; border-radius:16px; object-fit:contain;">
   </div>
 
   <!-- Owner-Broadcast: Nachricht an alle Nutzer (NEU, komplett neu aufgebaut) -->
@@ -3556,7 +3554,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.29";
+  const APP_VERSION = "2.30";
 
   // iOS "Zum Home-Bildschirm hinzufügen"-Apps haben einen bekannten WebKit-Bug:
   // der allererste Tap nach dem Start "weckt" nur die WebView, statt als Klick
@@ -4329,31 +4327,23 @@
       if(data.imageDataUri){
         $("announcementImageDisplay").src = data.imageDataUri;
         $("announcementImageDisplay").style.display = "block";
-        // Text liegt ÜBER dem Bild (großer, fetter, weißer Text mit
-        // Schatten für Lesbarkeit egal wie hell/dunkel das Bild ist).
-        $("announcementTextDisplay").style.position = "absolute";
-        $("announcementTextDisplay").style.maxWidth = "";
       } else {
         $("announcementImageDisplay").style.display = "none";
-        // Kein Bild vorhanden - Text ganz normal mittig anzeigen, nicht
-        // absolut positioniert (sonst hätte er ohne Bild keine Größe, an
-        // der er sich ausrichten könnte).
-        $("announcementTextDisplay").style.position = "static";
-        $("announcementTextDisplay").style.maxWidth = "420px";
       }
       $("overlayAnnouncement").dataset.currentId = doc.id;
       $("overlayAnnouncement").style.display = "flex";
+      // WICHTIG: sobald sie angezeigt wird, sofort als gesehen speichern -
+      // nicht erst wenn auf X gedrückt wird. Sonst würde sie erneut
+      // erscheinen, falls die App geschlossen wird, bevor jemand explizit
+      // wegklickt (genau das war der gemeldete Fall).
+      profile.dismissedAnnouncementIds = [...new Set([...(profile.dismissedAnnouncementIds || []), doc.id])];
+      saveProfile();
     }catch(err){
       console.error("Ankündigung abrufen Fehler:", err);
     }
   }
 
   function dismissAnnouncement(){
-    const id = $("overlayAnnouncement").dataset.currentId;
-    if(id){
-      profile.dismissedAnnouncementIds = [...new Set([...(profile.dismissedAnnouncementIds || []), id])];
-      saveProfile();
-    }
     $("overlayAnnouncement").style.display = "none";
   }
 

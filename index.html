@@ -1987,6 +1987,13 @@
 <div class="app" data-theme="dark" id="app">
   <div id="offlineBanner" style="display:none; position:fixed; top:0; left:0; right:0; z-index:97000; background:#ef4444; color:#fff; text-align:center; font-size:12px; font-weight:700; padding:6px 10px; padding-top:calc(6px + env(safe-area-inset-top));">📴 Kein Internet - nur Lektionen sind offline verfügbar</div>
 
+  <!-- Online-Freunde-Popup (NEU): kurz beim App-Start, nur falls gerade
+       Freunde online sind. -->
+  <div id="onlineFriendsPopup" style="display:none; position:fixed; top:calc(14px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); z-index:96000; background:var(--card, #1a1a1a); border:1.5px solid var(--border, #333); border-radius:14px; padding:10px 16px; max-width:calc(100% - 32px); box-shadow:0 10px 30px rgba(0,0,0,.35); display:flex; align-items:center; gap:8px; opacity:0; transition:opacity .3s ease;">
+    <span style="font-size:16px;">🟢</span>
+    <span id="onlineFriendsPopupText" style="font-size:12.5px; color:var(--text, #fff); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
+  </div>
+
   <!-- ============ HOME ============ -->
   <section class="screen active" id="screen-home">
     <div class="topbar">
@@ -3554,7 +3561,55 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.30";
+  const APP_VERSION = "2.31";
+
+  // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
+  // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
+  function isVersionNewer(a, b){
+    const pa = a.split(".").map(Number);
+    const pb = b.split(".").map(Number);
+    for(let i = 0; i < Math.max(pa.length, pb.length); i++){
+      const na = pa[i] || 0, nb = pb[i] || 0;
+      if(na !== nb) return na > nb;
+    }
+    return false;
+  }
+
+  // Automatische Update-Erkennung (NEU): sobald irgendjemand (meist zuerst
+  // der Owner) die neueste Version lädt, wird diese Versionsnummer in der
+  // Cloud festgehalten - jedes andere, noch ältere Gerät erkennt das dann
+  // beim Prüfen und zeigt den "Neue Version!"-Hinweis (dieselbe Anzeige,
+  // die der Owner sonst manuell auslösen kann).
+  async function publishCurrentVersionIfNewer(){
+    if(!firebaseInitialized || !currentUser) return;
+    try{
+      const ref = db().collection("appVersionInfo").doc("current");
+      const doc = await ref.get();
+      const storedVersion = (doc.exists && doc.data().version) || "0.0";
+      if(isVersionNewer(APP_VERSION, storedVersion)){
+        await ref.set({ version: APP_VERSION, updatedAt: Date.now() });
+      }
+    }catch(err){
+      console.error("Versions-Veröffentlichung Fehler:", err);
+    }
+  }
+
+  async function checkForNewerVersion(){
+    if(!firebaseInitialized || !currentUser) return;
+    if($("overlayUpdateNotice").classList.contains("show")) return; // schon sichtbar
+    try{
+      const doc = await db().collection("appVersionInfo").doc("current").get();
+      if(!doc.exists) return;
+      const latestVersion = doc.data().version;
+      if(latestVersion && isVersionNewer(latestVersion, APP_VERSION)){
+        $("overlayUpdateNotice").classList.add("show");
+      }
+    }catch(err){
+      console.error("Update-Check Fehler:", err);
+    }
+  }
+
+
 
   // iOS "Zum Home-Bildschirm hinzufügen"-Apps haben einen bekannten WebKit-Bug:
   // der allererste Tap nach dem Start "weckt" nur die WebView, statt als Klick
@@ -3854,6 +3909,7 @@
         playAuraBoosterAnimation(Math.ceil((nowDoubleAuraUntil - Date.now()) / 60000));
       }
       checkForAnnouncement();
+      checkForNewerVersion();
     }catch(err){
       console.error("Sofort-Abgleich beim Öffnen Fehler:", err);
     }
@@ -3914,6 +3970,7 @@
   setInterval(() => {
     if(firebaseInitialized && currentUser && cloudSyncReady){
       checkForAnnouncement();
+      checkForNewerVersion();
     }
   }, 60000);
 
@@ -4984,6 +5041,39 @@
     }catch(err){
       console.error("Follower Fehler:", err);
       return [];
+    }
+  }
+
+  // Online-Freunde-Popup (NEU): kurz beim App-Start ein kleines Hinweis-
+  // Fenster oben, welche Freunde gerade online sind - erscheint NUR, wenn
+  // wirklich mindestens einer online ist, sonst gar nichts.
+  async function showOnlineFriendsPopupIfAny(){
+    if(!firebaseInitialized || !currentUser) return;
+    try{
+      const following = profile.following || [];
+      if(following.length === 0) return;
+      const followersData = await fetchFollowers(currentUser.uid);
+      const followerUids = followersData.map(f => f.uid);
+      const mutualUids = following.filter(uid => followerUids.includes(uid));
+      if(mutualUids.length === 0) return;
+      const friendDocs = await Promise.all(mutualUids.map(uid => fetchUserDoc(uid)));
+      const onlineFriends = friendDocs.filter(u => u && isOnline(u));
+      if(onlineFriends.length === 0) return; // niemand online - gar nichts anzeigen
+
+      const names = onlineFriends.map(u => "@" + u.username);
+      const text = names.length <= 3
+        ? names.join(", ") + (names.length === 1 ? " ist online" : " sind online")
+        : `${names.slice(0, 2).join(", ")} und ${names.length - 2} weitere sind online`;
+      $("onlineFriendsPopupText").textContent = text;
+      const popup = $("onlineFriendsPopup");
+      popup.style.display = "flex";
+      requestAnimationFrame(() => { popup.style.opacity = "1"; });
+      setTimeout(() => {
+        popup.style.opacity = "0";
+        setTimeout(() => { popup.style.display = "none"; }, 300);
+      }, 3000);
+    }catch(err){
+      console.error("Online-Freunde-Popup Fehler:", err);
     }
   }
 
@@ -10365,6 +10455,9 @@
             watchLiveUpdateNotice();
             watchLivePoll();
             checkForAnnouncement();
+            publishCurrentVersionIfNewer();
+            checkForNewerVersion();
+            showOnlineFriendsPopupIfAny();
           } else {
             cloudSyncReady = true;
             // Nur EINMAL versuchen, das Dokument anzulegen - nicht bei jedem

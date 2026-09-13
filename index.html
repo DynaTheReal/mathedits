@@ -1416,8 +1416,9 @@
   .beta-section-heading a{ font-size:12.5px; font-weight:700; color:var(--accent, #a855f7); text-decoration:none; }
 
   .beta-missions-row{
-    display:flex; gap:10px; overflow-x:auto; padding:0 10px 16px; scrollbar-width:none;
+    display:flex; gap:10px; overflow-x:auto; overflow-y:visible; padding:0 10px 16px; scrollbar-width:none;
     -webkit-overflow-scrolling:touch;
+    flex-shrink:0; min-height:190px;
   }
   .beta-missions-row::-webkit-scrollbar{ display:none; }
   .beta-mission-card{
@@ -1434,6 +1435,8 @@
     height:100%; border-radius:99px; background:linear-gradient(90deg, #a855f7, #ec4899);
   }
   .beta-mission-reward{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; font-weight:700; color:#a855f7; }
+
+  #betaLernweltHeading{ margin-top:34px; }
 
   .beta-lernwelt-row{
     display:flex; align-items:flex-start; gap:8px; overflow-x:auto; overflow-y:visible; padding:40px 10px 32px;
@@ -2242,7 +2245,7 @@
     </div>
     <div class="beta-missions-row layout-beta-only" id="betaMissionsRow"></div>
 
-    <div class="beta-section-heading layout-beta-only">
+    <div class="beta-section-heading layout-beta-only" id="betaLernweltHeading">
       <span>🗺️ Lernwelt</span>
       <a href="#" id="betaLernweltAllLink">Level entdecken →</a>
     </div>
@@ -3842,7 +3845,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.54";
+  const APP_VERSION = "2.56";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).

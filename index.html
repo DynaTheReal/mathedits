@@ -3242,6 +3242,7 @@
       <div style="font-size:13px; opacity:.85; text-align:left; line-height:1.7; margin-bottom:10px;">
         📅 Lektionen heute: <b id="friendProfileLessonsToday">0</b><br>
         📚 Lektionen insgesamt: <b id="friendProfileTotalLessons">0</b><br>
+        ⏱️ Heute in der App: <b id="friendProfileTimeToday">0 Min</b><br>
         🕐 Zuletzt gelernt: <b id="friendProfileLastActive">-</b>
       </div>
 
@@ -3296,6 +3297,7 @@
       <div style="font-size:36px; margin-bottom:6px;">💬</div>
       <h2>Feedback geben</h2>
       <p>Was läuft gut, was sollte besser sein? Landet direkt beim Owner.</p>
+      <p style="font-size:11.5px; opacity:.7; margin-top:-8px; margin-bottom:12px;">🎁 Für besonders gutes Feedback gibt's vielleicht sogar Aura als Dankeschön!</p>
       <textarea id="feedbackInput" class="input-field" rows="4" placeholder="Dein Feedback..." style="width:100%; resize:vertical; font-family:inherit; margin-bottom:12px;"></textarea>
       <button class="btn btn-primary" id="feedbackSendBtn">Senden</button>
       <button class="btn btn-ghost" id="feedbackCancelBtn" style="margin-top:10px;">Abbrechen</button>
@@ -3635,7 +3637,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.38";
+  const APP_VERSION = "2.39";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -3876,6 +3878,9 @@
     answeredPollIds: [], // verhindert mehrfaches Einschicken derselben Umfrage
     appIntroStyle: "math", // "math" (Standard) oder "simple" - welche Start-Animation beim App-Öffnen läuft
     devModeEnabled: false, // Entwicklermodus: zeigt Debug-Beschriftungen an allen Elementen (nur Owner)
+    pendingFeedbackBonusAura: 0, // Aura-Geschenk vom Owner fürs Feedback, das noch als Banner angezeigt werden muss
+    todayActiveMs: 0, // heutige Nutzungszeit in der App (Millisekunden)
+    todayActiveDate: null, // für welchen Tag todayActiveMs gilt
     dismissedAnnouncementIds: [], // welche Vollbild-Ankündigungen schon gesehen/weggeklickt wurden
     dismissedFeedbackIds: [], // nur für den Owner relevant: einzeln weggeklicktes Feedback
     lastSeenFeedbackAt: 0, // nur für den Owner relevant: bis wann Feedback schon gesehen wurde
@@ -4017,6 +4022,15 @@
   setInterval(() => {
     if(firebaseInitialized && currentUser && cloudSyncReady){
       profile.lastActiveAt = Date.now();
+      // Tägliche Nutzungszeit (NEU): zählt in 10-Sekunden-Schritten mit,
+      // solange die App offen/aktiv ist - setzt sich an einem neuen Tag
+      // automatisch zurück.
+      const today = todayStr();
+      if(profile.todayActiveDate !== today){
+        profile.todayActiveDate = today;
+        profile.todayActiveMs = 0;
+      }
+      profile.todayActiveMs = (profile.todayActiveMs || 0) + 10000;
       saveProfile();
     }
   }, 10000);
@@ -4209,6 +4223,51 @@
     }
   }
 
+  // Feedback-Aura-Geschenk (NEU): schreibt direkt ins Konto der Person, die
+  // das Feedback geschrieben hat - kommt NICHT vom eigenen Aura-Stand des
+  // Owners. Ein Banner-Hinweis wird beim nächsten Öffnen der App gezeigt
+  // (siehe checkFeedbackAuraBonus).
+  async function giveFeedbackAuraBonus(targetUid){
+    if(!isOwner() || !firebaseInitialized) return false;
+    try{
+      const doc = await db().collection("users").doc(targetUid).get();
+      if(!doc.exists) return false;
+      const data = doc.data();
+      const newTotal = (data.totalAura || 0) + 100;
+      const newPending = (data.pendingFeedbackBonusAura || 0) + 100;
+      await db().collection("users").doc(targetUid).set({
+        totalAura: newTotal,
+        pendingFeedbackBonusAura: newPending,
+        lastLocalSaveAt: Date.now()
+      }, { merge: true });
+      // Falls der Owner sich SELBST ein Geschenk gibt (z.B. zum Testen),
+      // greift derselbe Mechanismus wie beim Aura-Booster: der eigene
+      // geöffnete Tab bekommt das sonst nicht über den normalen Abgleich
+      // zuverlässig mit.
+      if(currentUser && targetUid === currentUser.uid){
+        profile.totalAura = newTotal;
+        profile.pendingFeedbackBonusAura = newPending;
+        lastWrittenProfileJSON = JSON.stringify(profile);
+        saveProfile();
+        checkFeedbackAuraBonus();
+      }
+      return true;
+    }catch(err){
+      console.error("Feedback-Aura-Geschenk Fehler:", err);
+      return false;
+    }
+  }
+
+  // Zeigt beim nächsten Öffnen der App ein Banner, falls in der
+  // Zwischenzeit eine Feedback-Aura-Belohnung gutgeschrieben wurde.
+  function checkFeedbackAuraBonus(){
+    const pending = profile.pendingFeedbackBonusAura || 0;
+    if(pending <= 0) return;
+    showToast(`🎁 Du hast ${pending} Aura für dein gutes Feedback bekommen!`);
+    profile.pendingFeedbackBonusAura = 0;
+    saveProfile();
+  }
+
   async function renderOwnerFeedback(){
     if(!isOwner() || !firebaseInitialized) return;
     const box = $("ownerFeedbackBox");
@@ -4236,9 +4295,28 @@
         row.style.cssText = "padding:8px 0; border-bottom:1px solid rgba(59,130,246,.2); font-size:12.5px; display:flex; align-items:flex-start; gap:8px;";
         row.innerHTML = `
           <div style="flex:1;${isNew ? " font-weight:800;" : " opacity:.65;"}">${isNew ? "🆕 " : ""}<b>@${data.fromUsername || "?"}</b>: ${data.text || ""}<br><span style="opacity:.6; font-size:11px;">${formatRelativeTime(data.createdAt)}</span></div>
+          <button class="owner-feedback-gift-btn" data-uid="${data.fromUid || ""}" data-name="${data.fromUsername || "?"}" title="100 Aura schenken" style="background:none; border:none; color:#facc15; font-size:16px; cursor:pointer; padding:2px 6px; flex-shrink:0;">🎁</button>
           <button class="owner-feedback-dismiss-btn" data-id="${d.id}" style="background:none; border:none; color:var(--text-dim); font-size:16px; font-weight:800; cursor:pointer; padding:2px 6px; flex-shrink:0;">✕</button>
         `;
         listEl.appendChild(row);
+      });
+      listEl.querySelectorAll(".owner-feedback-gift-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const uid = btn.dataset.uid;
+          const name = btn.dataset.name;
+          if(!uid) return showToast("Kein Nutzer-Konto zu diesem Feedback gefunden.");
+          btn.disabled = true;
+          btn.textContent = "⏳";
+          const ok = await giveFeedbackAuraBonus(uid);
+          if(ok){
+            btn.textContent = "✅";
+            showToast(`🎁 @${name} bekommt 100 Aura für sein Feedback!`);
+          } else {
+            btn.textContent = "🎁";
+            btn.disabled = false;
+            showToast("Geschenk konnte nicht gesendet werden.");
+          }
+        });
       });
       listEl.querySelectorAll(".owner-feedback-dismiss-btn").forEach(btn => {
         btn.addEventListener("click", async () => {
@@ -5551,10 +5629,21 @@
     el.scrollTop = el.scrollHeight;
   }
 
+  let lastChatMessageSentAt = 0;
+  const CHAT_MESSAGE_COOLDOWN_MS = 3000;
+
   async function sendChatMessage(){
     const input = $("chatInput");
     const text = input.value.trim();
     if(!text || !openChatFriendUid || !firebaseInitialized || !currentUser) return;
+    // Verhindert Nachrichten-Spam: nur alle 3 Sekunden darf eine neue
+    // Nachricht raus.
+    const now = Date.now();
+    if(now - lastChatMessageSentAt < CHAT_MESSAGE_COOLDOWN_MS){
+      showToast("Bitte kurz warten, bevor du die nächste Nachricht schickst.");
+      return;
+    }
+    lastChatMessageSentAt = now;
     input.value = "";
     const cid = chatIdFor(currentUser.uid, openChatFriendUid);
     console.log("[Chat] Sende Nachricht. chatId=" + cid + ", von=" + currentUser.uid + ", an=" + openChatFriendUid);
@@ -6503,6 +6592,14 @@
     $("friendProfileLastActive").textContent = formatRelativeTime(u.lastLessonAt);
     $("friendProfileTotalLessons").textContent = u.lessonsCompleted || 0;
 
+    // Heutige Nutzungszeit (NEU) - nur gültig, wenn der gespeicherte Tag
+    // wirklich heute ist (sonst ist der Wert von einem früheren Tag).
+    const timeTodayMs = (u.todayActiveDate === todayStr()) ? (u.todayActiveMs || 0) : 0;
+    const timeTodayMin = Math.round(timeTodayMs / 60000);
+    $("friendProfileTimeToday").textContent = timeTodayMin < 60
+      ? `${timeTodayMin} Min`
+      : `${Math.floor(timeTodayMin / 60)}h ${timeTodayMin % 60}min`;
+
     $("friendProfileWeekGrid").innerHTML = buildWeekGridHtml(u.streakDates || []);
 
     // "Freund hinzufügen"-Button: nur bei fremden Profilen mit bekanntem
@@ -7312,6 +7409,7 @@
     // übernommen - kein Vermischen von "höher gewinnt" mehr.
     const localNewer = (localP.lastLocalSaveAt || 0) >= (cloudP.lastLocalSaveAt || 0);
     merged.totalAura = localNewer ? (localP.totalAura || 0) : (cloudP.totalAura || 0);
+    merged.pendingFeedbackBonusAura = localNewer ? (localP.pendingFeedbackBonusAura || 0) : (cloudP.pendingFeedbackBonusAura || 0);
     merged.lessonsCompleted = Math.max(localP.lessonsCompleted || 0, cloudP.lessonsCompleted || 0);
     merged.streak = Math.max(localP.streak || 0, cloudP.streak || 0);
     merged.lastStreakDate = maxDateStr(localP.lastStreakDate, cloudP.lastStreakDate);
@@ -10697,6 +10795,7 @@
               if(nowDoubleAuraUntil > previousDoubleAuraUntil && nowDoubleAuraUntil > Date.now()){
                 playAuraBoosterAnimation(Math.ceil((nowDoubleAuraUntil - Date.now()) / 60000));
               }
+              checkFeedbackAuraBonus();
             }
 
             checkStreakDecay();
@@ -10718,6 +10817,7 @@
             publishCurrentVersionIfNewer();
             checkForNewerVersion();
             showOnlineFriendsPopupIfAny();
+            checkFeedbackAuraBonus();
           } else {
             cloudSyncReady = true;
             // Nur EINMAL versuchen, das Dokument anzulegen - nicht bei jedem

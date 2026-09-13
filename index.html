@@ -3646,7 +3646,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.40";
+  const APP_VERSION = "2.41";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -5432,7 +5432,11 @@
         const row = document.createElement("div");
         row.className = "friend-row";
         row.style.cursor = "pointer";
-        row.innerHTML = `<span class="name">${u && isOnline(u) ? `<span class="online-dot${isInLesson(u) ? " in-lesson" : ""}"></span>` : ""}@${uname}</span>`;
+        const online = u && isOnline(u);
+        const lastSeenLine = !online && u && u.lastActiveAt
+          ? `<div style="font-size:10.5px; opacity:.6; margin-top:1px;">zuletzt online: ${formatRelativeTime(u.lastActiveAt)}</div>`
+          : "";
+        row.innerHTML = `<span class="name">${online ? `<span class="online-dot${isInLesson(u) ? " in-lesson" : ""}"></span>` : ""}@${uname}${lastSeenLine}</span>`;
         const duelBtn = document.createElement("button");
         duelBtn.className = "btn btn-duel btn-small";
         duelBtn.textContent = "⚔️ 1vs1";
@@ -8536,6 +8540,7 @@
     profile.lastLessonAt = Date.now();
     clearLessonInProgress();
     profile.totalAura += lesson.aura;
+    registerStreakActivity();
     saveProfile();
     lesson = null;
 

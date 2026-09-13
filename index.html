@@ -1119,6 +1119,15 @@
   .duel-invite-banner.show{ transform:translate(-50%,0); }
   .duel-invite-icon{ font-size:24px; flex-shrink:0; }
   .duel-invite-text{ font-size:13px; color:var(--text); line-height:1.4; }
+  /* ---------- Owner-Werkzeug-Symbole (NEU) ---------- */
+  .owner-tool-icon-btn{
+    width:54px; height:54px; border-radius:16px;
+    background:var(--card-2); border:1.5px solid var(--border);
+    font-size:24px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:transform .12s, border-color .15s;
+  }
+  .owner-tool-icon-btn:active{ transform:scale(.93); }
+
   .banner-close-x{
     position:absolute; top:6px; right:8px; background:none; border:none;
     color:var(--text-dim); font-size:13px; font-weight:800; cursor:pointer;
@@ -2771,101 +2780,6 @@
         <div id="ownerFeedbackList" style="max-height:260px; overflow-y:auto;"></div>
       </div>
 
-      <div style="background:rgba(148,163,184,.1); border:1.5px solid #94a3b8; border-radius:14px; padding:12px; margin-bottom:16px;">
-        <div style="font-weight:800; margin-bottom:8px; color:#94a3b8;">🛠️ Entwicklermodus</div>
-        <div class="d" style="margin-bottom:8px;">Zeigt bei jedem Element eine kleine Beschriftung wie "trends_tier_carousel" - praktisch, um genau zu beschreiben, was gemeint ist.</div>
-        <button class="btn btn-primary btn-small" id="devModeToggleBtn" style="width:100%; background:#94a3b8; border-color:#94a3b8; color:#0a0a10;">Entwicklermodus umschalten</button>
-      </div>
-
-      <div style="background:rgba(96,165,250,.1); border:1.5px solid #60a5fa; border-radius:14px; padding:12px; margin-bottom:16px;">
-        <div style="font-weight:800; margin-bottom:8px; color:#60a5fa;">📣 Vollbild-Ankündigung</div>
-        <div class="d" id="announcementCurrentStatus" style="margin-bottom:8px;">Aktuell keine aktive Ankündigung.</div>
-        <textarea id="announcementTextInput" class="input-field" rows="3" placeholder="Text der Ankündigung..." style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
-        <input type="file" id="announcementImageInput" accept="image/*" style="margin-bottom:8px; width:100%; font-size:12px;">
-        <div id="announcementImagePreviewWrap" style="display:none; margin-bottom:8px;">
-          <img id="announcementImagePreview" style="max-width:100%; max-height:140px; border-radius:10px; display:block;">
-          <button class="btn btn-ghost btn-small" id="announcementImageRemoveBtn" style="margin-top:6px;">Bild entfernen</button>
-        </div>
-        <select id="announcementDurationSelect" class="input-field" style="margin-bottom:8px;">
-          <option value="1">1 Tag</option>
-          <option value="3" selected>3 Tage</option>
-          <option value="7">7 Tage</option>
-          <option value="14">14 Tage</option>
-          <option value="30">30 Tage</option>
-        </select>
-        <button class="btn btn-primary btn-small" id="announcementSendBtn" style="width:100%; background:#60a5fa; border-color:#60a5fa;">Ankündigung senden</button>
-        <button class="btn btn-ghost btn-small" id="announcementDeleteBtn" style="width:100%; margin-top:8px; border-color:#ef4444; color:#ef4444;">🗑️ Aktuelle Ankündigung löschen</button>
-      </div>
-
-      <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:14px; padding:12px; margin-bottom:16px;">
-        <div style="font-weight:800; margin-bottom:8px; color:#ef4444;">🛑 Website Not-Stopp</div>
-        <div class="d" id="siteStopStatus" style="margin-bottom:8px;">Aktuell nicht gestoppt.</div>
-        <select id="siteStopDurationSelect" class="input-field" style="margin-bottom:8px;">
-          <option value="15">15 Minuten</option>
-          <option value="30">30 Minuten</option>
-          <option value="60">1 Stunde</option>
-          <option value="180">3 Stunden</option>
-          <option value="1440">1 Tag</option>
-          <option value="indefinite">Bis ich manuell entsperre</option>
-        </select>
-        <input type="text" id="siteStopReasonInput" class="input-field" placeholder="Grund (optional)" style="margin-bottom:8px;">
-        <div style="display:flex; gap:8px;">
-          <button class="btn btn-primary btn-small" id="siteStopBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Stoppen</button>
-          <button class="btn btn-ghost btn-small" id="siteResumeBtn" style="flex:1;">Wieder freigeben</button>
-        </div>
-      </div>
-
-      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:16px;">
-        <div style="font-weight:800; margin-bottom:8px;">📢 Nachricht an alle senden</div>
-        <textarea id="ownerBroadcastInput" class="input-field" rows="3" placeholder="Nachricht an alle Nutzer weltweit..." style="width:100%; resize:vertical; font-family:inherit;"></textarea>
-        <button class="btn btn-primary btn-small" id="ownerSendBroadcastBtn" style="margin-top:8px; width:100%;">Senden</button>
-      </div>
-
-      <div style="background:rgba(96,165,250,.1); border:1.5px solid #60a5fa; border-radius:14px; padding:12px; margin-bottom:16px;">
-        <div style="font-weight:800; margin-bottom:8px; color:#60a5fa;">🔄 Update-Benachrichtigung</div>
-        <div class="d" style="margin-bottom:8px;">Trag hier die Versionsnummer ein, die du gerade hochgeladen hast - alle, die noch die alte Version offen haben, bekommen dann sofort den Update-Hinweis.</div>
-        <input type="text" id="ownerNewVersionInput" class="input-field" placeholder="z.B. 2.35" style="margin-bottom:8px;">
-        <button class="btn btn-primary btn-small" id="ownerSendUpdateNoticeBtn" style="width:100%;">Update-Nachricht senden</button>
-      </div>
-
-      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:16px;">
-        <div style="font-weight:800; margin-bottom:8px;">📊 Umfrage senden</div>
-        <input type="text" id="pollQuestionInput" class="input-field" placeholder="Frage..." style="margin-bottom:8px;">
-        <select id="pollTypeSelect" class="input-field" style="margin-bottom:8px;">
-          <option value="options">Feste Antwortmöglichkeiten</option>
-          <option value="text">Freitext (Nutzer schreiben eigene Antwort)</option>
-        </select>
-        <div id="pollOptionsFields">
-          <input type="text" id="pollOption1Input" class="input-field" placeholder="Option 1" style="margin-bottom:8px;">
-          <input type="text" id="pollOption2Input" class="input-field" placeholder="Option 2" style="margin-bottom:8px;">
-          <input type="text" id="pollOption3Input" class="input-field" placeholder="Option 3 (optional)" style="margin-bottom:8px;">
-          <input type="text" id="pollOption4Input" class="input-field" placeholder="Option 4 (optional)" style="margin-bottom:8px;">
-        </div>
-        <button class="btn btn-primary btn-small" id="sendPollBtn" style="width:100%;">Umfrage senden (2 Min live)</button>
-      </div>
-
-      <div id="pollResultsBox" style="display:none; background:rgba(34,197,94,.1); border:1.5px solid #22c55e; border-radius:14px; padding:12px; margin-bottom:16px;">
-        <div style="font-weight:800; margin-bottom:8px;">📈 Umfrage-Ergebnisse</div>
-        <div id="pollResultsList" style="max-height:280px; overflow-y:auto;"></div>
-      </div>
-
-      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:16px;">
-        <div style="font-weight:800; margin-bottom:8px;">🎁 Einlöse-Codes</div>
-        <div class="d" id="ownerCodeStatus" style="margin-bottom:8px;">Aktuell: keine aktiven Codes.</div>
-        <input type="text" id="ownerCodeInput" class="input-field" placeholder="Neuer Code (z.B. MATHY500)" style="margin-bottom:8px; text-transform:uppercase;">
-        <div style="display:flex; gap:8px; margin-bottom:8px;">
-          <button class="btn btn-ghost btn-small" id="ownerCodeRewardAuraBtn" style="flex:1;">500 Aura</button>
-          <button class="btn btn-ghost btn-small" id="ownerCodeRewardLifeBtn" style="flex:1;">1 Leben</button>
-          <button class="btn btn-ghost btn-small" id="ownerCodeRewardChestBtn" style="flex:1;">Truhe</button>
-        </div>
-        <select id="ownerCodeChestTierSelect" class="input-field" style="margin-bottom:8px; display:none;">
-          <option value="standard">Standard-Truhe</option>
-          <option value="epic">Epische Truhe</option>
-          <option value="legendary">Legendäre Truhe</option>
-        </select>
-        <button class="btn btn-primary btn-small" id="ownerSetCodeBtn" style="width:100%;">Code hinzufügen</button>
-      </div>
-
       <div class="d" style="margin-bottom:6px;">Benutzername suchen</div>
       <div style="display:flex; gap:8px;">
         <input type="text" id="ownerSearchInput" class="input-field" placeholder="Benutzername" style="flex:1;">
@@ -2917,6 +2831,122 @@
 
         <button class="btn btn-primary" id="ownerSaveBtn" style="margin-top:16px;">Änderungen speichern</button>
       </div>
+
+      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-top:20px; margin-bottom:16px;">
+        <div style="font-weight:800; margin-bottom:8px;">📢 Nachricht an alle senden</div>
+        <textarea id="ownerBroadcastInput" class="input-field" rows="3" placeholder="Nachricht an alle Nutzer weltweit..." style="width:100%; resize:vertical; font-family:inherit;"></textarea>
+        <button class="btn btn-primary btn-small" id="ownerSendBroadcastBtn" style="margin-top:8px; width:100%;">Senden</button>
+      </div>
+
+      <div class="d" style="margin-bottom:8px;">Mehr Werkzeuge</div>
+      <div id="ownerToolIconsRow" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
+        <button class="owner-tool-icon-btn" id="ownerToolDevMode" title="Entwicklermodus">🛠️</button>
+        <button class="owner-tool-icon-btn" id="ownerToolAnnouncement" title="Vollbild-Ankündigung">📣</button>
+        <button class="owner-tool-icon-btn" id="ownerToolSiteStop" title="Website Not-Stopp">🛑</button>
+        <button class="owner-tool-icon-btn" id="ownerToolUpdateNotice" title="Update-Benachrichtigung">🔁</button>
+        <button class="owner-tool-icon-btn" id="ownerToolPoll" title="Umfrage">📊</button>
+        <button class="owner-tool-icon-btn" id="ownerToolCodes" title="Einlöse-Codes">🎁</button>
+      </div>
+    </div>
+
+    <!-- Owner-Werkzeug-Menüs (NEU): kompakte Overlays statt einer riesigen,
+         immer sichtbaren Liste - öffnen sich beim Antippen des jeweiligen
+         Symbols, schließen sich über das X. -->
+    <div class="overlay" id="overlayOwnerAnnouncement">
+      <div class="modal-card" style="max-width:360px; text-align:left;">
+        <button class="banner-close-x" id="ownerToolAnnouncementClose" style="position:absolute; top:10px; right:12px;">✕</button>
+        <div style="font-weight:800; margin-bottom:8px; color:#60a5fa;">📣 Vollbild-Ankündigung</div>
+        <div class="d" id="announcementCurrentStatus" style="margin-bottom:8px;">Aktuell keine aktive Ankündigung.</div>
+        <textarea id="announcementTextInput" class="input-field" rows="3" placeholder="Text der Ankündigung..." style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
+        <input type="file" id="announcementImageInput" accept="image/*" style="margin-bottom:8px; width:100%; font-size:12px;">
+        <div id="announcementImagePreviewWrap" style="display:none; margin-bottom:8px;">
+          <img id="announcementImagePreview" style="max-width:100%; max-height:140px; border-radius:10px; display:block;">
+          <button class="btn btn-ghost btn-small" id="announcementImageRemoveBtn" style="margin-top:6px;">Bild entfernen</button>
+        </div>
+        <select id="announcementDurationSelect" class="input-field" style="margin-bottom:8px;">
+          <option value="1">1 Tag</option>
+          <option value="3" selected>3 Tage</option>
+          <option value="7">7 Tage</option>
+          <option value="14">14 Tage</option>
+          <option value="30">30 Tage</option>
+        </select>
+        <button class="btn btn-primary btn-small" id="announcementSendBtn" style="width:100%; background:#60a5fa; border-color:#60a5fa;">Ankündigung senden</button>
+        <button class="btn btn-ghost btn-small" id="announcementDeleteBtn" style="width:100%; margin-top:8px; border-color:#ef4444; color:#ef4444;">🗑️ Aktuelle Ankündigung löschen</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlayOwnerSiteStop">
+      <div class="modal-card" style="max-width:360px; text-align:left;">
+        <button class="banner-close-x" id="ownerToolSiteStopClose" style="position:absolute; top:10px; right:12px;">✕</button>
+        <div style="font-weight:800; margin-bottom:8px; color:#ef4444;">🛑 Website Not-Stopp</div>
+        <div class="d" id="siteStopStatus" style="margin-bottom:8px;">Aktuell nicht gestoppt.</div>
+        <select id="siteStopDurationSelect" class="input-field" style="margin-bottom:8px;">
+          <option value="15">15 Minuten</option>
+          <option value="30">30 Minuten</option>
+          <option value="60">1 Stunde</option>
+          <option value="180">3 Stunden</option>
+          <option value="1440">1 Tag</option>
+          <option value="indefinite">Bis ich manuell entsperre</option>
+        </select>
+        <input type="text" id="siteStopReasonInput" class="input-field" placeholder="Grund (optional)" style="margin-bottom:8px;">
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary btn-small" id="siteStopBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Stoppen</button>
+          <button class="btn btn-ghost btn-small" id="siteResumeBtn" style="flex:1;">Wieder freigeben</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlayOwnerUpdateNotice">
+      <div class="modal-card" style="max-width:360px; text-align:left;">
+        <button class="banner-close-x" id="ownerToolUpdateNoticeClose" style="position:absolute; top:10px; right:12px;">✕</button>
+        <div style="font-weight:800; margin-bottom:8px; color:#60a5fa;">🔄 Update-Benachrichtigung</div>
+        <div class="d" style="margin-bottom:8px;">Trag hier die Versionsnummer ein, die du gerade hochgeladen hast - alle, die noch die alte Version offen haben, bekommen dann sofort den Update-Hinweis.</div>
+        <input type="text" id="ownerNewVersionInput" class="input-field" placeholder="z.B. 2.35" style="margin-bottom:8px;">
+        <button class="btn btn-primary btn-small" id="ownerSendUpdateNoticeBtn" style="width:100%;">Update-Nachricht senden</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlayOwnerPoll">
+      <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto;">
+        <button class="banner-close-x" id="ownerToolPollClose" style="position:absolute; top:10px; right:12px;">✕</button>
+        <div style="font-weight:800; margin-bottom:8px;">📊 Umfrage senden</div>
+        <input type="text" id="pollQuestionInput" class="input-field" placeholder="Frage..." style="margin-bottom:8px;">
+        <select id="pollTypeSelect" class="input-field" style="margin-bottom:8px;">
+          <option value="options">Feste Antwortmöglichkeiten</option>
+          <option value="text">Freitext (Nutzer schreiben eigene Antwort)</option>
+        </select>
+        <div id="pollOptionsFields">
+          <input type="text" id="pollOption1Input" class="input-field" placeholder="Option 1" style="margin-bottom:8px;">
+          <input type="text" id="pollOption2Input" class="input-field" placeholder="Option 2" style="margin-bottom:8px;">
+          <input type="text" id="pollOption3Input" class="input-field" placeholder="Option 3 (optional)" style="margin-bottom:8px;">
+          <input type="text" id="pollOption4Input" class="input-field" placeholder="Option 4 (optional)" style="margin-bottom:8px;">
+        </div>
+        <button class="btn btn-primary btn-small" id="sendPollBtn" style="width:100%; margin-bottom:14px;">Umfrage senden (2 Min live)</button>
+        <div id="pollResultsBox" style="display:none; background:rgba(34,197,94,.1); border:1.5px solid #22c55e; border-radius:14px; padding:12px;">
+          <div style="font-weight:800; margin-bottom:8px;">📈 Umfrage-Ergebnisse</div>
+          <div id="pollResultsList" style="max-height:220px; overflow-y:auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlayOwnerCodes">
+      <div class="modal-card" style="max-width:360px; text-align:left;">
+        <button class="banner-close-x" id="ownerToolCodesClose" style="position:absolute; top:10px; right:12px;">✕</button>
+        <div style="font-weight:800; margin-bottom:8px;">🎁 Einlöse-Codes</div>
+        <div class="d" id="ownerCodeStatus" style="margin-bottom:8px;">Aktuell: keine aktiven Codes.</div>
+        <input type="text" id="ownerCodeInput" class="input-field" placeholder="Neuer Code (z.B. MATHY500)" style="margin-bottom:8px; text-transform:uppercase;">
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <button class="btn btn-ghost btn-small" id="ownerCodeRewardAuraBtn" style="flex:1;">500 Aura</button>
+          <button class="btn btn-ghost btn-small" id="ownerCodeRewardLifeBtn" style="flex:1;">1 Leben</button>
+          <button class="btn btn-ghost btn-small" id="ownerCodeRewardChestBtn" style="flex:1;">Truhe</button>
+        </div>
+        <select id="ownerCodeChestTierSelect" class="input-field" style="margin-bottom:8px; display:none;">
+          <option value="standard">Standard-Truhe</option>
+          <option value="epic">Epische Truhe</option>
+          <option value="legendary">Legendäre Truhe</option>
+        </select>
+        <button class="btn btn-primary btn-small" id="ownerSetCodeBtn" style="width:100%;">Code hinzufügen</button>
+      </div>
     </div>
 
     <div style="background:rgba(250,204,21,.1); border:1.5px solid #facc15; border-radius:14px; padding:12px; margin:0 20px 16px; display:none;" id="ownerAdminPassBox">
@@ -2944,24 +2974,6 @@
         <option value="simple">Simple</option>
       </select>
     </div>
-
-    <div class="settings-row">
-      <div class="info">
-        <div class="t">🔔 Streak-Erinnerung</div>
-        <div class="d">Erinnert dich, falls du deinen Streak an dem Tag noch nicht gemacht hast.</div>
-      </div>
-      <div class="switch" id="streakReminderSwitch"><div class="knob"></div></div>
-    </div>
-
-    <div class="settings-row">
-      <div class="info">
-        <div class="t">Erinnerungs-Uhrzeit</div>
-        <div class="d">Zu welcher Uhrzeit du erinnert werden möchtest.</div>
-      </div>
-      <input type="time" id="streakReminderTimeInput" class="input-field" style="width:110px; flex-shrink:0;" value="20:00">
-    </div>
-
-    <button class="btn btn-primary btn-small" id="allowNotificationsBtn" style="width:100%; margin-top:2px; margin-bottom:14px; display:none;">🔔 Mitteilungen zulassen</button>
 
     <div class="settings-row" id="installAppRow" style="cursor:pointer; display:none;">
       <div class="info">
@@ -3646,7 +3658,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.41";
+  const APP_VERSION = "2.42";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -4067,9 +4079,17 @@
   setInterval(() => {
     if(firebaseInitialized && currentUser && cloudSyncReady){
       checkForAnnouncement();
-      checkForNewerVersion();
     }
   }, 60000);
+
+  // Update-Erkennung (NEU): prüft alle 5 Sekunden, ob eine neuere Version
+  // veröffentlicht wurde - deutlich häufiger als die Ankündigungsprüfung,
+  // damit das Update-Banner zuverlässig zeitnah ankommt.
+  setInterval(() => {
+    if(firebaseInitialized && currentUser && cloudSyncReady){
+      checkForNewerVersion();
+    }
+  }, 5000);
 
   // Live-Erkennung neu online gegangener Freunde (NEU): läuft häufiger als
   // der obige 60s-Takt, da der Online-Status selbst nur ein 30s-Fenster hat.
@@ -10054,7 +10074,41 @@
   $("ownerMakeModBtn").addEventListener("click", ownerMakeMod);
   $("ownerRemoveModBtn").addEventListener("click", ownerRemoveModOfTarget);
   $("ownerGiveBoosterBtn").addEventListener("click", ownerGiveBooster);
-  $("devModeToggleBtn").addEventListener("click", toggleDevMode);
+  $("ownerToolDevMode").addEventListener("click", toggleDevMode);
+  $("ownerToolAnnouncement").addEventListener("click", () => {
+    $("overlayOwnerAnnouncement").classList.add("show");
+    renderOwnerAnnouncementStatus();
+  });
+  $("ownerToolAnnouncementClose").addEventListener("click", () => {
+    $("overlayOwnerAnnouncement").classList.remove("show");
+  });
+  $("ownerToolSiteStop").addEventListener("click", () => {
+    $("overlayOwnerSiteStop").classList.add("show");
+  });
+  $("ownerToolSiteStopClose").addEventListener("click", () => {
+    $("overlayOwnerSiteStop").classList.remove("show");
+  });
+  $("ownerToolUpdateNotice").addEventListener("click", () => {
+    $("overlayOwnerUpdateNotice").classList.add("show");
+  });
+  $("ownerToolUpdateNoticeClose").addEventListener("click", () => {
+    $("overlayOwnerUpdateNotice").classList.remove("show");
+  });
+  $("ownerToolPoll").addEventListener("click", () => {
+    $("overlayOwnerPoll").classList.add("show");
+    renderPollResults();
+  });
+  $("ownerToolPollClose").addEventListener("click", () => {
+    $("overlayOwnerPoll").classList.remove("show");
+  });
+  $("ownerToolCodes").addEventListener("click", () => {
+    $("overlayOwnerCodes").classList.add("show");
+    renderOwnerCodeStatus();
+  });
+  $("ownerToolCodesClose").addEventListener("click", () => {
+    $("overlayOwnerCodes").classList.remove("show");
+  });
+
 
   $("announcementImageInput").addEventListener("change", async (e) => {
     const file = e.target.files[0];
@@ -10209,8 +10263,6 @@
   function renderSettings(){
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
     $("appIntroStyleSelect").value = profile.appIntroStyle === "simple" ? "simple" : "math";
-    $("streakReminderSwitch").classList.toggle("on", profile.streakReminderEnabled !== false);
-    $("streakReminderTimeInput").value = profile.streakReminderTime || "20:00";
     updateNotificationAndInstallUI();
     const displayName = profile.username
       ? "@" + profile.username + (isSuperUser() ? " ⭐" : "")
@@ -10311,27 +10363,9 @@
     renderSettings();
   });
 
-  $("streakReminderSwitch").addEventListener("click", () => {
-    profile.streakReminderEnabled = !profile.streakReminderEnabled;
-    saveProfile();
-    renderSettings();
-    if(profile.streakReminderEnabled) requestNotificationPermissionIfNeeded();
-  });
-
   $("appIntroStyleSelect").addEventListener("change", (e) => {
     profile.appIntroStyle = e.target.value === "simple" ? "simple" : "math";
     saveProfile();
-  });
-
-  $("streakReminderTimeInput").addEventListener("change", (e) => {
-    profile.streakReminderTime = e.target.value || "20:00";
-    saveProfile();
-  });
-
-  $("allowNotificationsBtn").addEventListener("click", async () => {
-    if(!("Notification" in window)) return;
-    try{ await Notification.requestPermission(); }catch(e){ }
-    updateNotificationAndInstallUI();
   });
 
   $("installAppRow").addEventListener("click", () => {
@@ -10352,8 +10386,6 @@
   // nicht entschieden) und die "App installieren"-Zeile (nur auf iOS/Android,
   // und nicht mehr, wenn schon als App installiert).
   function updateNotificationAndInstallUI(){
-    const notifBtn = $("allowNotificationsBtn");
-    notifBtn.style.display = ("Notification" in window && Notification.permission === "default") ? "block" : "none";
     $("installAppRow").style.display = (!isRunningStandalone() && (isIOSDevice() || isAndroidDevice())) ? "flex" : "none";
   }
 
@@ -12291,23 +12323,14 @@
      würden einen eigenen Push-Server erfordern, den es hier nicht gibt -
      das hier deckt den Fall ab, dass die Seite/App irgendwann offen ist.
   ======================================================== */
-  function requestNotificationPermissionIfNeeded(){
-    if(!("Notification" in window)) return;
-    if(Notification.permission === "default"){
-      Notification.requestPermission().then((perm) => {
-        if(perm === "granted") initFcmAndSaveToken();
-      }).catch(() => {});
-    } else if(Notification.permission === "granted"){
-      initFcmAndSaveToken();
-    }
+  function hasCompletedStreakToday(){
+    return profile.lastStreakDate === todayStr();
   }
 
   // Holt den FCM-Push-Token für dieses Gerät und speichert ihn unter dem
-  // eigenen Account in Firestore, damit ein Cloud-Functions-Backend (siehe
-  // functions/index.js) echte Push-Benachrichtigungen dorthin schicken kann.
-  // Ohne einen echten VAPID-Schlüssel (siehe FCM_VAPID_KEY oben) und ohne
-  // deployte Cloud Functions passiert hier nichts Sichtbares - das ist
-  // erwartet, bis beides eingerichtet ist.
+  // eigenen Account in Firestore - wird für Chat-Nachrichten-Benachrichtigungen
+  // gebraucht (siehe watchIncomingMessages), unabhängig von der entfernten
+  // Streak-Erinnerung.
   async function initFcmAndSaveToken(){
     if(fcmTokenSaved) return;
     try{
@@ -12329,63 +12352,6 @@
     }catch(err){
       console.warn("FCM-Token konnte nicht eingerichtet werden:", err);
     }
-  }
-
-  function hasCompletedStreakToday(){
-    return profile.lastStreakDate === todayStr();
-  }
-
-  async function showStreakReminderNotification(){
-    const title = "Mach einen Streak! 🔥";
-    const options = {
-      body: "Du hast heute noch keine Lektion gemacht - hol dir deinen Streak, bevor der Tag vorbei ist!",
-      icon: generateAppIconDataUri(),
-      tag: "streak-reminder"
-    };
-    try{
-      if(navigator.serviceWorker){
-        const reg = await navigator.serviceWorker.getRegistration();
-        if(reg && reg.showNotification){
-          reg.showNotification(title, options);
-          return;
-        }
-      }
-    }catch(e){ }
-    try{ new Notification(title, options); }catch(e){ }
-  }
-
-  function checkStreakReminderTime(){
-    if(!("Notification" in window)) return;
-    if(profile.streakReminderEnabled === false) return;
-    if(Notification.permission !== "granted") return;
-    const [rh, rm] = (profile.streakReminderTime || "20:00").split(":").map(n => parseInt(n, 10));
-    const now = new Date();
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    const reminderMinutes = (rh || 20) * 60 + (rm || 0);
-    if(nowMinutes < reminderMinutes) return;
-    if(hasCompletedStreakToday()) return;
-    const today = todayStr();
-    if(profile.lastStreakReminderShownDate === today) return;
-    profile.lastStreakReminderShownDate = today;
-    saveProfile();
-    showStreakReminderNotification();
-  }
-
-  let streakReminderInterval = null;
-  function startStreakReminderScheduler(){
-    if(streakReminderInterval) clearInterval(streakReminderInterval);
-    checkStreakReminderTime(); // sofort prüfen, falls die App schon nach 20 Uhr geöffnet wird
-    streakReminderInterval = setInterval(checkStreakReminderTime, 60000);
-    // Wichtig gegen "App war zu, keine Erinnerung bekommen": eine echte
-    // Push-Benachrichtigung bei komplett geschlossener App würde einen
-    // eigenen Push-Server erfordern (technisch mit einer reinen Client-
-    // Website nicht möglich) - das hier fängt zumindest den häufigen Fall
-    // ab, dass die App zwischendurch geschlossen/im Hintergrund war und
-    // jetzt wieder geöffnet/sichtbar wird, sodass die Erinnerung nachgeholt
-    // wird statt komplett auszubleiben.
-    document.addEventListener("visibilitychange", () => {
-      if(document.visibilityState === "visible") checkStreakReminderTime();
-    });
   }
 
   function setupPwaManifestAndServiceWorker(){
@@ -12496,9 +12462,7 @@
     applyTheme();
     applyIntroThemeColor();
     setupPwaManifestAndServiceWorker();
-    startStreakReminderScheduler();
     watchSiteStopStatus();
-    if(profile.streakReminderEnabled !== false) requestNotificationPermissionIfNeeded();
     renderHome();
     updateMissionsBadge();
     grantInstallChestIfNeeded();

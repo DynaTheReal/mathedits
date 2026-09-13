@@ -1327,6 +1327,114 @@
   }
 
   /* ---------- home hero ---------- */
+  /* ========================================================
+     BETA-LAYOUT (NEU): alternative Home-Ansicht, umschaltbar in den
+     Einstellungen. Standardmäßig ausgeblendet - body.layout-beta schaltet
+     zwischen den beiden Layouts um.
+  ======================================================== */
+  .layout-beta-only{ display:none !important; }
+  body.layout-beta .layout-normal-only{ display:none !important; }
+  body.layout-beta .beta-greeting-row{ display:flex !important; }
+  body.layout-beta .beta-streak-card{ display:block !important; }
+  body.layout-beta .beta-continue-card{ display:flex !important; }
+  body.layout-beta .beta-section-heading{ display:flex !important; }
+  body.layout-beta .beta-missions-row{ display:flex !important; }
+  body.layout-beta .beta-lernwelt-row{ display:flex !important; }
+
+  .beta-greeting-row{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    padding:4px 20px 18px;
+  }
+  .beta-greeting-text h1{ font-size:26px; font-weight:900; margin:2px 0 2px; }
+  .beta-greeting-wave{ font-size:22px; }
+  .beta-greeting-text p{ font-size:13px; color:var(--text-dim); margin:0; line-height:1.35; }
+  .beta-stat-pill{
+    display:flex; gap:12px; background:var(--card); border:1.5px solid var(--border);
+    border-radius:18px; padding:10px 14px; flex-shrink:0;
+  }
+  .beta-stat{ display:flex; flex-direction:column; align-items:center; gap:2px; min-width:34px; }
+  .beta-stat-icon{ font-size:18px; }
+  .beta-stat span:nth-child(2){ font-weight:800; font-size:14px; }
+  .beta-stat-lbl{ font-size:9px; color:var(--text-dim); }
+
+  .beta-streak-card{
+    margin:0 20px 16px; padding:18px 20px; border-radius:22px;
+    background:linear-gradient(135deg, rgba(251,146,60,.16), rgba(239,68,68,.08));
+    border:1.5px solid rgba(251,146,60,.4);
+    position:relative; overflow:hidden; min-height:80px;
+  }
+  .beta-streak-icon{ font-size:30px; }
+  .beta-streak-num{ font-size:26px; font-weight:900; margin-top:2px; }
+  .beta-streak-lbl{ font-size:13px; color:var(--text-dim); margin-bottom:8px; }
+  .beta-streak-flames{ display:flex; gap:5px; font-size:17px; }
+  .beta-streak-flames span.dim{ opacity:.25; filter:grayscale(1); }
+  .beta-streak-hint{ font-size:12.5px; color:var(--text-dim); margin-top:10px; cursor:pointer; }
+
+  .beta-continue-card{
+    margin:0 20px 20px; padding:18px; border-radius:22px;
+    background:linear-gradient(135deg, rgba(168,85,247,.16), rgba(96,165,250,.08));
+    border:1.5px solid rgba(168,85,247,.4);
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+  }
+  .beta-continue-heading{ font-size:12.5px; color:var(--text-dim); font-weight:700; margin-bottom:4px; }
+  .beta-continue-title{ font-size:19px; font-weight:900; margin-bottom:4px; }
+  .beta-continue-sub{ font-size:12.5px; color:var(--text-dim); margin-bottom:10px; }
+  .beta-continue-progress-track{
+    width:150px; height:7px; border-radius:99px; background:rgba(255,255,255,.1); overflow:hidden;
+  }
+  .beta-continue-progress-fill{
+    height:100%; border-radius:99px; background:linear-gradient(90deg, #a855f7, #ec4899);
+  }
+  .beta-continue-progress-num{ font-size:11px; color:var(--text-dim); margin-top:4px; }
+  .beta-continue-btn{
+    flex-shrink:0; width:78px; height:78px; border-radius:22px; border:none; cursor:pointer;
+    background:linear-gradient(135deg, #a855f7, #7c3aed); color:#fff;
+    font-size:11px; font-weight:800; line-height:1.6;
+    box-shadow:0 8px 22px rgba(168,85,247,.4);
+  }
+  .beta-continue-btn:active{ transform:scale(.95); }
+
+  .beta-section-heading{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 20px; margin:6px 0 10px; font-size:15.5px; font-weight:800;
+  }
+  .beta-section-heading a{ font-size:12.5px; font-weight:700; color:var(--accent, #a855f7); text-decoration:none; }
+
+  .beta-missions-row{
+    display:flex; gap:10px; overflow-x:auto; padding:0 20px 20px; scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .beta-missions-row::-webkit-scrollbar{ display:none; }
+  .beta-mission-card{
+    flex:0 0 170px; border-radius:18px; padding:14px; border:1.5px solid var(--border);
+    background:var(--card);
+  }
+  .beta-mission-icon{ font-size:20px; margin-bottom:8px; }
+  .beta-mission-title{ font-size:14px; font-weight:800; margin-bottom:6px; }
+  .beta-mission-desc{ font-size:11.5px; color:var(--text-dim); line-height:1.35; margin-bottom:10px; min-height:32px; }
+  .beta-mission-reward{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; font-weight:700; color:#a855f7; }
+
+  .beta-lernwelt-row{
+    display:flex; align-items:flex-start; gap:0; overflow-x:auto; padding:6px 20px 24px;
+    scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  }
+  .beta-lernwelt-row::-webkit-scrollbar{ display:none; }
+  .beta-lernwelt-node{
+    display:flex; flex-direction:column; align-items:center; flex-shrink:0; width:86px; position:relative;
+  }
+  .beta-lernwelt-circle{
+    width:62px; height:62px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:24px; border:2.5px solid var(--border); background:var(--card);
+  }
+  .beta-lernwelt-circle.done{ border-color:#a855f7; background:rgba(168,85,247,.15); }
+  .beta-lernwelt-circle.active{ border-color:#22c55e; background:rgba(34,197,94,.15); }
+  .beta-lernwelt-circle.locked{ opacity:.45; }
+  .beta-lernwelt-name{ font-size:11px; font-weight:700; margin-top:6px; text-align:center; }
+  .beta-lernwelt-lvl{ font-size:9.5px; color:var(--text-dim); }
+  .beta-lernwelt-line{
+    position:absolute; top:31px; left:-43px; width:86px; height:2px; background:var(--border); z-index:-1;
+  }
+
   .hero{
     display:flex; flex-direction:column; align-items:center;
     text-align:center; gap:clamp(2px,0.6vh,4px); padding:clamp(0px,0.5vh,6px) 6px clamp(4px,1.5vh,14px);
@@ -2075,7 +2183,55 @@
       </div>
     </div>
 
-    <div class="stats-row">
+    <!-- Beta-Layout (NEU): Begrüßung links, alle Stats in einer Pille rechts -->
+    <div class="beta-greeting-row layout-beta-only">
+      <div class="beta-greeting-text">
+        <div class="beta-greeting-wave">👋</div>
+        <h1>Hey!</h1>
+        <p>Bereit für deine<br>nächste Runde?</p>
+      </div>
+      <div class="beta-stat-pill">
+        <div class="beta-stat"><span class="beta-stat-icon">❤️</span><span id="betaHomeLives">5</span><span class="beta-stat-lbl">Leben</span></div>
+        <div class="beta-stat"><span class="beta-stat-icon">⭐</span><span id="betaHomeLevel">1</span><span class="beta-stat-lbl">Lv.</span></div>
+        <div class="beta-stat"><span class="beta-stat-icon">💎</span><span id="betaHomeAura">0</span><span class="beta-stat-lbl">Aura</span></div>
+        <div class="beta-stat"><span class="beta-stat-icon">🔥</span><span id="betaHomeStreak">0</span><span class="beta-stat-lbl">Streak</span></div>
+      </div>
+    </div>
+
+    <div class="beta-streak-card layout-beta-only" id="betaStreakCard">
+      <div class="beta-streak-icon">🔥</div>
+      <div class="beta-streak-text">
+        <div class="beta-streak-num"><span id="betaStreakNum">0</span> Tage</div>
+        <div class="beta-streak-lbl">Streak</div>
+      </div>
+      <div class="beta-streak-flames" id="betaStreakFlames"></div>
+      <div class="beta-streak-hint" id="betaStreakHint">Noch 1 Lektion heute →</div>
+    </div>
+
+    <div class="beta-continue-card layout-beta-only">
+      <div class="beta-continue-left">
+        <div class="beta-continue-heading">🎯 Weitermachen</div>
+        <div class="beta-continue-title" id="betaContinueTierName">Kleines Einmaleins</div>
+        <div class="beta-continue-sub">Level <span id="betaContinueLevel">1</span> · 💎 +<span id="betaContinueAura">25</span> Aura</div>
+        <div class="beta-continue-progress-track"><div class="beta-continue-progress-fill" id="betaContinueProgressFill"></div></div>
+        <div class="beta-continue-progress-num" id="betaContinueProgressNum">0/20</div>
+      </div>
+      <button class="beta-continue-btn" id="betaContinueBtn">▶<br>Weiterlernen</button>
+    </div>
+
+    <div class="beta-section-heading layout-beta-only">
+      <span>🗓️ Events &amp; Missionen</span>
+      <a href="#" id="betaMissionsAllLink">Alle anzeigen →</a>
+    </div>
+    <div class="beta-missions-row layout-beta-only" id="betaMissionsRow"></div>
+
+    <div class="beta-section-heading layout-beta-only">
+      <span>🗺️ Lernwelt</span>
+      <a href="#" id="betaLernweltAllLink">Level entdecken →</a>
+    </div>
+    <div class="beta-lernwelt-row layout-beta-only" id="betaLernweltRow"></div>
+
+    <div class="stats-row layout-normal-only">
       <div class="stat-pill">
         <div class="hearts" id="homeHearts"></div>
         <div class="lbl">Leben</div>
@@ -2095,7 +2251,7 @@
       </div>
     </div>
 
-    <div class="hero">
+    <div class="hero layout-normal-only">
       <div class="hero-top-row">
         <button class="theme-toggle" id="duelLobbyBtn" title="Duell-Lobby">⚔️</button>
         <div class="hero-flame" id="heroFlame">
@@ -2112,10 +2268,10 @@
       <div class="level-tag" id="tierLabel">Kleines Einmaleins</div>
     </div>
 
-    <div class="levels-heading home-levels-heading">Levels · nach rechts wischen</div>
-    <div class="tier-carousel" id="tierCarousel"></div>
+    <div class="levels-heading home-levels-heading layout-normal-only">Levels · nach rechts wischen</div>
+    <div class="tier-carousel layout-normal-only" id="tierCarousel"></div>
 
-    <button class="btn btn-primary" id="startBtn">Lektion starten</button>
+    <button class="btn btn-primary layout-normal-only" id="startBtn">Lektion starten</button>
   </section>
 
   <!-- ============ SHOP ============ -->
@@ -2975,6 +3131,17 @@
       </select>
     </div>
 
+    <div class="settings-row">
+      <div class="info">
+        <div class="t">🎨 Layout</div>
+        <div class="d">Wie der Home-Bildschirm aussieht.</div>
+      </div>
+      <select id="layoutStyleSelect" class="input-field" style="width:auto; padding:8px 10px;">
+        <option value="normal">Normal</option>
+        <option value="beta">Beta</option>
+      </select>
+    </div>
+
     <div class="settings-row" id="installAppRow" style="cursor:pointer; display:none;">
       <div class="info">
         <div class="t">📲 App installieren</div>
@@ -3658,7 +3825,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.42";
+  const APP_VERSION = "2.44";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -3899,6 +4066,7 @@
     answeredPollIds: [], // verhindert mehrfaches Einschicken derselben Umfrage
     appIntroStyle: "math", // "math" (Standard) oder "simple" - welche Start-Animation beim App-Öffnen läuft
     devModeEnabled: false, // Entwicklermodus: zeigt Debug-Beschriftungen an allen Elementen (nur Owner)
+    layoutStyle: "normal", // "normal" (Standard) oder "beta" - welches Home-Layout angezeigt wird
     pendingFeedbackBonusAura: 0, // Aura-Geschenk vom Owner fürs Feedback, das noch als Banner angezeigt werden muss
     todayActiveMs: 0, // heutige Nutzungszeit in der App (Millisekunden)
     todayActiveDate: null, // für welchen Tag todayActiveMs gilt
@@ -6533,6 +6701,87 @@
       $("heroStreakNum").textContent = n;
     }
     $("homeStreak").textContent = n;
+  }
+
+  // Beta-Layout (NEU): füllt die zusätzlichen Elemente des alternativen
+  // Home-Bildschirms mit denselben Daten, die renderHome() schon berechnet.
+  function renderHomeBetaExtras(){
+    $("betaHomeLives").textContent = profile.lives;
+    $("betaHomeLevel").textContent = profile.level;
+    $("betaHomeAura").textContent = profile.totalAura;
+    $("betaHomeStreak").textContent = profile.streak || 0;
+
+    const n = profile.streak || 0;
+    $("betaStreakNum").textContent = n;
+    const flamesEl = $("betaStreakFlames");
+    flamesEl.innerHTML = "";
+    for(let i = 0; i < 8; i++){
+      const span = document.createElement("span");
+      span.textContent = "🔥";
+      if(i >= n) span.className = "dim";
+      flamesEl.appendChild(span);
+    }
+    $("betaStreakHint").textContent = hasCompletedStreakToday()
+      ? "Heute schon erledigt ✓"
+      : "Noch 1 Lektion heute →";
+
+    const activeIdx = tierIndexForLevel(profile.level);
+    const activeTier = TIERS[activeIdx];
+    $("betaContinueTierName").textContent = activeTier.name;
+    $("betaContinueLevel").textContent = profile.level;
+    $("betaContinueAura").textContent = activeTier.normalAura || 10;
+    const progressPct = ((profile.levelProgress || 0) / LESSONS_PER_LEVEL) * 100;
+    $("betaContinueProgressFill").style.width = progressPct + "%";
+    $("betaContinueProgressNum").textContent = `${profile.levelProgress || 0}/${LESSONS_PER_LEVEL}`;
+
+    // Missionen (wiederverwendet dieselben Tagesmissionen wie der normale
+    // Missionen-Bildschirm, nur kompakter dargestellt).
+    const missionsRow = $("betaMissionsRow");
+    missionsRow.innerHTML = "";
+    const doneToday = (profile.dailyMissions && profile.dailyMissions.lessonsCompletedToday) || 0;
+    DAILY_MISSION_DEFS.forEach(m => {
+      const chest = profile.dailyMissions && profile.dailyMissions.chests && profile.dailyMissions.chests[m.id];
+      const complete = doneToday >= m.target;
+      const card = document.createElement("div");
+      card.className = "beta-mission-card";
+      card.innerHTML = `
+        <div class="beta-mission-icon">${complete ? "✅" : "🎯"}</div>
+        <div class="beta-mission-title">${m.label}</div>
+        <div class="beta-mission-desc">${doneToday}/${m.target} Lektionen heute geschafft.</div>
+        <div class="beta-mission-reward">💎 +${(chest && CHEST_REWARDS[chest.tier]) || 50} Aura</div>
+      `;
+      card.addEventListener("click", () => { showScreen("missions"); renderMissions(); });
+      missionsRow.appendChild(card);
+    });
+
+    // Lernwelt-Pfad (wiederverwendet dieselbe TIERS-Liste wie das normale
+    // Karussell, nur als verbundene Kreise statt Karten dargestellt).
+    const lernweltRow = $("betaLernweltRow");
+    lernweltRow.innerHTML = "";
+    TIERS.forEach((tier, i) => {
+      const needsLevel = !isTierSelectable(i, activeIdx);
+      const isDone = i < activeIdx;
+      const isActive = i === activeIdx;
+      const node = document.createElement("div");
+      node.className = "beta-lernwelt-node";
+      node.innerHTML = `
+        ${i > 0 ? '<div class="beta-lernwelt-line"></div>' : ""}
+        <div class="beta-lernwelt-circle${isDone ? " done" : ""}${isActive ? " active" : ""}${needsLevel ? " locked" : ""}">${needsLevel ? "🔒" : (isDone ? "✓" : tier.icon)}</div>
+        <div class="beta-lernwelt-name">${tier.name}</div>
+        <div class="beta-lernwelt-lvl">Lv. ${tier.from}</div>
+      `;
+      node.addEventListener("click", () => {
+        if(needsLevel){
+          showToast(`Freigeschaltet ab Level ${tier.from}`);
+          return;
+        }
+        selectedTierIndex = i;
+        $("tierLabel").textContent = tier.name;
+        renderTierCarousel();
+        showToast(`"${tier.name}" ausgewählt.`);
+      });
+      lernweltRow.appendChild(node);
+    });
   }
 
   // Baut das HTML für die 7-Tage-Wochenübersicht (Mo-So) aus einer Liste von
@@ -9285,6 +9534,7 @@
      THEME SYSTEM
   ======================================================== */
   function applyTheme(){
+    document.body.classList.toggle("layout-beta", profile.layoutStyle === "beta");
     // Absicherung: falls ein Konto noch auf das entfernte Custom-Theme
     // eingestellt war, sauber auf Black zurückfallen statt unstyled zu bleiben.
     if(profile.theme === "custom"){
@@ -10263,6 +10513,7 @@
   function renderSettings(){
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
     $("appIntroStyleSelect").value = profile.appIntroStyle === "simple" ? "simple" : "math";
+    $("layoutStyleSelect").value = profile.layoutStyle === "beta" ? "beta" : "normal";
     updateNotificationAndInstallUI();
     const displayName = profile.username
       ? "@" + profile.username + (isSuperUser() ? " ⭐" : "")
@@ -10366,6 +10617,13 @@
   $("appIntroStyleSelect").addEventListener("change", (e) => {
     profile.appIntroStyle = e.target.value === "simple" ? "simple" : "math";
     saveProfile();
+  });
+
+  $("layoutStyleSelect").addEventListener("change", (e) => {
+    profile.layoutStyle = e.target.value === "beta" ? "beta" : "normal";
+    saveProfile();
+    applyTheme();
+    renderHome();
   });
 
   $("installAppRow").addEventListener("click", () => {
@@ -11255,6 +11513,7 @@
     $("tierLabel").textContent = TIERS[selectedTierIndex].name;
     $("startBtn").disabled = false;
     renderTierCarousel();
+    renderHomeBetaExtras();
   }
 
   function renderTierCarousel(){
@@ -11351,6 +11610,23 @@
         }, 60);
       }, 260);
     }, 350);
+  });
+
+  // Beta-Layout (NEU): "Weiterlernen" startet die aktuell aktive Stufe
+  // (dieselbe Logik wie der normale Start-Button), unabhängig davon, was
+  // im Karussell gerade ausgewählt war.
+  $("betaContinueBtn").addEventListener("click", () => {
+    selectedTierIndex = tierIndexForLevel(profile.level);
+    $("startBtn").click();
+  });
+  $("betaMissionsAllLink").addEventListener("click", (e) => {
+    e.preventDefault();
+    showScreen("missions");
+    renderMissions();
+  });
+  $("betaLernweltAllLink").addEventListener("click", (e) => {
+    e.preventDefault();
+    document.getElementById("betaLernweltRow").scrollIntoView({ behavior: "smooth", block: "center" });
   });
 
   $("backHomeFromLocked").addEventListener("click", () => {

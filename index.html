@@ -902,6 +902,33 @@
     transition:opacity .35s cubic-bezier(.34,1.4,.64,1), transform .35s cubic-bezier(.34,1.4,.64,1), visibility 0s linear 0s;
   }
 
+  /* ---------- Icecube-Stand-Popup (NEU) ---------- */
+  .icecube-status-popup{
+    position:fixed; left:50%; bottom:32vh; z-index:96000;
+    background:var(--card); border:1.5px solid var(--border); border-radius:16px;
+    padding:14px 24px; box-shadow:0 10px 30px rgba(0,0,0,.35);
+    text-align:center;
+    opacity:0; visibility:hidden; pointer-events:none;
+    transform:translate(-50%, 14px) scale(.92);
+    transition:opacity .35s cubic-bezier(.34,1.4,.64,1), transform .35s cubic-bezier(.34,1.4,.64,1), visibility 0s linear .35s;
+  }
+  .icecube-status-popup.show{
+    opacity:1; visibility:visible;
+    transform:translate(-50%, 0) scale(1);
+    transition:opacity .35s cubic-bezier(.34,1.4,.64,1), transform .35s cubic-bezier(.34,1.4,.64,1), visibility 0s linear 0s;
+  }
+  .icecube-status-title{
+    font-size:12.5px; font-weight:700; color:var(--text); margin-bottom:8px;
+  }
+  .icecube-status-icons{ display:flex; gap:14px; justify-content:center; }
+  .icecube-status-icon{
+    font-size:34px; filter:grayscale(1) opacity(.3);
+    transition:filter .25s ease;
+  }
+  .icecube-status-icon.filled{
+    filter:none;
+  }
+
   .lb-loading{
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:10px; padding:40px 20px; color:var(--text-dim); font-size:13px;
@@ -2018,6 +2045,16 @@
     <span id="onlineFriendsPopupText" style="font-size:12.5px; color:var(--text, #fff); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
   </div>
 
+  <!-- Icecube-Stand-Popup (NEU): erscheint kurz in der unteren Bildschirm-
+       hälfte nach dem Kauf eines Icecubes. -->
+  <div id="icecubeStatusPopup" class="icecube-status-popup">
+    <div class="icecube-status-title">Icecubes <span id="icecubeStatusCount">0/2</span></div>
+    <div class="icecube-status-icons">
+      <span class="icecube-status-icon" id="icecubeStatusIcon1">🧊</span>
+      <span class="icecube-status-icon" id="icecubeStatusIcon2">🧊</span>
+    </div>
+  </div>
+
   <!-- ============ HOME ============ -->
   <section class="screen active" id="screen-home">
     <div class="topbar">
@@ -2143,7 +2180,7 @@
         <div class="item-title">Streak-Reparatur</div>
         <div class="item-desc">Stellt deinen zuletzt verlorenen Streak wieder her.</div>
       </div>
-      <button class="buy-btn" id="buyStreakRepair">10.000 Aura</button>
+      <button class="buy-btn" id="buyStreakRepair">500 Aura</button>
     </div>
 
     <div class="shop-section-title" id="shopSectionThemes">Designs</div>
@@ -2784,7 +2821,12 @@
         <button class="btn btn-primary btn-small" id="ownerSendBroadcastBtn" style="margin-top:8px; width:100%;">Senden</button>
       </div>
 
-      <button class="btn btn-primary btn-small" id="ownerSendUpdateNoticeBtn" style="width:100%; margin-bottom:16px;">🔄 Update-Nachricht senden</button>
+      <div style="background:rgba(96,165,250,.1); border:1.5px solid #60a5fa; border-radius:14px; padding:12px; margin-bottom:16px;">
+        <div style="font-weight:800; margin-bottom:8px; color:#60a5fa;">🔄 Update-Benachrichtigung</div>
+        <div class="d" style="margin-bottom:8px;">Trag hier die Versionsnummer ein, die du gerade hochgeladen hast - alle, die noch die alte Version offen haben, bekommen dann sofort den Update-Hinweis.</div>
+        <input type="text" id="ownerNewVersionInput" class="input-field" placeholder="z.B. 2.35" style="margin-bottom:8px;">
+        <button class="btn btn-primary btn-small" id="ownerSendUpdateNoticeBtn" style="width:100%;">Update-Nachricht senden</button>
+      </div>
 
       <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:16px;">
         <div style="font-weight:800; margin-bottom:8px;">📊 Umfrage senden</div>
@@ -3593,7 +3635,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.34";
+  const APP_VERSION = "2.37";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -3737,7 +3779,7 @@
      ist, auch wenn der Link zuerst nur die Startseite ohne Login öffnet.
   ======================================================== */
   const REFERRAL_REWARD = 500;
-  const STREAK_REPAIR_COST = 10000;
+  const STREAK_REPAIR_COST = 500;
   const PENDING_REF_KEY = "mathedits_pending_ref";
   let pendingReferralCode = null;
   try{
@@ -4331,8 +4373,21 @@
   // neu zu laden, um die neueste Version zu bekommen.
   async function sendOwnerUpdateNotice(){
     if(!isOwner() || !firebaseInitialized || !currentUser) return;
+    const newVersion = $("ownerNewVersionInput").value.trim();
     try{
       await db().collection("updateNotices").add({ createdAt: Date.now() });
+      // WICHTIG: dein eigener geöffneter Tab läuft noch mit dem ALTEN Code -
+      // JavaScript aktualisiert sich nicht von selbst, nur weil irgendwo
+      // eine neue Datei hochgeladen wurde. Die automatische Versions-
+      // Erkennung kann eine neue Version deshalb nur entdecken, wenn
+      // IRGENDJEMAND sie bereits tatsächlich geladen hat - direkt nach dem
+      // Hochladen hat das aber noch niemand. Deshalb hier explizit
+      // eintragen, welche Version gerade veröffentlicht wurde.
+      if(newVersion){
+        await db().collection("appVersionInfo").doc("current").set({
+          version: newVersion, updatedAt: Date.now()
+        });
+      }
       showToast("🔄 Update-Nachricht an alle gesendet!");
     }catch(err){
       showToast("Update-Nachricht konnte nicht gesendet werden.");
@@ -6094,14 +6149,14 @@
       return;
     }
 
-    const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 0, avatarData: profile.avatarData, activeFont: profile.activeFont, lastActiveAt: profile.lastActiveAt, lastLessonAt: profile.lastLessonAt }];
+    const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 0, avatarData: profile.avatarData, activeFont: profile.activeFont, lastActiveAt: profile.lastActiveAt, lastLessonAt: profile.lastLessonAt, lessonInProgressAt: profile.lessonInProgressAt }];
     // Alle Freunde GLEICHZEITIG laden statt nacheinander - das war der
     // Hauptgrund, warum die Rangliste bei mehreren Freunden spürbar
     // langsam war (jeder einzelne Abruf musste vorher auf den vorherigen
     // warten, statt parallel zu laufen).
     const friendDocs = await Promise.all(mutualUids.map(uid => fetchUserDoc(uid)));
     friendDocs.forEach(u => {
-      if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 0, avatarData: u.avatarData, activeFont: u.activeFont, lastActiveAt: u.lastActiveAt, lastLessonAt: u.lastLessonAt });
+      if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 0, avatarData: u.avatarData, activeFont: u.activeFont, lastActiveAt: u.lastActiveAt, lastLessonAt: u.lastLessonAt, lessonInProgressAt: u.lessonInProgressAt });
     });
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
     const filtered = entries.filter(e => (e.level || 0) >= 2 && e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
@@ -6134,7 +6189,7 @@
       let entries = snap.docs
         .map(d => ({ ...d.data(), uid: d.id }))
         .filter(e => !!e.username && (e.level || 0) >= 2) // erst ab Level 2 in der Rangliste
-        .map(e => ({ uid: e.uid, username: e.username, level: e.level || 0, avatarData: e.avatarData, activeFont: e.activeFont, lastActiveAt: e.lastActiveAt, lastLessonAt: e.lastLessonAt }));
+        .map(e => ({ uid: e.uid, username: e.username, level: e.level || 0, avatarData: e.avatarData, activeFont: e.activeFont, lastActiveAt: e.lastActiveAt, lastLessonAt: e.lastLessonAt, lessonInProgressAt: e.lessonInProgressAt }));
 
       const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
       entries = entries.filter(e => e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
@@ -8188,7 +8243,7 @@
       onlineFriends.forEach(({ uid, u }) => {
         const row = document.createElement("div");
         row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);";
-        row.innerHTML = `<span>🟢 @${u.username}</span><button class="btn btn-primary btn-small" data-uid="${uid}" data-name="${u.username}">Einladen</button>`;
+        row.innerHTML = `<span><span class="online-dot${isInLesson(u) ? " in-lesson" : ""}"></span>@${u.username}</span><button class="btn btn-primary btn-small" data-uid="${uid}" data-name="${u.username}">Einladen</button>`;
         listEl.appendChild(row);
       });
       listEl.querySelectorAll("button[data-uid]").forEach(btn => {
@@ -8953,7 +9008,7 @@
 
     const canRepair = profile.lastBrokenStreak > 0;
     $("buyStreakRepair").disabled = !canRepair || profile.totalAura < STREAK_REPAIR_COST;
-    $("buyStreakRepair").textContent = canRepair ? "10.000 Aura" : "Kein Streak verloren";
+    $("buyStreakRepair").textContent = canRepair ? "500 Aura" : "Kein Streak verloren";
   }
 
   // SHOP EVENT LISTENERS
@@ -8963,6 +9018,20 @@
       if(target) target.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
+
+  let icecubeStatusHideTimer = null;
+  function showIcecubeStatusPopup(){
+    const count = profile.inventory.icecube || 0;
+    $("icecubeStatusCount").textContent = `${count}/2`;
+    $("icecubeStatusIcon1").classList.toggle("filled", count >= 1);
+    $("icecubeStatusIcon2").classList.toggle("filled", count >= 2);
+    const popup = $("icecubeStatusPopup");
+    clearTimeout(icecubeStatusHideTimer);
+    popup.classList.add("show");
+    icecubeStatusHideTimer = setTimeout(() => {
+      popup.classList.remove("show");
+    }, 2500);
+  }
 
   $("buyIcecube").addEventListener("click", () => {
     if((profile.inventory.icecube || 0) >= 2){
@@ -8974,6 +9043,7 @@
       saveProfile();
       renderShop();
       showToast("🧊 Icecube gekauft! Dein Streak ist 1x geschützt.");
+      showIcecubeStatusPopup();
     }
   });
 

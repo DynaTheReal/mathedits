@@ -1335,7 +1335,7 @@
   .layout-beta-only{ display:none !important; }
   body.layout-beta .layout-normal-only{ display:none !important; }
   body.layout-beta .beta-greeting-row{ display:flex !important; }
-  body.layout-beta .beta-streak-card{ display:block !important; }
+  body.layout-beta .beta-streak-card{ display:flex !important; }
   body.layout-beta .beta-continue-card{ display:flex !important; }
   body.layout-beta .beta-section-heading{ display:flex !important; }
   body.layout-beta .beta-missions-row{ display:flex !important; }
@@ -1343,7 +1343,7 @@
 
   .beta-greeting-row{
     display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
-    padding:4px 20px 18px;
+    padding:0 20px 14px;
   }
   .beta-greeting-text h1{ font-size:26px; font-weight:900; margin:2px 0 2px; }
   .beta-greeting-wave{ font-size:22px; }
@@ -1358,20 +1358,17 @@
   .beta-stat-lbl{ font-size:9px; color:var(--text-dim); }
 
   .beta-streak-card{
-    margin:0 20px 16px; padding:18px 20px; border-radius:22px;
+    margin:0 20px 14px; padding:12px 18px; border-radius:18px;
     background:linear-gradient(135deg, rgba(251,146,60,.16), rgba(239,68,68,.08));
     border:1.5px solid rgba(251,146,60,.4);
-    position:relative; overflow:hidden; min-height:80px;
+    display:flex; align-items:center; gap:12px; cursor:pointer;
   }
-  .beta-streak-icon{ font-size:30px; }
-  .beta-streak-num{ font-size:26px; font-weight:900; margin-top:2px; }
-  .beta-streak-lbl{ font-size:13px; color:var(--text-dim); margin-bottom:8px; }
-  .beta-streak-flames{ display:flex; gap:5px; font-size:17px; }
-  .beta-streak-flames span.dim{ opacity:.25; filter:grayscale(1); }
-  .beta-streak-hint{ font-size:12.5px; color:var(--text-dim); margin-top:10px; cursor:pointer; }
+  .beta-streak-icon{ font-size:26px; line-height:1; }
+  .beta-streak-num{ font-size:19px; font-weight:900; line-height:1.2; }
+  .beta-streak-lbl{ font-size:11.5px; color:var(--text-dim); }
 
   .beta-continue-card{
-    margin:0 20px 20px; padding:18px; border-radius:22px;
+    margin:0 20px 16px; padding:18px; border-radius:22px;
     background:linear-gradient(135deg, rgba(168,85,247,.16), rgba(96,165,250,.08));
     border:1.5px solid rgba(168,85,247,.4);
     display:flex; align-items:center; justify-content:space-between; gap:14px;
@@ -1396,26 +1393,26 @@
 
   .beta-section-heading{
     display:flex; align-items:center; justify-content:space-between;
-    padding:0 20px; margin:6px 0 10px; font-size:15.5px; font-weight:800;
+    padding:0 20px; margin:4px 0 8px; font-size:15.5px; font-weight:800;
   }
   .beta-section-heading a{ font-size:12.5px; font-weight:700; color:var(--accent, #a855f7); text-decoration:none; }
 
   .beta-missions-row{
-    display:flex; gap:10px; overflow-x:auto; padding:0 20px 20px; scrollbar-width:none;
+    display:flex; gap:10px; overflow-x:auto; padding:0 20px 16px; scrollbar-width:none;
     -webkit-overflow-scrolling:touch;
   }
   .beta-missions-row::-webkit-scrollbar{ display:none; }
   .beta-mission-card{
     flex:0 0 170px; border-radius:18px; padding:14px; border:1.5px solid var(--border);
-    background:var(--card);
+    background:var(--card); overflow:hidden;
   }
   .beta-mission-icon{ font-size:20px; margin-bottom:8px; }
-  .beta-mission-title{ font-size:14px; font-weight:800; margin-bottom:6px; }
-  .beta-mission-desc{ font-size:11.5px; color:var(--text-dim); line-height:1.35; margin-bottom:10px; min-height:32px; }
+  .beta-mission-title{ font-size:14px; font-weight:800; margin-bottom:6px; overflow-wrap:break-word; word-wrap:break-word; }
+  .beta-mission-desc{ font-size:11.5px; color:var(--text-dim); line-height:1.35; margin-bottom:10px; overflow-wrap:break-word; word-wrap:break-word; }
   .beta-mission-reward{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; font-weight:700; color:#a855f7; }
 
   .beta-lernwelt-row{
-    display:flex; align-items:flex-start; gap:0; overflow-x:auto; padding:6px 20px 24px;
+    display:flex; align-items:flex-start; gap:0; overflow-x:auto; padding:6px 20px 32px;
     scrollbar-width:none; -webkit-overflow-scrolling:touch;
   }
   .beta-lernwelt-row::-webkit-scrollbar{ display:none; }
@@ -2202,10 +2199,8 @@
       <div class="beta-streak-icon">🔥</div>
       <div class="beta-streak-text">
         <div class="beta-streak-num"><span id="betaStreakNum">0</span> Tage</div>
-        <div class="beta-streak-lbl">Streak</div>
+        <div class="beta-streak-lbl">Streak · antippen für Verlauf</div>
       </div>
-      <div class="beta-streak-flames" id="betaStreakFlames"></div>
-      <div class="beta-streak-hint" id="betaStreakHint">Noch 1 Lektion heute →</div>
     </div>
 
     <div class="beta-continue-card layout-beta-only">
@@ -3825,7 +3820,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.44";
+  const APP_VERSION = "2.46";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -6713,17 +6708,6 @@
 
     const n = profile.streak || 0;
     $("betaStreakNum").textContent = n;
-    const flamesEl = $("betaStreakFlames");
-    flamesEl.innerHTML = "";
-    for(let i = 0; i < 8; i++){
-      const span = document.createElement("span");
-      span.textContent = "🔥";
-      if(i >= n) span.className = "dim";
-      flamesEl.appendChild(span);
-    }
-    $("betaStreakHint").textContent = hasCompletedStreakToday()
-      ? "Heute schon erledigt ✓"
-      : "Noch 1 Lektion heute →";
 
     const activeIdx = tierIndexForLevel(profile.level);
     const activeTier = TIERS[activeIdx];
@@ -10648,6 +10632,13 @@
   }
 
   $("heroFlame").addEventListener("click", () => {
+    const n = profile.streak || 0;
+    $("modalStreakNum").textContent = n;
+    $("modalStreakTitle").textContent = `${n} ${n === 1 ? "Tag" : "Tage"} Streak`;
+    renderStreakWeek();
+    $("overlayStreak").classList.add("show");
+  });
+  $("betaStreakCard").addEventListener("click", () => {
     const n = profile.streak || 0;
     $("modalStreakNum").textContent = n;
     $("modalStreakTitle").textContent = `${n} ${n === 1 ? "Tag" : "Tage"} Streak`;

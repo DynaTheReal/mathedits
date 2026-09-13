@@ -1421,34 +1421,38 @@
   }
   .beta-missions-row::-webkit-scrollbar{ display:none; }
   .beta-mission-card{
-    flex:0 0 170px; border-radius:18px; padding:14px; border:1.5px solid var(--border);
+    flex:0 0 170px; border-radius:18px; padding:16px; border:1.5px solid var(--border);
     background:var(--card); overflow:hidden;
   }
-  .beta-mission-icon{ font-size:20px; margin-bottom:8px; }
+  .beta-mission-icon{ font-size:20px; margin-bottom:9px; }
   .beta-mission-title{ font-size:14px; font-weight:800; margin-bottom:6px; overflow-wrap:break-word; word-wrap:break-word; }
-  .beta-mission-desc{ font-size:11.5px; color:var(--text-dim); line-height:1.35; margin-bottom:10px; overflow-wrap:break-word; word-wrap:break-word; }
+  .beta-mission-desc{ font-size:11.5px; color:var(--text-dim); line-height:1.35; margin-bottom:8px; overflow-wrap:break-word; word-wrap:break-word; }
+  .beta-mission-progress-track{
+    width:100%; height:6px; border-radius:99px; background:rgba(255,255,255,.1); overflow:hidden; margin-bottom:10px;
+  }
+  .beta-mission-progress-fill{
+    height:100%; border-radius:99px; background:linear-gradient(90deg, #a855f7, #ec4899);
+  }
   .beta-mission-reward{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; font-weight:700; color:#a855f7; }
 
   .beta-lernwelt-row{
-    display:flex; align-items:flex-start; gap:0; overflow-x:auto; padding:6px 10px 32px;
+    display:flex; align-items:flex-start; gap:8px; overflow-x:auto; overflow-y:visible; padding:6px 10px 32px;
     scrollbar-width:none; -webkit-overflow-scrolling:touch;
+    flex-shrink:0; min-height:104px;
   }
   .beta-lernwelt-row::-webkit-scrollbar{ display:none; }
   .beta-lernwelt-node{
-    display:flex; flex-direction:column; align-items:center; flex-shrink:0; width:86px; position:relative;
+    display:flex; flex-direction:column; align-items:center; flex-shrink:0; width:64px;
   }
   .beta-lernwelt-circle{
-    width:62px; height:62px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    font-size:24px; border:2.5px solid var(--border); background:var(--card);
+    width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:20px; border:2.5px solid var(--border); background:var(--card);
   }
   .beta-lernwelt-circle.done{ border-color:#a855f7; background:rgba(168,85,247,.15); }
   .beta-lernwelt-circle.active{ border-color:#22c55e; background:rgba(34,197,94,.15); }
   .beta-lernwelt-circle.locked{ opacity:.45; }
-  .beta-lernwelt-name{ font-size:11px; font-weight:700; margin-top:6px; text-align:center; }
-  .beta-lernwelt-lvl{ font-size:9.5px; color:var(--text-dim); }
-  .beta-lernwelt-line{
-    position:absolute; top:31px; left:-43px; width:86px; height:2px; background:var(--border); z-index:-1;
-  }
+  .beta-lernwelt-name{ font-size:10.5px; font-weight:700; margin-top:3px; text-align:center; }
+  .beta-lernwelt-lvl{ font-size:9px; color:var(--text-dim); }
 
   .hero{
     display:flex; flex-direction:column; align-items:center;
@@ -3838,7 +3842,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.49";
+  const APP_VERSION = "2.52";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -6744,12 +6748,14 @@
     DAILY_MISSION_DEFS.forEach(m => {
       const chest = profile.dailyMissions && profile.dailyMissions.chests && profile.dailyMissions.chests[m.id];
       const complete = doneToday >= m.target;
+      const progressPct = Math.min(100, (doneToday / m.target) * 100);
       const card = document.createElement("div");
       card.className = "beta-mission-card";
       card.innerHTML = `
         <div class="beta-mission-icon">${complete ? "✅" : "🎯"}</div>
         <div class="beta-mission-title">${m.label}</div>
         <div class="beta-mission-desc">${doneToday}/${m.target} Lektionen heute geschafft.</div>
+        <div class="beta-mission-progress-track"><div class="beta-mission-progress-fill" style="width:${progressPct}%;"></div></div>
         <div class="beta-mission-reward">💀 +${(chest && CHEST_REWARDS[chest.tier]) || 50} Aura</div>
       `;
       card.addEventListener("click", () => { showScreen("missions"); renderMissions(); });
@@ -6757,7 +6763,8 @@
     });
 
     // Lernwelt-Pfad (wiederverwendet dieselbe TIERS-Liste wie das normale
-    // Karussell, nur als verbundene Kreise statt Karten dargestellt).
+    // Karussell, nur als Kreise statt Karten dargestellt - ohne
+    // Verbindungslinie, mit dem jeweiligen Themen-Symbol statt Haken).
     const lernweltRow = $("betaLernweltRow");
     lernweltRow.innerHTML = "";
     TIERS.forEach((tier, i) => {
@@ -6767,8 +6774,7 @@
       const node = document.createElement("div");
       node.className = "beta-lernwelt-node";
       node.innerHTML = `
-        ${i > 0 ? '<div class="beta-lernwelt-line"></div>' : ""}
-        <div class="beta-lernwelt-circle${isDone ? " done" : ""}${isActive ? " active" : ""}${needsLevel ? " locked" : ""}">${needsLevel ? "🔒" : (isDone ? "✓" : tier.icon)}</div>
+        <div class="beta-lernwelt-circle${isDone ? " done" : ""}${isActive ? " active" : ""}${needsLevel ? " locked" : ""}">${needsLevel ? "🔒" : tier.icon}</div>
         <div class="beta-lernwelt-name">${tier.name}</div>
         <div class="beta-lernwelt-lvl">Lv. ${tier.from}</div>
       `;

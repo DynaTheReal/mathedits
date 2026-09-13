@@ -2153,7 +2153,7 @@
         <div class="item-title">Icecube</div>
         <div class="item-desc">Ein Tag ohne Lernen und Streak bleibt bestehen. Maximal 2 gleichzeitig.</div>
       </div>
-      <button class="buy-btn" id="buyIcecube">150 Aura</button>
+      <button class="buy-btn" id="buyIcecube">500 Aura</button>
     </div>
 
     <div class="shop-item item-bg-pattern" data-bg-icon="❤️">
@@ -2180,7 +2180,7 @@
         <div class="item-title">Streak-Reparatur</div>
         <div class="item-desc">Stellt deinen zuletzt verlorenen Streak wieder her.</div>
       </div>
-      <button class="buy-btn" id="buyStreakRepair">500 Aura</button>
+      <button class="buy-btn" id="buyStreakRepair">10.000 Aura</button>
     </div>
 
     <div class="shop-section-title" id="shopSectionThemes">Designs</div>
@@ -3635,7 +3635,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.37";
+  const APP_VERSION = "2.38";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -3779,7 +3779,7 @@
      ist, auch wenn der Link zuerst nur die Startseite ohne Login öffnet.
   ======================================================== */
   const REFERRAL_REWARD = 500;
-  const STREAK_REPAIR_COST = 500;
+  const STREAK_REPAIR_COST = 10000;
   const PENDING_REF_KEY = "mathedits_pending_ref";
   let pendingReferralCode = null;
   try{
@@ -6247,6 +6247,20 @@
     return monday;
   }
 
+  // Zeigt den Streak einer ANDEREN Person korrekt an, auch wenn die schon
+  // lange nicht mehr online war (deren eigenes Gerät hat checkStreakDecay()
+  // dann ja nie erneut ausgeführt, der gespeicherte Wert wäre sonst
+  // veraltet). Rechnet rein für die Anzeige, verändert nichts an den
+  // Daten - das bleibt Sache des jeweiligen eigenen Geräts.
+  function getDisplayedStreak(u){
+    if(!u || !u.streak) return 0;
+    if(!u.lastStreakDate) return 0;
+    const today = todayStr();
+    const yesterday = yesterdayStr();
+    if(u.lastStreakDate !== today && u.lastStreakDate !== yesterday) return 0;
+    return u.streak;
+  }
+
   function checkStreakDecay(){
     if(!profile.lastStreakDate) return;
     const today = todayStr();
@@ -6481,7 +6495,7 @@
 
     $("friendProfileLevel").textContent = u.level || 0;
     $("friendProfileAura").textContent = u.totalAura || 0;
-    $("friendProfileStreak").textContent = u.streak || 0;
+    $("friendProfileStreak").textContent = isOwnProfile ? (profile.streak || 0) : getDisplayedStreak(u);
 
     const dm = u.dailyMissions;
     const lessonsToday = (dm && dm.date === todayStr()) ? (dm.lessonsCompletedToday || 0) : 0;
@@ -9001,14 +9015,14 @@
 
     // Update Item Knöpfe
     const icecubeMaxed = (profile.inventory.icecube || 0) >= 2;
-    $("buyIcecube").disabled = profile.totalAura < 150 || icecubeMaxed;
-    $("buyIcecube").textContent = icecubeMaxed ? "Maximum (2)" : "150 Aura";
+    $("buyIcecube").disabled = profile.totalAura < 500 || icecubeMaxed;
+    $("buyIcecube").textContent = icecubeMaxed ? "Maximum (2)" : "500 Aura";
     $("buyLife").disabled = profile.totalAura < 100 || profile.lives >= MAX_LIVES;
     $("buyTimeBooster").disabled = profile.totalAura < 200;
 
     const canRepair = profile.lastBrokenStreak > 0;
     $("buyStreakRepair").disabled = !canRepair || profile.totalAura < STREAK_REPAIR_COST;
-    $("buyStreakRepair").textContent = canRepair ? "500 Aura" : "Kein Streak verloren";
+    $("buyStreakRepair").textContent = canRepair ? "10.000 Aura" : "Kein Streak verloren";
   }
 
   // SHOP EVENT LISTENERS
@@ -9037,8 +9051,8 @@
     if((profile.inventory.icecube || 0) >= 2){
       return showToast("Du hast schon das Maximum von 2 Icecubes.");
     }
-    if(profile.totalAura >= 150){
-      profile.totalAura -= 150;
+    if(profile.totalAura >= 500){
+      profile.totalAura -= 500;
       profile.inventory.icecube = (profile.inventory.icecube || 0) + 1;
       saveProfile();
       renderShop();

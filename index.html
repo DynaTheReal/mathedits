@@ -1416,13 +1416,13 @@
   .beta-section-heading a{ font-size:12.5px; font-weight:700; color:var(--accent, #a855f7); text-decoration:none; }
 
   .beta-missions-row{
-    display:flex; gap:10px; overflow-x:auto; overflow-y:visible; padding:0 10px 16px; scrollbar-width:none;
+    display:flex; gap:10px; overflow-x:auto; overflow-y:visible; padding:0 10px 10px; scrollbar-width:none;
     -webkit-overflow-scrolling:touch;
-    flex-shrink:0; min-height:190px;
+    flex-shrink:0; min-height:168px;
   }
   .beta-missions-row::-webkit-scrollbar{ display:none; }
   .beta-mission-card{
-    flex:0 0 170px; border-radius:18px; padding:16px; border:1.5px solid var(--border);
+    flex:0 0 165px; border-radius:16px; padding:13px; border:1.5px solid var(--border);
     background:var(--card); overflow:hidden;
   }
   .beta-mission-icon{ font-size:20px; margin-bottom:9px; }
@@ -1436,12 +1436,12 @@
   }
   .beta-mission-reward{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; font-weight:700; color:#a855f7; }
 
-  #betaLernweltHeading{ margin-top:34px; }
+  #betaLernweltHeading{ margin-top:14px; }
 
   .beta-lernwelt-row{
-    display:flex; align-items:flex-start; gap:8px; overflow-x:auto; overflow-y:visible; padding:40px 10px 32px;
+    display:flex; align-items:flex-start; gap:8px; overflow-x:auto; overflow-y:visible; padding:8px 10px 22px;
     scrollbar-width:none; -webkit-overflow-scrolling:touch;
-    flex-shrink:0; min-height:138px;
+    flex-shrink:0; min-height:106px;
   }
   .beta-lernwelt-row::-webkit-scrollbar{ display:none; }
   .beta-lernwelt-node{
@@ -3845,7 +3845,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.56";
+  const APP_VERSION = "2.57";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -6735,10 +6735,11 @@
     $("betaStreakNum").textContent = n;
 
     const activeIdx = tierIndexForLevel(profile.level);
-    const activeTier = TIERS[activeIdx];
-    $("betaContinueTierName").textContent = activeTier.name;
+    const displayIdx = selectedTierIndex !== null ? selectedTierIndex : activeIdx;
+    const displayTier = TIERS[displayIdx];
+    $("betaContinueTierName").textContent = displayTier.name;
     $("betaContinueLevel").textContent = profile.level;
-    $("betaContinueAura").textContent = activeTier.normalAura || 10;
+    $("betaContinueAura").textContent = displayTier.normalAura || 10;
     const progressPct = ((profile.levelProgress || 0) / LESSONS_PER_LEVEL) * 100;
     $("betaContinueProgressFill").style.width = progressPct + "%";
     $("betaContinueProgressNum").textContent = `${profile.levelProgress || 0}/${LESSONS_PER_LEVEL}`;
@@ -6789,6 +6790,7 @@
         selectedTierIndex = i;
         $("tierLabel").textContent = tier.name;
         renderTierCarousel();
+        renderHomeBetaExtras();
         showToast(`"${tier.name}" ausgewählt.`);
       });
       lernweltRow.appendChild(node);
@@ -11634,7 +11636,6 @@
   // (dieselbe Logik wie der normale Start-Button), unabhängig davon, was
   // im Karussell gerade ausgewählt war.
   $("betaContinueBtn").addEventListener("click", () => {
-    selectedTierIndex = tierIndexForLevel(profile.level);
     $("startBtn").click();
   });
   $("betaMissionsAllLink").addEventListener("click", (e) => {

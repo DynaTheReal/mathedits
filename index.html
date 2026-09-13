@@ -1333,6 +1333,7 @@
      zwischen den beiden Layouts um.
   ======================================================== */
   .layout-beta-only{ display:none !important; }
+  body.layout-beta #screen-home .topbar{ margin-bottom:6px; }
   body.layout-beta .layout-normal-only{ display:none !important; }
   body.layout-beta .beta-greeting-row{ display:flex !important; }
   body.layout-beta .beta-streak-card{ display:flex !important; }
@@ -1343,7 +1344,7 @@
 
   .beta-greeting-row{
     display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
-    padding:0 20px 14px;
+    padding:0 10px 14px;
   }
   .beta-greeting-text h1{ font-size:26px; font-weight:900; margin:2px 0 2px; }
   .beta-greeting-wave{ font-size:22px; }
@@ -1358,7 +1359,7 @@
   .beta-stat-lbl{ font-size:9px; color:var(--text-dim); }
 
   .beta-streak-card{
-    margin:0 20px 14px; padding:12px 18px; border-radius:18px;
+    margin:0 10px 14px; padding:12px 18px; border-radius:18px;
     background:linear-gradient(135deg, rgba(251,146,60,.16), rgba(239,68,68,.08));
     border:1.5px solid rgba(251,146,60,.4);
     display:flex; align-items:center; gap:12px; cursor:pointer;
@@ -1368,7 +1369,7 @@
   .beta-streak-lbl{ font-size:11.5px; color:var(--text-dim); }
 
   .beta-continue-card{
-    margin:0 20px 16px; padding:20px; border-radius:26px;
+    margin:0 10px 16px; padding:15px 18px; border-radius:24px;
     background:radial-gradient(circle at 30% 20%, rgba(168,85,247,.22), rgba(15,10,30,.9) 70%);
     border:1.5px solid rgba(168,85,247,.55);
     box-shadow:0 0 0 1px rgba(168,85,247,.15), 0 0 30px rgba(168,85,247,.35), 0 0 60px rgba(168,85,247,.15);
@@ -1377,13 +1378,13 @@
   .beta-continue-pill{
     display:inline-flex; align-self:flex-start; align-items:center; gap:6px;
     background:rgba(168,85,247,.18); border:1.5px solid rgba(168,85,247,.6);
-    border-radius:99px; padding:6px 14px; font-size:12.5px; font-weight:800; color:#e9d5ff;
+    border-radius:99px; padding:5px 13px; font-size:12px; font-weight:800; color:#e9d5ff;
     box-shadow:0 0 14px rgba(168,85,247,.35);
-    margin-bottom:12px;
+    margin-bottom:8px;
   }
-  .beta-continue-title{ font-size:24px; font-weight:900; margin-bottom:6px; }
-  .beta-continue-sub{ font-size:13.5px; color:var(--text-dim); margin-bottom:14px; }
-  .beta-continue-progress-row{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .beta-continue-title{ font-size:21px; font-weight:900; margin-bottom:4px; }
+  .beta-continue-sub{ font-size:13px; color:var(--text-dim); margin-bottom:10px; }
+  .beta-continue-progress-row{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
   .beta-continue-progress-track{
     flex:1; height:9px; border-radius:99px; background:rgba(255,255,255,.1); overflow:hidden;
   }
@@ -1398,7 +1399,7 @@
      werden, nicht nur "Lektion starten". */
   .btn-glow{
     width:100%; border:none; border-radius:99px; cursor:pointer;
-    padding:17px 22px; font-size:16.5px; font-weight:800; color:#fff;
+    padding:13px 22px; font-size:15.5px; font-weight:800; color:#fff;
     display:flex; align-items:center; justify-content:center; gap:10px;
     background:linear-gradient(135deg, #a855f7, #7c3aed);
     box-shadow:0 0 0 1px rgba(168,85,247,.3), 0 6px 20px rgba(168,85,247,.55), 0 0 40px rgba(168,85,247,.35);
@@ -1410,12 +1411,12 @@
 
   .beta-section-heading{
     display:flex; align-items:center; justify-content:space-between;
-    padding:0 20px; margin:4px 0 8px; font-size:15.5px; font-weight:800;
+    padding:0 10px; margin:4px 0 8px; font-size:15.5px; font-weight:800;
   }
   .beta-section-heading a{ font-size:12.5px; font-weight:700; color:var(--accent, #a855f7); text-decoration:none; }
 
   .beta-missions-row{
-    display:flex; gap:10px; overflow-x:auto; padding:0 20px 16px; scrollbar-width:none;
+    display:flex; gap:10px; overflow-x:auto; padding:0 10px 16px; scrollbar-width:none;
     -webkit-overflow-scrolling:touch;
   }
   .beta-missions-row::-webkit-scrollbar{ display:none; }
@@ -1429,7 +1430,7 @@
   .beta-mission-reward{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; font-weight:700; color:#a855f7; }
 
   .beta-lernwelt-row{
-    display:flex; align-items:flex-start; gap:0; overflow-x:auto; padding:6px 20px 32px;
+    display:flex; align-items:flex-start; gap:0; overflow-x:auto; padding:6px 10px 32px;
     scrollbar-width:none; -webkit-overflow-scrolling:touch;
   }
   .beta-lernwelt-row::-webkit-scrollbar{ display:none; }
@@ -2207,7 +2208,7 @@
       <div class="beta-stat-pill">
         <div class="beta-stat"><span class="beta-stat-icon">❤️</span><span id="betaHomeLives">5</span><span class="beta-stat-lbl">Leben</span></div>
         <div class="beta-stat"><span class="beta-stat-icon">⭐</span><span id="betaHomeLevel">1</span><span class="beta-stat-lbl">Lv.</span></div>
-        <div class="beta-stat"><span class="beta-stat-icon">💎</span><span id="betaHomeAura">0</span><span class="beta-stat-lbl">Aura</span></div>
+        <div class="beta-stat"><span class="beta-stat-icon">💀</span><span id="betaHomeAura">0</span><span class="beta-stat-lbl">Aura</span></div>
         <div class="beta-stat"><span class="beta-stat-icon">🔥</span><span id="betaHomeStreak">0</span><span class="beta-stat-lbl">Streak</span></div>
       </div>
     </div>
@@ -2223,7 +2224,7 @@
     <div class="beta-continue-card layout-beta-only">
       <div class="beta-continue-pill">🎯 Weitermachen</div>
       <div class="beta-continue-title" id="betaContinueTierName">Kleines Einmaleins</div>
-      <div class="beta-continue-sub">Level <span id="betaContinueLevel">1</span> · 💎 +<span id="betaContinueAura">25</span> Aura</div>
+      <div class="beta-continue-sub">Level <span id="betaContinueLevel">1</span> · 💀 +<span id="betaContinueAura">25</span> Aura</div>
       <div class="beta-continue-progress-row">
         <div class="beta-continue-progress-track"><div class="beta-continue-progress-fill" id="betaContinueProgressFill"></div></div>
         <div class="beta-continue-progress-num" id="betaContinueProgressNum">0/20</div>
@@ -3837,7 +3838,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.47";
+  const APP_VERSION = "2.49";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -6749,7 +6750,7 @@
         <div class="beta-mission-icon">${complete ? "✅" : "🎯"}</div>
         <div class="beta-mission-title">${m.label}</div>
         <div class="beta-mission-desc">${doneToday}/${m.target} Lektionen heute geschafft.</div>
-        <div class="beta-mission-reward">💎 +${(chest && CHEST_REWARDS[chest.tier]) || 50} Aura</div>
+        <div class="beta-mission-reward">💀 +${(chest && CHEST_REWARDS[chest.tier]) || 50} Aura</div>
       `;
       card.addEventListener("click", () => { showScreen("missions"); renderMissions(); });
       missionsRow.appendChild(card);

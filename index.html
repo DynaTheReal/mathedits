@@ -890,6 +890,18 @@
     border-right:7px solid var(--card);
   }
 
+  /* ---------- Online-Freunde-Popup (NEU): sauberere Animation ---------- */
+  .online-friends-popup{
+    opacity:0; visibility:hidden; pointer-events:none;
+    transform:translate(-50%, -14px) scale(.92);
+    transition:opacity .35s cubic-bezier(.34,1.4,.64,1), transform .35s cubic-bezier(.34,1.4,.64,1), visibility 0s linear .35s;
+  }
+  .online-friends-popup.show{
+    opacity:1; visibility:visible; pointer-events:auto;
+    transform:translate(-50%, 0) scale(1);
+    transition:opacity .35s cubic-bezier(.34,1.4,.64,1), transform .35s cubic-bezier(.34,1.4,.64,1), visibility 0s linear 0s;
+  }
+
   .lb-loading{
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:10px; padding:40px 20px; color:var(--text-dim); font-size:13px;
@@ -1716,6 +1728,18 @@
     background:#22c55e; box-shadow:0 0 8px 3px rgba(34,197,94,.85);
     margin-right:6px; vertical-align:middle;
   }
+  .online-dot.in-lesson{
+    background:#facc15; box-shadow:0 0 8px 3px rgba(250,204,21,.85);
+  }
+  .earthlive-tab.active{
+    background:rgba(255,255,255,.15) !important;
+  }
+  .earthlive-user-row{
+    display:flex; align-items:center; gap:8px; padding:9px 4px;
+    border-bottom:1px solid rgba(255,255,255,.1); cursor:pointer; color:#fff; font-size:13.5px;
+  }
+  .earthlive-user-row:active{ background:rgba(255,255,255,.08); }
+  .earthlive-user-row .lvl{ margin-left:auto; font-size:11px; opacity:.6; }
   .difficulty-picker{ display:flex; gap:8px; margin: 16px 0 4px; }
   .difficulty-btn{
     flex:1; background:var(--card); border:1.5px solid var(--border); border-radius:14px;
@@ -1989,7 +2013,7 @@
 
   <!-- Online-Freunde-Popup (NEU): kurz beim App-Start, nur falls gerade
        Freunde online sind. -->
-  <div id="onlineFriendsPopup" style="display:none; position:fixed; top:calc(14px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); z-index:96000; background:var(--card, #1a1a1a); border:1.5px solid var(--border, #333); border-radius:14px; padding:10px 16px; max-width:calc(100% - 32px); box-shadow:0 10px 30px rgba(0,0,0,.35); display:flex; align-items:center; gap:8px; opacity:0; transition:opacity .3s ease;">
+  <div id="onlineFriendsPopup" class="online-friends-popup" style="position:fixed; top:calc(14px + env(safe-area-inset-top)); left:50%; z-index:96000; background:var(--card, #1a1a1a); border:1.5px solid var(--border, #333); border-radius:14px; padding:10px 16px; max-width:calc(100% - 32px); box-shadow:0 10px 30px rgba(0,0,0,.35); display:flex; align-items:center; gap:8px;">
     <span style="font-size:16px;">🟢</span>
     <span id="onlineFriendsPopupText" style="font-size:12.5px; color:var(--text, #fff); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
   </div>
@@ -2513,7 +2537,8 @@
       <div id="duelLobbySubtitle" style="font-size:12px; opacity:.75;">Lade Freunde ein - alle spielen dieselbe Lektion, wer zuerst fertig ist, gewinnt.</div>
     </div>
     <div id="duelLobbyMembersList" style="margin-bottom:16px;"></div>
-    <button class="btn btn-primary" id="duelLobbyInviteBtn" style="width:100%; margin-bottom:10px;">+ Freund einladen</button>
+    <div class="d" style="margin-bottom:8px; font-weight:700;">Online-Freunde einladen</div>
+    <div id="duelLobbyOnlineFriendsList" style="margin-bottom:16px;"></div>
     <button class="btn btn-primary" id="duelLobbyStartBtn" style="width:100%; margin-bottom:10px; display:none;">🚀 Duell starten</button>
     <button class="btn btn-ghost" id="duelLobbyLeaveBtn" style="width:100%; position:relative; z-index:300;">Lobby verlassen</button>
   </section>
@@ -3237,18 +3262,25 @@
 
   <!-- EarthLive (NEU): immer blauer Hintergrund, egal welches Theme aktiv ist -->
   <div class="overlay" id="overlayEarthLive">
-    <div class="modal-card earthlive-card">
+    <div class="modal-card earthlive-card" style="max-height:85vh; display:flex; flex-direction:column;">
       <div style="font-size:40px; margin-bottom:8px;">🌐</div>
       <h2 style="color:#fff;">EarthLive</h2>
-      <div class="earthlive-stat">
-        <div class="earthlive-num" id="earthLiveOnlineNum">-</div>
-        <div class="earthlive-label">gerade online</div>
+      <div style="display:flex; gap:16px; justify-content:center; margin-bottom:14px;">
+        <div class="earthlive-stat">
+          <div class="earthlive-num" id="earthLiveOnlineNum">-</div>
+          <div class="earthlive-label">gerade online</div>
+        </div>
+        <div class="earthlive-stat">
+          <div class="earthlive-num" id="earthLiveTotalNum">-</div>
+          <div class="earthlive-label">insgesamt registriert</div>
+        </div>
       </div>
-      <div class="earthlive-stat">
-        <div class="earthlive-num" id="earthLiveTotalNum">-</div>
-        <div class="earthlive-label">insgesamt registriert</div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="btn btn-ghost btn-small earthlive-tab active" id="earthLiveTabAll" style="flex:1; color:#fff; border-color:rgba(255,255,255,.4);">Alle Nutzer</button>
+        <button class="btn btn-ghost btn-small earthlive-tab" id="earthLiveTabOnline" style="flex:1; color:#fff; border-color:rgba(255,255,255,.4);">Online</button>
       </div>
-      <button class="btn btn-ghost" id="closeEarthLive" style="margin-top:18px; color:#fff; border-color:rgba(255,255,255,.4);">Schließen</button>
+      <div id="earthLiveUserList" style="flex:1; overflow-y:auto; text-align:left; min-height:120px;"></div>
+      <button class="btn btn-ghost" id="closeEarthLive" style="margin-top:14px; color:#fff; border-color:rgba(255,255,255,.4); flex-shrink:0;">Schließen</button>
     </div>
   </div>
 
@@ -3561,7 +3593,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.31";
+  const APP_VERSION = "2.34";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -3974,16 +4006,35 @@
     }
   }, 60000);
 
+  // Live-Erkennung neu online gegangener Freunde (NEU): läuft häufiger als
+  // der obige 60s-Takt, da der Online-Status selbst nur ein 30s-Fenster hat.
+  setInterval(() => {
+    if(firebaseInitialized && currentUser && cloudSyncReady){
+      checkForNewlyOnlineFriends();
+    }
+  }, 20000);
+
   function isOnline(u){
     return !!(u && u.lastActiveAt && (Date.now() - u.lastActiveAt) < ONLINE_THRESHOLD_MS);
   }
 
   // EarthLive (NEU): zeigt, wie viele Nutzer gerade online sind und wie
   // viele es insgesamt gibt - liest einmalig die komplette users-Sammlung.
+  function isInLesson(u){
+    return isOnline(u) && !!u.lessonInProgressAt;
+  }
+
+  let earthLiveAllUsers = [];
+  let earthLiveActiveTab = "all";
+
   async function openEarthLive(){
     $("overlayEarthLive").classList.add("show");
     $("earthLiveOnlineNum").textContent = "…";
     $("earthLiveTotalNum").textContent = "…";
+    $("earthLiveUserList").innerHTML = "";
+    earthLiveActiveTab = "all";
+    $("earthLiveTabAll").classList.add("active");
+    $("earthLiveTabOnline").classList.remove("active");
     if(!firebaseInitialized){
       $("earthLiveOnlineNum").textContent = "-";
       $("earthLiveTotalNum").textContent = "-";
@@ -3991,15 +4042,47 @@
     }
     try{
       const snap = await db().collection("users").get();
-      const total = snap.docs.length;
-      const online = snap.docs.filter(d => isOnline(d.data())).length;
+      earthLiveAllUsers = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => u.username);
+      const online = earthLiveAllUsers.filter(u => isOnline(u)).length;
       $("earthLiveOnlineNum").textContent = online;
-      $("earthLiveTotalNum").textContent = total;
+      $("earthLiveTotalNum").textContent = earthLiveAllUsers.length;
+      renderEarthLiveList();
     }catch(err){
       console.error("EarthLive Fehler:", err);
       $("earthLiveOnlineNum").textContent = "-";
       $("earthLiveTotalNum").textContent = "-";
+      $("earthLiveUserList").innerHTML = "<div class='empty-hint' style='color:#fff;'>Liste konnte nicht geladen werden.</div>";
     }
+  }
+
+  // Zeigt die Nutzerliste im aktiven Tab (Alle/Online) - jeweils mit einem
+  // Status-Punkt (grün = online, gelb = gerade in einer Lektion) und
+  // antippbar, um direkt das Profil zu öffnen.
+  function renderEarthLiveList(){
+    const listEl = $("earthLiveUserList");
+    const users = earthLiveActiveTab === "online" ? earthLiveAllUsers.filter(u => isOnline(u)) : earthLiveAllUsers;
+    if(users.length === 0){
+      listEl.innerHTML = "<div class='empty-hint' style='color:rgba(255,255,255,.7);'>Niemand hier gerade.</div>";
+      return;
+    }
+    // Online (und davon in Lektion) zuerst, dann alphabetisch.
+    const sorted = [...users].sort((a, b) => {
+      const aOn = isOnline(a) ? 1 : 0, bOn = isOnline(b) ? 1 : 0;
+      if(aOn !== bOn) return bOn - aOn;
+      return (a.username || "").localeCompare(b.username || "");
+    });
+    listEl.innerHTML = "";
+    sorted.forEach(u => {
+      const row = document.createElement("div");
+      row.className = "earthlive-user-row";
+      const dotHtml = isOnline(u) ? `<span class="online-dot${isInLesson(u) ? " in-lesson" : ""}"></span>` : `<span style="width:10px; height:10px; margin-right:6px; flex-shrink:0;"></span>`;
+      row.innerHTML = `${dotHtml}<span>@${u.username}</span><span class="lvl">Lvl ${u.level || 0}</span>`;
+      row.addEventListener("click", () => {
+        $("overlayEarthLive").classList.remove("show");
+        openFriendProfile(u.uid);
+      });
+      listEl.appendChild(row);
+    });
   }
 
   function isSuperUser(){
@@ -5047,6 +5130,18 @@
   // Online-Freunde-Popup (NEU): kurz beim App-Start ein kleines Hinweis-
   // Fenster oben, welche Freunde gerade online sind - erscheint NUR, wenn
   // wirklich mindestens einer online ist, sonst gar nichts.
+  let onlineFriendsPopupHideTimer = null;
+  function displayOnlineFriendsPopup(text){
+    $("onlineFriendsPopupText").textContent = text;
+    const popup = $("onlineFriendsPopup");
+    clearTimeout(onlineFriendsPopupHideTimer);
+    popup.classList.add("show");
+    onlineFriendsPopupHideTimer = setTimeout(() => {
+      popup.classList.remove("show");
+    }, 3000);
+  }
+
+  // Beim App-Start: zeigt einmalig, wer gerade schon online ist.
   async function showOnlineFriendsPopupIfAny(){
     if(!firebaseInitialized || !currentUser) return;
     try{
@@ -5058,22 +5153,49 @@
       if(mutualUids.length === 0) return;
       const friendDocs = await Promise.all(mutualUids.map(uid => fetchUserDoc(uid)));
       const onlineFriends = friendDocs.filter(u => u && isOnline(u));
+      // Merkt sich, wer schon beim Start online war, als Ausgangsbasis für
+      // die spätere Live-Erkennung neu hinzukommender Freunde.
+      knownOnlineFriendUids = new Set(onlineFriends.map(u => u.uid));
       if(onlineFriends.length === 0) return; // niemand online - gar nichts anzeigen
 
       const names = onlineFriends.map(u => "@" + u.username);
       const text = names.length <= 3
         ? names.join(", ") + (names.length === 1 ? " ist online" : " sind online")
         : `${names.slice(0, 2).join(", ")} und ${names.length - 2} weitere sind online`;
-      $("onlineFriendsPopupText").textContent = text;
-      const popup = $("onlineFriendsPopup");
-      popup.style.display = "flex";
-      requestAnimationFrame(() => { popup.style.opacity = "1"; });
-      setTimeout(() => {
-        popup.style.opacity = "0";
-        setTimeout(() => { popup.style.display = "none"; }, 300);
-      }, 3000);
+      displayOnlineFriendsPopup(text);
     }catch(err){
       console.error("Online-Freunde-Popup Fehler:", err);
+    }
+  }
+
+  // Während man schon in der App ist: erkennt live, wenn ein Freund NEU
+  // online geht (war beim letzten Check noch nicht online), und zeigt dann
+  // dasselbe Popup nochmal - aber nur für die neu Hinzugekommenen, nicht
+  // für alle, die sowieso schon online waren.
+  let knownOnlineFriendUids = new Set();
+  async function checkForNewlyOnlineFriends(){
+    if(!firebaseInitialized || !currentUser) return;
+    try{
+      const following = profile.following || [];
+      if(following.length === 0) return;
+      const followersData = await fetchFollowers(currentUser.uid);
+      const followerUids = followersData.map(f => f.uid);
+      const mutualUids = following.filter(uid => followerUids.includes(uid));
+      if(mutualUids.length === 0) return;
+      const friendDocs = await Promise.all(mutualUids.map(uid => fetchUserDoc(uid)));
+      const onlineFriends = friendDocs.filter(u => u && isOnline(u));
+      const currentOnlineUids = new Set(onlineFriends.map(u => u.uid));
+      const newlyOnline = onlineFriends.filter(u => !knownOnlineFriendUids.has(u.uid));
+      knownOnlineFriendUids = currentOnlineUids;
+      if(newlyOnline.length === 0) return;
+
+      const names = newlyOnline.map(u => "@" + u.username);
+      const text = names.length === 1
+        ? `${names[0]} ist jetzt online`
+        : `${names.join(", ")} sind jetzt online`;
+      displayOnlineFriendsPopup(text);
+    }catch(err){
+      console.error("Live-Online-Erkennung Fehler:", err);
     }
   }
 
@@ -5167,7 +5289,7 @@
         const row = document.createElement("div");
         row.className = "friend-row";
         row.style.cursor = "pointer";
-        row.innerHTML = `<span class="name">${u && isOnline(u) ? '<span class="online-dot"></span>' : ""}@${uname}</span>`;
+        row.innerHTML = `<span class="name">${u && isOnline(u) ? `<span class="online-dot${isInLesson(u) ? " in-lesson" : ""}"></span>` : ""}@${uname}</span>`;
         const duelBtn = document.createElement("button");
         duelBtn.className = "btn btn-duel btn-small";
         duelBtn.textContent = "⚔️ 1vs1";
@@ -5201,7 +5323,7 @@
         const row = document.createElement("div");
         row.className = "friend-row";
         row.style.cursor = "pointer";
-        row.innerHTML = `<span class="name">${isOnline(f) ? '<span class="online-dot"></span>' : ""}@${f.username || (profile.friendUsernameCache || {})[f.uid] || "Unbekannt"}</span>`;
+        row.innerHTML = `<span class="name">${isOnline(f) ? `<span class="online-dot${isInLesson(f) ? " in-lesson" : ""}"></span>` : ""}@${f.username || (profile.friendUsernameCache || {})[f.uid] || "Unbekannt"}</span>`;
         const btn = document.createElement("button");
         btn.className = "btn btn-primary btn-small";
         btn.textContent = "Zurückfolgen";
@@ -5922,7 +6044,7 @@
       const deleteBtnHtml = ownerMode
         ? `<button class="lb-owner-delete-btn" data-uid="${e.uid}" data-name="${e.username || "?"}" style="background:none; border:none; color:#ff4d6d; font-size:16px; padding:4px 8px; cursor:pointer;" title="Aus der Rangliste entfernen (Owner)">🗑️</button>`
         : "";
-      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-avatar">${avatarHtml}</div><div class="lb-name ${fontClass}">${isOnline(e) ? '<span class="online-dot"></span>' : ""}@${e.username || "?"}</div><div class="lb-aura">🎯 Lvl ${e.level}</div>${deleteBtnHtml}`;
+      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-avatar">${avatarHtml}</div><div class="lb-name ${fontClass}">${isOnline(e) ? `<span class="online-dot${isInLesson(e) ? " in-lesson" : ""}"></span>` : ""}@${e.username || "?"}</div><div class="lb-aura">🎯 Lvl ${e.level}</div>${deleteBtnHtml}`;
       row.addEventListener("click", (ev) => {
         if(ev.target.closest(".lb-owner-delete-btn")) return;
         openFriendProfile(e.uid);
@@ -6271,7 +6393,7 @@
   // mit beliebigen Nutzerdaten - für Freunde (aus Firestore) UND für die
   // eigene Statistik (direkt aus dem lokalen Profil, auch als Gast).
   function renderFriendProfileCard(u, isOwnProfile){
-    $("friendProfileUsername").innerHTML = u.username ? ((!isOwnProfile && isOnline(u) ? '<span class="online-dot"></span>' : "") + "@" + u.username) : "Gast";
+    $("friendProfileUsername").innerHTML = u.username ? ((!isOwnProfile && isOnline(u) ? `<span class="online-dot${isInLesson(u) ? " in-lesson" : ""}"></span>` : "") + "@" + u.username) : "Gast";
     $("friendProfileUsername").classList.remove("font-glow", "font-pink", "font-gold", "font-pinkglow", "font-glitch");
     if(u.activeFont === "glow") $("friendProfileUsername").classList.add("font-glow");
     if(u.activeFont === "pink") $("friendProfileUsername").classList.add("font-pink");
@@ -8035,7 +8157,50 @@
     });
     isDuelLobbyHost = !!(currentUser && data.hostUid === currentUser.uid);
     $("duelLobbyStartBtn").style.display = (isDuelLobbyHost && (data.memberUids || []).length >= 2) ? "block" : "none";
-    $("duelLobbyInviteBtn").style.display = isDuelLobbyHost ? "block" : "none";
+    if(isDuelLobbyHost) renderDuelLobbyOnlineFriends(data);
+    else $("duelLobbyOnlineFriendsList").innerHTML = "";
+  }
+
+  // Online-Freunde direkt in der Lobby auflisten (NEU) - statt eines
+  // "Freund einladen"-Buttons, der ein extra Fenster öffnet, stehen die
+  // gerade online Freunde jetzt direkt hier mit einem Einladen-Button
+  // daneben. Nur der Host sieht/nutzt das.
+  async function renderDuelLobbyOnlineFriends(data){
+    const listEl = $("duelLobbyOnlineFriendsList");
+    if(!listEl || !currentUser) return;
+    try{
+      const following = profile.following || [];
+      const followers = await fetchFollowers(currentUser.uid);
+      const mutualUids = following.filter(uid => followers.some(f => f.uid === uid));
+      const memberUids = data.memberUids || [];
+      const candidateUids = mutualUids.filter(uid => !memberUids.includes(uid));
+      if(candidateUids.length === 0){
+        listEl.innerHTML = "<div class='empty-hint'>Keine weiteren Freunde online.</div>";
+        return;
+      }
+      const friendDocs = await Promise.all(candidateUids.map(async uid => ({ uid, u: await fetchUserDoc(uid) })));
+      const onlineFriends = friendDocs.filter(({ u }) => u && isOnline(u));
+      if(onlineFriends.length === 0){
+        listEl.innerHTML = "<div class='empty-hint'>Keine Freunde gerade online.</div>";
+        return;
+      }
+      listEl.innerHTML = "";
+      onlineFriends.forEach(({ uid, u }) => {
+        const row = document.createElement("div");
+        row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);";
+        row.innerHTML = `<span>🟢 @${u.username}</span><button class="btn btn-primary btn-small" data-uid="${uid}" data-name="${u.username}">Einladen</button>`;
+        listEl.appendChild(row);
+      });
+      listEl.querySelectorAll("button[data-uid]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          sendDuelLobbyInvite(btn.dataset.uid, btn.dataset.name);
+          btn.textContent = "Eingeladen ✓";
+          btn.disabled = true;
+        });
+      });
+    }catch(err){
+      console.error("Online-Freunde in Lobby Fehler:", err);
+    }
   }
 
   async function openDuelInviteFriendPicker(){
@@ -8268,7 +8433,7 @@
     ranked.forEach((r, i) => {
       const row = document.createElement("div");
       row.className = "lb-row" + (currentUser && r.uid === currentUser.uid ? " me" : "");
-      const statText = r.timeMs !== null ? `${formatDuration(r.timeMs)} · ${r.correctCount}/${QUESTIONS_PER_LESSON}` : "Abgebrochen";
+      const statText = r.timeMs !== null ? `${formatDuration(r.timeMs)} · ${r.correctCount}/${QUESTIONS_PER_LESSON}` : "Verloren";
       row.innerHTML = `<div class="lb-rank">#${i + 1}</div><div class="lb-name">@${r.username}</div><div class="lb-aura">${statText}</div>`;
       listEl.appendChild(row);
     });
@@ -9916,6 +10081,18 @@
   }
 
   $("earthLiveBtn").addEventListener("click", openEarthLive);
+  $("earthLiveTabAll").addEventListener("click", () => {
+    earthLiveActiveTab = "all";
+    $("earthLiveTabAll").classList.add("active");
+    $("earthLiveTabOnline").classList.remove("active");
+    renderEarthLiveList();
+  });
+  $("earthLiveTabOnline").addEventListener("click", () => {
+    earthLiveActiveTab = "online";
+    $("earthLiveTabOnline").classList.add("active");
+    $("earthLiveTabAll").classList.remove("active");
+    renderEarthLiveList();
+  });
   $("closeEarthLive").addEventListener("click", () => {
     $("overlayEarthLive").classList.remove("show");
   });
@@ -10016,7 +10193,6 @@
   $("duelLobbyBtn").addEventListener("click", openDuelLobby);
   $("duelLobbyBack").addEventListener("click", leaveDuelLobby);
   $("duelLobbyLeaveBtn").addEventListener("click", leaveDuelLobby);
-  $("duelLobbyInviteBtn").addEventListener("click", openDuelInviteFriendPicker);
   $("duelLobbyStartBtn").addEventListener("click", startDuelLobby);
   $("closeDuelInviteFriend").addEventListener("click", () => {
     $("overlayDuelInviteFriend").classList.remove("show");
@@ -11318,6 +11494,11 @@
     if(isCorrect){
       el.textContent = lesson.answer;
       triggerHaptic(30);
+    } else if(lesson.isDuelLobby){
+      // Im Duell zählt Tempo - die Lösung wird NICHT verraten, sonst hätte
+      // ein Fehler quasi keinen Nachteil mehr.
+      el.textContent = isTimeout ? "Zeit abgelaufen" : "Leider falsch";
+      triggerHaptic([25, 40, 25]);
     } else {
       // Löst die Frage auf (zeigt die richtige Antwort), damit man daraus
       // lernen kann - aber die nächste Frage ist eine ANDERE (nicht dieselbe

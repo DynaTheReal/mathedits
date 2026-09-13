@@ -3510,6 +3510,15 @@
     <img id="announcementImageDisplay" style="display:none; max-width:100%; max-height:55vh; border-radius:16px; object-fit:contain;">
   </div>
 
+  <!-- Feedback-Aura-Geschenk (NEU): Vollbild-Banner statt nur einer kleinen
+       Meldung, erscheint beim nächsten App-Start nach dem Geschenk. -->
+  <div id="overlayFeedbackGift" style="display:none; position:fixed; inset:0; z-index:98500; background:rgba(10,10,16,.75); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px;">
+    <button id="feedbackGiftCloseBtn" style="position:absolute; top:16px; right:16px; z-index:2; width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.3); color:#fff; font-size:20px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+    <div style="font-size:80px; margin-bottom:18px;">🎁</div>
+    <div style="font-size:26px; font-weight:900; color:#fff; margin-bottom:10px;">Du hast <span id="feedbackGiftAmount" style="color:#facc15;">100</span> Aura bekommen!</div>
+    <div style="font-size:15px; color:rgba(255,255,255,.8); max-width:340px;">Für dein Feedback, das du gesendet hast - danke, dass du uns hilfst, die App besser zu machen!</div>
+  </div>
+
   <!-- Owner-Broadcast: Nachricht an alle Nutzer (NEU, komplett neu aufgebaut) -->
   <div class="broadcast-toast" id="broadcastToast">
     <div class="broadcast-toast-icon">👤</div>
@@ -3637,7 +3646,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.39";
+  const APP_VERSION = "2.40";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -4263,7 +4272,8 @@
   function checkFeedbackAuraBonus(){
     const pending = profile.pendingFeedbackBonusAura || 0;
     if(pending <= 0) return;
-    showToast(`🎁 Du hast ${pending} Aura für dein gutes Feedback bekommen!`);
+    $("feedbackGiftAmount").textContent = pending;
+    $("overlayFeedbackGift").style.display = "flex";
     profile.pendingFeedbackBonusAura = 0;
     saveProfile();
   }
@@ -10061,6 +10071,9 @@
   $("announcementSendBtn").addEventListener("click", sendAnnouncement);
   $("announcementDeleteBtn").addEventListener("click", deleteCurrentAnnouncement);
   $("announcementCloseBtn").addEventListener("click", dismissAnnouncement);
+  $("feedbackGiftCloseBtn").addEventListener("click", () => {
+    $("overlayFeedbackGift").style.display = "none";
+  });
   $("saveAdminActionPasswordBtn").addEventListener("click", saveAdminActionPassword);
 
   $("modPanelBtn").addEventListener("click", () => {

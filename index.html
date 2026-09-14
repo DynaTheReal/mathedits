@@ -1360,24 +1360,34 @@
   .beta-stat-lbl{ font-size:9px; color:var(--text-dim); }
 
   .beta-streak-card{
-    margin:0 10px 14px; padding:28px 20px; border-radius:22px; min-height:120px;
-    background:linear-gradient(135deg, rgba(251,146,60,.16), rgba(239,68,68,.08));
-    border:1.5px solid rgba(251,146,60,.4);
-    display:flex; align-items:center; gap:14px; cursor:pointer;
+    margin:0 10px 14px; padding:16px 18px; border-radius:22px; min-height:120px;
+    border:2px solid transparent;
+    background:
+      linear-gradient(135deg, rgba(251,146,60,.16), rgba(239,68,68,.08)) padding-box,
+      linear-gradient(135deg, #a855f7, #fb923c) border-box;
+    display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-start;
+    cursor:pointer;
     position:relative; overflow:hidden;
   }
   /* Peter-Betaeinstellung (NEU): Bild als Hintergrund der Streak-Karte,
-     mit einer abdunkelnden Ebene darüber, damit Text/Symbol lesbar bleiben.
-     Karte ist jetzt deutlich größer, damit das Bild auch wirklich zu sehen
-     ist statt nur ein schmaler Streifen zu sein. */
+     diesmal ohne abdunkelnde Ebene - man sieht das Bild zu 100%. Der
+     lila-orange Rand bleibt über den zweiten Hintergrund-Layer erhalten. */
   .beta-streak-card.has-bg-image{
-    background-image: linear-gradient(135deg, rgba(10,8,14,.5), rgba(10,8,14,.7)), url('streak_bg.png');
-    background-size: cover; background-position: center;
-    border-color: rgba(255,255,255,.25);
+    background:
+      url('streak_bg.png') padding-box,
+      linear-gradient(135deg, #a855f7, #fb923c) border-box;
+    background-size: cover, auto;
+    background-position: center, center;
   }
-  .beta-streak-icon{ font-size:34px; line-height:1; }
-  .beta-streak-num{ font-size:24px; font-weight:900; line-height:1.2; }
-  .beta-streak-lbl{ font-size:13px; color:var(--text-dim); }
+  .beta-streak-top-row{ display:flex; align-items:center; gap:8px; }
+  .beta-streak-icon{ font-size:38px; line-height:1; }
+  .beta-streak-num{ font-size:26px; font-weight:900; line-height:1; }
+  .beta-streak-lbl{ font-size:13px; color:var(--text-dim); font-weight:700; }
+  .beta-streak-week-flames{ display:flex; gap:7px; margin-top:12px; }
+  .beta-streak-week-flames span{
+    font-size:14px; opacity:.3; filter:grayscale(1);
+  }
+  .beta-streak-week-flames span.done{ opacity:1; filter:none; }
 
   .beta-continue-card{
     margin:0 10px 8px; padding:12px 14px; border-radius:20px;
@@ -2292,11 +2302,12 @@
     </div>
 
     <div class="beta-streak-card layout-beta-only" id="betaStreakCard">
-      <div class="beta-streak-icon">🔥</div>
-      <div class="beta-streak-text">
-        <div class="beta-streak-num"><span id="betaStreakNum">0</span> Tage</div>
-        <div class="beta-streak-lbl">Streak · antippen für Verlauf</div>
+      <div class="beta-streak-top-row">
+        <span class="beta-streak-icon">🔥</span>
+        <span class="beta-streak-num" id="betaStreakNum">0</span>
+        <span class="beta-streak-lbl">Tage</span>
       </div>
+      <div class="beta-streak-week-flames" id="betaStreakWeekFlames"></div>
     </div>
 
     <div class="beta-continue-card layout-beta-only">
@@ -3951,7 +3962,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.69";
+  const APP_VERSION = "2.70";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -6907,6 +6918,22 @@
 
     const n = profile.streak || 0;
     $("betaStreakNum").textContent = n;
+
+    // 7 kleine Wochen-Flammen (NEU): dieselbe Woche/Logik wie im
+    // Streak-Verlauf, nur kompakt als Reihe kleiner Symbole.
+    const weekFlamesEl = $("betaStreakWeekFlames");
+    weekFlamesEl.innerHTML = "";
+    const monday = startOfWeekMonday(new Date());
+    for(let i = 0; i < 7; i++){
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const ds = dateStr(d);
+      const done = (profile.streakDates || []).includes(ds);
+      const span = document.createElement("span");
+      span.textContent = "🔥";
+      span.className = done ? "done" : "";
+      weekFlamesEl.appendChild(span);
+    }
 
     const activeIdx = tierIndexForLevel(profile.level);
     const displayIdx = selectedTierIndex !== null ? selectedTierIndex : activeIdx;

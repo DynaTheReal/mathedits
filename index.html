@@ -1333,8 +1333,8 @@
      zwischen den beiden Layouts um.
   ======================================================== */
   .layout-beta-only{ display:none !important; }
-  body.layout-beta #screen-home{ padding-top:8px; }
-  body.layout-beta #screen-home .topbar{ margin-bottom:6px; }
+  body.layout-beta #screen-home{ padding-top:2px; }
+  body.layout-beta #screen-home .topbar{ margin-bottom:2px; }
   body.layout-beta .layout-normal-only{ display:none !important; }
   body.layout-beta .beta-greeting-row{ display:flex !important; }
   body.layout-beta .beta-streak-card{ display:flex !important; }
@@ -1345,7 +1345,7 @@
 
   .beta-greeting-row{
     display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
-    padding:0 10px 14px;
+    padding:0 10px 8px;
   }
   .beta-greeting-text h1{ font-size:26px; font-weight:900; margin:2px 0 2px; }
   .beta-greeting-wave{ font-size:22px; }
@@ -2038,12 +2038,11 @@
     text-shadow: 0 0 8px rgba(168,85,247,.8), 0 0 16px rgba(168,85,247,.4);
     display:inline-block;
     position:relative;
-    animation: fontGlitchTeleport .28s steps(1) infinite;
+    animation: fontGlitchTeleport .55s steps(1) infinite;
   }
-  /* "Teleportiert" staendig und schnell, statt sich sanft zu bewegen oder
-     rhythmisch zu pulsieren - steps(1) sorgt dafür, dass jeder Sprung
-     sofort passiert statt sanft dorthin zu gleiten, und die Sprünge sind
-     über den GANZEN Zyklus verteilt statt nur am Ende gebündelt. */
+  /* "Teleportiert" ständig, aber jetzt langsamer als vorher (0.55s statt
+     0.28s Zykluslänge) - steps(1) sorgt weiterhin dafür, dass jeder Sprung
+     sofort passiert statt sanft dorthin zu gleiten. */
   @keyframes fontGlitchTeleport{
     0%{ transform:translate(0,0); }
     12%{ transform:translate(-3px,2px); }
@@ -2055,23 +2054,41 @@
     84%{ transform:translate(-3px,-2px); }
     100%{ transform:translate(0,0); }
   }
-  /* Schwarze Partikel um die Zeile in der Rangliste, wenn die Person die
-     Glitch-Schrift trägt - analog zu den Glow-/Pink-Glow-Partikeln. */
+  /* Partikel-Schwarm um die Zeile in der Rangliste, wenn die Person die
+     Glitch-Schrift trägt (NEU: deutlich mehr Partikel als vorher, per
+     Box-Shadow-Trick mehrere Punkte aus EINEM Pseudo-Element - und im
+     selben Takt wie die Glitch-Teleport-Sprünge synchronisiert). */
   .lb-row-glitchfont{
     position:relative;
   }
   .lb-row-glitchfont::before, .lb-row-glitchfont::after{
-    content:"■"; position:absolute; font-size:8px; color:#000;
-    text-shadow: 0 0 4px #a855f7;
-    animation: glitchParticleFloat 1.1s steps(2) infinite;
+    content:""; position:absolute; width:3px; height:3px; border-radius:1px;
+    background:#a855f7; box-shadow:
+      0 0 6px 1px rgba(168,85,247,.9),
+      14px -6px 0 0 #a855f7, 14px -6px 6px 1px rgba(168,85,247,.9),
+      -10px 8px 0 0 #ec4899, -10px 8px 6px 1px rgba(236,72,153,.9),
+      22px 10px 0 0 #a855f7, 22px 10px 6px 1px rgba(168,85,247,.8),
+      -18px -4px 0 0 #ec4899, -18px -4px 6px 1px rgba(236,72,153,.8),
+      6px 16px 0 0 #a855f7, 6px 16px 6px 1px rgba(168,85,247,.7);
+    animation: glitchParticleBurst .55s steps(1) infinite;
     pointer-events:none;
   }
-  .lb-row-glitchfont::before{ top:2px; left:-4px; animation-delay:0s; }
-  .lb-row-glitchfont::after{ bottom:2px; right:-4px; animation-delay:.4s; }
-  @keyframes glitchParticleFloat{
-    0%, 100%{ opacity:0; transform:translateY(0); }
-    40%{ opacity:1; transform:translateY(-4px); }
-    70%{ opacity:.5; transform:translateY(2px); }
+  .lb-row-glitchfont::before{ top:8px; left:4px; animation-delay:0s; }
+  .lb-row-glitchfont::after{ bottom:8px; right:4px; animation-delay:.28s; }
+  @keyframes glitchParticleBurst{
+    0%, 8%{ opacity:0; }
+    12%{ opacity:1; }
+    22%{ opacity:0; }
+    24%, 32%{ opacity:0; }
+    36%{ opacity:1; }
+    46%{ opacity:0; }
+    48%, 56%{ opacity:0; }
+    60%{ opacity:1; }
+    70%{ opacity:0; }
+    72%, 80%{ opacity:0; }
+    84%{ opacity:1; }
+    94%{ opacity:0; }
+    100%{ opacity:0; }
   }
   /* Rangliste: Blütenpartikel um die Zeile, wenn die Person Pink Glow trägt -
      wie der lila Glow-Effekt, nur pink und mit Blüten statt Punkten. */
@@ -3764,7 +3781,7 @@
 
   <!-- App-Start-Intro: "Simple" Variante (NEU: umbenannt, jetzt eine von zwei
        wählbaren Varianten - siehe playStartupIntro()) -->
-  <div id="introScreenSimple" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #121212; display: flex; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; animation: fadeOutIntro 0.4s forwards 2.4s;">
+  <div id="introScreenSimple" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background-color: #121212; display: flex; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; animation: fadeOutIntro 0.4s forwards 2.4s;">
     <div style="display: flex; align-items: center; gap: 15px;">
       <!-- Der Punkt (Farbe wird per JS an das aktive Theme angepasst) -->
       <div id="introDot" style="width: 45px; height: 45px; background-color: #d3fc55; border-radius: 50%; box-shadow: 0 0 20px rgba(211, 252, 85, 0.3); animation: growDot 0.8s cubic-bezier(0.8, 0, 0.2, 1) forwards 1.4s;"></div>
@@ -3772,19 +3789,19 @@
       <!-- Der Text (hat jetzt zwei Animationen: reinkommen und später verschwinden) -->
       <div style="font-family: 'Nunito', sans-serif; color: white; font-size: 4rem; font-weight: 800; opacity: 0; animation: fadeInText 0.8s forwards, hideText 0.2s forwards 1.3s;">MathEdits</div>
     </div>
-    <div id="introVersionTextSimple" style="position:absolute; bottom:40px; left:0; right:0; text-align:center; font-family:'Inter',sans-serif; color:rgba(255,255,255,.75); font-size:13px; font-weight:600; z-index:5;"></div>
+    <div id="introVersionTextSimple" style="position:absolute; bottom:calc(40px + env(safe-area-inset-bottom)); left:0; right:0; text-align:center; font-family:'Inter',sans-serif; color:rgba(255,255,255,.75); font-size:13px; font-weight:600; z-index:5;"></div>
   </div>
 
   <!-- App-Start-Intro: "Math" Variante (NEU) - Mathe-Symbole fliegen rein,
        Text glitcht sich zu "MathEdits" zusammen. Standardmäßig aktiv,
        umstellbar in den Einstellungen. -->
-  <div id="introScreenMath" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #0b0f19; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; animation: mathIntroCleanExit 0.3s forwards 2.3s;">
+  <div id="introScreenMath" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background-color: #0b0f19; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; animation: mathIntroCleanExit 0.3s forwards 2.3s;">
     <div id="mathIntroParticleContainer" style="position: absolute; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none;"></div>
     <div style="display: flex; align-items: center; gap: 20px; z-index: 2;">
       <div id="mathIntroDot" style="width: 48px; height: 48px; background-color: #d3fc55; border-radius: 50%; box-shadow: 0 0 30px #d3fc55; animation: mathIntroDropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, mathIntroHyperScale 0.4s cubic-bezier(0.7, 0, 0.3, 1) forwards 1.8s;"></div>
       <div id="mathIntroGlitchText" style="font-family: 'Nunito', sans-serif; color: #ffffff; font-size: 4.2rem; font-weight: 900; letter-spacing: -1px; user-select: none;">f(x)=∫x²</div>
     </div>
-    <div id="introVersionTextMath" style="position:absolute; bottom:40px; left:0; right:0; text-align:center; font-family:'Inter',sans-serif; color:rgba(255,255,255,.75); font-size:13px; font-weight:600; z-index:5;"></div>
+    <div id="introVersionTextMath" style="position:absolute; bottom:calc(40px + env(safe-area-inset-bottom)); left:0; right:0; text-align:center; font-family:'Inter',sans-serif; color:rgba(255,255,255,.75); font-size:13px; font-weight:600; z-index:5;"></div>
   </div>
 
   <!-- "Teile diese Website"-Hinweis nach der ersten Lektion (NEU) -->
@@ -3868,7 +3885,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.64";
+  const APP_VERSION = "2.65";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).

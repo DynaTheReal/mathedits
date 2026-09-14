@@ -3126,16 +3126,20 @@
         <div style="font-weight:800; margin-bottom:8px;">🎁 Einlöse-Codes</div>
         <div class="d" id="ownerCodeStatus" style="margin-bottom:8px;">Aktuell: keine aktiven Codes.</div>
         <input type="text" id="ownerCodeInput" class="input-field" placeholder="Neuer Code (z.B. MATHY500)" style="margin-bottom:8px; text-transform:uppercase;">
-        <div style="display:flex; gap:8px; margin-bottom:8px;">
-          <button class="btn btn-ghost btn-small" id="ownerCodeRewardAuraBtn" style="flex:1;">500 Aura</button>
-          <button class="btn btn-ghost btn-small" id="ownerCodeRewardLifeBtn" style="flex:1;">1 Leben</button>
-          <button class="btn btn-ghost btn-small" id="ownerCodeRewardChestBtn" style="flex:1;">Truhe</button>
+        <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-small" id="ownerCodeRewardAuraBtn" style="flex:1; min-width:70px;">Aura</button>
+          <button class="btn btn-ghost btn-small" id="ownerCodeRewardLifeBtn" style="flex:1; min-width:70px;">Leben</button>
+          <button class="btn btn-ghost btn-small" id="ownerCodeRewardChestBtn" style="flex:1; min-width:70px;">Truhe</button>
+          <button class="btn btn-ghost btn-small" id="ownerCodeRewardThemeBtn" style="flex:1; min-width:70px;">Design</button>
         </div>
+        <input type="number" id="ownerCodeAuraAmountInput" class="input-field" placeholder="Aura-Betrag (z.B. 500)" style="margin-bottom:8px; display:none;" min="1">
+        <input type="number" id="ownerCodeLifeAmountInput" class="input-field" placeholder="Anzahl Leben (z.B. 1)" style="margin-bottom:8px; display:none;" min="1" value="1">
         <select id="ownerCodeChestTierSelect" class="input-field" style="margin-bottom:8px; display:none;">
           <option value="standard">Standard-Truhe</option>
           <option value="epic">Epische Truhe</option>
           <option value="legendary">Legendäre Truhe</option>
         </select>
+        <select id="ownerCodeThemeSelect" class="input-field" style="margin-bottom:8px; display:none;"></select>
         <button class="btn btn-primary btn-small" id="ownerSetCodeBtn" style="width:100%;">Code hinzufügen</button>
       </div>
     </div>
@@ -3863,7 +3867,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.61";
+  const APP_VERSION = "2.62";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -5140,11 +5144,13 @@
   ======================================================== */
   let ownerSelectedCodeReward = "aura";
   let ownerSelectedChestTier = "standard";
+  let ownerSelectedCodeTheme = "galaxy";
 
   function rewardLabelForCode(data){
-    if(data.rewardType === "life") return "1 Leben";
+    if(data.rewardType === "life") return `${data.lifeAmount || 1} Leben`;
     if(data.rewardType === "chest") return (CHEST_TIER_LABEL[data.chestTier || "standard"] || "Standard") + "-Truhe";
-    return "500 Aura";
+    if(data.rewardType === "theme") return "Design: " + (THEME_DISPLAY_NAME[data.themeId] || data.themeId);
+    return `${data.auraAmount || 500} Aura`;
   }
 
   async function renderOwnerCodeStatus(){
@@ -5177,6 +5183,23 @@
         setByUid: currentUser.uid, createdAt: Date.now()
       };
       if(ownerSelectedCodeReward === "chest") data.chestTier = ownerSelectedChestTier;
+      if(ownerSelectedCodeReward === "aura"){
+        const amount = parseInt($("ownerCodeAuraAmountInput").value, 10);
+        if(!amount || amount <= 0){
+          showToast("Bitte einen gültigen Aura-Betrag eingeben.");
+          return;
+        }
+        data.auraAmount = amount;
+      }
+      if(ownerSelectedCodeReward === "life"){
+        const amount = parseInt($("ownerCodeLifeAmountInput").value, 10) || 1;
+        if(amount <= 0){
+          showToast("Bitte eine gültige Anzahl Leben eingeben.");
+          return;
+        }
+        data.lifeAmount = amount;
+      }
+      if(ownerSelectedCodeReward === "theme") data.themeId = ownerSelectedCodeTheme;
       await db().collection("redeemCodes").add(data);
       $("ownerCodeInput").value = "";
       showToast(`🎁 Code "${code}" hinzugefügt!`);
@@ -5212,17 +5235,23 @@
         redeemedByUsername: profile.username || "", redeemedAt: Date.now()
       });
       if(data.rewardType === "life"){
-        profile.lives = Math.min(MAX_LIVES, profile.lives + 1);
-        showToast("🎉 Code eingelöst! +1 Leben");
+        const amount = data.lifeAmount || 1;
+        profile.lives = Math.min(MAX_LIVES, profile.lives + amount);
+        showToast(`🎉 Code eingelöst! +${amount} ${amount === 1 ? "Leben" : "Leben"}`);
       } else if(data.rewardType === "chest"){
         profile.redeemedCodeChests = profile.redeemedCodeChests || {};
         profile.redeemedCodeChests[doc.id] = { tier: data.chestTier || "standard", attemptsUsed: 0, claimed: false };
         showToast("🎁 Code eingelöst! Eine Truhe wartet in den Missionen.");
         updateMissionsBadge();
         renderMissions();
+      } else if(data.rewardType === "theme"){
+        const themeId = data.themeId;
+        if(themeId && !profile.unlockedThemes.includes(themeId)) profile.unlockedThemes.push(themeId);
+        showToast(`🎉 Code eingelöst! Design "${THEME_DISPLAY_NAME[themeId] || themeId}" freigeschaltet!`);
       } else {
-        profile.totalAura += 500;
-        showToast("🎉 Code eingelöst! +500 Aura");
+        const amount = data.auraAmount || 500;
+        profile.totalAura += amount;
+        showToast(`🎉 Code eingelöst! +${amount} Aura`);
       }
       saveProfile();
       renderHome();
@@ -9689,6 +9718,12 @@
      freigeschaltete Designs direkt in dessen Firestore-Dokument zu setzen.
   ======================================================== */
   const ALL_THEME_IDS = ["black", "white_clean", "clean", "pink", "glass", "glow", "glitch", "galaxy", "sunset", "cyber", "royal", "cloud", "toxic", "crimson", "minimal"];
+  const THEME_DISPLAY_NAME = {
+    black: "Schwarz", white_clean: "Weiß Clean", clean: "Clean", pink: "Pink",
+    glass: "Glas", glow: "Glow", glitch: "Glitch", galaxy: "Galaxy",
+    sunset: "Sunset", cyber: "Cyber", royal: "Royal", cloud: "Cloud",
+    toxic: "Toxic", crimson: "Crimson", minimal: "Minimal"
+  };
   let ownerEditingUid = null;
   let ownerEditingOldUsernameLower = null;
 
@@ -10443,6 +10478,7 @@
   });
   $("ownerToolCodes").addEventListener("click", () => {
     $("overlayOwnerCodes").classList.add("show");
+    selectOwnerCodeReward(ownerSelectedCodeReward);
     renderOwnerCodeStatus();
   });
   $("ownerToolCodesClose").addEventListener("click", () => {
@@ -10538,30 +10574,34 @@
   });
   $("closeLivePoll").addEventListener("click", hideLivePoll);
 
-  $("ownerCodeRewardAuraBtn").addEventListener("click", () => {
-    ownerSelectedCodeReward = "aura";
-    $("ownerCodeRewardAuraBtn").style.cssText = "flex:1; background:var(--accent); color:#000; border-color:var(--accent);";
-    $("ownerCodeRewardLifeBtn").style.cssText = "flex:1;";
-    $("ownerCodeRewardChestBtn").style.cssText = "flex:1;";
-    $("ownerCodeChestTierSelect").style.display = "none";
-  });
-  $("ownerCodeRewardLifeBtn").addEventListener("click", () => {
-    ownerSelectedCodeReward = "life";
-    $("ownerCodeRewardLifeBtn").style.cssText = "flex:1; background:var(--accent); color:#000; border-color:var(--accent);";
-    $("ownerCodeRewardAuraBtn").style.cssText = "flex:1;";
-    $("ownerCodeRewardChestBtn").style.cssText = "flex:1;";
-    $("ownerCodeChestTierSelect").style.display = "none";
-  });
-  $("ownerCodeRewardChestBtn").addEventListener("click", () => {
-    ownerSelectedCodeReward = "chest";
-    $("ownerCodeRewardChestBtn").style.cssText = "flex:1; background:var(--accent); color:#000; border-color:var(--accent);";
-    $("ownerCodeRewardAuraBtn").style.cssText = "flex:1;";
-    $("ownerCodeRewardLifeBtn").style.cssText = "flex:1;";
-    $("ownerCodeChestTierSelect").style.display = "block";
-  });
+  const OWNER_CODE_REWARD_BTNS = {
+    aura: "ownerCodeRewardAuraBtn", life: "ownerCodeRewardLifeBtn",
+    chest: "ownerCodeRewardChestBtn", theme: "ownerCodeRewardThemeBtn"
+  };
+  function selectOwnerCodeReward(type){
+    ownerSelectedCodeReward = type;
+    Object.entries(OWNER_CODE_REWARD_BTNS).forEach(([key, id]) => {
+      $(id).style.cssText = key === type ? "flex:1; min-width:70px; background:var(--accent); color:#000; border-color:var(--accent);" : "flex:1; min-width:70px;";
+    });
+    $("ownerCodeAuraAmountInput").style.display = type === "aura" ? "block" : "none";
+    $("ownerCodeLifeAmountInput").style.display = type === "life" ? "block" : "none";
+    $("ownerCodeChestTierSelect").style.display = type === "chest" ? "block" : "none";
+    $("ownerCodeThemeSelect").style.display = type === "theme" ? "block" : "none";
+  }
+  $("ownerCodeRewardAuraBtn").addEventListener("click", () => selectOwnerCodeReward("aura"));
+  $("ownerCodeRewardLifeBtn").addEventListener("click", () => selectOwnerCodeReward("life"));
+  $("ownerCodeRewardChestBtn").addEventListener("click", () => selectOwnerCodeReward("chest"));
+  $("ownerCodeRewardThemeBtn").addEventListener("click", () => selectOwnerCodeReward("theme"));
   $("ownerCodeChestTierSelect").addEventListener("change", (e) => {
     ownerSelectedChestTier = e.target.value;
   });
+  $("ownerCodeThemeSelect").addEventListener("change", (e) => {
+    ownerSelectedCodeTheme = e.target.value;
+  });
+  // Design-Auswahl einmalig befüllen
+  $("ownerCodeThemeSelect").innerHTML = ALL_THEME_IDS.map(id =>
+    `<option value="${id}">${THEME_DISPLAY_NAME[id] || id}</option>`
+  ).join("");
   $("ownerSetCodeBtn").addEventListener("click", ownerSetRedeemCode);
 
   $("redeemCodeBtn").addEventListener("click", () => {

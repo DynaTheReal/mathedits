@@ -1414,27 +1414,28 @@
     padding:0 10px; margin:4px 0 8px; font-size:15.5px; font-weight:800;
   }
   .beta-section-heading a{ font-size:12.5px; font-weight:700; color:var(--accent, #a855f7); text-decoration:none; }
+  #betaMissionsHeading{ margin-bottom:4px; }
 
   .beta-missions-row{
-    display:flex; gap:10px; overflow-x:auto; overflow-y:visible; padding:0 10px 10px; scrollbar-width:none;
+    display:flex; gap:8px; overflow-x:auto; overflow-y:visible; padding:0 10px 8px; scrollbar-width:none;
     -webkit-overflow-scrolling:touch;
-    flex-shrink:0; min-height:168px;
+    flex-shrink:0; min-height:128px;
   }
   .beta-missions-row::-webkit-scrollbar{ display:none; }
   .beta-mission-card{
-    flex:0 0 165px; border-radius:16px; padding:13px; border:1.5px solid var(--border);
+    flex:0 0 150px; border-radius:14px; padding:10px; border:1.5px solid var(--border);
     background:var(--card); overflow:hidden;
   }
-  .beta-mission-icon{ font-size:20px; margin-bottom:9px; }
-  .beta-mission-title{ font-size:14px; font-weight:800; margin-bottom:6px; overflow-wrap:break-word; word-wrap:break-word; }
-  .beta-mission-desc{ font-size:11.5px; color:var(--text-dim); line-height:1.35; margin-bottom:8px; overflow-wrap:break-word; word-wrap:break-word; }
+  .beta-mission-icon{ font-size:16px; margin-bottom:5px; }
+  .beta-mission-title{ font-size:12.5px; font-weight:800; margin-bottom:4px; overflow-wrap:break-word; word-wrap:break-word; }
+  .beta-mission-desc{ font-size:10px; color:var(--text-dim); line-height:1.3; margin-bottom:6px; overflow-wrap:break-word; word-wrap:break-word; }
   .beta-mission-progress-track{
-    width:100%; height:6px; border-radius:99px; background:rgba(255,255,255,.1); overflow:hidden; margin-bottom:10px;
+    width:100%; height:5px; border-radius:99px; background:rgba(255,255,255,.1); overflow:hidden; margin-bottom:7px;
   }
   .beta-mission-progress-fill{
     height:100%; border-radius:99px; background:linear-gradient(90deg, #a855f7, #ec4899);
   }
-  .beta-mission-reward{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; font-weight:700; color:#a855f7; }
+  .beta-mission-reward{ display:flex; align-items:center; justify-content:space-between; font-size:11px; font-weight:700; color:#a855f7; }
 
   #betaLernweltHeading{ margin-top:14px; }
 
@@ -2239,7 +2240,7 @@
       <button class="btn-glow" id="betaContinueBtn"><span>▶</span> Lektion starten <span>→</span></button>
     </div>
 
-    <div class="beta-section-heading layout-beta-only">
+    <div class="beta-section-heading layout-beta-only" id="betaMissionsHeading">
       <span>🗓️ Events &amp; Missionen</span>
       <a href="#" id="betaMissionsAllLink">Alle anzeigen →</a>
     </div>
@@ -3845,7 +3846,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.57";
+  const APP_VERSION = "2.58";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).

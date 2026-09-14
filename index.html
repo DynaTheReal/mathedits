@@ -1360,48 +1360,61 @@
   .beta-stat-lbl{ font-size:9px; color:var(--text-dim); }
 
   .beta-streak-card{
-    margin:0 10px 14px; padding:12px 18px; border-radius:18px;
+    margin:0 10px 14px; padding:28px 20px; border-radius:22px; min-height:120px;
     background:linear-gradient(135deg, rgba(251,146,60,.16), rgba(239,68,68,.08));
     border:1.5px solid rgba(251,146,60,.4);
-    display:flex; align-items:center; gap:12px; cursor:pointer;
+    display:flex; align-items:center; gap:14px; cursor:pointer;
     position:relative; overflow:hidden;
   }
   /* Peter-Betaeinstellung (NEU): Bild als Hintergrund der Streak-Karte,
-     mit einer abdunkelnden Ebene darüber, damit Text/Symbol lesbar bleiben. */
+     mit einer abdunkelnden Ebene darüber, damit Text/Symbol lesbar bleiben.
+     Karte ist jetzt deutlich größer, damit das Bild auch wirklich zu sehen
+     ist statt nur ein schmaler Streifen zu sein. */
   .beta-streak-card.has-bg-image{
-    background-image: linear-gradient(135deg, rgba(10,8,14,.55), rgba(10,8,14,.75)), url('streak_bg.png');
+    background-image: linear-gradient(135deg, rgba(10,8,14,.5), rgba(10,8,14,.7)), url('streak_bg.png');
     background-size: cover; background-position: center;
     border-color: rgba(255,255,255,.25);
   }
-  .beta-streak-icon{ font-size:26px; line-height:1; }
-  .beta-streak-num{ font-size:19px; font-weight:900; line-height:1.2; }
-  .beta-streak-lbl{ font-size:11.5px; color:var(--text-dim); }
+  .beta-streak-icon{ font-size:34px; line-height:1; }
+  .beta-streak-num{ font-size:24px; font-weight:900; line-height:1.2; }
+  .beta-streak-lbl{ font-size:13px; color:var(--text-dim); }
 
   .beta-continue-card{
-    margin:0 10px 8px; padding:15px 18px; border-radius:24px;
+    margin:0 10px 8px; padding:12px 14px; border-radius:20px;
     background:radial-gradient(circle at 30% 20%, rgba(168,85,247,.22), rgba(15,10,30,.9) 70%);
     border:1.5px solid rgba(168,85,247,.55);
-    box-shadow:0 0 0 1px rgba(168,85,247,.15), 0 0 30px rgba(168,85,247,.35), 0 0 60px rgba(168,85,247,.15);
-    display:flex; flex-direction:column;
+    box-shadow:0 0 0 1px rgba(168,85,247,.15), 0 0 24px rgba(168,85,247,.3), 0 0 44px rgba(168,85,247,.12);
+    display:flex; flex-direction:row; align-items:center; gap:10px;
   }
+  .beta-continue-left{ flex:1; min-width:0; }
   .beta-continue-pill{
-    display:inline-flex; align-self:flex-start; align-items:center; gap:6px;
+    display:inline-flex; align-items:center; gap:6px;
     background:rgba(168,85,247,.18); border:1.5px solid rgba(168,85,247,.6);
-    border-radius:99px; padding:5px 13px; font-size:12px; font-weight:800; color:#e9d5ff;
-    box-shadow:0 0 14px rgba(168,85,247,.35);
-    margin-bottom:8px;
+    border-radius:99px; padding:3px 10px; font-size:10.5px; font-weight:800; color:#e9d5ff;
+    box-shadow:0 0 10px rgba(168,85,247,.3);
+    margin-bottom:4px;
   }
-  .beta-continue-title{ font-size:21px; font-weight:900; margin-bottom:4px; }
-  .beta-continue-sub{ font-size:13px; color:var(--text-dim); margin-bottom:10px; }
-  .beta-continue-progress-row{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .beta-continue-title{ font-size:16px; font-weight:900; margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .beta-continue-sub{ font-size:11px; color:var(--text-dim); margin-bottom:6px; }
+  .beta-continue-progress-row{ display:flex; align-items:center; gap:8px; }
   .beta-continue-progress-track{
-    flex:1; height:9px; border-radius:99px; background:rgba(255,255,255,.1); overflow:hidden;
+    flex:1; height:6px; border-radius:99px; background:rgba(255,255,255,.1); overflow:hidden;
   }
   .beta-continue-progress-fill{
     height:100%; border-radius:99px; background:linear-gradient(90deg, #a855f7, #ec4899);
-    box-shadow:0 0 10px rgba(236,72,153,.7);
+    box-shadow:0 0 8px rgba(236,72,153,.6);
   }
-  .beta-continue-progress-num{ font-size:12.5px; color:var(--text-dim); font-weight:700; flex-shrink:0; }
+  .beta-continue-progress-num{ font-size:10.5px; color:var(--text-dim); font-weight:700; flex-shrink:0; }
+
+  /* Kleiner seitlicher Start-Button (NEU) statt des grossen, ganze Breite
+     einnehmenden Buttons - dadurch bleibt die Karte insgesamt kurz. */
+  .beta-continue-side-btn{
+    flex-shrink:0; width:48px; height:48px; border-radius:50%; border:none; cursor:pointer;
+    background:linear-gradient(135deg, #a855f7, #7c3aed); color:#fff;
+    font-size:18px; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 0 1px rgba(168,85,247,.3), 0 4px 14px rgba(168,85,247,.5);
+  }
+  .beta-continue-side-btn:active{ transform:scale(.92); }
 
   /* Wiederverwendbarer Glow-Button (NEU) - großer, leuchtender CTA-Button
      im Stil der Vorlage. Kann für jeden zentralen Aktions-Button genutzt
@@ -2287,14 +2300,16 @@
     </div>
 
     <div class="beta-continue-card layout-beta-only">
-      <div class="beta-continue-pill">🎯 Weitermachen</div>
-      <div class="beta-continue-title" id="betaContinueTierName">Kleines Einmaleins</div>
-      <div class="beta-continue-sub">Level <span id="betaContinueLevel">1</span> · 💀 +<span id="betaContinueAura">25</span> Aura</div>
-      <div class="beta-continue-progress-row">
-        <div class="beta-continue-progress-track"><div class="beta-continue-progress-fill" id="betaContinueProgressFill"></div></div>
-        <div class="beta-continue-progress-num" id="betaContinueProgressNum">0/20</div>
+      <div class="beta-continue-left">
+        <div class="beta-continue-pill">🎯 Weitermachen</div>
+        <div class="beta-continue-title" id="betaContinueTierName">Kleines Einmaleins</div>
+        <div class="beta-continue-sub">Level <span id="betaContinueLevel">1</span> · 💀 +<span id="betaContinueAura">25</span> Aura</div>
+        <div class="beta-continue-progress-row">
+          <div class="beta-continue-progress-track"><div class="beta-continue-progress-fill" id="betaContinueProgressFill"></div></div>
+          <div class="beta-continue-progress-num" id="betaContinueProgressNum">0/20</div>
+        </div>
       </div>
-      <button class="btn-glow" id="betaContinueBtn"><span>▶</span> Lektion starten <span>→</span></button>
+      <button class="beta-continue-side-btn" id="betaContinueBtn">▶</button>
     </div>
 
     <div class="beta-section-heading layout-beta-only" id="betaMissionsHeading">
@@ -3936,7 +3951,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.68";
+  const APP_VERSION = "2.69";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).

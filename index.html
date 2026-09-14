@@ -1522,8 +1522,14 @@
     border-color:transparent;
     box-shadow: 0 4px 12px -4px rgba(255,122,61,.7);
   }
+  .week-day .dot.icecube-protected{
+    background:linear-gradient(135deg, #3b82f6, #60a5fa);
+    border-color:transparent;
+    box-shadow: 0 4px 12px -4px rgba(59,130,246,.7);
+  }
   .week-day .dot.today-ring{box-shadow:0 0 0 2px var(--accent);}
   .week-day .dot.done.today-ring{box-shadow:0 0 0 2px var(--accent), 0 4px 12px -4px rgba(255,122,61,.7);}
+  .week-day .dot.icecube-protected.today-ring{box-shadow:0 0 0 2px var(--accent), 0 4px 12px -4px rgba(59,130,246,.7);}
 
   /* ---------- level carousel ---------- */
   .levels-heading{
@@ -1615,7 +1621,15 @@
     display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); font-size:15px;
     flex-shrink:0;
   }
-  .progress-track{flex:1; height:12px; background:var(--card); border:1px solid var(--border); border-radius:99px; overflow:hidden;}
+  .progress-track-wrap{flex:1; position:relative;}
+  .progress-track{width:100%; height:12px; background:var(--card); border:1px solid var(--border); border-radius:99px; overflow:hidden;}
+  .combo-counter{
+    position:absolute; top:100%; left:0; margin-top:4px;
+    font-size:11px; font-weight:800; color:#3b82f6;
+    opacity:0; transform:translateY(-3px); transition:opacity .2s ease, transform .2s ease;
+    pointer-events:none;
+  }
+  .combo-counter.show{ opacity:1; transform:translateY(0); }
   .progress-fill{height:100%; background:var(--accent); width:0%; transition:width .35s ease, background .3s ease;}
   .progress-fill.combo-active{ background:#3b82f6; box-shadow:0 0 10px 1px rgba(59,130,246,.6); }
   .lesson-hearts{display:flex; gap:3px; flex-shrink:0;}
@@ -3243,7 +3257,10 @@
   <section class="screen" id="screen-lesson">
     <div class="lesson-top">
       <div class="exit-x" id="exitLesson">✕</div>
-      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-track-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="combo-counter" id="comboCounter"></div>
+      </div>
       <div class="lesson-hearts" id="lessonHearts"></div>
     </div>
 
@@ -3846,7 +3863,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.60";
+  const APP_VERSION = "2.61";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -4028,6 +4045,7 @@
     streak: 0,
     lastStreakDate: null,
     streakDates: [],
+    icecubeProtectedDates: [], // welche Streak-Tage per Icecube gerettet wurden (fürs blaue Symbol im Verlauf)
     username: null,
     usernameLower: null,
     following: [],
@@ -6019,7 +6037,7 @@
     };
     lesson.startedAt = performance.now();
     $("overlayTimesTablePicker").classList.remove("show");
-    $("progressFill").classList.remove("combo-active");
+    $("progressFill").classList.remove("combo-active"); $("comboCounter").classList.remove("show");
     showScreen("lesson");
     renderQuestion();
   }
@@ -6283,7 +6301,7 @@
       questions: data.questions,
       index: data.currentIndex, correct: 0, aura: 0, answer: "", locked: false
     };
-    $("progressFill").classList.remove("combo-active");
+    $("progressFill").classList.remove("combo-active"); $("comboCounter").classList.remove("show");
     showScreen("lesson");
     renderQuestion();
   }
@@ -6577,16 +6595,39 @@
     if(!profile.lastStreakDate) return;
     const today = todayStr();
     const yesterday = yesterdayStr();
-    
+
     if(profile.lastStreakDate !== today && profile.lastStreakDate !== yesterday){
-      // Wenn Icecube vorhanden ist, schütze den Streak einmalig!
-      if(profile.inventory && profile.inventory.icecube > 0){
-        profile.inventory.icecube--;
-        profile.lastStreakDate = yesterday; // Setze den Tag zurück, als ob gestern gelernt wurde
-        showToast("🧊 Icecube hat deinen Streak gerettet!");
+      // Berechnet, wie viele Tage seit dem letzten Lerntag WIRKLICH verpasst
+      // wurden - damit bei mehreren verpassten Tagen auch mehrere Icecubes
+      // hintereinander eingesetzt werden können, nicht nur maximal eines.
+      const lastDate = new Date(profile.lastStreakDate + "T00:00:00");
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const msPerDay = 24 * 60 * 60 * 1000;
+      const missedDays = Math.round((now - lastDate) / msPerDay) - 1;
+
+      const available = (profile.inventory && profile.inventory.icecube) || 0;
+      const toUse = Math.min(available, missedDays);
+
+      if(toUse > 0){
+        if(!profile.icecubeProtectedDates) profile.icecubeProtectedDates = [];
+        if(!profile.streakDates) profile.streakDates = [];
+        for(let i = 0; i < toUse; i++){
+          const protectDate = new Date(lastDate);
+          protectDate.setDate(protectDate.getDate() + 1 + i);
+          const ds = dateStr(protectDate);
+          if(!profile.icecubeProtectedDates.includes(ds)) profile.icecubeProtectedDates.push(ds);
+          if(!profile.streakDates.includes(ds)) profile.streakDates.push(ds);
+        }
+        profile.inventory.icecube -= toUse;
+      }
+
+      if(toUse >= missedDays){
+        // Alle verpassten Tage abgedeckt - der Streak bleibt erhalten.
+        profile.lastStreakDate = yesterday;
+        showToast(toUse === 1 ? "🧊 Icecube hat deinen Streak gerettet!" : `🧊 ${toUse} Icecubes haben deinen Streak gerettet!`);
       } else {
-        // Den verlorenen Stand merken, damit er per Streak-Reparatur (Shop)
-        // wiederhergestellt werden kann.
+        // Nicht genug Icecubes für alle verpassten Tage - Streak bricht.
         if(profile.streak > 0) profile.lastBrokenStreak = profile.streak;
         profile.streak = 0;
       }
@@ -6714,6 +6755,16 @@
     }
   }
 
+  // Combo-Zähler unter der Fortschrittsleiste (NEU): zeigt die Zahl, sobald
+  // die Leiste blau wird (Combo aktiv), zusammen mit dem Feuer-Symbol.
+  function updateComboCounter(streakCount){
+    const active = (streakCount || 0) > 5;
+    $("progressFill").classList.toggle("combo-active", active);
+    const counter = $("comboCounter");
+    counter.classList.toggle("show", active);
+    if(active) counter.textContent = `🔥 ${streakCount}er-Combo`;
+  }
+
   function renderStreak(){
     const n = profile.streak || 0;
     const flame = $("heroFlame");
@@ -6799,7 +6850,7 @@
   // Baut das HTML für die 7-Tage-Wochenübersicht (Mo-So) aus einer Liste von
   // "YYYY-MM-DD"-Daten - wird sowohl für den eigenen Streak-Verlauf als auch
   // für die Wochenansicht im Profil anderer Nutzer verwendet.
-  function buildWeekGridHtml(dates){
+  function buildWeekGridHtml(dates, protectedDates){
     const labels = ["Mo","Di","Mi","Do","Fr","Sa","So"];
     const monday = startOfWeekMonday(new Date());
     const todayVal = todayStr();
@@ -6809,11 +6860,12 @@
       d.setDate(monday.getDate()+i);
       const ds = dateStr(d);
       const done = (dates || []).includes(ds);
+      const isProtected = (protectedDates || []).includes(ds);
       const isToday = ds === todayVal;
       html += `
         <div class="week-day${isToday ? " today" : ""}">
           <div class="d">${labels[i]}</div>
-          <div class="dot${done ? " done" : ""}${isToday ? " today-ring" : ""}">${done ? "🔥" : ""}</div>
+          <div class="dot${done ? " done" : ""}${isProtected ? " icecube-protected" : ""}${isToday ? " today-ring" : ""}">${isProtected ? "🧊" : (done ? "🔥" : "")}</div>
         </div>`;
     }
     return html;
@@ -6822,7 +6874,7 @@
   function renderStreakWeek(){
     const grid = $("weekGrid");
     if(!grid) return;
-    grid.innerHTML = buildWeekGridHtml(profile.streakDates || []);
+    grid.innerHTML = buildWeekGridHtml(profile.streakDates || [], profile.icecubeProtectedDates || []);
   }
 
   // Formatiert einen Zeitstempel relativ ("Gerade eben", "vor 3 Std.", "Gestern"...)
@@ -6895,7 +6947,7 @@
       ? `${timeTodayMin} Min`
       : `${Math.floor(timeTodayMin / 60)}h ${timeTodayMin % 60}min`;
 
-    $("friendProfileWeekGrid").innerHTML = buildWeekGridHtml(u.streakDates || []);
+    $("friendProfileWeekGrid").innerHTML = buildWeekGridHtml(u.streakDates || [], u.icecubeProtectedDates || []);
 
     // "Freund hinzufügen"-Button: nur bei fremden Profilen mit bekanntem
     // Benutzernamen zeigen, und nur solange man ihnen noch nicht folgt.
@@ -7703,7 +7755,25 @@
     // wurde (lastLocalSaveAt), und NUR deren Aura-Wert komplett
     // übernommen - kein Vermischen von "höher gewinnt" mehr.
     const localNewer = (localP.lastLocalSaveAt || 0) >= (cloudP.lastLocalSaveAt || 0);
-    merged.totalAura = localNewer ? (localP.totalAura || 0) : (cloudP.totalAura || 0);
+    // WICHTIG: eine Owner-Bearbeitung muss IMMER gewinnen, bis DIESES Gerät
+    // sie wirklich übernommen hat - unabhängig davon, ob der normale
+    // "lastLocalSaveAt"-Zeitstempel zufällig neuer ist (z.B. weil genau in
+    // dem Moment ein unabhängiger 10-Sekunden-Herzschlag feuerte, der
+    // nichts mit der Owner-Änderung zu tun hat). Verglichen wird deshalb
+    // NICHT gegen lastLocalSaveAt, sondern dagegen, welchen Owner-Edit-
+    // Zeitstempel dieses Gerät zuletzt selbst schon übernommen hat - sonst
+    // kann der eigene Sync die Owner-Änderung unbemerkt überschreiben
+    // (gemeldeter Bug: "Spieler bekommt die bearbeitete Aura nicht").
+    const cloudOwnerEditAt = cloudP.ownerLastEditAt || 0;
+    const localAppliedOwnerEditAt = localP.ownerLastEditAt || 0;
+    const ownerEditIsNewer = cloudOwnerEditAt > localAppliedOwnerEditAt;
+    merged.totalAura = ownerEditIsNewer ? (cloudP.totalAura || 0) : (localNewer ? (localP.totalAura || 0) : (cloudP.totalAura || 0));
+    if(ownerEditIsNewer){
+      merged.level = (cloudP.level === undefined || cloudP.level === null) ? 0 : cloudP.level;
+      merged.levelProgress = cloudP.levelProgress || 0;
+      merged.streak = cloudP.streak || 0;
+      merged.ownerLastEditAt = cloudOwnerEditAt; // merkt sich: diese Owner-Änderung wurde jetzt übernommen
+    }
     merged.pendingFeedbackBonusAura = localNewer ? (localP.pendingFeedbackBonusAura || 0) : (cloudP.pendingFeedbackBonusAura || 0);
     merged.lessonsCompleted = Math.max(localP.lessonsCompleted || 0, cloudP.lessonsCompleted || 0);
     merged.streak = Math.max(localP.streak || 0, cloudP.streak || 0);
@@ -7711,6 +7781,9 @@
 
     const streakSet = new Set([...(localP.streakDates || []), ...(cloudP.streakDates || [])]);
     merged.streakDates = Array.from(streakSet).sort().slice(-60);
+
+    const protectedSet = new Set([...(localP.icecubeProtectedDates || []), ...(cloudP.icecubeProtectedDates || [])]);
+    merged.icecubeProtectedDates = Array.from(protectedSet).sort().slice(-60);
 
     merged.unlockedThemes = Array.from(new Set([
       ...(localP.unlockedThemes || ["black"]),
@@ -8807,7 +8880,7 @@
     lesson.startedAt = performance.now();
     lastAnnouncedDuelProgress = {};
     $("duelOpponentProgress").style.display = "none";
-    $("progressFill").classList.remove("combo-active");
+    $("progressFill").classList.remove("combo-active"); $("comboCounter").classList.remove("show");
     markLessonInProgress();
     showScreen("lesson");
     renderQuestion();
@@ -9859,6 +9932,11 @@
         // bekommen") - der Zeitstempel-Vergleich beim Abgleich kennt sonst
         // nicht, dass diese Bearbeitung gerade JETZT passiert ist.
         lastLocalSaveAt: Date.now(),
+        // Zusätzlich: markiert diese Änderung explizit als Owner-Bearbeitung,
+        // damit sie beim Abgleich IMMER gewinnt - selbst wenn die Zielperson
+        // genau in diesem Moment selbst aktiv war und ihr eigenes Gerät
+        // einen noch neueren eigenen Speicherzeitpunkt hätte.
+        ownerLastEditAt: Date.now(),
         ...(newUsernameRaw ? { username: newUsernameRaw, usernameLower: normalizeUsername(newUsernameRaw) } : {})
       }, { merge: true });
 
@@ -11703,7 +11781,7 @@
     // Lektions-lokale Streak hier mit dem aktuellen Combo-Stand, statt immer
     // bei 0 anzufangen.
     lesson.streakThisLesson = lesson.isMainProgression ? (profile.comboCount || 0) : 0;
-    $("progressFill").classList.toggle("combo-active", lesson.streakThisLesson > 5);
+    updateComboCounter(lesson.streakThisLesson);
     markLessonInProgress();
     showScreen("lesson");
     renderQuestion();
@@ -11748,7 +11826,7 @@
     lesson = buildWeakTasksLesson();
     lesson.startedAt = performance.now();
     lesson.streakThisLesson = profile.comboCount || 0;
-    $("progressFill").classList.toggle("combo-active", lesson.streakThisLesson > 5);
+    updateComboCounter(lesson.streakThisLesson);
     markLessonInProgress();
     showScreen("lesson");
     renderQuestion();
@@ -12061,7 +12139,7 @@
           profile.comboCount = 0;
         }
       }
-      $("progressFill").classList.toggle("combo-active", (lesson.streakThisLesson || 0) > 5);
+      updateComboCounter(lesson.streakThisLesson || 0);
     }
 
     let delay = 650;

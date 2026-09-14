@@ -1364,6 +1364,14 @@
     background:linear-gradient(135deg, rgba(251,146,60,.16), rgba(239,68,68,.08));
     border:1.5px solid rgba(251,146,60,.4);
     display:flex; align-items:center; gap:12px; cursor:pointer;
+    position:relative; overflow:hidden;
+  }
+  /* Peter-Betaeinstellung (NEU): Bild als Hintergrund der Streak-Karte,
+     mit einer abdunkelnden Ebene darüber, damit Text/Symbol lesbar bleiben. */
+  .beta-streak-card.has-bg-image{
+    background-image: linear-gradient(135deg, rgba(10,8,14,.55), rgba(10,8,14,.75)), url('streak_bg.png');
+    background-size: cover; background-position: center;
+    border-color: rgba(255,255,255,.25);
   }
   .beta-streak-icon{ font-size:26px; line-height:1; }
   .beta-streak-num{ font-size:19px; font-weight:900; line-height:1.2; }
@@ -2054,40 +2062,57 @@
     84%{ transform:translate(-3px,-2px); }
     100%{ transform:translate(0,0); }
   }
-  /* Partikel-Schwarm um die Zeile in der Rangliste, wenn die Person die
-     Glitch-Schrift trägt (NEU: deutlich mehr Partikel als vorher, per
-     Box-Shadow-Trick mehrere Punkte aus EINEM Pseudo-Element - und im
-     selben Takt wie die Glitch-Teleport-Sprünge synchronisiert). */
-  .lb-row-glitchfont{
-    position:relative;
-  }
-  .lb-row-glitchfont::before, .lb-row-glitchfont::after{
-    content:""; position:absolute; width:3px; height:3px; border-radius:1px;
-    background:#a855f7; box-shadow:
-      0 0 6px 1px rgba(168,85,247,.9),
-      14px -6px 0 0 #a855f7, 14px -6px 6px 1px rgba(168,85,247,.9),
-      -10px 8px 0 0 #ec4899, -10px 8px 6px 1px rgba(236,72,153,.9),
-      22px 10px 0 0 #a855f7, 22px 10px 6px 1px rgba(168,85,247,.8),
-      -18px -4px 0 0 #ec4899, -18px -4px 6px 1px rgba(236,72,153,.8),
-      6px 16px 0 0 #a855f7, 6px 16px 6px 1px rgba(168,85,247,.7);
-    animation: glitchParticleBurst .55s steps(1) infinite;
+  /* Schwarze Pixel-Partikel direkt an der Glitch-Schrift (NEU: nicht mehr
+     an den Rändern der ganzen Zeile, sondern eng um den Text selbst - und
+     mit unregelmäßigem statt gleichmäßigem Timing, damit es nicht wie ein
+     vorhersehbarer Takt wirkt). */
+  .lb-row-glitchfont .font-glitch::before,
+  .lb-row-glitchfont .font-glitch::after{
+    content:""; position:absolute; width:2px; height:2px;
+    background:#000; box-shadow:
+      0 0 0 0 #000,
+      5px -3px 0 0 #000,
+      -4px 3px 0 0 #000,
+      8px 2px 0 0 #000,
+      -6px -2px 0 0 #000,
+      3px 6px 0 0 #000,
+      -3px -5px 0 0 #000,
+      6px -5px 0 0 #000;
     pointer-events:none;
   }
-  .lb-row-glitchfont::before{ top:8px; left:4px; animation-delay:0s; }
-  .lb-row-glitchfont::after{ bottom:8px; right:4px; animation-delay:.28s; }
-  @keyframes glitchParticleBurst{
-    0%, 8%{ opacity:0; }
-    12%{ opacity:1; }
-    22%{ opacity:0; }
-    24%, 32%{ opacity:0; }
-    36%{ opacity:1; }
-    46%{ opacity:0; }
-    48%, 56%{ opacity:0; }
-    60%{ opacity:1; }
-    70%{ opacity:0; }
-    72%, 80%{ opacity:0; }
-    84%{ opacity:1; }
-    94%{ opacity:0; }
+  .lb-row-glitchfont .font-glitch::before{
+    top:20%; left:10%;
+    animation: glitchPixelBurstA 1.7s steps(1) infinite;
+  }
+  .lb-row-glitchfont .font-glitch::after{
+    top:60%; left:70%;
+    animation: glitchPixelBurstB 2.3s steps(1) infinite;
+  }
+  /* Zwei unterschiedlich lange, unregelmäßige Zyklen (1.7s und 2.3s) -
+     dadurch überlappen sich die Blitze nie im gleichen Takt und wirken
+     zufällig statt rhythmisch. */
+  @keyframes glitchPixelBurstA{
+    0%, 6%{ opacity:0; }
+    9%{ opacity:1; }
+    14%{ opacity:0; }
+    37%, 41%{ opacity:0; }
+    44%{ opacity:1; }
+    50%{ opacity:0; }
+    68%, 75%{ opacity:0; }
+    78%{ opacity:1; }
+    83%{ opacity:0; }
+    100%{ opacity:0; }
+  }
+  @keyframes glitchPixelBurstB{
+    0%, 17%{ opacity:0; }
+    20%{ opacity:1; }
+    26%{ opacity:0; }
+    52%, 58%{ opacity:0; }
+    61%{ opacity:1; }
+    67%{ opacity:0; }
+    88%, 92%{ opacity:0; }
+    95%{ opacity:1; }
+    99%{ opacity:0; }
     100%{ opacity:0; }
   }
   /* Rangliste: Blütenpartikel um die Zeile, wenn die Person Pink Glow trägt -
@@ -3162,6 +3187,24 @@
       </div>
     </div>
 
+    <!-- "Peter"-Menü (NEU): Beta-Einstellungen zum Ausprobieren -->
+    <div class="overlay" id="overlayPeterMenu">
+      <div class="modal-card" style="max-width:360px; text-align:left;">
+        <button class="banner-close-x" id="peterMenuClose" style="position:absolute; top:10px; right:12px;">✕</button>
+        <div style="font-size:32px; margin-bottom:6px;">🧪</div>
+        <h2 style="margin-bottom:14px;">Peter</h2>
+        <div class="d" style="font-weight:800; margin-bottom:10px;">Betaeinstellungen</div>
+
+        <div class="settings-row" style="padding:0 0 4px;">
+          <div class="info">
+            <div class="t">🖼️ Streak-Hintergrundbild</div>
+            <div class="d">Zeigt im Clean-Layout ein Bild als Hintergrund der Streak-Karte auf dem Home-Bildschirm.</div>
+          </div>
+          <div class="switch" id="streakBgImageSwitch"><div class="knob"></div></div>
+        </div>
+      </div>
+    </div>
+
     <div style="background:rgba(250,204,21,.1); border:1.5px solid #facc15; border-radius:14px; padding:12px; margin:0 20px 16px; display:none;" id="ownerAdminPassBox">
       <div style="font-weight:800; margin-bottom:8px; color:#facc15;">🔐 Admin-Aktions-Passwort</div>
       <div class="d" style="margin-bottom:8px; font-size:11.5px;">Dieses Passwort müssen Mods bei JEDER Aktion im Mod-Panel eingeben - getrennt von deinem eigenen Login-Passwort.</div>
@@ -3194,9 +3237,17 @@
         <div class="d">Wie der Home-Bildschirm aussieht.</div>
       </div>
       <select id="layoutStyleSelect" class="input-field" style="width:auto; padding:8px 10px;">
-        <option value="normal">Normal</option>
-        <option value="beta">Beta</option>
+        <option value="simpel">Simpel</option>
+        <option value="clean">Clean</option>
       </select>
+    </div>
+
+    <div class="settings-row" id="peterMenuRow" style="cursor:pointer;">
+      <div class="info">
+        <div class="t">🧪 Peter</div>
+        <div class="d">Beta-Einstellungen zum Ausprobieren.</div>
+      </div>
+      <div style="opacity:.5;">›</div>
     </div>
 
     <div class="settings-row" id="installAppRow" style="cursor:pointer; display:none;">
@@ -3885,7 +3936,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.65";
+  const APP_VERSION = "2.68";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -4127,7 +4178,8 @@
     answeredPollIds: [], // verhindert mehrfaches Einschicken derselben Umfrage
     appIntroStyle: "math", // "math" (Standard) oder "simple" - welche Start-Animation beim App-Öffnen läuft
     devModeEnabled: false, // Entwicklermodus: zeigt Debug-Beschriftungen an allen Elementen (nur Owner)
-    layoutStyle: "normal", // "normal" (Standard) oder "beta" - welches Home-Layout angezeigt wird
+    streakBgImageEnabled: false, // Peter-Betaeinstellung: Bild als Hintergrund der Streak-Karte im Clean-Layout
+    layoutStyle: "clean", // "clean" (Standard, frühere "Beta"-Ansicht) oder "simpel" (frühere "Normal"-Ansicht) - welches Home-Layout angezeigt wird
     pendingFeedbackBonusAura: 0, // Aura-Geschenk vom Owner fürs Feedback, das noch als Banner angezeigt werden muss
     todayActiveMs: 0, // heutige Nutzungszeit in der App (Millisekunden)
     todayActiveDate: null, // für welchen Tag todayActiveMs gilt
@@ -4157,6 +4209,12 @@
           friendUsernameCache: parsed.friendUsernameCache || {},
           countedDuelWins: parsed.countedDuelWins || []
         };
+        // Migration (NEU): "Beta"/"Normal" wurden zu "Clean"/"Simpel"
+        // umbenannt - alte gespeicherte Werte auf die neuen Namen abbilden,
+        // damit niemand ungewollt das Layout wechselt, nur weil die Werte
+        // jetzt anders heißen.
+        if(parsed.layoutStyle === "beta") profile.layoutStyle = "clean";
+        else if(parsed.layoutStyle === "normal") profile.layoutStyle = "simpel";
       }
     }catch(e){
       profile = { ...DEFAULT_PROFILE };
@@ -4224,7 +4282,8 @@
         ...cloudData,
         unlockedThemes: cloudData.unlockedThemes || ["black"],
         inventory: { ...DEFAULT_PROFILE.inventory, ...(cloudData.inventory || {}) },
-        following: cloudData.following || []
+        following: cloudData.following || [],
+        layoutStyle: cloudData.layoutStyle === "beta" ? "clean" : (cloudData.layoutStyle === "normal" ? "simpel" : (cloudData.layoutStyle || DEFAULT_PROFILE.layoutStyle))
       };
       const previousDoubleAuraUntil = (profile.inventory && profile.inventory.doubleAuraUntil) || 0;
       profile = reconcileProfiles(profile, normalizedCloud);
@@ -6829,6 +6888,7 @@
     $("betaHomeLevel").textContent = profile.level;
     $("betaHomeAura").textContent = profile.totalAura;
     $("betaHomeStreak").textContent = profile.streak || 0;
+    $("betaStreakCard").classList.toggle("has-bg-image", !!profile.streakBgImageEnabled);
 
     const n = profile.streak || 0;
     $("betaStreakNum").textContent = n;
@@ -9666,7 +9726,7 @@
      THEME SYSTEM
   ======================================================== */
   function applyTheme(){
-    document.body.classList.toggle("layout-beta", profile.layoutStyle === "beta");
+    document.body.classList.toggle("layout-beta", profile.layoutStyle === "clean");
     // Absicherung: falls ein Konto noch auf das entfernte Custom-Theme
     // eingestellt war, sauber auf Black zurückfallen statt unstyled zu bleiben.
     if(profile.theme === "custom"){
@@ -10667,7 +10727,7 @@
   function renderSettings(){
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
     $("appIntroStyleSelect").value = profile.appIntroStyle === "simple" ? "simple" : "math";
-    $("layoutStyleSelect").value = profile.layoutStyle === "beta" ? "beta" : "normal";
+    $("layoutStyleSelect").value = profile.layoutStyle === "simpel" ? "simpel" : "clean";
     updateNotificationAndInstallUI();
     const displayName = profile.username
       ? "@" + profile.username + (isSuperUser() ? " ⭐" : "")
@@ -10774,10 +10834,24 @@
   });
 
   $("layoutStyleSelect").addEventListener("change", (e) => {
-    profile.layoutStyle = e.target.value === "beta" ? "beta" : "normal";
+    profile.layoutStyle = e.target.value === "simpel" ? "simpel" : "clean";
     saveProfile();
     applyTheme();
     renderHome();
+  });
+
+  $("peterMenuRow").addEventListener("click", () => {
+    $("overlayPeterMenu").classList.add("show");
+    $("streakBgImageSwitch").classList.toggle("on", !!profile.streakBgImageEnabled);
+  });
+  $("peterMenuClose").addEventListener("click", () => {
+    $("overlayPeterMenu").classList.remove("show");
+  });
+  $("streakBgImageSwitch").addEventListener("click", () => {
+    profile.streakBgImageEnabled = !profile.streakBgImageEnabled;
+    saveProfile();
+    $("streakBgImageSwitch").classList.toggle("on", profile.streakBgImageEnabled);
+    $("betaStreakCard").classList.toggle("has-bg-image", profile.streakBgImageEnabled);
   });
 
   $("installAppRow").addEventListener("click", () => {
@@ -11202,7 +11276,8 @@
               ...cloudData,
               unlockedThemes: cloudData.unlockedThemes || ["black"],
               inventory: { ...DEFAULT_PROFILE.inventory, ...(cloudData.inventory || {}) },
-              following: cloudData.following || []
+              following: cloudData.following || [],
+              layoutStyle: cloudData.layoutStyle === "beta" ? "clean" : (cloudData.layoutStyle === "normal" ? "simpel" : (cloudData.layoutStyle || DEFAULT_PROFILE.layoutStyle))
             };
 
             let justReset = false;

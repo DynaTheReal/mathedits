@@ -1447,6 +1447,7 @@
   .beta-lernwelt-row::-webkit-scrollbar{ display:none; }
   .beta-lernwelt-node{
     display:flex; flex-direction:column; align-items:center; flex-shrink:0; width:64px;
+    margin-top:-6px;
   }
   .beta-lernwelt-circle{
     width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center;
@@ -3867,7 +3868,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.62";
+  const APP_VERSION = "2.63";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -9863,10 +9864,16 @@
     try{
       let targetUid = null;
       let data = null;
-      const unameDoc = await db().collection("usernames").doc(uname).get();
+      // WICHTIG: explizit vom Server lesen (nicht aus dem lokalen
+      // Firestore-Cache) - sonst kann hier eine veraltete, zwischen-
+      // gespeicherte Kopie auftauchen, wenn die gesuchte Person gerade
+      // offline ist und es deshalb keinen aktuellen Live-Abgleich für ihr
+      // Dokument gab (gemeldeter Bug: "geht nur, wenn der Spieler online
+      // ist").
+      const unameDoc = await db().collection("usernames").doc(uname).get({ source: "server" });
       if(unameDoc.exists){
         targetUid = unameDoc.data().uid;
-        const userDoc = await db().collection("users").doc(targetUid).get();
+        const userDoc = await db().collection("users").doc(targetUid).get({ source: "server" });
         if(userDoc.exists) data = userDoc.data();
       }
       // Ausweichweg (NEU): falls die Benutzername-Reservierung fehlt oder
@@ -9875,7 +9882,7 @@
       // einer Konto-Neuerstellung), zusätzlich direkt in der users-
       // Sammlung nach dem Benutzernamen suchen.
       if(!data){
-        const fallbackSnap = await db().collection("users").where("usernameLower", "==", uname).get();
+        const fallbackSnap = await db().collection("users").where("usernameLower", "==", uname).get({ source: "server" });
         if(!fallbackSnap.empty){
           targetUid = fallbackSnap.docs[0].id;
           data = fallbackSnap.docs[0].data();
@@ -10233,14 +10240,14 @@
     try{
       let targetUid = null;
       let data = null;
-      const unameDoc = await db().collection("usernames").doc(uname).get();
+      const unameDoc = await db().collection("usernames").doc(uname).get({ source: "server" });
       if(unameDoc.exists){
         targetUid = unameDoc.data().uid;
-        const userDoc = await db().collection("users").doc(targetUid).get();
+        const userDoc = await db().collection("users").doc(targetUid).get({ source: "server" });
         if(userDoc.exists) data = userDoc.data();
       }
       if(!data){
-        const fallbackSnap = await db().collection("users").where("usernameLower", "==", uname).get();
+        const fallbackSnap = await db().collection("users").where("usernameLower", "==", uname).get({ source: "server" });
         if(!fallbackSnap.empty){
           targetUid = fallbackSnap.docs[0].id;
           data = fallbackSnap.docs[0].data();

@@ -1333,6 +1333,7 @@
      zwischen den beiden Layouts um.
   ======================================================== */
   .layout-beta-only{ display:none !important; }
+  body.layout-beta #screen-home{ padding-top:8px; }
   body.layout-beta #screen-home .topbar{ margin-bottom:6px; }
   body.layout-beta .layout-normal-only{ display:none !important; }
   body.layout-beta .beta-greeting-row{ display:flex !important; }
@@ -1419,23 +1420,22 @@
   .beta-missions-row{
     display:flex; gap:8px; overflow-x:auto; overflow-y:visible; padding:0 10px 8px; scrollbar-width:none;
     -webkit-overflow-scrolling:touch;
-    flex-shrink:0; min-height:128px;
+    flex-shrink:0; min-height:100px;
   }
   .beta-missions-row::-webkit-scrollbar{ display:none; }
   .beta-mission-card{
-    flex:0 0 150px; border-radius:14px; padding:10px; border:1.5px solid var(--border);
+    flex:0 0 142px; border-radius:14px; padding:9px; border:1.5px solid var(--border);
     background:var(--card); overflow:hidden;
   }
-  .beta-mission-icon{ font-size:16px; margin-bottom:5px; }
-  .beta-mission-title{ font-size:12.5px; font-weight:800; margin-bottom:4px; overflow-wrap:break-word; word-wrap:break-word; }
-  .beta-mission-desc{ font-size:10px; color:var(--text-dim); line-height:1.3; margin-bottom:6px; overflow-wrap:break-word; word-wrap:break-word; }
+  .beta-mission-icon{ font-size:15px; margin-bottom:4px; }
+  .beta-mission-title{ font-size:12px; font-weight:800; margin-bottom:3px; overflow-wrap:break-word; word-wrap:break-word; }
+  .beta-mission-desc{ font-size:9.5px; color:var(--text-dim); line-height:1.25; margin-bottom:5px; overflow-wrap:break-word; word-wrap:break-word; }
   .beta-mission-progress-track{
-    width:100%; height:5px; border-radius:99px; background:rgba(255,255,255,.1); overflow:hidden; margin-bottom:7px;
+    width:100%; height:5px; border-radius:99px; background:rgba(255,255,255,.1); overflow:hidden;
   }
   .beta-mission-progress-fill{
     height:100%; border-radius:99px; background:linear-gradient(90deg, #a855f7, #ec4899);
   }
-  .beta-mission-reward{ display:flex; align-items:center; justify-content:space-between; font-size:11px; font-weight:700; color:#a855f7; }
 
   #betaLernweltHeading{ margin-top:14px; }
 
@@ -3846,7 +3846,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.58";
+  const APP_VERSION = "2.59";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -6751,7 +6751,6 @@
     missionsRow.innerHTML = "";
     const doneToday = (profile.dailyMissions && profile.dailyMissions.lessonsCompletedToday) || 0;
     DAILY_MISSION_DEFS.forEach(m => {
-      const chest = profile.dailyMissions && profile.dailyMissions.chests && profile.dailyMissions.chests[m.id];
       const complete = doneToday >= m.target;
       const progressPct = Math.min(100, (doneToday / m.target) * 100);
       const card = document.createElement("div");
@@ -6761,7 +6760,6 @@
         <div class="beta-mission-title">${m.label}</div>
         <div class="beta-mission-desc">${doneToday}/${m.target} Lektionen heute geschafft.</div>
         <div class="beta-mission-progress-track"><div class="beta-mission-progress-fill" style="width:${progressPct}%;"></div></div>
-        <div class="beta-mission-reward">💀 +${(chest && CHEST_REWARDS[chest.tier]) || 50} Aura</div>
       `;
       card.addEventListener("click", () => { showScreen("missions"); renderMissions(); });
       missionsRow.appendChild(card);

@@ -4091,7 +4091,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.88";
+  const APP_VERSION = "2.89";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -4463,7 +4463,12 @@
       // "jetzt" bleiben, solange die App offen ist, und beim Aura-Abgleich
       // fälschlich immer die lokale Seite gewinnen lassen - selbst wenn
       // zwischenzeitlich ein anderes Gerät echte Änderungen gemacht hat.
-      const { lastActiveAt, lastLocalSaveAt, ...meaningful } = profile;
+      // WICHTIG (Bugfix): "todayActiveMs" ebenfalls ausschließen - sonst
+      // zählt der Herzschlag selbst schon als "bedeutsame Änderung", was
+      // wiederum "lastLocalSaveAt" aktualisiert und DADURCH indirekt doch
+      // wieder jede 10 Sekunden einen Cloud-Schreibvorgang auslöst (siehe
+      // ausführliche Erklärung weiter unten).
+      const { lastActiveAt, lastLocalSaveAt, todayActiveMs: _todayActiveMsExcluded, ...meaningful } = profile;
       const meaningfulJSON = JSON.stringify(meaningful);
       if(meaningfulJSON !== lastMeaningfulProfileJSON){
         lastMeaningfulProfileJSON = meaningfulJSON;
@@ -4472,8 +4477,21 @@
       const json = JSON.stringify(profile);
       localStorage.setItem(PROFILE_KEY, json);
       if(firebaseInitialized && currentUser && cloudSyncReady){
-        if(json === lastWrittenProfileJSON) return; // unverändert - kein erneuter Schreibvorgang nötig
-        lastWrittenProfileJSON = json;
+        // WICHTIG (Bugfix, großer Kontingent-Fresser): "todayActiveMs"
+        // zählt jede 10 Sekunden mit hoch, solange die App offen ist - war
+        // dieser Wert NICHT vom Vergleich ausgenommen, hat sich "json" bei
+        // JEDEM Herzschlag geändert und damit alle 10 Sekunden einen
+        // eigenen Cloud-Schreibvorgang ausgelöst (~8.640 Schreibvorgänge
+        // pro Tag und aktiver Person!) - das dürfte der Hauptgrund für ein
+        // schnell aufgebrauchtes Firebase-Kontingent gewesen sein. Diese
+        // Nutzungszeit-Zahl braucht keine sekundengenaue Cloud-
+        // Synchronisierung, deshalb hier ausgenommen (wird aber trotzdem
+        // ganz normal MIT gespeichert, sobald aus einem ANDEREN Grund
+        // ohnehin geschrieben wird).
+        const { todayActiveMs, ...cloudRelevant } = profile;
+        const cloudRelevantJSON = JSON.stringify(cloudRelevant);
+        if(cloudRelevantJSON === lastWrittenProfileJSON) return; // unverändert (bis auf Nutzungszeit) - kein erneuter Schreibvorgang nötig
+        lastWrittenProfileJSON = cloudRelevantJSON;
         db().collection("users").doc(currentUser.uid).set(profile, { merge: true })
           .catch(err => {
             console.error("Firestore Save Error:", err);
@@ -4601,14 +4619,18 @@
     }
   }, 60000);
 
-  // Update-Erkennung (NEU): prüft alle 5 Sekunden, ob eine neuere Version
-  // veröffentlicht wurde - deutlich häufiger als die Ankündigungsprüfung,
-  // damit das Update-Banner zuverlässig zeitnah ankommt.
+  // Update-Erkennung: prüft, ob eine neuere Version veröffentlicht wurde.
+  // WICHTIG (Bugfix, großer Kontingent-Fresser): lief bisher alle 5
+  // Sekunden - das allein macht ~17.280 Lesevorgänge PRO TAG und PRO
+  // aktiver Person, was bei nur wenigen gleichzeitig aktiven Personen
+  // schon fast das komplette kostenlose Tageskontingent (50.000
+  // Lesevorgänge) verbraucht. Jetzt alle 60 Sekunden - immer noch zeitnah
+  // genug für einen Update-Hinweis, aber 12x weniger Kontingent-Verbrauch.
   setInterval(() => {
     if(firebaseInitialized && currentUser && cloudSyncReady){
       checkForNewerVersion();
     }
-  }, 5000);
+  }, 60000);
 
   // Live-Erkennung neu online gegangener Freunde (NEU): läuft häufiger als
   // der obige 60s-Takt, da der Online-Status selbst nur ein 30s-Fenster hat.

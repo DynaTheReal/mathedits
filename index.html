@@ -865,6 +865,13 @@
     pointer-events:none; white-space:nowrap; line-height:1.4;
     box-shadow:0 1px 4px rgba(0,0,0,.4);
   }
+  .dev-image-badge{
+    position:absolute; top:16px; left:0; z-index:9001;
+    background:#facc15; color:#0a0a10; font-family:monospace; font-size:8.5px;
+    font-weight:700; padding:2px 5px; border-radius:0 4px 4px 0;
+    pointer-events:none; white-space:nowrap; line-height:1.4;
+    box-shadow:0 1px 4px rgba(0,0,0,.4); max-width:90%; overflow:hidden; text-overflow:ellipsis;
+  }
   body.dev-mode-active [data-devlabeled]{
     outline:1px dashed rgba(255,0,76,.5); outline-offset:-1px;
   }
@@ -1408,7 +1415,7 @@
   /* Beta-Einstellung (NEU): Bild als Hintergrund der "Weitermachen"-Karte,
      genau wie bei der Streak-Karte zu 100% sichtbar ohne abdunkelnde Ebene. */
   .beta-continue-card.has-bg-image{
-    background-image: url('portal_pg.png');
+    background-image: url('weitermachen_bg.png');
     background-size: cover; background-position: center;
     background-color: transparent;
     border-color: rgba(255,255,255,.25);
@@ -4000,7 +4007,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.75";
+  const APP_VERSION = "2.77";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -8720,10 +8727,35 @@
       el.appendChild(badge);
       el.dataset.devlabeled = "1";
     });
+    applyDevModeImageChecks();
+  }
+
+  // Entwicklermodus-Bildprüfung (NEU): bei Elementen mit einem CSS-
+  // Hintergrundbild wird der tatsächliche Pfad ausgelesen UND aktiv
+  // versucht zu laden - so sieht man direkt in der App, ob die Datei
+  // wirklich gefunden wird, statt nur zu raten.
+  function applyDevModeImageChecks(){
+    document.querySelectorAll(".has-bg-image").forEach(el => {
+      if(el.querySelector(":scope > .dev-image-badge")) return;
+      const bgImage = getComputedStyle(el).backgroundImage;
+      const match = bgImage.match(/url\(["']?(.*?)["']?\)/);
+      const url = match ? match[1] : null;
+      const badge = document.createElement("div");
+      badge.className = "dev-image-badge";
+      badge.textContent = url ? `⏳ prüfe: ${url}` : "kein Hintergrundbild in CSS gefunden";
+      el.appendChild(badge);
+      if(url){
+        const testImg = new Image();
+        testImg.onload = () => { badge.textContent = `✅ geladen: ${url}`; };
+        testImg.onerror = () => { badge.textContent = `❌ NICHT gefunden: ${url}`; };
+        testImg.src = url;
+      }
+    });
   }
 
   function removeDevModeLabels(){
     document.querySelectorAll(".dev-label-badge").forEach(b => b.remove());
+    document.querySelectorAll(".dev-image-badge").forEach(b => b.remove());
     document.querySelectorAll("[data-devlabeled]").forEach(el => {
       if(el.dataset.devOrigPosition === "static"){
         el.style.position = "";
@@ -8753,10 +8785,19 @@
   let devModeObserver = null;
   function startDevModeObserver(){
     if(devModeObserver) return;
-    devModeObserver = new MutationObserver(() => {
+    devModeObserver = new MutationObserver((mutations) => {
       applyDevModeLabels();
+      // Re-prüft speziell Hintergrundbild-Elemente, wenn sich ihre Klasse
+      // geändert hat (z.B. beim Umschalten von "New Design") - eine reine
+      // Klassenänderung zählt nicht als "neues Element", würde die
+      // Bildprüfung sonst nie erneut auslösen.
+      const classChanged = mutations.some(m => m.type === "attributes" && m.attributeName === "class");
+      if(classChanged){
+        document.querySelectorAll(".dev-image-badge").forEach(b => b.remove());
+        applyDevModeImageChecks();
+      }
     });
-    devModeObserver.observe(document.body, { childList: true, subtree: true });
+    devModeObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
   }
   function stopDevModeObserver(){
     if(devModeObserver){ devModeObserver.disconnect(); devModeObserver = null; }

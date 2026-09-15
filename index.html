@@ -4091,7 +4091,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.85";
+  const APP_VERSION = "2.86";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5898,6 +5898,19 @@
     }
   }
 
+  // Gemeinsamer Helfer (NEU): versucht zuerst einen frischen Server-Read
+  // (wichtig bei offline Personen, siehe fetchUserDoc), fällt aber auf den
+  // normalen Cache-dann-Server-Lesevorgang zurück, falls der reine
+  // Server-Read fehlschlägt (z.B. eigene Verbindung hakt kurz) - so
+  // scheitert die Aktion nicht komplett nur wegen einer kurzen Störung.
+  async function getDocFreshOrCached(ref){
+    try{
+      return await ref.get({ source: "server" });
+    }catch(err){
+      return await ref.get();
+    }
+  }
+
   async function fetchUserDoc(uid){
     try{
       // WICHTIG: explizit vom Server lesen, nicht aus dem lokalen Cache -
@@ -5905,7 +5918,7 @@
       // gesuchte Person gerade offline ist und es deshalb keinen aktuellen
       // Live-Abgleich für ihr Dokument gab (derselbe Fehler wie vorher bei
       // der Owner-Panel-Suche, betraf aber auch Rangliste & Profile).
-      const doc = await db().collection("users").doc(uid).get({ source: "server" });
+      const doc = await getDocFreshOrCached(db().collection("users").doc(uid));
       if(!doc.exists) return null;
       const data = { ...doc.data(), uid };
       if(data.username){
@@ -8339,7 +8352,13 @@
     merged.friendUsernameCache = { ...(cloudP.friendUsernameCache || {}), ...(localP.friendUsernameCache || {}) };
     merged.dailyGoal = localP.dailyGoal || cloudP.dailyGoal || null;
     merged.avatarData = localP.avatarData || cloudP.avatarData || null;
-    merged.comboCount = Math.max(localP.comboCount || 0, cloudP.comboCount || 0);
+    // WICHTIG (Bugfix): comboCount ist die AKTUELLE Richtig-Serie, die bei
+    // einem Fehler auf 0 zurückfallen MUSS - anders als reine Lebenszeit-
+    // Zähler darf hier NICHT "der höhere Wert gewinnt" gelten, sonst kann
+    // ein älterer, noch nicht synchronisierter Cloud-Stand einen gerade
+    // erfolgten Reset unbemerkt wieder rückgängig machen (das war die
+    // Ursache für den gemeldeten Bug: "manchmal hab ich einfach 29").
+    merged.comboCount = localNewer ? (localP.comboCount || 0) : (cloudP.comboCount || 0);
     merged.comboLossCount = Math.max(localP.comboLossCount || 0, cloudP.comboLossCount || 0);
     merged.hasSeenSharePrompt = !!(localP.hasSeenSharePrompt || cloudP.hasSeenSharePrompt);
     merged.hasEverSetUsername = !!(localP.hasEverSetUsername || cloudP.hasEverSetUsername || cloudP.username);
@@ -10357,7 +10376,7 @@
         row.style.cssText = "padding:8px 0; border-bottom:1px solid rgba(236,72,153,.2); font-size:12.5px; display:flex; align-items:flex-start; gap:8px;";
         row.innerHTML = `
           <div style="flex:1;${isNew ? " font-weight:800;" : " opacity:.65;"}">${isNew ? "🆕 " : ""}<b>@${data.username || "?"}</b> · ${data.email || "?"}${data.referredBy ? `<br><span style="opacity:.75; font-size:11px; color:#a855f7;">👥 eingeladen von @${data.referredBy}</span>` : ""}<br><span style="opacity:.6; font-size:11px;">${formatRelativeTime(data.createdAt)}</span></div>
-          <button class="owner-reg-ban-btn" data-uid="${data.uid}" data-uname="${data.username || "?"}" title="Sperren (7 Tage)" style="background:none; border:none; color:#ef4444; font-size:16px; cursor:pointer; padding:2px 6px; flex-shrink:0;">🚫</button>
+          <button class="owner-reg-ban-btn" data-uid="${data.uid}" data-uname="${data.username || "?"}" title="Für immer sperren + Daten löschen" style="background:none; border:none; color:#ef4444; font-size:16px; cursor:pointer; padding:2px 6px; flex-shrink:0;">🚫</button>
           <button class="owner-reg-dismiss-btn" data-id="${d.id}" style="background:none; border:none; color:var(--text-dim); font-size:16px; font-weight:800; cursor:pointer; padding:2px 6px; flex-shrink:0;">✕</button>
         `;
         listEl.appendChild(row);
@@ -10367,11 +10386,28 @@
           const uid = btn.dataset.uid;
           const uname = btn.dataset.uname;
           if(!uid) return;
-          if(!confirm(`@${uname} für 7 Tage sperren?`)) return;
-          const bannedUntil = Date.now() + 7 * 24 * 60 * 60 * 1000;
+          if(!confirm(`@${uname} für IMMER sperren und alle Daten löschen? Das lässt sich nicht rückgängig machen.`)) return;
           try{
-            await db().collection("users").doc(uid).set({ banned: true, bannedUntil }, { merge: true });
-            showToast(`🚫 @${uname} wurde gesperrt.`);
+            // WICHTIG: Der eigentliche Firebase-Auth-Account kann von hier
+            // aus NICHT wirklich gelöscht werden - das erfordert Admin-
+            // Zugriff (Cloud Functions), den diese App nicht hat. Als
+            // nächstbeste Lösung: für immer sperren (bannedUntil: null,
+            // nicht nur befristet) UND alle Profildaten löschen, damit
+            // buchstäblich nichts vom Account übrig bleibt außer der
+            // reinen Anmeldemöglichkeit (die dann sofort wieder blockiert
+            // wird, sobald sie sich einzuloggen versuchen).
+            await db().collection("users").doc(uid).set({
+              banned: true, bannedUntil: null, accountWiped: true,
+              totalAura: 0, level: 0, levelProgress: 0, streak: 0, lessonsCompleted: 0,
+              username: null, usernameLower: null, unlockedThemes: ["black"],
+              following: [], achievements: {}, streakDates: []
+            });
+            // Den Benutzernamen wieder freigeben, damit er nicht dauerhaft
+            // blockiert bleibt.
+            if(uname && uname !== "?"){
+              db().collection("usernames").doc(normalizeUsername(uname)).delete().catch(() => {});
+            }
+            showToast(`🚫 @${uname} wurde für immer gesperrt und die Daten gelöscht.`);
           }catch(err){
             showToast("Sperren fehlgeschlagen.");
             console.error(err);
@@ -10409,10 +10445,10 @@
       // offline ist und es deshalb keinen aktuellen Live-Abgleich für ihr
       // Dokument gab (gemeldeter Bug: "geht nur, wenn der Spieler online
       // ist").
-      const unameDoc = await db().collection("usernames").doc(uname).get({ source: "server" });
+      const unameDoc = await getDocFreshOrCached(db().collection("usernames").doc(uname));
       if(unameDoc.exists){
         targetUid = unameDoc.data().uid;
-        const userDoc = await db().collection("users").doc(targetUid).get({ source: "server" });
+        const userDoc = await getDocFreshOrCached(db().collection("users").doc(targetUid));
         if(userDoc.exists) data = userDoc.data();
       }
       // Ausweichweg (NEU): falls die Benutzername-Reservierung fehlt oder
@@ -10421,7 +10457,7 @@
       // einer Konto-Neuerstellung), zusätzlich direkt in der users-
       // Sammlung nach dem Benutzernamen suchen.
       if(!data){
-        const fallbackSnap = await db().collection("users").where("usernameLower", "==", uname).get({ source: "server" });
+        const fallbackSnap = await getDocFreshOrCached(db().collection("users").where("usernameLower", "==", uname));
         if(!fallbackSnap.empty){
           targetUid = fallbackSnap.docs[0].id;
           data = fallbackSnap.docs[0].data();
@@ -10870,14 +10906,14 @@
     try{
       let targetUid = null;
       let data = null;
-      const unameDoc = await db().collection("usernames").doc(uname).get({ source: "server" });
+      const unameDoc = await getDocFreshOrCached(db().collection("usernames").doc(uname));
       if(unameDoc.exists){
         targetUid = unameDoc.data().uid;
-        const userDoc = await db().collection("users").doc(targetUid).get({ source: "server" });
+        const userDoc = await getDocFreshOrCached(db().collection("users").doc(targetUid));
         if(userDoc.exists) data = userDoc.data();
       }
       if(!data){
-        const fallbackSnap = await db().collection("users").where("usernameLower", "==", uname).get({ source: "server" });
+        const fallbackSnap = await getDocFreshOrCached(db().collection("users").where("usernameLower", "==", uname));
         if(!fallbackSnap.empty){
           targetUid = fallbackSnap.docs[0].id;
           data = fallbackSnap.docs[0].data();

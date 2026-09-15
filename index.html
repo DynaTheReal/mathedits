@@ -2475,6 +2475,7 @@
       <div class="referral-banner-sub">Lade einen Freund über deinen persönlichen Link ein. Registriert er sich genau darüber, bekommst du 500 Aura geschenkt.</div>
       <div class="add-friend-row" id="referralLinkRow" style="display:none;">
         <input type="text" id="referralLinkInput" class="input-field" readonly>
+        <button class="btn btn-ghost btn-small" id="shareReferralBtn" title="Teilen">📤</button>
         <button class="btn btn-primary btn-small" id="copyReferralBtn">Kopieren</button>
       </div>
       <div id="referralLoggedOutMsg" class="empty-hint" style="display:none; margin-top:2px; text-align:left;">
@@ -3595,6 +3596,7 @@
       <p>Lade einen Freund über deinen persönlichen Einladungslink ein. Registriert er sich genau darüber als neuer Nutzer, bekommst du 500 Aura geschenkt.</p>
       <div class="add-friend-row" id="referralPromoLinkRow" style="display:none; margin-bottom:14px;">
         <input type="text" id="referralPromoLinkInput" class="input-field" readonly>
+        <button class="btn btn-ghost btn-small" id="shareReferralPromoBtn" title="Teilen">📤</button>
         <button class="btn btn-primary btn-small" id="copyReferralPromoBtn">Kopieren</button>
       </div>
       <div id="referralPromoLoggedOutMsg" class="empty-hint" style="display:none; text-align:left; margin-bottom:14px;">
@@ -3721,6 +3723,7 @@
         <div class="referral-banner-sub">Lade einen Freund über deinen persönlichen Link ein. Registriert er sich genau darüber, bekommst du 500 Aura geschenkt und zählst einen Punkt fürs Leaderboard.</div>
         <div class="add-friend-row" id="inviteLbLinkRow" style="display:none;">
           <input type="text" id="inviteLbLinkInput" class="input-field" readonly>
+          <button class="btn btn-ghost btn-small" id="shareInviteLbBtn" title="Teilen">📤</button>
           <button class="btn btn-primary btn-small" id="copyInviteLbBtn">Kopieren</button>
         </div>
         <div id="inviteLbLoggedOutMsg" class="empty-hint" style="display:none; margin-top:2px; text-align:left;">
@@ -3899,6 +3902,16 @@
     <div style="font-size:15px; color:rgba(255,255,255,.8); max-width:340px;">Für dein Feedback, das du gesendet hast - danke, dass du uns hilfst, die App besser zu machen!</div>
   </div>
 
+  <!-- Einladungs-Belohnung als richtiges Popup (NEU), statt nur eines
+       kurzen Toasts - man merkt so viel deutlicher, dass jemand über den
+       eigenen Link beigetreten ist. -->
+  <div id="overlayReferralGift" style="display:none; position:fixed; inset:0; z-index:98500; background:rgba(10,10,16,.75); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px;">
+    <button id="referralGiftCloseBtn" style="position:absolute; top:16px; right:16px; z-index:2; width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.3); color:#fff; font-size:20px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+    <div style="font-size:80px; margin-bottom:18px;">🎉</div>
+    <div style="font-size:26px; font-weight:900; color:#fff; margin-bottom:10px;">Du hast <span id="referralGiftAmount" style="color:#facc15;">500</span> Aura bekommen!</div>
+    <div id="referralGiftNote" style="font-size:15px; color:rgba(255,255,255,.8); max-width:340px;">Jemand hat sich über deinen Einladungslink angemeldet - danke, dass du MathEdits weiterempfiehlst!</div>
+  </div>
+
   <!-- Owner-Broadcast: Nachricht an alle Nutzer (NEU, komplett neu aufgebaut) -->
   <div class="broadcast-toast" id="broadcastToast">
     <div class="broadcast-toast-icon">👤</div>
@@ -4026,7 +4039,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.80";
+  const APP_VERSION = "2.81";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -5627,7 +5640,11 @@
       }
 
       saveProfile();
-      showToast(`🎉 +${totalCredit} Aura durch Einladungen erhalten!${streakRestoredNote}`);
+      $("referralGiftAmount").textContent = totalCredit;
+      $("referralGiftNote").textContent = newIds.length === 1
+        ? `Jemand hat sich über deinen Einladungslink angemeldet - danke, dass du MathEdits weiterempfiehlst!${streakRestoredNote}`
+        : `${newIds.length} Personen haben sich über deinen Einladungslink angemeldet - danke, dass du MathEdits weiterempfiehlst!${streakRestoredNote}`;
+      $("overlayReferralGift").style.display = "flex";
       renderShop();
       renderHome();
     }catch(err){
@@ -10650,7 +10667,13 @@
     const newStreak = Math.max(0, parseInt($("modStreakInput").value, 10) || 0);
     try{
       await db().collection("users").doc(modEditingUid).set({
-        totalAura: newAura, level: newLevel, levelProgress: 0, streak: newStreak, lastLocalSaveAt: Date.now()
+        totalAura: newAura, level: newLevel, levelProgress: 0, streak: newStreak,
+        // WICHTIG: dasselbe Prinzip wie beim Owner-Panel - ohne
+        // ownerLastEditAt konnte das Gerät der Zielperson diese
+        // Bearbeitung beim nächsten eigenen Sync unbemerkt wieder
+        // überschreiben (der genau gemeldete Bug: "offline Leuten kann
+        // ich den Aurastand nicht bearbeiten").
+        lastLocalSaveAt: Date.now(), ownerLastEditAt: Date.now()
       }, { merge: true });
       showToast("✅ Änderungen gespeichert!");
     }catch(err){
@@ -10881,6 +10904,9 @@
   $("announcementCloseBtn").addEventListener("click", dismissAnnouncement);
   $("feedbackGiftCloseBtn").addEventListener("click", () => {
     $("overlayFeedbackGift").style.display = "none";
+  });
+  $("referralGiftCloseBtn").addEventListener("click", () => {
+    $("overlayReferralGift").style.display = "none";
   });
   $("saveAdminActionPasswordBtn").addEventListener("click", saveAdminActionPassword);
 
@@ -11233,9 +11259,30 @@
   });
 
   /* Einladungslink (Shop-Banner + einmaliger Popup) */
+  // Teilen-Funktion (NEU): nutzt die native Teilen-Funktion des Geräts
+  // (z.B. WhatsApp, Nachrichten, ...) statt nur den Link in die
+  // Zwischenablage zu kopieren. Fällt automatisch auf Kopieren zurück,
+  // falls das Gerät/der Browser keine native Teilen-Funktion unterstützt.
+  async function shareReferralLink(){
+    const link = referralLink();
+    const shareText = `Lern mit mir bei MathEdits! 🎯 Melde dich über meinen Link an: ${link}`;
+    if(navigator.share){
+      try{
+        await navigator.share({ title: "MathEdits", text: shareText, url: link });
+      }catch(err){
+        // Person hat das Teilen-Fenster einfach abgebrochen - kein Fehler.
+      }
+    } else if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(link).then(() => showToast("🔗 Link kopiert! (Teilen wird hier nicht unterstützt)")).catch(() => fallbackCopyText(link));
+    } else {
+      fallbackCopyText(link);
+    }
+  }
+
   $("copyReferralBtn").addEventListener("click", () => {
     copyReferralLink($("referralLinkInput"));
   });
+  $("shareReferralBtn").addEventListener("click", shareReferralLink);
   $("openInviteLeaderboardBtn").addEventListener("click", openInviteLeaderboard);
   $("closeInviteLeaderboard").addEventListener("click", () => {
     $("overlayInviteLeaderboard").classList.remove("show");
@@ -11243,9 +11290,11 @@
   $("copyInviteLbBtn").addEventListener("click", () => {
     copyReferralLink($("inviteLbLinkInput"));
   });
+  $("shareInviteLbBtn").addEventListener("click", shareReferralLink);
   $("copyReferralPromoBtn").addEventListener("click", () => {
     copyReferralLink($("referralPromoLinkInput"));
   });
+  $("shareReferralPromoBtn").addEventListener("click", shareReferralLink);
   $("closeReferralPromo").addEventListener("click", () => {
     $("overlayReferralPromo").classList.remove("show");
   });

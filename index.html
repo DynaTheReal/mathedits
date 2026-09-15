@@ -4091,7 +4091,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.87";
+  const APP_VERSION = "2.88";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -4756,19 +4756,26 @@
       return;
     }
     if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
+    const btn = $("feedbackSendBtn");
+    const originalBtnText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Wird gesendet...";
     try{
-      await db().collection("feedback").add({
+      await withTimeout(db().collection("feedback").add({
         text: text.slice(0, 1000),
         fromUid: currentUser.uid,
         fromUsername: profile.username || "?",
         createdAt: Date.now()
-      });
+      }));
       $("feedbackInput").value = "";
       $("overlayFeedback").classList.remove("show");
       showToast("💬 Danke für dein Feedback!");
     }catch(err){
       showToast(friendlyFirestoreError(err));
       console.error("Feedback senden Fehler:", err);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalBtnText;
     }
   }
 
@@ -5666,7 +5673,19 @@
       showToast("Du hast nicht genug Aura dafür.");
       return;
     }
-    if(!donateAuraTargetUid || !firebaseInitialized || !currentUser) return;
+    // WICHTIG (Bugfix): dieser Punkt hat bisher KOMPLETT still "return"
+    // gemacht, ganz ohne Rückmeldung - falls donateAuraTargetUid aus
+    // irgendeinem Grund nicht (mehr) gesetzt war, sah es für die Person
+    // genau so aus wie "der Button tut einfach gar nichts". Jetzt gibt es
+    // für jeden einzelnen Fall eine klare Meldung.
+    if(!donateAuraTargetUid){
+      showToast("⚠️ Kein Ziel für die Spende gefunden - bitte das Profil nochmal öffnen und erneut versuchen.");
+      return;
+    }
+    if(!firebaseInitialized || !currentUser){
+      showToast("Bitte zuerst einloggen.");
+      return;
+    }
     // WICHTIG: sich selbst Aura zu "spenden" darf nie erlaubt sein - das
     // war die eigentliche Lücke, die den Aura-Exploit im Flugmodus
     // ermöglicht hat (lokal wird sofort abgezogen UND über den eigenen
@@ -5679,14 +5698,18 @@
       showToast("Aura spenden geht nur online.");
       return;
     }
+    const btn = $("donateAuraConfirmBtn");
+    const originalBtnText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Wird gespendet...";
     try{
-      await db().collection("auraDonations").add({
+      await withTimeout(db().collection("auraDonations").add({
         fromUid: currentUser.uid,
         fromUsername: profile.username,
         toUid: donateAuraTargetUid,
         amount,
         createdAt: Date.now()
-      });
+      }));
       profile.totalAura -= amount;
       saveProfile();
       renderHome();
@@ -5695,6 +5718,9 @@
     }catch(err){
       showToast(friendlyFirestoreError(err));
       console.error("Aura spenden Fehler:", err);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalBtnText;
     }
   }
 
@@ -12044,8 +12070,28 @@
   // unterscheiden (z.B. wenn das kostenlose Firebase-Kontingent
   // aufgebraucht ist, schlagen ALLE Schreibvorgänge fehl, nicht nur
   // einzelne Funktionen).
+  // Zeitüberschreitungs-Schutz (NEU): manche Firestore-Vorgänge können bei
+  // Verbindungsproblemen unbegrenzt "hängen bleiben", ohne jemals
+  // erfolgreich zu sein ODER einen Fehler zu werfen - das fühlt sich für
+  // die Person an, als würde der Button einfach gar nichts tun (kein
+  // Fehler, keine Rückmeldung). Dieser Helfer bricht nach 10 Sekunden mit
+  // einer klaren Fehlermeldung ab, statt endlos zu warten.
+  function withTimeout(promise, ms = 10000){
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => {
+        const e = new Error("Zeitüberschreitung - keine Antwort vom Server.");
+        e.code = "timeout";
+        reject(e);
+      }, ms))
+    ]);
+  }
+
   function friendlyFirestoreError(err){
     const code = err && err.code;
+    if(code === "timeout"){
+      return "⏱️ Zeitüberschreitung - keine Antwort vom Server. Bitte Internetverbindung prüfen und nochmal versuchen.";
+    }
     if(code === "resource-exhausted"){
       return "⚠️ Firebase-Kontingent aufgebraucht (resource-exhausted). Das kostenlose Kontingent ist wahrscheinlich für heute ausgeschöpft, oder ohne Bezahlplan (Blaze) limitiert - das betrifft dann ALLE Schreibvorgänge, nicht nur diesen.";
     }

@@ -636,7 +636,16 @@
     -webkit-overflow-scrolling:touch;
   }
   .screen.active{display:flex;}
-  #screen-lesson{padding:12px 14px calc(10px + env(safe-area-inset-bottom)); justify-content:space-between;}
+  #screen-lesson{
+    padding:12px 14px calc(10px + env(safe-area-inset-bottom)); justify-content:space-between;
+    background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 65%);
+    border: 1.5px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    border-radius: 24px;
+    box-shadow:
+      0 0 50px color-mix(in srgb, var(--accent) 30%, transparent),
+      0 0 90px color-mix(in srgb, var(--accent) 15%, transparent),
+      inset 0 0 70px color-mix(in srgb, var(--accent) 8%, transparent);
+  }
 
   /* Extra Platz unten bei Screens mit sichtbarer Bottom-Nav, damit Inhalte
      (z.B. der Start-Button) nie unter der Leiste verschwinden. */
@@ -1396,6 +1405,13 @@
     box-shadow:0 0 0 1px rgba(168,85,247,.15), 0 0 24px rgba(168,85,247,.3), 0 0 44px rgba(168,85,247,.12);
     display:flex; flex-direction:row; align-items:center; gap:10px;
   }
+  /* Beta-Einstellung (NEU): Bild als Hintergrund der "Weitermachen"-Karte,
+     genau wie bei der Streak-Karte zu 100% sichtbar ohne abdunkelnde Ebene. */
+  .beta-continue-card.has-bg-image{
+    background-image: url('portal_bg.png');
+    background-size: cover; background-position: center;
+    border-color: rgba(255,255,255,.25);
+  }
   .beta-continue-left{ flex:1; min-width:0; }
   .beta-continue-pill{
     display:inline-flex; align-items:center; gap:6px;
@@ -1458,6 +1474,26 @@
     flex:0 0 142px; border-radius:14px; padding:9px; border:1.5px solid var(--border);
     background:var(--card); overflow:hidden;
   }
+  /* Farbige Glow-Varianten (NEU): wechseln sich reihum ab, damit die
+     Missionen auf dem Home-Bildschirm nicht mehr alle gleich aussehen. */
+  .beta-mission-card.glow-blue{
+    border-color:rgba(59,130,246,.55);
+    background:linear-gradient(160deg, rgba(59,130,246,.14), var(--card) 70%);
+    box-shadow:0 0 22px rgba(59,130,246,.28);
+  }
+  .beta-mission-card.glow-purple{
+    border-color:rgba(168,85,247,.55);
+    background:linear-gradient(160deg, rgba(168,85,247,.14), var(--card) 70%);
+    box-shadow:0 0 22px rgba(168,85,247,.28);
+  }
+  .beta-mission-card.glow-yellow{
+    border-color:rgba(250,204,21,.55);
+    background:linear-gradient(160deg, rgba(250,204,21,.14), var(--card) 70%);
+    box-shadow:0 0 22px rgba(250,204,21,.28);
+  }
+  .beta-mission-card.glow-blue .beta-mission-progress-fill{ background:linear-gradient(90deg, #3b82f6, #60a5fa); }
+  .beta-mission-card.glow-purple .beta-mission-progress-fill{ background:linear-gradient(90deg, #a855f7, #ec4899); }
+  .beta-mission-card.glow-yellow .beta-mission-progress-fill{ background:linear-gradient(90deg, #facc15, #fb923c); }
   .beta-mission-icon{ font-size:15px; margin-bottom:4px; }
   .beta-mission-title{ font-size:12px; font-weight:800; margin-bottom:3px; overflow-wrap:break-word; word-wrap:break-word; }
   .beta-mission-desc{ font-size:9.5px; color:var(--text-dim); line-height:1.25; margin-bottom:5px; overflow-wrap:break-word; word-wrap:break-word; }
@@ -2310,7 +2346,7 @@
       <div class="beta-streak-week-flames" id="betaStreakWeekFlames"></div>
     </div>
 
-    <div class="beta-continue-card layout-beta-only">
+    <div class="beta-continue-card layout-beta-only" id="betaContinueCard">
       <div class="beta-continue-left">
         <div class="beta-continue-pill">🎯 Weitermachen</div>
         <div class="beta-continue-title" id="betaContinueTierName">Kleines Einmaleins</div>
@@ -3213,20 +3249,28 @@
       </div>
     </div>
 
-    <!-- "Peter"-Menü (NEU): Beta-Einstellungen zum Ausprobieren -->
+    <!-- "Beta"-Menü (NEU, vorher "Peter"): Beta-Einstellungen zum Ausprobieren -->
     <div class="overlay" id="overlayPeterMenu">
       <div class="modal-card" style="max-width:360px; text-align:left;">
         <button class="banner-close-x" id="peterMenuClose" style="position:absolute; top:10px; right:12px;">✕</button>
         <div style="font-size:32px; margin-bottom:6px;">🧪</div>
-        <h2 style="margin-bottom:14px;">Peter</h2>
+        <h2 style="margin-bottom:14px;">Beta</h2>
         <div class="d" style="font-weight:800; margin-bottom:10px;">Betaeinstellungen</div>
 
         <div class="settings-row" style="padding:0 0 4px;">
           <div class="info">
-            <div class="t">🖼️ Streak-Hintergrundbild</div>
+            <div class="t">🖼️ New Design – Streak</div>
             <div class="d">Zeigt im Clean-Layout ein Bild als Hintergrund der Streak-Karte auf dem Home-Bildschirm.</div>
           </div>
           <div class="switch" id="streakBgImageSwitch"><div class="knob"></div></div>
+        </div>
+
+        <div class="settings-row" style="padding:4px 0;">
+          <div class="info">
+            <div class="t">🖼️ New Design – Weitermachen</div>
+            <div class="d">Zeigt im Clean-Layout ein Bild als Hintergrund der "Weitermachen"-Karte auf dem Home-Bildschirm.</div>
+          </div>
+          <div class="switch" id="continueBgImageSwitch"><div class="knob"></div></div>
         </div>
       </div>
     </div>
@@ -3270,7 +3314,7 @@
 
     <div class="settings-row" id="peterMenuRow" style="cursor:pointer;">
       <div class="info">
-        <div class="t">🧪 Peter</div>
+        <div class="t">🧪 Beta</div>
         <div class="d">Beta-Einstellungen zum Ausprobieren.</div>
       </div>
       <div style="opacity:.5;">›</div>
@@ -3962,7 +4006,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.70";
+  const APP_VERSION = "2.73";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -4204,7 +4248,8 @@
     answeredPollIds: [], // verhindert mehrfaches Einschicken derselben Umfrage
     appIntroStyle: "math", // "math" (Standard) oder "simple" - welche Start-Animation beim App-Öffnen läuft
     devModeEnabled: false, // Entwicklermodus: zeigt Debug-Beschriftungen an allen Elementen (nur Owner)
-    streakBgImageEnabled: false, // Peter-Betaeinstellung: Bild als Hintergrund der Streak-Karte im Clean-Layout
+    streakBgImageEnabled: false, // Beta-Einstellung (vorher "Peter"): Bild als Hintergrund der Streak-Karte im Clean-Layout
+    continueBgImageEnabled: false, // Beta-Einstellung: Bild als Hintergrund der "Weitermachen"-Karte im Clean-Layout
     layoutStyle: "clean", // "clean" (Standard, frühere "Beta"-Ansicht) oder "simpel" (frühere "Normal"-Ansicht) - welches Home-Layout angezeigt wird
     pendingFeedbackBonusAura: 0, // Aura-Geschenk vom Owner fürs Feedback, das noch als Banner angezeigt werden muss
     todayActiveMs: 0, // heutige Nutzungszeit in der App (Millisekunden)
@@ -6915,6 +6960,7 @@
     $("betaHomeAura").textContent = profile.totalAura;
     $("betaHomeStreak").textContent = profile.streak || 0;
     $("betaStreakCard").classList.toggle("has-bg-image", !!profile.streakBgImageEnabled);
+    $("betaContinueCard").classList.toggle("has-bg-image", !!profile.continueBgImageEnabled);
 
     const n = profile.streak || 0;
     $("betaStreakNum").textContent = n;
@@ -6946,19 +6992,22 @@
     $("betaContinueProgressNum").textContent = `${profile.levelProgress || 0}/${LESSONS_PER_LEVEL}`;
 
     // Missionen (wiederverwendet dieselben Tagesmissionen wie der normale
-    // Missionen-Bildschirm, nur kompakter dargestellt).
+    // Missionen-Bildschirm, nur kompakter dargestellt - jetzt alle 5
+    // Tagesmissionen, jede mit ihrem eigenen Fortschritt).
     const missionsRow = $("betaMissionsRow");
     missionsRow.innerHTML = "";
-    const doneToday = (profile.dailyMissions && profile.dailyMissions.lessonsCompletedToday) || 0;
-    DAILY_MISSION_DEFS.forEach(m => {
-      const complete = doneToday >= m.target;
-      const progressPct = Math.min(100, (doneToday / m.target) * 100);
+    const GLOW_CYCLE = ["glow-blue", "glow-purple", "glow-yellow"];
+    activeMissionDefs().forEach((m, i) => {
+      const progress = missionProgressValue(m);
+      const complete = progress >= m.target;
+      const progressPct = Math.min(100, (progress / m.target) * 100);
+      const unit = m.unit || "Lektion(en)";
       const card = document.createElement("div");
-      card.className = "beta-mission-card";
+      card.className = "beta-mission-card " + GLOW_CYCLE[i % GLOW_CYCLE.length];
       card.innerHTML = `
         <div class="beta-mission-icon">${complete ? "✅" : "🎯"}</div>
         <div class="beta-mission-title">${m.label}</div>
-        <div class="beta-mission-desc">${doneToday}/${m.target} Lektionen heute geschafft.</div>
+        <div class="beta-mission-desc">${Math.min(progress, m.target)}/${m.target} ${unit}</div>
         <div class="beta-mission-progress-track"><div class="beta-mission-progress-fill" style="width:${progressPct}%;"></div></div>
       `;
       card.addEventListener("click", () => { showScreen("missions"); renderMissions(); });
@@ -7178,10 +7227,27 @@
   ======================================================== */
   // Zwei tägliche Missionen: 3 bzw. 5 Lektionen an einem Tag abschließen.
   const DAILY_MISSION_DEFS = [
-    { id: "m3", label: "Mache 3 Lektionen", target: 3 },
-    { id: "m5", label: "Mache 5 Lektionen", target: 5 },
-    { id: "m10", label: "Mache 10 Lektionen", target: 10 }
+    { id: "m3", label: "Mache 3 Lektionen", metric: "lessonsCompletedToday", target: 3, rewardType: "chest" },
+    { id: "m5", label: "Mache 5 Lektionen", metric: "lessonsCompletedToday", target: 5, rewardType: "chest" },
+    { id: "m10", label: "Mache 10 Lektionen", metric: "lessonsCompletedToday", target: 10, rewardType: "chest" }
   ];
+  // Zusätzlicher Pool an Missionen (NEU): jeden Tag werden 2 davon zufällig
+  // (aber für den ganzen Tag fest, per Datum "ausgewürfelt") zu den 3
+  // Standardmissionen dazugenommen - macht 5 Missionen pro Tag insgesamt.
+  const MISSION_POOL = [
+    { id: "p_streak", label: "🔥 Streak sichern", unit: "Lektion(en)", metric: "lessonsCompletedToday", target: 1, rewardType: "chest" },
+    { id: "p_boost", label: "🧠 Mathe-Boost", unit: "Aufgaben", metric: "tasksToday", target: 10, rewardType: "aura", auraAmount: 50 },
+    { id: "p_perfect", label: "🎯 Perfekt", unit: "Aufgaben ohne Fehler am Stück", metric: "maxCorrectStreakToday", target: 10, rewardType: "aura", auraAmount: 75 },
+    { id: "p_speedrun", label: "⚡ Speedrun", unit: "Aufgaben", metric: "tasksToday", target: 15, rewardType: "chest" },
+    { id: "p_aurahunter", label: "💎 Aura Hunter", unit: "Aura", metric: "auraEarnedToday", target: 100, rewardType: "aura", auraAmount: 100 },
+    { id: "p_marathon", label: "📚 Lern-Marathon", unit: "Lektion(en)", metric: "lessonsCompletedToday", target: 2, rewardType: "chest" },
+    { id: "p_noerrors", label: "🛡️ Keine Fehler", unit: "fehlerfreie Lektion(en)", metric: "perfectLessonsToday", target: 1, rewardType: "aura", auraAmount: 125 },
+    { id: "p_allrounder", label: "🧮 Allrounder", unit: "verschiedene Themen", metric: "topicsCountToday", target: 3, rewardType: "chest" },
+    { id: "p_keepgoing", label: "🏃 Weiter geht's", unit: "Aufgaben", metric: "tasksToday", target: 20, rewardType: "aura", auraAmount: 80 },
+    { id: "p_champion", label: "👑 Tages-Champion", unit: "Aufgaben", metric: "tasksToday", target: 30, rewardType: "chest" }
+  ];
+  const ALL_MISSION_DEFS = [...DAILY_MISSION_DEFS, ...MISSION_POOL];
+
   // Aura-Belohnung je Truhen-Stufe (statt Euro, wie besprochen).
   const CHEST_REWARDS = { standard: 50, epic: 100, legendary: 200 };
   const CHEST_TIER_LABEL = { standard: "Standard", epic: "Episch", legendary: "Legendär" };
@@ -7194,51 +7260,128 @@
     return { tier: "standard", attemptsUsed: 0, claimed: false };
   }
 
+  // Wählt deterministisch (per Datum "ausgewürfelt", nicht bei jedem
+  // Neuladen anders) 2 zufällige Missionen aus dem Pool aus.
+  function pickDailyPoolMissions(dateSeed, count){
+    let seed = 0;
+    for(let i = 0; i < dateSeed.length; i++) seed = (seed * 31 + dateSeed.charCodeAt(i)) >>> 0;
+    const arr = [...MISSION_POOL];
+    for(let i = arr.length - 1; i > 0; i--){
+      seed = (seed * 1103515245 + 12345) >>> 0;
+      const j = seed % (i + 1);
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr.slice(0, count);
+  }
+
+  function activeMissionDefs(){
+    const ids = (profile.dailyMissions && profile.dailyMissions.activeMissionIds) || DAILY_MISSION_DEFS.map(m => m.id);
+    return ids.map(id => ALL_MISSION_DEFS.find(m => m.id === id)).filter(Boolean);
+  }
+
+  function missionProgressValue(m){
+    if(!profile.dailyMissions) return 0;
+    if(m.metric === "topicsCountToday") return (profile.dailyMissions.topicsToday || []).length;
+    return profile.dailyMissions[m.metric] || 0;
+  }
+
   // Setzt die Tagesmissionen zurück, wenn ein neuer Tag begonnen hat (oder beim allerersten Mal).
   function ensureDailyMissions(){
     const today = todayStr();
     if(!profile.dailyMissions || profile.dailyMissions.date !== today){
+      const poolPicks = pickDailyPoolMissions(today, 2);
+      const activeMissionIds = [...DAILY_MISSION_DEFS.map(m => m.id), ...poolPicks.map(m => m.id)];
       const chests = {};
-      DAILY_MISSION_DEFS.forEach(m => { chests[m.id] = freshChest(); });
-      profile.dailyMissions = { date: today, lessonsCompletedToday: 0, chests };
+      [...DAILY_MISSION_DEFS, ...poolPicks].forEach(m => {
+        if(m.rewardType !== "aura") chests[m.id] = freshChest();
+      });
+      profile.dailyMissions = {
+        date: today, lessonsCompletedToday: 0, tasksToday: 0, auraEarnedToday: 0,
+        currentCorrectStreak: 0, maxCorrectStreakToday: 0, perfectLessonsToday: 0,
+        topicsToday: [], activeMissionIds, chests, auraClaimedIds: [], notifiedCompleteIds: []
+      };
     }
-    if(!profile.dailyMissions.chests) profile.dailyMissions.chests = {};
-    DAILY_MISSION_DEFS.forEach(m => {
-      const c = profile.dailyMissions.chests[m.id];
-      if(!c){
-        profile.dailyMissions.chests[m.id] = freshChest();
-      } else if(typeof c.attemptsUsed !== "number"){
-        // Migration von einer älteren Truhen-Struktur (opened/legendaryAttempted)
-        c.attemptsUsed = c.opened ? (c.legendaryAttempted ? 2 : 1) : 0;
-        delete c.opened;
-        delete c.legendaryAttempted;
+    // Migrationssicherheit für ältere, schon angefangene Tage / Felder, die
+    // es vorher noch nicht gab.
+    const dm = profile.dailyMissions;
+    if(!dm.chests) dm.chests = {};
+    if(!dm.activeMissionIds){
+      // Migration (NEU): ältere, schon heute angefangene Profile hatten
+      // noch keine Pool-Missionen zugeteilt - dieselbe (fürs Datum feste)
+      // Auswahl nachträglich ergänzen, statt nur bei den 3 Standard-
+      // missionen zu bleiben.
+      const poolPicks = pickDailyPoolMissions(today, 2);
+      dm.activeMissionIds = [...DAILY_MISSION_DEFS.map(m => m.id), ...poolPicks.map(m => m.id)];
+    }
+    if(!dm.auraClaimedIds) dm.auraClaimedIds = [];
+    if(!dm.notifiedCompleteIds) dm.notifiedCompleteIds = [];
+    if(dm.tasksToday === undefined) dm.tasksToday = 0;
+    if(dm.auraEarnedToday === undefined) dm.auraEarnedToday = 0;
+    if(dm.currentCorrectStreak === undefined) dm.currentCorrectStreak = 0;
+    if(dm.maxCorrectStreakToday === undefined) dm.maxCorrectStreakToday = 0;
+    if(dm.perfectLessonsToday === undefined) dm.perfectLessonsToday = 0;
+    if(!dm.topicsToday) dm.topicsToday = [];
+    activeMissionDefs().forEach(m => {
+      if(m.rewardType !== "aura"){
+        const c = dm.chests[m.id];
+        if(!c){
+          dm.chests[m.id] = freshChest();
+        } else if(typeof c.attemptsUsed !== "number"){
+          // Migration von einer älteren Truhen-Struktur (opened/legendaryAttempted)
+          c.attemptsUsed = c.opened ? (c.legendaryAttempted ? 2 : 1) : 0;
+          delete c.opened;
+          delete c.legendaryAttempted;
+        }
       }
     });
   }
 
   // Vom Ergebnis-Screen aus aufgerufen, wenn eine Lektion erfolgreich beendet wurde.
   // Zeigt bewusst KEIN separates Popup - nur ein kurzer Toast plus roter Badge in der Nav.
-  function registerLessonForMissions(){
-    ensureDailyMissions();
-    const wasComplete = {};
-    DAILY_MISSION_DEFS.forEach(m => { wasComplete[m.id] = profile.dailyMissions.lessonsCompletedToday >= m.target; });
-    profile.dailyMissions.lessonsCompletedToday += 1;
-    DAILY_MISSION_DEFS.forEach(m => {
-      const nowComplete = profile.dailyMissions.lessonsCompletedToday >= m.target;
-      if(nowComplete && !wasComplete[m.id]){
+  // Prüft ALLE aktiven Missionen und meldet/vergibt jede, die gerade neu
+  // geschafft wurde - unabhängig davon, WANN/WO der jeweilige Fortschritts-
+  // Wert zuletzt geändert wurde (Aufgaben-Zähler ändern sich z.B. schon
+  // während der Lektion in handleAnswer, nicht erst hier). Ein dauerhaftes
+  // "schon gemeldet"-Flag statt eines Vorher/Nachher-Vergleichs verhindert,
+  // dass Missionen wie "10 Aufgaben lösen" nie als "gerade geschafft"
+  // erkannt werden.
+  function checkAndNotifyMissionCompletions(){
+    if(!profile.dailyMissions) return;
+    if(!profile.dailyMissions.notifiedCompleteIds) profile.dailyMissions.notifiedCompleteIds = [];
+    activeMissionDefs().forEach(m => {
+      if(profile.dailyMissions.notifiedCompleteIds.includes(m.id)) return;
+      if(missionProgressValue(m) < m.target) return;
+      profile.dailyMissions.notifiedCompleteIds.push(m.id);
+      if(m.rewardType === "aura"){
+        if(!profile.dailyMissions.auraClaimedIds.includes(m.id)){
+          profile.dailyMissions.auraClaimedIds.push(m.id);
+          profile.totalAura += m.auraAmount;
+        }
+        showToast(`🎯 Tagesmission geschafft: "${m.label}" · +${m.auraAmount} Aura!`);
+      } else {
         showToast(`🎯 Tagesmission geschafft: "${m.label}" · Truhe wartet in den Missionen!`);
       }
     });
+  }
+
+  function registerLessonForMissions(){
+    ensureDailyMissions();
+    profile.dailyMissions.lessonsCompletedToday += 1;
+    checkAndNotifyMissionCompletions();
     updateMissionsBadge();
   }
 
   function pendingMissionsCount(){
     ensureDailyMissions();
     let count = 0;
-    DAILY_MISSION_DEFS.forEach(m => {
-      const done = profile.dailyMissions.lessonsCompletedToday >= m.target;
-      const chest = profile.dailyMissions.chests[m.id];
-      if(done && chest && !chest.claimed) count++;
+    activeMissionDefs().forEach(m => {
+      const done = missionProgressValue(m) >= m.target;
+      if(m.rewardType === "aura"){
+        if(done && !profile.dailyMissions.auraClaimedIds.includes(m.id)) count++;
+      } else {
+        const chest = profile.dailyMissions.chests[m.id];
+        if(done && chest && !chest.claimed) count++;
+      }
     });
     ACHIEVEMENT_DEFS.forEach(a => {
       const chest = profile.achievements[a.id];
@@ -7322,7 +7465,7 @@
     activeChestSource = { type: sourceType, id: sourceId };
     let title = "Truhe";
     if(sourceType === "mission"){
-      const def = DAILY_MISSION_DEFS.find(m => m.id === sourceId);
+      const def = ALL_MISSION_DEFS.find(m => m.id === sourceId);
       title = def ? def.label : title;
     } else if(sourceType === "achievement"){
       const def = ACHIEVEMENT_DEFS.find(a => a.id === sourceId);
@@ -7711,22 +7854,41 @@
         </div>`;
     }
 
-    DAILY_MISSION_DEFS.forEach(m => {
-      const progress = Math.min(profile.dailyMissions.lessonsCompletedToday, m.target);
+    activeMissionDefs().forEach(m => {
+      const rawProgress = missionProgressValue(m);
+      const progress = Math.min(rawProgress, m.target);
       const done = progress >= m.target;
-      const chest = profile.dailyMissions.chests[m.id];
       const pct = Math.round((progress / m.target) * 100);
+      const unit = m.unit || "Lektion(en)";
 
       const card = document.createElement("div");
       card.className = "mission-card";
-      const notDoneHtml = `<div class="empty-hint" style="margin-top:0; text-align:left;">Schließe noch ${m.target - progress} Lektion(en) ab, um die Truhe freizuschalten.</div>`;
-      const chestHtml = done ? buildChestHtml(chest, "mission", m.id, notDoneHtml) : notDoneHtml;
+
+      let rewardHtml;
+      if(m.rewardType === "aura"){
+        const claimed = profile.dailyMissions.auraClaimedIds.includes(m.id);
+        if(claimed){
+          rewardHtml = `<div class="empty-hint" style="margin-top:0; text-align:left; color:#a855f7;">✅ +${m.auraAmount} Aura erhalten</div>`;
+        } else if(done){
+          // Direkt-Aura-Missionen werden schon beim Abschluss der Lektion
+          // automatisch gutgeschrieben (siehe registerLessonForMissions) -
+          // hier nur zur Sicherheit, falls das aus irgendeinem Grund noch
+          // nicht passiert ist.
+          rewardHtml = `<div class="empty-hint" style="margin-top:0; text-align:left; color:#a855f7;">🎁 +${m.auraAmount} Aura wird gutgeschrieben...</div>`;
+        } else {
+          rewardHtml = `<div class="empty-hint" style="margin-top:0; text-align:left;">Noch ${m.target - progress} ${unit} bis +${m.auraAmount} Aura.</div>`;
+        }
+      } else {
+        const chest = profile.dailyMissions.chests[m.id];
+        const notDoneHtml = `<div class="empty-hint" style="margin-top:0; text-align:left;">Noch ${m.target - progress} ${unit} bis zur Truhe.</div>`;
+        rewardHtml = done ? buildChestHtml(chest, "mission", m.id, notDoneHtml) : notDoneHtml;
+      }
 
       card.innerHTML = `
         <div class="m-title">${m.label}</div>
-        <div class="m-sub">${progress}/${m.target} Lektionen heute</div>
+        <div class="m-sub">${progress}/${m.target} ${unit}</div>
         <div class="mission-progress-track"><div class="mission-progress-fill" style="width:${pct}%;"></div></div>
-        ${chestHtml}
+        ${rewardHtml}
       `;
       wrap.appendChild(card);
     });
@@ -7858,14 +8020,33 @@
       // Unterschiedliche Tage: der aktuellere Tag gewinnt komplett.
       return localDm.date > cloudDm.date ? localDm : cloudDm;
     }
+    // Vereinigung der aktiven Missions-IDs (falls z.B. ein Gerät die Seite
+    // an diesem Tag zuerst geladen hat und die andere die zufälligen
+    // Pool-Missionen noch nicht kennt).
+    const activeMissionIds = Array.from(new Set([
+      ...(localDm.activeMissionIds || DAILY_MISSION_DEFS.map(m => m.id)),
+      ...(cloudDm.activeMissionIds || DAILY_MISSION_DEFS.map(m => m.id))
+    ]));
     const chests = {};
-    DAILY_MISSION_DEFS.forEach(m => {
-      chests[m.id] = pickFurtherChest((localDm.chests || {})[m.id], (cloudDm.chests || {})[m.id]);
+    activeMissionIds.forEach(id => {
+      chests[id] = pickFurtherChest((localDm.chests || {})[id], (cloudDm.chests || {})[id]);
     });
+    const auraClaimedIds = Array.from(new Set([
+      ...(localDm.auraClaimedIds || []), ...(cloudDm.auraClaimedIds || [])
+    ]));
+    const notifiedCompleteIds = Array.from(new Set([
+      ...(localDm.notifiedCompleteIds || []), ...(cloudDm.notifiedCompleteIds || [])
+    ]));
     return {
       date: localDm.date,
       lessonsCompletedToday: Math.max(localDm.lessonsCompletedToday || 0, cloudDm.lessonsCompletedToday || 0),
-      chests
+      tasksToday: Math.max(localDm.tasksToday || 0, cloudDm.tasksToday || 0),
+      auraEarnedToday: Math.max(localDm.auraEarnedToday || 0, cloudDm.auraEarnedToday || 0),
+      currentCorrectStreak: Math.max(localDm.currentCorrectStreak || 0, cloudDm.currentCorrectStreak || 0),
+      maxCorrectStreakToday: Math.max(localDm.maxCorrectStreakToday || 0, cloudDm.maxCorrectStreakToday || 0),
+      perfectLessonsToday: Math.max(localDm.perfectLessonsToday || 0, cloudDm.perfectLessonsToday || 0),
+      topicsToday: Array.from(new Set([...(localDm.topicsToday || []), ...(cloudDm.topicsToday || [])])),
+      activeMissionIds, chests, auraClaimedIds, notifiedCompleteIds
     };
   }
 
@@ -10885,6 +11066,7 @@
   $("peterMenuRow").addEventListener("click", () => {
     $("overlayPeterMenu").classList.add("show");
     $("streakBgImageSwitch").classList.toggle("on", !!profile.streakBgImageEnabled);
+    $("continueBgImageSwitch").classList.toggle("on", !!profile.continueBgImageEnabled);
   });
   $("peterMenuClose").addEventListener("click", () => {
     $("overlayPeterMenu").classList.remove("show");
@@ -10894,6 +11076,12 @@
     saveProfile();
     $("streakBgImageSwitch").classList.toggle("on", profile.streakBgImageEnabled);
     $("betaStreakCard").classList.toggle("has-bg-image", profile.streakBgImageEnabled);
+  });
+  $("continueBgImageSwitch").addEventListener("click", () => {
+    profile.continueBgImageEnabled = !profile.continueBgImageEnabled;
+    saveProfile();
+    $("continueBgImageSwitch").classList.toggle("on", profile.continueBgImageEnabled);
+    $("betaContinueCard").classList.toggle("has-bg-image", profile.continueBgImageEnabled);
   });
 
   $("installAppRow").addEventListener("click", () => {
@@ -12339,6 +12527,23 @@
       }
       lesson.missedCurrentQuestion = false;
 
+      // Missions-Fortschritt (NEU): gelöste Aufgaben heute, längste
+      // Richtig-Serie heute (für "Perfekt"-Mission) und welche Themen
+      // heute schon geübt wurden (für "Allrounder"-Mission).
+      if(!lesson.isDuel && !lesson.isTimesTablePractice){
+        ensureDailyMissions();
+        profile.dailyMissions.tasksToday = (profile.dailyMissions.tasksToday || 0) + 1;
+        profile.dailyMissions.currentCorrectStreak = (profile.dailyMissions.currentCorrectStreak || 0) + 1;
+        profile.dailyMissions.maxCorrectStreakToday = Math.max(
+          profile.dailyMissions.maxCorrectStreakToday || 0,
+          profile.dailyMissions.currentCorrectStreak
+        );
+        if(!profile.dailyMissions.topicsToday) profile.dailyMissions.topicsToday = [];
+        if(lesson.tier && lesson.tier.name && !profile.dailyMissions.topicsToday.includes(lesson.tier.name)){
+          profile.dailyMissions.topicsToday.push(lesson.tier.name);
+        }
+      }
+
       // Multiplikator für 2x Aura Prüfen
       const hasDoubleAura = profile.inventory && profile.inventory.doubleAuraUntil > Date.now();
       const multiplier = hasDoubleAura ? 2 : 1;
@@ -12367,6 +12572,7 @@
       }
     } else if(isSlow){
       profile.totalMistakes = (profile.totalMistakes || 0) + 1;
+      if(!lesson.isDuel && !lesson.isTimesTablePractice && profile.dailyMissions) profile.dailyMissions.currentCorrectStreak = 0;
       if(!lesson.noLifeLoss){
         loseLife();
         if(profile.lives <= 0 && !isSuperUser()) pendingGameOverScare = true;
@@ -12379,6 +12585,7 @@
       setTimeout(() => showMemeOverlay(isCorrect, showMs), 150);
     } else {
       profile.totalMistakes = (profile.totalMistakes || 0) + 1;
+      if(!lesson.isDuel && !lesson.isTimesTablePractice && profile.dailyMissions) profile.dailyMissions.currentCorrectStreak = 0;
       if(!lesson.noLifeLoss){
         loseLife();
         if(profile.lives <= 0 && !isSuperUser()) pendingGameOverScare = true;
@@ -12517,6 +12724,20 @@
       }
       profile.lessonsCompleted += 1;
       registerStreakActivity();
+      // Missions-Fortschritt (NEU): erst ALLE Werte für diese Lektion
+      // aktualisieren (fehlerfreie Lektion, verdiente Aura), dann EINMAL
+      // registerLessonForMissions() aufrufen - sonst würden Missionen wie
+      // "Perfekt" oder "Aura Hunter" immer erst eine Lektion zu spät als
+      // "gerade geschafft" erkannt.
+      if(lesson.correct === QUESTIONS_PER_LESSON && !lesson.isDuel && !lesson.isTimesTablePractice){
+        ensureDailyMissions();
+        profile.dailyMissions.perfectLessonsToday = (profile.dailyMissions.perfectLessonsToday || 0) + 1;
+      }
+      const auraGainedForMissions = lesson.aura + perfectBonus;
+      if(!lesson.isDuel && !lesson.isTimesTablePractice && auraGainedForMissions > 0){
+        ensureDailyMissions();
+        profile.dailyMissions.auraEarnedToday = (profile.dailyMissions.auraEarnedToday || 0) + auraGainedForMissions;
+      }
       registerLessonForMissions();
       playSuccessJingle();
     } else {

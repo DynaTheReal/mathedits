@@ -3127,6 +3127,7 @@
         <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:12px; padding:10px; margin-top:14px;">
           <div class="d" style="font-weight:800; margin-bottom:8px; color:#ef4444;">🚫 Konto sperren</div>
           <div id="ownerBanStatus" class="d" style="margin-bottom:8px;">Aktuell nicht gesperrt.</div>
+          <div id="ownerIpBanStatus" class="d" style="margin-bottom:8px; font-size:11.5px; opacity:.8;"></div>
           <select id="ownerBanDurationSelect" class="input-field" style="margin-bottom:8px;">
             <option value="1">1 Tag</option>
             <option value="3">3 Tage</option>
@@ -3137,6 +3138,10 @@
           <div style="display:flex; gap:8px;">
             <button class="btn btn-primary btn-small" id="ownerBanBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Sperren</button>
             <button class="btn btn-ghost btn-small" id="ownerUnbanBtn" style="flex:1;">Entsperren</button>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="btn btn-primary btn-small" id="ownerIpBanBtn" style="flex:1; background:#7f1d1d; border-color:#7f1d1d;">🌐 IP sperren</button>
+            <button class="btn btn-ghost btn-small" id="ownerIpUnbanBtn" style="flex:1;">IP entsperren</button>
           </div>
         </div>
 
@@ -3634,6 +3639,18 @@
       <button class="btn btn-primary" id="friendProfileAddBtn" style="margin-top:18px; display:none;">➕ Freund hinzufügen</button>
       <button class="btn btn-primary" id="friendProfileMessageBtn" style="margin-top:10px; display:none;">💬 Nachrichten</button>
       <button class="btn btn-primary" id="friendProfileDonateBtn" style="margin-top:10px; display:none;">🎁 Aura spenden</button>
+
+      <!-- Owner-Moderation direkt vom Profil aus (NEU) -->
+      <div id="friendProfileOwnerModBox" style="display:none; background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:12px; padding:10px; margin-top:14px; text-align:left;">
+        <div class="d" style="font-weight:800; margin-bottom:8px; color:#ef4444;">🚫 Owner-Moderation</div>
+        <div id="friendProfileBanStatus" class="d" style="margin-bottom:8px;">Aktuell nicht gesperrt.</div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary btn-small" id="friendProfileBanBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Sperren (7 Tage)</button>
+          <button class="btn btn-ghost btn-small" id="friendProfileUnbanBtn" style="flex:1;">Entsperren</button>
+        </div>
+        <button class="btn btn-primary btn-small" id="friendProfileIpBanBtn" style="width:100%; margin-top:8px; background:#7f1d1d; border-color:#7f1d1d;">🌐 IP + Konto sperren (7 Tage)</button>
+      </div>
+
       <button class="btn btn-ghost" id="closeFriendProfile" style="margin-top:10px;">Schließen</button>
     </div>
   </div>
@@ -4039,7 +4056,70 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.81";
+  const APP_VERSION = "2.83";
+
+  // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
+  // im localStorage gespeichert - unabhängig von Accounts, Logins oder
+  // Registrierungen. Wird genutzt, um zu verhindern, dass auf demselben
+  // Gerät mehrere Accounts NEU REGISTRIERT werden (Einloggen mit einem
+  // bestehenden Account bleibt davon komplett unberührt).
+  const INSTALL_ID_KEY = "mathedits_install_id";
+  function getInstallId(){
+    try{
+      let id = localStorage.getItem(INSTALL_ID_KEY);
+      if(!id){
+        id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ("install-" + Date.now() + "-" + Math.random().toString(36).slice(2));
+        localStorage.setItem(INSTALL_ID_KEY, id);
+      }
+      return id;
+    }catch(e){
+      return null; // z.B. privater Modus ohne localStorage-Zugriff
+    }
+  }
+
+  // IP-Adresse ermitteln (NEU, für IP-Bann): die öffentliche IP-Adresse ist
+  // dem Browser selbst nicht direkt zugänglich - dafür wird ein externer,
+  // kostenloser Dienst (ipify.org) abgefragt. Wichtig zu wissen: IP-Adressen
+  // können sich ändern (z.B. bei Mobilfunk, VPN, neuem WLAN) - ein IP-Bann
+  // ist deshalb kein hundertprozentig sicherer Schutz, sondern eine
+  // zusätzliche Hürde neben dem normalen Konto-Bann.
+  let cachedPublicIp = null;
+  async function fetchPublicIp(){
+    if(cachedPublicIp) return cachedPublicIp;
+    try{
+      const res = await fetch("https://api.ipify.org?format=json");
+      const data = await res.json();
+      cachedPublicIp = data.ip || null;
+      return cachedPublicIp;
+    }catch(err){
+      console.error("IP-Adresse abrufen fehlgeschlagen:", err);
+      return null;
+    }
+  }
+
+  // IP-Bann prüfen und aktuelle IP am Profil vermerken (NEU).
+  async function checkIpBanAndRecord(uid){
+    const ip = await fetchPublicIp();
+    if(!ip) return;
+    try{
+      const banDoc = await db().collection("bannedIps").doc(ip).get();
+      if(banDoc.exists){
+        const data = banDoc.data();
+        if(data.bannedUntil === null || data.bannedUntil === undefined || data.bannedUntil > Date.now()){
+          $("bannedUntilText").textContent = (data.bannedUntil === null || data.bannedUntil === undefined)
+            ? "Du bist für immer gesperrt."
+            : `Gesperrt bis ${new Date(data.bannedUntil).toLocaleString("de-DE")}.`;
+          $("overlayBanned").style.display = "flex";
+          return;
+        }
+      }
+      // Kein aktiver IP-Bann - die aktuelle IP am eigenen Profil vermerken,
+      // damit der Owner sie beim Bannen später sehen und mitnutzen kann.
+      db().collection("users").doc(uid).set({ lastKnownIp: ip }, { merge: true }).catch(() => {});
+    }catch(err){
+      console.error("IP-Bann-Prüfung Fehler:", err);
+    }
+  }
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -4611,7 +4691,8 @@
   async function logRegistrationForOwner(uid, email, username){
     try{
       await db().collection("registrationEvents").add({
-        uid, email: email || "", username: username || "", createdAt: Date.now()
+        uid, email: email || "", username: username || "", createdAt: Date.now(),
+        referredBy: pendingReferralCode || null
       });
     }catch(err){
       console.error("Registrierungs-Log Fehler:", err);
@@ -7244,6 +7325,26 @@
     } else {
       donateBtn.style.display = "none";
       donateBtn.onclick = null;
+    }
+
+    // Owner-Moderation direkt vom Profil aus (NEU): nur sichtbar, wenn
+    // der Owner ein FREMDES Profil ansieht.
+    const ownerModBox = $("friendProfileOwnerModBox");
+    if(!isOwnProfile && isOwner() && u.uid){
+      ownerModBox.style.display = "block";
+      friendProfileModTargetUid = u.uid;
+      friendProfileModTargetIp = u.lastKnownIp || null;
+      if(u.banned && (u.bannedUntil === null || u.bannedUntil > Date.now())){
+        $("friendProfileBanStatus").textContent = u.bannedUntil === null
+          ? "🚫 Aktuell für immer gesperrt."
+          : `🚫 Aktuell gesperrt bis ${new Date(u.bannedUntil).toLocaleString("de-DE")}.`;
+      } else {
+        $("friendProfileBanStatus").textContent = "Aktuell nicht gesperrt.";
+      }
+    } else {
+      ownerModBox.style.display = "none";
+      friendProfileModTargetUid = null;
+      friendProfileModTargetIp = null;
     }
 
     $("overlayFriendProfile").classList.add("show");
@@ -10109,6 +10210,9 @@
     toxic: "Toxic", crimson: "Crimson", minimal: "Minimal"
   };
   let ownerEditingUid = null;
+  let ownerEditingTargetIp = null;
+  let friendProfileModTargetUid = null;
+  let friendProfileModTargetIp = null;
   let ownerEditingOldUsernameLower = null;
 
   // Zeigt dem Owner, wer sich seit dem letzten Besuch neu registriert hat -
@@ -10184,7 +10288,7 @@
 
   function showOwnerRegNotifyBanner(data){
     pendingOwnerRegNotify = data;
-    $("ownerRegNotifyBannerText").innerHTML = `<b>@${data.username || "Jemand"}</b> hat sich registriert<br>${data.email || ""}`;
+    $("ownerRegNotifyBannerText").innerHTML = `<b>@${data.username || "Jemand"}</b> hat sich registriert<br>${data.email || ""}${data.referredBy ? `<br>👥 eingeladen von @${data.referredBy}` : ""}`;
     $("ownerRegNotifyBanner").classList.add("show");
     // Bleibt bewusst stehen (wie die Nachrichten-Benachrichtigung), bis man
     // draufklickt - damit sie auch beim späteren Öffnen der App noch da ist.
@@ -10217,7 +10321,7 @@
         row.className = "owner-reg-row";
         row.style.cssText = "padding:8px 0; border-bottom:1px solid rgba(236,72,153,.2); font-size:12.5px; display:flex; align-items:flex-start; gap:8px;";
         row.innerHTML = `
-          <div style="flex:1;${isNew ? " font-weight:800;" : " opacity:.65;"}">${isNew ? "🆕 " : ""}<b>@${data.username || "?"}</b> · ${data.email || "?"}<br><span style="opacity:.6; font-size:11px;">${formatRelativeTime(data.createdAt)}</span></div>
+          <div style="flex:1;${isNew ? " font-weight:800;" : " opacity:.65;"}">${isNew ? "🆕 " : ""}<b>@${data.username || "?"}</b> · ${data.email || "?"}${data.referredBy ? `<br><span style="opacity:.75; font-size:11px; color:#a855f7;">👥 eingeladen von @${data.referredBy}</span>` : ""}<br><span style="opacity:.6; font-size:11px;">${formatRelativeTime(data.createdAt)}</span></div>
           <button class="owner-reg-dismiss-btn" data-id="${d.id}" style="background:none; border:none; color:var(--text-dim); font-size:16px; font-weight:800; cursor:pointer; padding:2px 6px; flex-shrink:0;">✕</button>
         `;
         listEl.appendChild(row);
@@ -10275,6 +10379,7 @@
 
       ownerEditingUid = targetUid;
       ownerEditingOldUsernameLower = normalizeUsername(data.username || uname);
+      ownerEditingTargetIp = data.lastKnownIp || null;
       $("ownerTargetLabel").textContent = "@" + (data.username || uname);
       $("ownerAuraInput").value = data.totalAura || 0;
       $("ownerLevelInput").value = data.level || 0;
@@ -10287,6 +10392,9 @@
       } else {
         $("ownerBanStatus").textContent = "Aktuell nicht gesperrt.";
       }
+      $("ownerIpBanStatus").textContent = ownerEditingTargetIp
+        ? `Zuletzt bekannte IP: ${ownerEditingTargetIp}`
+        : "Keine bekannte IP-Adresse für diese Person hinterlegt (noch nicht seit dem letzten Update eingeloggt).";
       $("ownerModStatus").textContent = data.isMod ? "🛡️ Ist aktuell Mod." : "Aktuell kein Mod.";
 
       const unlockedThemes = data.unlockedThemes || ["black"];
@@ -10423,6 +10531,93 @@
       showToast("✅ Konto entsperrt.");
     }catch(err){
       showToast("Entsperren fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  // IP-Bann (NEU): sperrt zusätzlich zum normalen Konto-Bann auch die
+  // zuletzt bekannte IP-Adresse dieser Person - damit werden auch NEUE
+  // Accounts blockiert, die von derselben IP-Adresse aus registriert
+  // werden. Wichtig: IP-Adressen ändern sich gelegentlich (Mobilfunk,
+  // VPN, neues WLAN) - das ist eine zusätzliche Hürde, kein hundert-
+  // prozentig sicherer Schutz.
+  async function ownerIpBanUser(){
+    if(!ownerEditingUid || !isOwner()) return;
+    if(!ownerEditingTargetIp){
+      showToast("⚠️ Keine bekannte IP-Adresse für diese Person vorhanden.");
+      return;
+    }
+    const duration = $("ownerBanDurationSelect").value;
+    const bannedUntil = duration === "forever" ? null : (Date.now() + parseInt(duration, 10) * 24 * 60 * 60 * 1000);
+    try{
+      await db().collection("bannedIps").doc(ownerEditingTargetIp).set({
+        bannedUntil, bannedUid: ownerEditingUid, bannedAt: Date.now()
+      });
+      await db().collection("users").doc(ownerEditingUid).set({ banned: true, bannedUntil }, { merge: true });
+      $("ownerBanStatus").textContent = bannedUntil === null
+        ? "🚫 Aktuell für immer gesperrt."
+        : `🚫 Aktuell gesperrt bis ${new Date(bannedUntil).toLocaleString("de-DE")}.`;
+      showToast(`🌐🚫 IP-Adresse ${ownerEditingTargetIp} und Konto gesperrt.`);
+    }catch(err){
+      showToast("IP-Sperren fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  async function ownerIpUnbanUser(){
+    if(!ownerEditingTargetIp || !isOwner()) return;
+    try{
+      await db().collection("bannedIps").doc(ownerEditingTargetIp).delete();
+      showToast(`✅ IP-Adresse ${ownerEditingTargetIp} entsperrt.`);
+    }catch(err){
+      showToast("IP-Entsperren fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  // Owner-Moderation direkt vom Profil aus (NEU) - nutzt denselben
+  // 7-Tage-Standardwert für schnelles Handeln direkt beim Profil-Ansehen,
+  // ohne extra ins Owner-Panel wechseln zu müssen.
+  const FRIEND_PROFILE_BAN_DAYS = 7;
+  async function friendProfileBanUser(){
+    if(!friendProfileModTargetUid || !isOwner()) return;
+    const bannedUntil = Date.now() + FRIEND_PROFILE_BAN_DAYS * 24 * 60 * 60 * 1000;
+    try{
+      await db().collection("users").doc(friendProfileModTargetUid).set({ banned: true, bannedUntil }, { merge: true });
+      $("friendProfileBanStatus").textContent = `🚫 Aktuell gesperrt bis ${new Date(bannedUntil).toLocaleString("de-DE")}.`;
+      showToast("🚫 Konto gesperrt.");
+    }catch(err){
+      showToast("Sperren fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+  async function friendProfileUnbanUser(){
+    if(!friendProfileModTargetUid || !isOwner()) return;
+    try{
+      await db().collection("users").doc(friendProfileModTargetUid).set({ banned: false, bannedUntil: null }, { merge: true });
+      $("friendProfileBanStatus").textContent = "Aktuell nicht gesperrt.";
+      showToast("✅ Konto entsperrt.");
+    }catch(err){
+      showToast("Entsperren fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+  async function friendProfileIpBanUser(){
+    if(!friendProfileModTargetUid || !isOwner()) return;
+    if(!friendProfileModTargetIp){
+      showToast("⚠️ Keine bekannte IP-Adresse für diese Person vorhanden.");
+      return;
+    }
+    const bannedUntil = Date.now() + FRIEND_PROFILE_BAN_DAYS * 24 * 60 * 60 * 1000;
+    try{
+      await db().collection("bannedIps").doc(friendProfileModTargetIp).set({
+        bannedUntil, bannedUid: friendProfileModTargetUid, bannedAt: Date.now()
+      });
+      await db().collection("users").doc(friendProfileModTargetUid).set({ banned: true, bannedUntil }, { merge: true });
+      $("friendProfileBanStatus").textContent = `🚫 Aktuell gesperrt bis ${new Date(bannedUntil).toLocaleString("de-DE")}.`;
+      showToast(`🌐🚫 IP-Adresse ${friendProfileModTargetIp} und Konto gesperrt.`);
+    }catch(err){
+      showToast("IP-Sperren fehlgeschlagen.");
       console.error(err);
     }
   }
@@ -10840,6 +11035,11 @@
   $("ownerSaveBtn").addEventListener("click", ownerSaveChanges);
   $("ownerBanBtn").addEventListener("click", ownerBanUser);
   $("ownerUnbanBtn").addEventListener("click", ownerUnbanUser);
+  $("ownerIpBanBtn").addEventListener("click", ownerIpBanUser);
+  $("ownerIpUnbanBtn").addEventListener("click", ownerIpUnbanUser);
+  $("friendProfileBanBtn").addEventListener("click", friendProfileBanUser);
+  $("friendProfileUnbanBtn").addEventListener("click", friendProfileUnbanUser);
+  $("friendProfileIpBanBtn").addEventListener("click", friendProfileIpBanUser);
   $("siteStopBtn").addEventListener("click", ownerStopSite);
   $("siteResumeBtn").addEventListener("click", ownerResumeSite);
   $("ownerMakeModBtn").addEventListener("click", ownerMakeMod);
@@ -11616,6 +11816,13 @@
               $("overlayBanned").style.display = "none";
             }
 
+            // IP-Bann (NEU): läuft parallel im Hintergrund, blockiert den
+            // Start also nicht - schlägt aber trotzdem sofort den
+            // Sperr-Bildschirm auf, sobald erkannt wird, dass die aktuelle
+            // IP-Adresse gesperrt ist (z.B. bei einem neuen Account von
+            // derselben Person auf demselben Netzwerk).
+            checkIpBanAndRecord(currentUser.uid);
+
             const normalizedCloud = {
               ...DEFAULT_PROFILE,
               ...cloudData,
@@ -11803,12 +12010,33 @@
       .catch((err) => alert(friendlyAuthError(err)));
   });
 
-  $("registerBtn").addEventListener("click", () => {
+  $("registerBtn").addEventListener("click", async () => {
     if(!firebaseInitialized) return showToast("Firebase API Key nicht konfiguriert");
     const pass = $("authPassword").value;
     const uname = $("authUsername").value;
     if(!isValidUsername(normalizeUsername(uname))){
       return alert("Bitte gib einen gültigen Benutzernamen ein (3-20 Zeichen: a-z, 0-9, _).");
+    }
+    // NEU: prüft anhand der Installations-ID, ob auf diesem Gerät schon
+    // einmal ein Account registriert wurde - falls ja, wird die
+    // Neu-Registrierung blockiert. Das Einloggen mit einem bestehenden
+    // Account bleibt davon komplett unberührt (das läuft über einen
+    // eigenen Button/Pfad, siehe oben).
+    const installId = getInstallId();
+    if(installId){
+      try{
+        const installDoc = await db().collection("installationRegistrations").doc(installId).get();
+        if(installDoc.exists){
+          const existingUsername = installDoc.data().username;
+          alert(`Auf diesem Gerät wurde bereits ein Account registriert${existingUsername ? ` (@${existingUsername})` : ""}. Bitte logge dich stattdessen mit diesem Account ein.`);
+          return;
+        }
+      }catch(err){
+        console.error("Installations-ID-Prüfung Fehler:", err);
+        // Bei einem Prüf-Fehler (z.B. keine Internetverbindung) wird die
+        // Registrierung trotzdem NICHT blockiert - lieber einmal zu viel
+        // durchlassen, als echte Neu-Nutzer grundlos auszusperren.
+      }
     }
     // WICHTIG: vor einer Neu-Registrierung den lokalen Profilspeicher
     // komplett zurücksetzen. Sonst könnten Reste eines vorherigen Accounts
@@ -11824,8 +12052,18 @@
           await reserveUsername(cred.user.uid, uname);
           showToast("Account erstellt!");
           saveProfile();
-          processPendingReferral(cred.user.uid, uname, normalizeUsername(uname));
+          // Installations-ID jetzt als "hat hier schon registriert" vermerken.
+          if(installId){
+            db().collection("installationRegistrations").doc(installId).set({
+              uid: cred.user.uid, username: uname, registeredAt: Date.now()
+            }).catch(err => console.error("Installations-ID speichern Fehler:", err));
+          }
+          // WICHTIG: logRegistrationForOwner MUSS vor processPendingReferral
+          // aufgerufen werden - letzteres setzt pendingReferralCode sofort
+          // (synchron, noch vor der ersten "await") auf null zurück, sonst
+          // wäre der Empfehler beim Owner-Log immer leer.
           logRegistrationForOwner(cred.user.uid, usernameToSyntheticEmail(uname), uname);
+          processPendingReferral(cred.user.uid, uname, normalizeUsername(uname));
         }catch(err){
           alert(friendlyAuthError(err));
         } finally {

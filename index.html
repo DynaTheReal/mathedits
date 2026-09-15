@@ -2325,6 +2325,7 @@
     <div class="topbar">
       <div class="brand"><span class="dot"></span>MathEdits</div>
       <div class="topbar-actions">
+        <div class="theme-toggle" id="duelLobbyBtn" title="Duell-Lobby">⚔️</div>
         <div class="theme-toggle" id="earthLiveBtn" title="EarthLive">🌐</div>
         <div class="theme-toggle" id="settingsBtn">⚙️</div>
         <div class="theme-toggle" id="themeToggle">🌙</div>
@@ -2402,7 +2403,7 @@
 
     <div class="hero layout-normal-only">
       <div class="hero-top-row">
-        <button class="theme-toggle" id="duelLobbyBtn" title="Duell-Lobby">⚔️</button>
+        <button class="theme-toggle" id="duelLobbyBtnLegacy" title="Duell-Lobby">⚔️</button>
         <div class="hero-flame" id="heroFlame">
           <div class="flame-wrap">
             <span class="flame-icon">🔥</span>
@@ -4007,7 +4008,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.77";
+  const APP_VERSION = "2.78";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -11179,6 +11180,8 @@
   });
 
   $("duelLobbyBtn").addEventListener("click", openDuelLobby);
+  $("duelLobbyBtnLegacy").addEventListener("click", openDuelLobby);
+  $("cancelDuelInviteBtn").addEventListener("click", cancelDuelInvite);
   $("duelLobbyBack").addEventListener("click", leaveDuelLobby);
   $("duelLobbyLeaveBtn").addEventListener("click", leaveDuelLobby);
   $("duelLobbyStartBtn").addEventListener("click", startDuelLobby);

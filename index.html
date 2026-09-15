@@ -1530,7 +1530,26 @@
     font-size:20px; border:2.5px solid var(--border); background:var(--card);
   }
   .beta-lernwelt-circle.done{ border-color:#a855f7; background:rgba(168,85,247,.15); }
-  .beta-lernwelt-circle.active{ border-color:#22c55e; background:rgba(34,197,94,.15); }
+  /* "Ranked" (NEU): die aktuell aktive Stufe bekommt einen animierten
+     Regenbogen-Rand statt nur Grün, damit sie sofort als "das bist du
+     gerade" auffällt. */
+  .beta-lernwelt-circle.active{
+    border:2.5px solid transparent;
+    background:
+      var(--card) padding-box,
+      conic-gradient(from 0deg, #ff3b3b, #ffae00, #fff700, #4dff4d, #00e5ff, #3b7bff, #c93bff, #ff3b3b) border-box;
+    animation: rankedRainbowSpin 3.5s linear infinite;
+    box-shadow: 0 0 16px rgba(255,255,255,.35);
+  }
+  @keyframes rankedRainbowSpin{
+    0%{ filter:hue-rotate(0deg); }
+    100%{ filter:hue-rotate(360deg); }
+  }
+  .beta-lernwelt-ranked-label{
+    font-size:8px; font-weight:900; letter-spacing:.4px; margin-top:2px;
+    background:linear-gradient(90deg, #ff3b3b, #ffae00, #fff700, #4dff4d, #00e5ff, #3b7bff, #c93bff);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
   .beta-lernwelt-circle.locked{ opacity:.45; }
   .beta-lernwelt-name{ font-size:10.5px; font-weight:700; margin-top:3px; text-align:center; }
   .beta-lernwelt-lvl{ font-size:9px; color:var(--text-dim); }
@@ -2233,6 +2252,9 @@
   .lb-tab.active{
     background:var(--accent); color:var(--accent-text) !important; opacity:1;
   }
+  .lb-sort-btn.active{
+    background:var(--accent) !important; color:var(--accent-text) !important; border-color:var(--accent) !important;
+  }
 
   /* ---------- profil social tabs (NEU) ---------- */
   .social-tabs{
@@ -2478,15 +2500,6 @@
         <div class="item-desc">Füllt sofort 1 Leben auf.</div>
       </div>
       <button class="buy-btn" id="buyLife">100 Aura</button>
-    </div>
-
-    <div class="shop-item item-bg-pattern" data-bg-icon="⏱️">
-      <div class="item-icon">⏱️</div>
-      <div class="item-info">
-        <div class="item-title">Zeit-Booster</div>
-        <div class="item-desc">Doppelte Zeit bei schwierigen Aufgaben in der nächsten Lektion.</div>
-      </div>
-      <button class="buy-btn" id="buyTimeBooster">200 Aura</button>
     </div>
 
     <div class="shop-item item-bg-pattern" data-bg-icon="🔁">
@@ -2805,6 +2818,11 @@
     <div class="lb-tabs">
       <div class="lb-tab" id="lbTabFriends">👥 Freunde</div>
       <div class="lb-tab active" id="lbTabGlobal">🌍 Global</div>
+    </div>
+
+    <div style="display:flex; gap:8px; margin:10px 0 4px;">
+      <button class="btn btn-ghost btn-small lb-sort-btn active" id="lbSortLevel" style="flex:1;">🎯 Level</button>
+      <button class="btn btn-ghost btn-small lb-sort-btn" id="lbSortAura" style="flex:1;">💎 Aura</button>
     </div>
 
     <div id="leaderboardLoggedOutMsg" class="empty-hint" style="display:none;">
@@ -4008,7 +4026,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.79";
+  const APP_VERSION = "2.80";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -4181,7 +4199,6 @@
     unlockedThemes: ["black"], // Freigeschaltete Designs
     inventory: {
       icecube: 0,
-      timeBooster: 0,
       doubleAuraUntil: 0
     },
     longMode: false,
@@ -5750,7 +5767,12 @@
 
   async function fetchUserDoc(uid){
     try{
-      const doc = await db().collection("users").doc(uid).get();
+      // WICHTIG: explizit vom Server lesen, nicht aus dem lokalen Cache -
+      // sonst können hier veraltete Werte (z.B. Aura) auftauchen, wenn die
+      // gesuchte Person gerade offline ist und es deshalb keinen aktuellen
+      // Live-Abgleich für ihr Dokument gab (derselbe Fehler wie vorher bei
+      // der Owner-Panel-Suche, betraf aber auch Rangliste & Profile).
+      const doc = await db().collection("users").doc(uid).get({ source: "server" });
       if(!doc.exists) return null;
       const data = { ...doc.data(), uid };
       if(data.username){
@@ -6600,6 +6622,7 @@
 
 
   let leaderboardTab = "global"; // "friends" | "global"
+  let leaderboardSortBy = "level"; // "level" | "aura"
   const GLOBAL_LEADERBOARD_LIMIT = 50;
 
   function renderLeaderboardRows(entries, meUid){
@@ -6618,7 +6641,8 @@
       const deleteBtnHtml = ownerMode
         ? `<button class="lb-owner-delete-btn" data-uid="${e.uid}" data-name="${e.username || "?"}" style="background:none; border:none; color:#ff4d6d; font-size:16px; padding:4px 8px; cursor:pointer;" title="Aus der Rangliste entfernen (Owner)">🗑️</button>`
         : "";
-      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-avatar">${avatarHtml}</div><div class="lb-name ${fontClass}">${isOnline(e) ? `<span class="online-dot${isInLesson(e) ? " in-lesson" : ""}"></span>` : ""}@${e.username || "?"}</div><div class="lb-aura">🎯 Lvl ${e.level}</div>${deleteBtnHtml}`;
+      const statHtml = leaderboardSortBy === "aura" ? `💎 ${e.totalAura} Aura` : `🎯 Lvl ${e.level}`;
+      row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-avatar">${avatarHtml}</div><div class="lb-name ${fontClass}">${isOnline(e) ? `<span class="online-dot${isInLesson(e) ? " in-lesson" : ""}"></span>` : ""}@${e.username || "?"}</div><div class="lb-aura">${statHtml}</div>${deleteBtnHtml}`;
       row.addEventListener("click", (ev) => {
         if(ev.target.closest(".lb-owner-delete-btn")) return;
         openFriendProfile(e.uid);
@@ -6668,14 +6692,14 @@
       return;
     }
 
-    const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 0, avatarData: profile.avatarData, activeFont: profile.activeFont, lastActiveAt: profile.lastActiveAt, lastLessonAt: profile.lastLessonAt, lessonInProgressAt: profile.lessonInProgressAt }];
+    const entries = [{ uid: currentUser.uid, username: profile.username, level: profile.level || 0, totalAura: profile.totalAura || 0, avatarData: profile.avatarData, activeFont: profile.activeFont, lastActiveAt: profile.lastActiveAt, lastLessonAt: profile.lastLessonAt, lessonInProgressAt: profile.lessonInProgressAt }];
     // Alle Freunde GLEICHZEITIG laden statt nacheinander - das war der
     // Hauptgrund, warum die Rangliste bei mehreren Freunden spürbar
     // langsam war (jeder einzelne Abruf musste vorher auf den vorherigen
     // warten, statt parallel zu laufen).
     const friendDocs = await Promise.all(mutualUids.map(uid => fetchUserDoc(uid)));
     friendDocs.forEach(u => {
-      if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 0, avatarData: u.avatarData, activeFont: u.activeFont, lastActiveAt: u.lastActiveAt, lastLessonAt: u.lastLessonAt, lessonInProgressAt: u.lessonInProgressAt });
+      if(u) entries.push({ uid: u.uid, username: u.username, level: u.level || 0, totalAura: u.totalAura || 0, avatarData: u.avatarData, activeFont: u.activeFont, lastActiveAt: u.lastActiveAt, lastLessonAt: u.lastLessonAt, lessonInProgressAt: u.lessonInProgressAt });
     });
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
     const filtered = entries.filter(e => (e.level || 0) >= 2 && e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
@@ -6685,7 +6709,8 @@
       $("leaderboardEmptyMsg").style.display = "block";
       return;
     }
-    filtered.sort((a,b) => b.level - a.level);
+    if(leaderboardSortBy === "aura") filtered.sort((a,b) => b.totalAura - a.totalAura);
+    else filtered.sort((a,b) => b.level - a.level);
     renderLeaderboardRows(filtered, currentUser.uid);
   }
 
@@ -6702,13 +6727,13 @@
 
     try{
       const snap = await db().collection("users")
-        .orderBy("level", "desc")
+        .orderBy(leaderboardSortBy === "aura" ? "totalAura" : "level", "desc")
         .limit(GLOBAL_LEADERBOARD_LIMIT)
         .get();
       let entries = snap.docs
         .map(d => ({ ...d.data(), uid: d.id }))
         .filter(e => !!e.username && (e.level || 0) >= 2) // erst ab Level 2 in der Rangliste
-        .map(e => ({ uid: e.uid, username: e.username, level: e.level || 0, avatarData: e.avatarData, activeFont: e.activeFont, lastActiveAt: e.lastActiveAt, lastLessonAt: e.lastLessonAt, lessonInProgressAt: e.lessonInProgressAt }));
+        .map(e => ({ uid: e.uid, username: e.username, level: e.level || 0, totalAura: e.totalAura || 0, avatarData: e.avatarData, activeFont: e.activeFont, lastActiveAt: e.lastActiveAt, lastLessonAt: e.lastLessonAt, lessonInProgressAt: e.lessonInProgressAt }));
 
       const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
       entries = entries.filter(e => e.lastLessonAt && (Date.now() - e.lastLessonAt) < SEVEN_DAYS_MS);
@@ -7041,6 +7066,7 @@
         <div class="beta-lernwelt-circle${isDone ? " done" : ""}${isActive ? " active" : ""}${needsLevel ? " locked" : ""}">${needsLevel ? "🔒" : tier.icon}</div>
         <div class="beta-lernwelt-name">${tier.name}</div>
         <div class="beta-lernwelt-lvl">Lv. ${tier.from}</div>
+        ${isActive ? '<div class="beta-lernwelt-ranked-label">RANKED</div>' : ""}
       `;
       node.addEventListener("click", () => {
         if(needsLevel){
@@ -8135,7 +8161,6 @@
     const li = localP.inventory || {}, ci = cloudP.inventory || {};
     merged.inventory = {
       icecube: Math.max(li.icecube || 0, ci.icecube || 0),
-      timeBooster: Math.max(li.timeBooster || 0, ci.timeBooster || 0),
       doubleAuraUntil: Math.max(li.doubleAuraUntil || 0, ci.doubleAuraUntil || 0)
     };
 
@@ -8893,14 +8918,6 @@
     const activeIdx = tierIndexForLevel(profile.level);
     const idx = (selectedTierIndex !== null && isTierSelectable(selectedTierIndex, activeIdx)) ? selectedTierIndex : activeIdx;
     const tier = { ...TIERS[idx] };
-    
-    // Verbrauche Zeit-Booster falls vorhanden
-    if(profile.inventory && profile.inventory.timeBooster > 0){
-      tier.timeMs = tier.timeMs * 2;
-      profile.inventory.timeBooster--;
-      saveProfile();
-      showToast("⏱️ Zeit-Booster aktiviert! (Doppelte Zeit)");
-    }
 
     const questions = [];
     const seenTexts = new Set();
@@ -9499,6 +9516,20 @@
     leaderboardTab = "global";
     renderLeaderboard();
   });
+  $("lbSortLevel").addEventListener("click", () => {
+    if(leaderboardSortBy === "level") return;
+    leaderboardSortBy = "level";
+    $("lbSortLevel").classList.add("active");
+    $("lbSortAura").classList.remove("active");
+    renderLeaderboard();
+  });
+  $("lbSortAura").addEventListener("click", () => {
+    if(leaderboardSortBy === "aura") return;
+    leaderboardSortBy = "aura";
+    $("lbSortAura").classList.add("active");
+    $("lbSortLevel").classList.remove("active");
+    renderLeaderboard();
+  });
 
   $("navProfile").addEventListener("click", () => {
     showScreen("profile");
@@ -9861,7 +9892,6 @@
     $("buyIcecube").disabled = profile.totalAura < 500 || icecubeMaxed;
     $("buyIcecube").textContent = icecubeMaxed ? "Maximum (2)" : "500 Aura";
     $("buyLife").disabled = profile.totalAura < 100 || profile.lives >= MAX_LIVES;
-    $("buyTimeBooster").disabled = profile.totalAura < 200;
 
     const canRepair = profile.lastBrokenStreak > 0;
     $("buyStreakRepair").disabled = !canRepair || profile.totalAura < STREAK_REPAIR_COST;
@@ -9911,16 +9941,6 @@
       saveProfile();
       renderShop();
       showToast("❤️ 1 Leben wiederhergestellt!");
-    }
-  });
-
-  $("buyTimeBooster").addEventListener("click", () => {
-    if(profile.totalAura >= 200){
-      profile.totalAura -= 200;
-      profile.inventory.timeBooster = (profile.inventory.timeBooster || 0) + 1;
-      saveProfile();
-      renderShop();
-      showToast("⏱️ Zeit-Booster gekauft! Gilt für die nächste Lektion.");
     }
   });
 

@@ -1410,7 +1410,9 @@
   .beta-continue-card.has-bg-image{
     background-image: url('portal_bg.png');
     background-size: cover; background-position: center;
+    background-color: transparent;
     border-color: rgba(255,255,255,.25);
+    box-shadow: 0 4px 20px rgba(0,0,0,.35);
   }
   .beta-continue-left{ flex:1; min-width:0; }
   .beta-continue-pill{
@@ -3259,18 +3261,10 @@
 
         <div class="settings-row" style="padding:0 0 4px;">
           <div class="info">
-            <div class="t">🖼️ New Design – Streak</div>
-            <div class="d">Zeigt im Clean-Layout ein Bild als Hintergrund der Streak-Karte auf dem Home-Bildschirm.</div>
+            <div class="t">🖼️ New Design</div>
+            <div class="d">Zeigt im Clean-Layout Bilder als Hintergrund der Streak- und "Weitermachen"-Karte auf dem Home-Bildschirm.</div>
           </div>
           <div class="switch" id="streakBgImageSwitch"><div class="knob"></div></div>
-        </div>
-
-        <div class="settings-row" style="padding:4px 0;">
-          <div class="info">
-            <div class="t">🖼️ New Design – Weitermachen</div>
-            <div class="d">Zeigt im Clean-Layout ein Bild als Hintergrund der "Weitermachen"-Karte auf dem Home-Bildschirm.</div>
-          </div>
-          <div class="switch" id="continueBgImageSwitch"><div class="knob"></div></div>
         </div>
       </div>
     </div>
@@ -4006,7 +4000,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.73";
+  const APP_VERSION = "2.74";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -11066,21 +11060,19 @@
   $("peterMenuRow").addEventListener("click", () => {
     $("overlayPeterMenu").classList.add("show");
     $("streakBgImageSwitch").classList.toggle("on", !!profile.streakBgImageEnabled);
-    $("continueBgImageSwitch").classList.toggle("on", !!profile.continueBgImageEnabled);
   });
   $("peterMenuClose").addEventListener("click", () => {
     $("overlayPeterMenu").classList.remove("show");
   });
   $("streakBgImageSwitch").addEventListener("click", () => {
+    // Ein einziger Schalter steuert jetzt beide Hintergrundbilder
+    // gleichzeitig (Streak- UND Weitermachen-Karte), statt zwei getrennte
+    // Optionen zu haben.
     profile.streakBgImageEnabled = !profile.streakBgImageEnabled;
+    profile.continueBgImageEnabled = profile.streakBgImageEnabled;
     saveProfile();
     $("streakBgImageSwitch").classList.toggle("on", profile.streakBgImageEnabled);
     $("betaStreakCard").classList.toggle("has-bg-image", profile.streakBgImageEnabled);
-  });
-  $("continueBgImageSwitch").addEventListener("click", () => {
-    profile.continueBgImageEnabled = !profile.continueBgImageEnabled;
-    saveProfile();
-    $("continueBgImageSwitch").classList.toggle("on", profile.continueBgImageEnabled);
     $("betaContinueCard").classList.toggle("has-bg-image", profile.continueBgImageEnabled);
   });
 

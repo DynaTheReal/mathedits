@@ -4091,7 +4091,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.86";
+  const APP_VERSION = "2.87";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -4452,6 +4452,7 @@
   // Ursache einer Rückkopplungsschleife, die den Browser dauerhaft beschäftigt
   // und Klicks (besonders im Home-Menü) unbrauchbar gemacht hat.
   let lastWrittenProfileJSON = null;
+  let hasWarnedAboutSaveFailure = false;
   let lastMeaningfulProfileJSON = null;
 
   function saveProfile(){
@@ -4474,7 +4475,19 @@
         if(json === lastWrittenProfileJSON) return; // unverändert - kein erneuter Schreibvorgang nötig
         lastWrittenProfileJSON = json;
         db().collection("users").doc(currentUser.uid).set(profile, { merge: true })
-          .catch(err => console.error("Firestore Save Error:", err));
+          .catch(err => {
+            console.error("Firestore Save Error:", err);
+            // NEU: bisher war ein fehlgeschlagenes Speichern komplett
+            // unsichtbar - falls das Firebase-Kontingent aufgebraucht ist,
+            // würde man das nie merken (Fortschritt bleibt nur lokal,
+            // synct aber nicht). Zeigt deshalb EINMAL pro Sitzung eine
+            // klare Warnung, statt bei JEDEM Speicherversuch erneut zu
+            // nerven.
+            if(!hasWarnedAboutSaveFailure && (err && (err.code === "resource-exhausted" || err.code === "permission-denied"))){
+              hasWarnedAboutSaveFailure = true;
+              showToast(friendlyFirestoreError(err));
+            }
+          });
       }
     }catch(e){ }
   }
@@ -4754,7 +4767,7 @@
       $("overlayFeedback").classList.remove("show");
       showToast("💬 Danke für dein Feedback!");
     }catch(err){
-      showToast("Feedback konnte nicht gesendet werden.");
+      showToast(friendlyFirestoreError(err));
       console.error("Feedback senden Fehler:", err);
     }
   }
@@ -5680,7 +5693,7 @@
       $("overlayDonateAura").classList.remove("show");
       showToast(`🎁 ${amount} Aura an @${donateAuraTargetUsername} gespendet!`);
     }catch(err){
-      showToast("Spende konnte nicht gesendet werden.");
+      showToast(friendlyFirestoreError(err));
       console.error("Aura spenden Fehler:", err);
     }
   }
@@ -12026,6 +12039,28 @@
 
   // Übersetzt häufige Firebase-Auth-Fehlercodes in verständlichen Text,
   // statt die rohe, oft kryptische Firebase-Meldung direkt anzuzeigen.
+  // Firestore-Fehler verständlich machen (NEU) - vor allem wichtig, um
+  // Kontingent-/Abrechnungsprobleme klar von anderen Fehlern zu
+  // unterscheiden (z.B. wenn das kostenlose Firebase-Kontingent
+  // aufgebraucht ist, schlagen ALLE Schreibvorgänge fehl, nicht nur
+  // einzelne Funktionen).
+  function friendlyFirestoreError(err){
+    const code = err && err.code;
+    if(code === "resource-exhausted"){
+      return "⚠️ Firebase-Kontingent aufgebraucht (resource-exhausted). Das kostenlose Kontingent ist wahrscheinlich für heute ausgeschöpft, oder ohne Bezahlplan (Blaze) limitiert - das betrifft dann ALLE Schreibvorgänge, nicht nur diesen.";
+    }
+    if(code === "permission-denied"){
+      return "⚠️ Zugriff verweigert (permission-denied). Vermutlich passen die Firestore-Sicherheitsregeln nicht (evtl. veraltete Regeln hochgeladen?).";
+    }
+    if(code === "unavailable"){
+      return "⚠️ Firebase-Server aktuell nicht erreichbar - bitte kurz warten und nochmal versuchen.";
+    }
+    if(code === "unauthenticated"){
+      return "⚠️ Nicht angemeldet - bitte einmal aus- und wieder einloggen.";
+    }
+    return err && err.message ? `Fehler: ${err.message}` : "Unbekannter Fehler beim Speichern.";
+  }
+
   function friendlyAuthError(err){
     const code = err && err.code;
     if(code === "auth/wrong-password" || code === "auth/invalid-credential" || code === "auth/invalid-login-credentials"){

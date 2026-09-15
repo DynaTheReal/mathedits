@@ -4008,7 +4008,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.78";
+  const APP_VERSION = "2.79";
 
   // Update-Check (NEU): vergleicht Versionsnummern wie "2.9" vs "2.10"
   // richtig numerisch statt als Text (sonst würde "2.9" > "2.10" gelten).
@@ -6233,6 +6233,11 @@
     }
   }
 
+  // "1v1"-Button (NEU): erstellt jetzt eine Duell-Lobby und lädt die
+  // Person direkt dazu ein, statt das alte, separate Echtzeit-1v1-System
+  // zu nutzen (das hatte andere, fehlerhafte Frage-Mechanik - nur 1 Frage,
+  // rein zeitbasiert, ein Fehler = sofort verloren, statt der richtigen
+  // "10 Aufgaben, wer zuerst fertig ist, gewinnt"-Regel).
   async function startDuel(opponentUid, opponentUsername){
     if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
     if(opponentUid === currentUser.uid) return showToast("Das bist du selbst 🙂");
@@ -6242,22 +6247,27 @@
       return;
     }
     try{
-      const inviteRef = await db().collection("duelInvites").add({
-        fromUid: currentUser.uid,
-        fromUsername: profile.username,
-        fromLevel: profile.level,
-        toUid: opponentUid,
-        toUsername: opponentUsername,
-        status: "pending",
-        createdAt: Date.now()
+      const ref = await db().collection("duelLobbies").add({
+        hostUid: currentUser.uid,
+        hostUsername: profile.username || "?",
+        status: "waiting",
+        memberUids: [currentUser.uid],
+        memberNames: { [currentUser.uid]: profile.username || "?" },
+        results: {},
+        questions: null,
+        timeMs: null,
+        createdAt: Date.now(),
+        startedAt: null
       });
-      activeSentInviteId = inviteRef.id;
-      $("duelWaitingText").textContent = `@${opponentUsername} wurde eingeladen …`;
-      $("overlayDuelWaiting").classList.add("show");
-      watchSentInvite(inviteRef.id);
+      activeDuelLobbyId = ref.id;
+      isDuelLobbyHost = true;
+      showScreen("duellobby");
+      watchDuelLobby(ref.id);
+      await sendDuelLobbyInvite(opponentUid, opponentUsername);
+      showToast(`⚔️ @${opponentUsername} wurde zur Duell-Lobby eingeladen!`);
     }catch(err){
-      console.error("Duell-Einladung Fehler:", err);
-      showToast("Duell-Einladung konnte nicht gesendet werden.");
+      console.error("Duell-Lobby erstellen Fehler:", err);
+      showToast("Lobby konnte nicht erstellt werden.");
     }
   }
 

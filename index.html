@@ -496,6 +496,48 @@
     --rainbow-header: linear-gradient(90deg, #4a4a4a, #1a1a1a, #4a4a4a);
   }
 
+  /* THEME: BLOCKWELT (NEU) - erdige Grün-/Brauntöne und eckige, "blockige"
+     Formen statt runder Ecken, im Stil eines bekannten Block-Aufbauspiels.
+     Bewusst mit einem eigenen, generischen Namen statt der Marke selbst -
+     Markennamen/Logos werden hier nicht direkt verwendet. */
+  [data-theme="blocks"]{
+    --bg: #1b2a17; --bg-soft: #22331d; --card: #2a3f22; --card-2: #34492b;
+    --border: #4d6b3a; --text: #eaf5df; --text-dim: #a8c393;
+    --accent: #6aa832; --accent-text: #12210a; --accent-2: #8b5a2b;
+    --danger: #c0392b; --success: #6aa832;
+    --shadow: 0 10px 24px rgba(0,0,0,.55); --overlay-bg: rgba(20,30,15,.94);
+    --rainbow-header: linear-gradient(90deg, #6aa832, #8b5a2b, #6aa832);
+  }
+  [data-theme="blocks"] .btn-primary, [data-theme="blocks"] .buy-btn,
+  [data-theme="blocks"] .card, [data-theme="blocks"] .shop-item,
+  [data-theme="blocks"] .modal-card, [data-theme="blocks"] .lb-row,
+  [data-theme="blocks"] .mission-card, [data-theme="blocks"] .nav-item{
+    border-radius:4px !important;
+  }
+  [data-theme="blocks"] .topbar, [data-theme="blocks"] .bottom-nav{
+    box-shadow: 0 0 20px rgba(106,168,50,.25);
+  }
+
+  /* THEME: NETZ-HELD (NEU) - Rot/Blau im Stil eines bekannten
+     Netz-schwingenden Comic-Helden, mit einem feinen Netz-Muster im
+     Hintergrund. Ebenfalls mit generischem Namen statt der Marke selbst. */
+  [data-theme="webhero"]{
+    --bg: #0d1a3d; --bg-soft: #122350; --card: #16295e; --card-2: #1c3170;
+    --border: #d62828; --text: #eef2ff; --text-dim: #a8b8e8;
+    --accent: #d62828; --accent-text: #ffffff; --accent-2: #3457d5;
+    --danger: #ff4d4d; --success: #4ade80;
+    --shadow: 0 10px 26px rgba(0,0,0,.6); --overlay-bg: rgba(10,18,50,.94);
+    --rainbow-header: linear-gradient(90deg, #d62828, #3457d5, #d62828);
+  }
+  [data-theme="webhero"] body, [data-theme="webhero"] .screen{
+    background-image:
+      repeating-linear-gradient(45deg, rgba(214,40,40,.05) 0 2px, transparent 2px 40px),
+      repeating-linear-gradient(-45deg, rgba(52,87,213,.05) 0 2px, transparent 2px 40px);
+  }
+  [data-theme="webhero"] .topbar, [data-theme="webhero"] .bottom-nav{
+    box-shadow: 0 0 24px rgba(214,40,40,.3);
+  }
+
   /* ---------- Aura-Booster-Animation (NEU) ---------- */
   .ab-bubbles-container{ position:absolute; inset:0; overflow:hidden; z-index:1; }
   .ab-bubble, .ab-bubble-large{
@@ -844,6 +886,14 @@
     background:linear-gradient(135deg, #22c55e, #16a34a) !important;
     color:#06210f !important; border-color:#22c55e !important;
   }
+  .style-editor-chip{
+    padding:8px 14px; border-radius:99px; border:1.5px solid var(--border);
+    background:var(--card); color:var(--text); font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .style-editor-chip.active{
+    border-color:#a855f7; background:rgba(168,85,247,.18); color:#e9d5ff;
+    box-shadow:0 0 10px rgba(168,85,247,.3);
+  }
   .item-bg-pattern-fill{
     position:absolute; inset:0; overflow:hidden; border-radius:inherit;
     white-space:pre; line-height:1.7;
@@ -1047,6 +1097,8 @@
   .theme-preview-minimal .item-title, .theme-preview-minimal .item-desc{ color:#1a1a1a; }
   .theme-preview-minimal .item-icon{ background:#f0f0f0; }
   .theme-preview-minimal .buy-btn{ background:#1a1a1a !important; color:#fff !important; }
+  .theme-preview-blocks .buy-btn{ background:#6aa832 !important; color:#12210a !important; }
+  .theme-preview-webhero .buy-btn{ background:linear-gradient(90deg, #d62828, #3457d5) !important; color:#fff !important; }
 
   /* ---------- settings screen ---------- */
   .settings-title{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:20px; margin-left:8px; color: var(--text);}
@@ -2709,6 +2761,24 @@
       <button class="buy-btn" id="buyMinimalTheme">700 Aura</button>
     </div>
 
+    <div class="shop-item theme-preview theme-preview-blocks">
+      <div class="item-icon">🟩</div>
+      <div class="item-info">
+        <div class="item-title">Blockwelt Theme</div>
+        <div class="item-desc">Erdige Grün-/Brauntöne mit eckigen, blockigen Formen - im Stil eines bekannten Block-Aufbauspiels.</div>
+      </div>
+      <button class="buy-btn" id="buyBlocksTheme">900 Aura</button>
+    </div>
+
+    <div class="shop-item theme-preview theme-preview-webhero">
+      <div class="item-icon">🕸️</div>
+      <div class="item-info">
+        <div class="item-title">Netz-Held Theme</div>
+        <div class="item-desc">Rot und Blau mit feinem Netz-Muster - im Stil eines bekannten netz-schwingenden Comic-Helden.</div>
+      </div>
+      <button class="buy-btn" id="buyWebheroTheme">900 Aura</button>
+    </div>
+
     <div class="shop-section-title" id="shopSectionFrames">Profilrahmen</div>
 
     <div class="shop-item">
@@ -2825,9 +2895,28 @@
         <div class="avatar-edit-badge">📷</div>
       </div>
       <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
-      <h2 id="profileUsernameDisplay">Gast</h2>
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+        <h2 id="profileUsernameDisplay">Gast</h2>
+        <button id="editProfileStyleBtn" title="Profilstil bearbeiten" style="background:none; border:none; color:var(--text-dim); font-size:16px; cursor:pointer; padding:2px 4px;">✏️</button>
+      </div>
       <div id="profileTitleDisplay" class="profile-title" style="display:none;"></div>
       <div class="shop-aura-badge"><span>⚡</span><span id="profileAuraVal">0</span> Aura</div>
+    </div>
+
+    <!-- Profilstil bearbeiten (NEU): schneller Zugriff auf bereits
+         freigeschaltete Rahmen/Schriften, ohne extra in den Shop zu
+         müssen. -->
+    <div class="overlay" id="overlayStyleEditor">
+      <div class="modal-card" style="max-width:360px; text-align:left;">
+        <button class="banner-close-x" id="styleEditorClose" style="position:absolute; top:10px; right:12px;">✕</button>
+        <div style="font-size:32px; margin-bottom:6px; text-align:center;">🎨</div>
+        <h2 style="text-align:center; margin-bottom:14px;">Profilstil</h2>
+        <div class="d" style="font-weight:800; margin-bottom:8px;">🖼️ Rahmen</div>
+        <div id="styleEditorFrameOptions" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;"></div>
+        <div class="d" style="font-weight:800; margin-bottom:8px;">✒️ Schrift</div>
+        <div id="styleEditorFontOptions" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px;"></div>
+        <div class="empty-hint" style="margin-top:10px; text-align:left;">Mehr Rahmen und Schriften gibt's im Shop.</div>
+      </div>
     </div>
 
     <div class="stats-row">
@@ -3353,6 +3442,13 @@
           <option value="legendary">Legendäre Truhe</option>
         </select>
         <select id="ownerCodeThemeSelect" class="input-field" style="margin-bottom:8px; display:none;"></select>
+        <div class="settings-row" style="padding:6px 0; margin-bottom:8px;">
+          <div class="info">
+            <div class="t" style="font-size:13px;">🌍 Öffentlicher Code</div>
+            <div class="d">Kann von JEDEM eingelöst werden (statt nur von einer einzigen Person insgesamt).</div>
+          </div>
+          <div class="switch" id="ownerCodePublicSwitch"><div class="knob"></div></div>
+        </div>
         <button class="btn btn-primary btn-small" id="ownerSetCodeBtn" style="width:100%;">Code hinzufügen</button>
       </div>
     </div>
@@ -4177,7 +4273,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.95";
+  const APP_VERSION = "2.98";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5631,9 +5727,11 @@
       return;
     }
     try{
+      const isPublic = $("ownerCodePublicSwitch").classList.contains("on");
       const data = {
         code, rewardType: ownerSelectedCodeReward, active: true,
-        setByUid: currentUser.uid, createdAt: Date.now()
+        setByUid: currentUser.uid, createdAt: Date.now(),
+        isPublic, redeemedByUids: [] // öffentliche Codes: wer schon eingelöst hat (verhindert Mehrfach-Einlösung durch dieselbe Person)
       };
       if(ownerSelectedCodeReward === "chest") data.chestTier = ownerSelectedChestTier;
       if(ownerSelectedCodeReward === "aura"){
@@ -5680,13 +5778,26 @@
         return;
       }
       const data = doc.data();
-      // Kippt NUR active auf false - schlägt fehl, falls jemand anderes
-      // (fast) gleichzeitig schneller war, weil die Regel serverseitig
-      // prüft, dass der Code zu diesem Zeitpunkt noch aktiv ist.
-      await doc.ref.update({
-        active: false, redeemedByUid: currentUser.uid,
-        redeemedByUsername: profile.username || "", redeemedAt: Date.now()
-      });
+      if(data.isPublic){
+        // Öffentlicher Code (NEU): bleibt für ALLE aktiv, nur diese eine
+        // Person darf ihn nicht ein zweites Mal einlösen.
+        const already = (data.redeemedByUids || []).includes(currentUser.uid);
+        if(already){
+          showToast("❌ Diesen Code hast du schon eingelöst.");
+          return;
+        }
+        await doc.ref.update({
+          redeemedByUids: [...(data.redeemedByUids || []), currentUser.uid]
+        });
+      } else {
+        // Kippt NUR active auf false - schlägt fehl, falls jemand anderes
+        // (fast) gleichzeitig schneller war, weil die Regel serverseitig
+        // prüft, dass der Code zu diesem Zeitpunkt noch aktiv ist.
+        await doc.ref.update({
+          active: false, redeemedByUid: currentUser.uid,
+          redeemedByUsername: profile.username || "", redeemedAt: Date.now()
+        });
+      }
       if(data.rewardType === "life"){
         const amount = data.lifeAmount || 1;
         profile.lives = Math.min(MAX_LIVES, profile.lives + amount);
@@ -7160,6 +7271,7 @@
   // Icecube, der lokal noch nicht bekannt ist, den Streak fälschlich
   // brechen lassen (der gemeldete Bug "Icecube funktioniert nicht").
   let streakCheckPending = false;
+  let onboardingCheckPending = false;
   function checkStreakDecay(){
     if(streakCheckPending && !cloudSyncReady) return;
     if(!profile.lastStreakDate) return;
@@ -10241,8 +10353,8 @@
       bGlitchTheme.disabled = profile.totalAura < 1500;
     }
 
-    const NEW_THEME_PRICES = { galaxy: 1800, sunset: 1200, cyber: 1600, royal: 2000, cloud: 900, toxic: 1400, crimson: 1400, minimal: 700 };
-    const NEW_THEME_BTN_IDS = { galaxy: "buyGalaxyTheme", sunset: "buySunsetTheme", cyber: "buyCyberTheme", royal: "buyRoyalTheme", cloud: "buyCloudTheme", toxic: "buyToxicTheme", crimson: "buyCrimsonTheme", minimal: "buyMinimalTheme" };
+    const NEW_THEME_PRICES = { galaxy: 1800, sunset: 1200, cyber: 1600, royal: 2000, cloud: 900, toxic: 1400, crimson: 1400, minimal: 700, blocks: 900, webhero: 900 };
+    const NEW_THEME_BTN_IDS = { galaxy: "buyGalaxyTheme", sunset: "buySunsetTheme", cyber: "buyCyberTheme", royal: "buyRoyalTheme", cloud: "buyCloudTheme", toxic: "buyToxicTheme", crimson: "buyCrimsonTheme", minimal: "buyMinimalTheme", blocks: "buyBlocksTheme", webhero: "buyWebheroTheme" };
     Object.keys(NEW_THEME_PRICES).forEach(themeId => {
       const btn = $(NEW_THEME_BTN_IDS[themeId]);
       if(!btn) return;
@@ -10381,6 +10493,8 @@
   $("buyToxicTheme").addEventListener("click", () => buyTheme("toxic", 1400, "Toxic"));
   $("buyCrimsonTheme").addEventListener("click", () => buyTheme("crimson", 1400, "Crimson"));
   $("buyMinimalTheme").addEventListener("click", () => buyTheme("minimal", 700, "Minimal"));
+  $("buyBlocksTheme").addEventListener("click", () => buyTheme("blocks", 900, "Blockwelt"));
+  $("buyWebheroTheme").addEventListener("click", () => buyTheme("webhero", 900, "Netz-Held"));
 
   const FRAME_DEFS = [
     { key: "pink", cost: 300, name: "Pink" },
@@ -10452,6 +10566,49 @@
   $("buyGoldFont").addEventListener("click", () => buyFont("gold", 1000, "Gold"));
   $("buyPinkGlowFont").addEventListener("click", () => buyFont("pinkglow", 1000, "Pink Glow"));
   $("buyGlitchFont").addEventListener("click", () => buyFont("glitch", 1200, "Glitch"));
+
+  // Profilstil-Editor (NEU): schneller Zugriff direkt vom eigenen Profil
+  // aus, um zwischen bereits freigeschalteten Rahmen/Schriften zu
+  // wechseln - ohne extra in den Shop wechseln zu müssen.
+  const FRAME_NAMES = { none: "Kein Rahmen", pink: "Pink", clean: "Clean", glow: "Glow", glitch: "Glitch", gold: "Gold" };
+  const FONT_NAMES = { none: "Keine Schrift", glow: "Glow", pink: "Pink", gold: "Gold", pinkglow: "Pink Glow", glitch: "Glitch" };
+  function renderStyleEditor(){
+    const frameWrap = $("styleEditorFrameOptions");
+    const unlockedFrames = profile.unlockedFrames || ["none"];
+    frameWrap.innerHTML = unlockedFrames.map(key => `
+      <button class="style-editor-chip${profile.activeFrame === key ? " active" : ""}" data-frame="${key}">${FRAME_NAMES[key] || key}</button>
+    `).join("");
+    frameWrap.querySelectorAll("[data-frame]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        profile.activeFrame = btn.dataset.frame;
+        saveProfile();
+        renderProfile();
+        renderStyleEditor();
+      });
+    });
+
+    const fontWrap = $("styleEditorFontOptions");
+    const unlockedFonts = profile.unlockedFonts || ["none"];
+    fontWrap.innerHTML = unlockedFonts.map(key => `
+      <button class="style-editor-chip${profile.activeFont === key ? " active" : ""}" data-font="${key}">${FONT_NAMES[key] || key}</button>
+    `).join("");
+    fontWrap.querySelectorAll("[data-font]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        profile.activeFont = btn.dataset.font;
+        saveProfile();
+        renderProfile();
+        renderStyleEditor();
+      });
+    });
+  }
+  $("editProfileStyleBtn").addEventListener("click", () => {
+    if(!currentUser){ showToast("Bitte zuerst einloggen."); return; }
+    renderStyleEditor();
+    $("overlayStyleEditor").classList.add("show");
+  });
+  $("styleEditorClose").addEventListener("click", () => {
+    $("overlayStyleEditor").classList.remove("show");
+  });
 
   /* ========================================================
      THEME SYSTEM
@@ -10526,12 +10683,13 @@
      Nutzer per Benutzername und erlaubt, dessen Aura/Level/Streak/
      freigeschaltete Designs direkt in dessen Firestore-Dokument zu setzen.
   ======================================================== */
-  const ALL_THEME_IDS = ["black", "white_clean", "clean", "pink", "glass", "glow", "glitch", "galaxy", "sunset", "cyber", "royal", "cloud", "toxic", "crimson", "minimal"];
+  const ALL_THEME_IDS = ["black", "white_clean", "clean", "pink", "glass", "glow", "glitch", "galaxy", "sunset", "cyber", "royal", "cloud", "toxic", "crimson", "minimal", "blocks", "webhero"];
   const THEME_DISPLAY_NAME = {
     black: "Schwarz", white_clean: "Weiß Clean", clean: "Clean", pink: "Pink",
     glass: "Glas", glow: "Glow", glitch: "Glitch", galaxy: "Galaxy",
     sunset: "Sunset", cyber: "Cyber", royal: "Royal", cloud: "Cloud",
-    toxic: "Toxic", crimson: "Crimson", minimal: "Minimal"
+    toxic: "Toxic", crimson: "Crimson", minimal: "Minimal",
+    blocks: "Blockwelt", webhero: "Netz-Held"
   };
   let ownerEditingUid = null;
   let ownerEditingTargetIp = null;
@@ -11441,7 +11599,11 @@
   $("ownerToolCodes").addEventListener("click", () => {
     $("overlayOwnerCodes").classList.add("show");
     selectOwnerCodeReward(ownerSelectedCodeReward);
+    $("ownerCodePublicSwitch").classList.remove("on");
     renderOwnerCodeStatus();
+  });
+  $("ownerCodePublicSwitch").addEventListener("click", () => {
+    $("ownerCodePublicSwitch").classList.toggle("on");
   });
   $("ownerToolCodesClose").addEventListener("click", () => {
     $("overlayOwnerCodes").classList.remove("show");
@@ -12257,6 +12419,18 @@
               // veralteten lokalen Wert von vor dem Abgleich.
               streakCheckPending = false;
               checkStreakDecay();
+              // Bugfix (siehe init()): dieselbe Nachhol-Logik für die
+              // Einrichtungs-Anzeige - jetzt mit dem korrekt abgeglichenen
+              // "hasSeenWelcome"-Stand entscheiden, statt mit einem
+              // möglicherweise noch nicht synchronisierten lokalen Wert.
+              if(onboardingCheckPending){
+                onboardingCheckPending = false;
+                if(!profile.hasSeenWelcome){
+                  openOnboarding();
+                } else {
+                  renderHome();
+                }
+              }
               // Falls die Person GERADE auf dem Einstellungen-Bildschirm ist,
               // wenn der Owner sie zum Mod ernennt (oder die Rolle entzieht),
               // soll der Schild-Button sofort erscheinen/verschwinden, ohne
@@ -14084,7 +14258,18 @@
     }
 
     playStartupIntro(() => {
-      if(!profile.hasSeenWelcome){
+      // WICHTIG (Bugfix, gleiche Ursache wie beim Icecube-Timing-Bug): für
+      // bereits zuvor eingeloggte Geräte NICHT sofort mit dem lokalen,
+      // eventuell noch nicht abgeglichenen Profilstand entscheiden, ob die
+      // Einrichtung gezeigt wird - sonst könnte "hasSeenWelcome" (und
+      // sichtbar Level/Aura) kurzzeitig auf einem veralteten/zurück-
+      // gesetzten Stand basieren und die Einrichtung fälschlich erneut
+      // zeigen (gemeldeter Fall: Seite neu geladen, Einrichtung erschien,
+      // Level zeigte 0). Für neue Geräte/Gäste ohne Cloud-Abgleich ist der
+      // lokale Stand ohnehin die einzige Quelle.
+      if(profile.lastFirebaseUid){
+        onboardingCheckPending = true;
+      } else if(!profile.hasSeenWelcome){
         openOnboarding();
       }
       maybeShowIOSInstallBanner();

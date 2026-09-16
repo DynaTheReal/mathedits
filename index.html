@@ -840,6 +840,10 @@
   .item-bg-pattern > .item-icon, .item-bg-pattern > .item-info, .item-bg-pattern > .buy-btn{
     position:relative; z-index:1;
   }
+  .btn-active-owned{
+    background:linear-gradient(135deg, #22c55e, #16a34a) !important;
+    color:#06210f !important; border-color:#22c55e !important;
+  }
   .item-bg-pattern-fill{
     position:absolute; inset:0; overflow:hidden; border-radius:inherit;
     white-space:pre; line-height:1.7;
@@ -1989,6 +1993,10 @@
     padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px;
   }
   .lb-row.me{border-color:#22c55e; box-shadow:0 0 0 1.5px #22c55e inset; background: rgba(34,197,94,0.08);}
+  .invite-lb-remove-btn{
+    background:none; border:none; color:#ef4444; font-size:16px; font-weight:800;
+    cursor:pointer; padding:4px 6px; flex-shrink:0;
+  }
   .lb-rank{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:16px; width:28px; text-align:center; opacity:.85;}
   .lb-name{flex:1; font-weight:700; font-size:14px;}
   .lb-avatar{ width:28px; height:28px; border-radius:50%; overflow:hidden; flex-shrink:0; background:var(--card-2); display:flex; align-items:center; justify-content:center; }
@@ -3752,15 +3760,16 @@
       <button class="btn btn-primary" id="friendProfileMessageBtn" style="margin-top:10px; display:none;">💬 Nachrichten</button>
       <button class="btn btn-primary" id="friendProfileDonateBtn" style="margin-top:10px; display:none;">🎁 Aura spenden</button>
 
-      <!-- Owner-Moderation direkt vom Profil aus (NEU) -->
-      <div id="friendProfileOwnerModBox" style="display:none; background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:12px; padding:10px; margin-top:14px; text-align:left;">
+      <!-- Owner-Moderation direkt vom Profil aus (NEU) - im gleichen
+           kompakten Icon-Stil wie das Owner-Panel selbst. -->
+      <div id="friendProfileOwnerModBox" style="display:none; margin-top:14px; text-align:left;">
         <div class="d" style="font-weight:800; margin-bottom:8px; color:#ef4444;">🚫 Owner-Moderation</div>
         <div id="friendProfileBanStatus" class="d" style="margin-bottom:8px;">Aktuell nicht gesperrt.</div>
-        <div style="display:flex; gap:8px;">
-          <button class="btn btn-primary btn-small" id="friendProfileBanBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Sperren (7 Tage)</button>
-          <button class="btn btn-ghost btn-small" id="friendProfileUnbanBtn" style="flex:1;">Entsperren</button>
+        <div style="display:flex; gap:10px; justify-content:center;">
+          <button class="owner-tool-icon-btn" id="friendProfileBanBtn" title="Sperren (7 Tage)" style="border-color:#ef4444; color:#ef4444;">🚫</button>
+          <button class="owner-tool-icon-btn" id="friendProfileUnbanBtn" title="Entsperren">✅</button>
+          <button class="owner-tool-icon-btn" id="friendProfileIpBanBtn" title="IP + Konto sperren (7 Tage)" style="border-color:#7f1d1d; color:#f87171;">🌐</button>
         </div>
-        <button class="btn btn-primary btn-small" id="friendProfileIpBanBtn" style="width:100%; margin-top:8px; background:#7f1d1d; border-color:#7f1d1d;">🌐 IP + Konto sperren (7 Tage)</button>
       </div>
 
       <button class="btn btn-ghost" id="closeFriendProfile" style="margin-top:10px;">Schließen</button>
@@ -4168,7 +4177,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.93";
+  const APP_VERSION = "2.95";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -8125,8 +8134,29 @@
       entries.forEach((e, i) => {
         const row = document.createElement("div");
         row.className = "lb-row" + (currentUser && e.uid === currentUser.uid ? " me" : "");
-        row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-name">@${e.username}</div><div class="lb-aura">👥 ${e.weeklyReferralCount}</div>`;
+        // Entfernen-Button (NEU): nur für den Owner sichtbar, falls jemand
+        // z.B. mit Fake-Accounts oder missbräuchlich seine
+        // Einladungs-Zahl hochgetrieben hat.
+        const removeBtnHtml = isOwner()
+          ? `<button class="invite-lb-remove-btn" data-uid="${e.uid}" title="Aus der Rangliste entfernen">✕</button>`
+          : "";
+        row.innerHTML = `<div class="lb-rank">#${i+1}</div><div class="lb-name">@${e.username}</div><div class="lb-aura">👥 ${e.weeklyReferralCount}</div>${removeBtnHtml}`;
         listEl.appendChild(row);
+      });
+      listEl.querySelectorAll(".invite-lb-remove-btn").forEach(btn => {
+        btn.addEventListener("click", async (ev) => {
+          ev.stopPropagation();
+          const uid = btn.dataset.uid;
+          if(!confirm("Diese Person aus der Einladungs-Rangliste entfernen?")) return;
+          try{
+            await db().collection("users").doc(uid).set({ weeklyReferralCount: 0 }, { merge: true });
+            showToast("✅ Entfernt.");
+            openInviteLeaderboard();
+          }catch(err){
+            showToast("Entfernen fehlgeschlagen.");
+            console.error(err);
+          }
+        });
       });
     }catch(err){
       console.error("Invite Leaderboard Fehler:", err);
@@ -10226,89 +10256,40 @@
       }
     });
 
+    // Rahmen- und Schrift-Buttons (NEU: 3 Zustände statt nur 2) - Sperren
+    // (Preis anzeigen), Freigeschaltet-aber-inaktiv ("Aktivieren", klickbar),
+    // oder Freigeschaltet-und-aktiv ("✓ Aktiv", klickbar zum Ausschalten).
+    const FRAME_BTN_IDS = { pink: "buyPinkFrame", clean: "buyCleanFrame", glow: "buyGlowFrame", glitch: "buyGlitchFrame", gold: "buyGoldFrame" };
     const unlockedFrames = profile.unlockedFrames || ["none"];
-    const bPinkFrame = $("buyPinkFrame");
-    if(unlockedFrames.includes("pink")){
-      bPinkFrame.textContent = "Freigeschaltet";
-      bPinkFrame.disabled = true;
-    } else {
-      bPinkFrame.textContent = "300 Aura";
-      bPinkFrame.disabled = profile.totalAura < 300;
-    }
-    const bCleanFrame = $("buyCleanFrame");
-    if(unlockedFrames.includes("clean")){
-      bCleanFrame.textContent = "Freigeschaltet";
-      bCleanFrame.disabled = true;
-    } else {
-      bCleanFrame.textContent = "300 Aura";
-      bCleanFrame.disabled = profile.totalAura < 300;
-    }
-    const bGlowFrame = $("buyGlowFrame");
-    if(unlockedFrames.includes("glow")){
-      bGlowFrame.textContent = "Freigeschaltet";
-      bGlowFrame.disabled = true;
-    } else {
-      bGlowFrame.textContent = "1500 Aura";
-      bGlowFrame.disabled = profile.totalAura < 1500;
-    }
-    const bGlitchFrame = $("buyGlitchFrame");
-    if(unlockedFrames.includes("glitch")){
-      bGlitchFrame.textContent = "Freigeschaltet";
-      bGlitchFrame.disabled = true;
-    } else {
-      bGlitchFrame.textContent = "1500 Aura";
-      bGlitchFrame.disabled = profile.totalAura < 1500;
-    }
-    const bGoldFrame = $("buyGoldFrame");
-    if(unlockedFrames.includes("gold")){
-      bGoldFrame.textContent = "Freigeschaltet";
-      bGoldFrame.disabled = true;
-    } else {
-      bGoldFrame.textContent = "700 Aura";
-      bGoldFrame.disabled = profile.totalAura < 700;
-    }
+    FRAME_DEFS.forEach(f => {
+      const btn = $(FRAME_BTN_IDS[f.key]);
+      if(unlockedFrames.includes(f.key)){
+        const isActive = profile.activeFrame === f.key;
+        btn.textContent = isActive ? "✓ Aktiv" : "Aktivieren";
+        btn.disabled = false;
+        btn.classList.toggle("btn-active-owned", isActive);
+      } else {
+        btn.textContent = f.cost + " Aura";
+        btn.disabled = profile.totalAura < f.cost;
+        btn.classList.remove("btn-active-owned");
+      }
+    });
 
+    const FONT_BTN_IDS = { glow: "buyGlowFont", pink: "buyPinkFont", gold: "buyGoldFont", pinkglow: "buyPinkGlowFont", glitch: "buyGlitchFont" };
     const unlockedFonts = profile.unlockedFonts || ["none"];
-    const bGlowFont = $("buyGlowFont");
-    if(unlockedFonts.includes("glow")){
-      bGlowFont.textContent = "Freigeschaltet";
-      bGlowFont.disabled = true;
-    } else {
-      bGlowFont.textContent = "2000 Aura";
-      bGlowFont.disabled = profile.totalAura < 2000;
-    }
-    const bPinkFont = $("buyPinkFont");
-    if(unlockedFonts.includes("pink")){
-      bPinkFont.textContent = "Freigeschaltet";
-      bPinkFont.disabled = true;
-    } else {
-      bPinkFont.textContent = "500 Aura";
-      bPinkFont.disabled = profile.totalAura < 500;
-    }
-    const bGoldFont = $("buyGoldFont");
-    if(unlockedFonts.includes("gold")){
-      bGoldFont.textContent = "Freigeschaltet";
-      bGoldFont.disabled = true;
-    } else {
-      bGoldFont.textContent = "1000 Aura";
-      bGoldFont.disabled = profile.totalAura < 1000;
-    }
-    const bPinkGlowFont = $("buyPinkGlowFont");
-    if(unlockedFonts.includes("pinkglow")){
-      bPinkGlowFont.textContent = "Freigeschaltet";
-      bPinkGlowFont.disabled = true;
-    } else {
-      bPinkGlowFont.textContent = "1000 Aura";
-      bPinkGlowFont.disabled = profile.totalAura < 1000;
-    }
-    const bGlitchFont = $("buyGlitchFont");
-    if(unlockedFonts.includes("glitch")){
-      bGlitchFont.textContent = "Freigeschaltet";
-      bGlitchFont.disabled = true;
-    } else {
-      bGlitchFont.textContent = "1200 Aura";
-      bGlitchFont.disabled = profile.totalAura < 1200;
-    }
+    FONT_DEFS.forEach(f => {
+      const btn = $(FONT_BTN_IDS[f.key]);
+      if(unlockedFonts.includes(f.key)){
+        const isActive = profile.activeFont === f.key;
+        btn.textContent = isActive ? "✓ Aktiv" : "Aktivieren";
+        btn.disabled = false;
+        btn.classList.toggle("btn-active-owned", isActive);
+      } else {
+        btn.textContent = f.cost + " Aura";
+        btn.disabled = profile.totalAura < f.cost;
+        btn.classList.remove("btn-active-owned");
+      }
+    });
 
     // Update Item Knöpfe
     const icecubeMaxed = (profile.inventory.icecube || 0) >= 2;
@@ -10401,11 +10382,30 @@
   $("buyCrimsonTheme").addEventListener("click", () => buyTheme("crimson", 1400, "Crimson"));
   $("buyMinimalTheme").addEventListener("click", () => buyTheme("minimal", 700, "Minimal"));
 
+  const FRAME_DEFS = [
+    { key: "pink", cost: 300, name: "Pink" },
+    { key: "clean", cost: 300, name: "Clean" },
+    { key: "glow", cost: 1500, name: "Glow" },
+    { key: "glitch", cost: 1500, name: "Glitch" },
+    { key: "gold", cost: 700, name: "Gold" }
+  ];
   function buyFrame(frameKey, cost, name){
+    const unlocked = profile.unlockedFrames || ["none"];
+    if(unlocked.includes(frameKey)){
+      // Schon freigeschaltet - Klick aktiviert/deaktiviert stattdessen
+      // (NEU), statt gar nichts zu tun. Erneutes Klicken auf den gerade
+      // aktiven Rahmen schaltet ihn wieder aus ("Kein Rahmen").
+      profile.activeFrame = (profile.activeFrame === frameKey) ? "none" : frameKey;
+      saveProfile();
+      renderShop();
+      renderProfile();
+      showToast(profile.activeFrame === frameKey ? `🖼️ ${name}-Rahmen aktiviert!` : "Rahmen deaktiviert.");
+      return;
+    }
     if(profile.totalAura >= cost){
       profile.totalAura -= cost;
       if(!profile.unlockedFrames) profile.unlockedFrames = ["none"];
-      if(!profile.unlockedFrames.includes(frameKey)) profile.unlockedFrames.push(frameKey);
+      profile.unlockedFrames.push(frameKey);
       profile.activeFrame = frameKey;
       saveProfile();
       renderShop();
@@ -10418,11 +10418,28 @@
   $("buyGlitchFrame").addEventListener("click", () => buyFrame("glitch", 1500, "Glitch"));
   $("buyGoldFrame").addEventListener("click", () => buyFrame("gold", 700, "Gold"));
 
+  const FONT_DEFS = [
+    { key: "glow", cost: 2000, name: "Glow" },
+    { key: "pink", cost: 500, name: "Pink" },
+    { key: "gold", cost: 1000, name: "Gold" },
+    { key: "pinkglow", cost: 1000, name: "Pink Glow" },
+    { key: "glitch", cost: 1200, name: "Glitch" }
+  ];
   function buyFont(fontKey, cost, name){
+    const unlocked = profile.unlockedFonts || ["none"];
+    if(unlocked.includes(fontKey)){
+      // Schon freigeschaltet - Klick aktiviert/deaktiviert stattdessen (NEU).
+      profile.activeFont = (profile.activeFont === fontKey) ? "none" : fontKey;
+      saveProfile();
+      renderShop();
+      renderProfile();
+      showToast(profile.activeFont === fontKey ? `✒️ ${name}-Schrift aktiviert!` : "Schrift deaktiviert.");
+      return;
+    }
     if(profile.totalAura >= cost){
       profile.totalAura -= cost;
       if(!profile.unlockedFonts) profile.unlockedFonts = ["none"];
-      if(!profile.unlockedFonts.includes(fontKey)) profile.unlockedFonts.push(fontKey);
+      profile.unlockedFonts.push(fontKey);
       profile.activeFont = fontKey;
       saveProfile();
       renderShop();

@@ -2054,6 +2054,50 @@
   }
   .daily-goal-projection .dg-grade b{ color:var(--text); font-family:'Baloo 2',sans-serif; font-size:16px; }
 
+  /* ---------- Einrichtung / Onboarding (NEU, Vollbild) ---------- */
+  .ob-progress-track{
+    width:100%; height:7px; border-radius:99px; background:rgba(255,255,255,.08); overflow:hidden;
+  }
+  .ob-progress-fill{
+    height:100%; border-radius:99px; width:0%;
+    background:linear-gradient(90deg, #a855f7, #ec4899);
+    box-shadow:0 0 12px rgba(168,85,247,.7);
+    transition:width .4s ease;
+  }
+  .ob-step{
+    max-width:400px; width:100%; text-align:center; color:#fff;
+    animation: obStepIn .35s ease;
+  }
+  @keyframes obStepIn{
+    from{ opacity:0; transform:translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .ob-step h2{ font-size:22px; margin-bottom:8px; }
+  .ob-step p{ font-size:14px; color:rgba(255,255,255,.7); line-height:1.5; }
+  .ob-layout-choice{
+    flex:1; background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.12);
+    border-radius:18px; padding:12px; cursor:pointer; color:#fff; font-weight:800; font-size:13px;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .ob-layout-choice.active{
+    border-color:#a855f7; box-shadow:0 0 0 1.5px #a855f7 inset, 0 0 20px rgba(168,85,247,.35);
+    background:rgba(168,85,247,.1);
+  }
+  .ob-layout-preview{
+    width:100%; height:120px; border-radius:12px; background:#121218; padding:8px;
+    display:flex; flex-direction:column; gap:6px; overflow:hidden;
+  }
+  .ob-preview-topbar{ height:8px; border-radius:4px; background:rgba(255,255,255,.15); width:60%; }
+  .ob-preview-hero{ flex:1; border-radius:8px; background:linear-gradient(135deg, rgba(255,122,61,.25), rgba(255,122,61,.08)); border:1px solid rgba(255,122,61,.3); }
+  .ob-preview-row{ display:flex; gap:5px; }
+  .ob-preview-pill{ flex:1; height:14px; border-radius:7px; background:rgba(255,255,255,.1); }
+  .ob-preview-glow{ box-shadow:0 0 14px rgba(168,85,247,.25) inset; }
+  .ob-preview-stats{ display:flex; gap:4px; }
+  .ob-preview-stats div{ flex:1; height:10px; border-radius:5px; background:rgba(255,255,255,.1); }
+  .ob-preview-card{ flex:1; border-radius:8px; }
+  .ob-preview-card-purple{ background:linear-gradient(135deg, rgba(168,85,247,.3), rgba(168,85,247,.08)); border:1px solid rgba(168,85,247,.4); }
+  .ob-preview-card-orange{ background:linear-gradient(135deg, rgba(251,146,60,.3), rgba(251,146,60,.08)); border:1px solid rgba(251,146,60,.4); }
+
   /* ---------- Profilrahmen (NEU) ---------- */
   #profileHeaderCard, #friendProfileCard{ transition: box-shadow .3s, border-color .3s, background .3s; border-radius: var(--radius-card); }
   .frame-pink #profileHeaderCard,
@@ -3209,6 +3253,7 @@
           <img id="announcementImagePreview" style="max-width:100%; max-height:140px; border-radius:10px; display:block;">
           <button class="btn btn-ghost btn-small" id="announcementImageRemoveBtn" style="margin-top:6px;">Bild entfernen</button>
         </div>
+        <input type="text" id="announcementTargetUsernameInput" class="input-field" placeholder="Nur an @Benutzername (leer lassen für alle)" style="margin-bottom:8px;">
         <select id="announcementDurationSelect" class="input-field" style="margin-bottom:8px;">
           <option value="1">1 Tag</option>
           <option value="3" selected>3 Tage</option>
@@ -3306,14 +3351,7 @@
         <div style="font-size:32px; margin-bottom:6px;">🧪</div>
         <h2 style="margin-bottom:14px;">Beta</h2>
         <div class="d" style="font-weight:800; margin-bottom:10px;">Betaeinstellungen</div>
-
-        <div class="settings-row" style="padding:0 0 4px;">
-          <div class="info">
-            <div class="t">🖼️ New Design</div>
-            <div class="d">Zeigt im Clean-Layout Bilder als Hintergrund der Streak- und "Weitermachen"-Karte auf dem Home-Bildschirm.</div>
-          </div>
-          <div class="switch" id="streakBgImageSwitch"><div class="knob"></div></div>
-        </div>
+        <div class="empty-hint" style="text-align:left; margin-top:0;">Aktuell keine Beta-Einstellungen verfügbar.</div>
       </div>
     </div>
 
@@ -3558,63 +3596,97 @@
   </nav>
 
   <!-- ============ OVERLAYS ============ -->
-  <div class="overlay" id="overlayIntroPitch">
-    <div class="modal-card">
-      <div style="font-size:48px; margin-bottom:12px;">🎯</div>
-      <h2 style="margin-bottom:6px; line-height:1.5;">Löse Aufgaben.<br>Sammle Aura.<br>Steige in der Rangliste auf.</h2>
-      <button class="btn btn-primary" id="introPitchContinueBtn" style="margin-top:18px;">Weiter</button>
+  <!-- Einrichtung (NEU): ein einziger Vollbild-Container statt mehrerer
+       einzelner schwebender Overlays - man sieht die App dahinter nie
+       mehr durchschimmern, und eine Fortschrittsleiste oben zeigt, wie
+       weit man in der Einrichtung schon ist. -->
+  <div id="onboardingScreen" style="display:none; position:fixed; inset:0; z-index:99500; background:#0a0a12; flex-direction:column; overflow:hidden;">
+    <div style="padding:calc(18px + env(safe-area-inset-top)) 22px 0;">
+      <div class="ob-progress-track"><div class="ob-progress-fill" id="obProgressFill"></div></div>
     </div>
-  </div>
+    <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:24px; overflow-y:auto;">
 
-  <div class="overlay" id="overlayDifficulty">
-    <div class="modal-card">
-      <div style="font-size:42px; margin-bottom:8px;">👋</div>
-      <h2>Willkommen bei MathEdits!</h2>
-      <p>Löse Matheaufgaben blitzschnell, sammle Aura und steig im Level auf. Wo möchtest du starten?</p>
-      <div class="difficulty-picker" id="difficultyPicker">
-        <button class="difficulty-btn active" data-diff="beginner">🟢 Anfänger<span>Ganz von vorne</span></button>
-        <button class="difficulty-btn" data-diff="medium">🟡 Mittel<span>Ab Einmaleins</span></button>
-        <button class="difficulty-btn" data-diff="hard">🔴 Schwer<span>Ab Großes Einmaleins</span></button>
+      <!-- Schritt 1: Willkommen -->
+      <div class="ob-step" id="obStepWelcome">
+        <div style="font-size:56px; margin-bottom:14px;">🎯</div>
+        <h2 style="line-height:1.5;">Löse Aufgaben.<br>Sammle Aura.<br>Steige in der Rangliste auf.</h2>
+        <button class="btn-glow" id="introPitchContinueBtn" style="margin-top:22px;"><span>▶</span> Los geht's <span>→</span></button>
       </div>
-      <button class="btn btn-primary" id="difficultyContinueBtn" style="margin-top:16px;">Weiter</button>
-    </div>
-  </div>
 
-  <div class="overlay" id="overlayDailyGoal">
-    <div class="modal-card">
-      <div id="dailyGoalPickerPhase">
-        <div style="font-size:42px; margin-bottom:8px;">🎯</div>
-        <h2>Dein tägliches Lernziel</h2>
-        <p>Wie viele Lektionen möchtest du dir jeden Tag vornehmen?</p>
-        <div class="difficulty-picker" id="dailyGoalPicker">
-          <button class="difficulty-btn" data-goal="1">1<span>Lektion / Tag</span></button>
-          <button class="difficulty-btn active" data-goal="3">3<span>Lektionen / Tag</span></button>
-          <button class="difficulty-btn" data-goal="10">10<span>Lektionen / Tag</span></button>
+      <!-- Schritt 2: Level wählen -->
+      <div class="ob-step" id="obStepLevel" style="display:none;">
+        <div style="font-size:44px; margin-bottom:8px;">👋</div>
+        <h2>Willkommen bei MathEdits!</h2>
+        <p>Löse Matheaufgaben blitzschnell, sammle Aura und steig im Level auf. Wo möchtest du starten?</p>
+        <div class="difficulty-picker" id="difficultyPicker">
+          <button class="difficulty-btn active" data-diff="beginner">🟢 Anfänger<span>Ganz von vorne</span></button>
+          <button class="difficulty-btn" data-diff="medium">🟡 Mittel<span>Ab Einmaleins</span></button>
+          <button class="difficulty-btn" data-diff="hard">🔴 Schwer<span>Ab Großes Einmaleins</span></button>
         </div>
-        <button class="btn btn-primary" id="dailyGoalContinueBtn" style="margin-top:16px;">Weiter</button>
+        <button class="btn-glow" id="difficultyContinueBtn" style="margin-top:18px;">Weiter <span>→</span></button>
       </div>
 
-      <div id="dailyGoalCalculatingPhase" style="display:none;">
-        <div style="font-size:42px; margin-bottom:8px;">⏳</div>
-        <h2>Dein Fortschritt wird berechnet …</h2>
+      <!-- Schritt 3: Tägliches Lernziel -->
+      <div class="ob-step" id="obStepGoal" style="display:none;">
+        <div id="dailyGoalPickerPhase">
+          <div style="font-size:44px; margin-bottom:8px;">🎯</div>
+          <h2>Dein tägliches Lernziel</h2>
+          <p>Wie viele Lektionen möchtest du dir jeden Tag vornehmen?</p>
+          <div class="difficulty-picker" id="dailyGoalPicker">
+            <button class="difficulty-btn" data-goal="1">1<span>Lektion / Tag</span></button>
+            <button class="difficulty-btn active" data-goal="3">3<span>Lektionen / Tag</span></button>
+            <button class="difficulty-btn" data-goal="10">10<span>Lektionen / Tag</span></button>
+          </div>
+          <button class="btn-glow" id="dailyGoalContinueBtn" style="margin-top:18px;">Weiter <span>→</span></button>
+        </div>
+        <div id="dailyGoalCalculatingPhase" style="display:none;">
+          <div style="font-size:44px; margin-bottom:8px;">⏳</div>
+          <h2>Dein Fortschritt wird berechnet …</h2>
+        </div>
+        <div id="dailyGoalResultPhase" style="display:none;">
+          <div style="font-size:44px; margin-bottom:8px;">📊</div>
+          <h2>Deine Prognose</h2>
+          <div class="daily-goal-projection" id="dailyGoalProjection"></div>
+          <button class="btn-glow" id="dailyGoalResultContinueBtn" style="margin-top:18px;">Weiter <span>→</span></button>
+        </div>
       </div>
 
-      <div id="dailyGoalResultPhase" style="display:none;">
-        <div style="font-size:42px; margin-bottom:8px;">📊</div>
-        <h2>Deine Prognose</h2>
-        <div class="daily-goal-projection" id="dailyGoalProjection"></div>
-        <button class="btn btn-primary" id="dailyGoalResultContinueBtn" style="margin-top:16px;">Weiter</button>
+      <!-- Schritt 4: Layout wählen (NEU) -->
+      <div class="ob-step" id="obStepLayout" style="display:none;">
+        <div style="font-size:44px; margin-bottom:8px;">🎨</div>
+        <h2>Wähle dein Layout</h2>
+        <p>Du kannst das später jederzeit in den Einstellungen wieder ändern.</p>
+        <div style="display:flex; gap:12px; margin-top:18px;">
+          <button class="ob-layout-choice" id="obLayoutSimpelBtn" data-layout="simpel">
+            <div class="ob-layout-preview">
+              <div class="ob-preview-topbar"></div>
+              <div class="ob-preview-hero"></div>
+              <div class="ob-preview-row"><div class="ob-preview-pill"></div><div class="ob-preview-pill"></div></div>
+            </div>
+            <span>Simpel</span>
+          </button>
+          <button class="ob-layout-choice active" id="obLayoutCleanBtn" data-layout="clean">
+            <div class="ob-layout-preview ob-preview-glow">
+              <div class="ob-preview-topbar"></div>
+              <div class="ob-preview-stats"><div></div><div></div><div></div><div></div></div>
+              <div class="ob-preview-card ob-preview-card-purple"></div>
+              <div class="ob-preview-card ob-preview-card-orange"></div>
+            </div>
+            <span>Clean</span>
+          </button>
+        </div>
+        <button class="btn-glow" id="obLayoutContinueBtn" style="margin-top:22px;">Weiter <span>→</span></button>
       </div>
-    </div>
-  </div>
 
-  <div class="overlay" id="overlayWelcome">
-    <div class="modal-card">
-      <div style="font-size:42px; margin-bottom:8px;" id="welcomeEmoji">👋</div>
-      <h2>Willkommen bei MathEdits!</h2>
-      <p id="welcomeMessageText">Möchtest du dich direkt einloggen, um deine Aura, dein Level und deinen Fortschritt sicher zu speichern?</p>
-      <button class="btn btn-primary" id="welcomeAuthBtn" style="margin-bottom:10px;">Einloggen / Account erstellen</button>
-      <button class="btn btn-ghost" id="welcomeGuestBtn">Erstmal als Gast spielen</button>
+      <!-- Schritt 5: Einloggen / Gast -->
+      <div class="ob-step" id="obStepAuth" style="display:none;">
+        <div style="font-size:44px; margin-bottom:8px;" id="welcomeEmoji">👋</div>
+        <h2>Willkommen bei MathEdits!</h2>
+        <p id="welcomeMessageText">Möchtest du dich direkt einloggen, um deine Aura, dein Level und deinen Fortschritt sicher zu speichern?</p>
+        <button class="btn-glow" id="welcomeAuthBtn" style="margin-top:18px; margin-bottom:10px;">Einloggen / Account erstellen</button>
+        <button class="btn btn-ghost" id="welcomeGuestBtn">Erstmal als Gast spielen</button>
+      </div>
+
     </div>
   </div>
 
@@ -4091,7 +4163,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.89";
+  const APP_VERSION = "2.92";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -4395,8 +4467,6 @@
     answeredPollIds: [], // verhindert mehrfaches Einschicken derselben Umfrage
     appIntroStyle: "math", // "math" (Standard) oder "simple" - welche Start-Animation beim App-Öffnen läuft
     devModeEnabled: false, // Entwicklermodus: zeigt Debug-Beschriftungen an allen Elementen (nur Owner)
-    streakBgImageEnabled: false, // Beta-Einstellung (vorher "Peter"): Bild als Hintergrund der Streak-Karte im Clean-Layout
-    continueBgImageEnabled: false, // Beta-Einstellung: Bild als Hintergrund der "Weitermachen"-Karte im Clean-Layout
     layoutStyle: "clean", // "clean" (Standard, frühere "Beta"-Ansicht) oder "simpel" (frühere "Normal"-Ansicht) - welches Home-Layout angezeigt wird
     pendingFeedbackBonusAura: 0, // Aura-Geschenk vom Owner fürs Feedback, das noch als Banner angezeigt werden muss
     todayActiveMs: 0, // heutige Nutzungszeit in der App (Millisekunden)
@@ -4596,6 +4666,8 @@
   // Online-Punkte (grün) frisch halten: die Rangliste und das
   // Freundes-Profil würden sonst nur beim Öffnen einmal geladen und dann
   // nicht mehr aktualisiert, solange man einfach draufschaut.
+  // (Etwas seltener als vorher, da ein Rangliste-Refresh bis zu 50
+  // Lesevorgänge auf einmal macht - siehe Kontingent-Bugfixes oben.)
   setInterval(() => {
     if(!firebaseInitialized || !currentUser) return;
     if(screens.leaderboard && screens.leaderboard.classList.contains("active")){
@@ -4607,7 +4679,7 @@
     if($("overlayFriendProfile") && $("overlayFriendProfile").classList.contains("show") && currentFriendProfileUid){
       fetchUserDoc(currentFriendProfileUid).then(u => { if(u) renderFriendProfileCard(u, false); });
     }
-  }, 15000);
+  }, 30000);
 
   // Regelmäßig auf eine neue Vollbild-Ankündigung prüfen (NEU) - vorher
   // wurde nur beim Einloggen/Wiederöffnen geprüft. Wer die App einfach
@@ -4632,13 +4704,13 @@
     }
   }, 60000);
 
-  // Live-Erkennung neu online gegangener Freunde (NEU): läuft häufiger als
-  // der obige 60s-Takt, da der Online-Status selbst nur ein 30s-Fenster hat.
+  // Live-Erkennung neu online gegangener Freunde: deutlich seltener als
+  // vorher (siehe Kontingent-Bugfix oben bei checkForNewlyOnlineFriends).
   setInterval(() => {
     if(firebaseInitialized && currentUser && cloudSyncReady){
       checkForNewlyOnlineFriends();
     }
-  }, 20000);
+  }, 90000);
 
   function isOnline(u){
     return !!(u && u.lastActiveAt && (Date.now() - u.lastActiveAt) < ONLINE_THRESHOLD_MS);
@@ -5100,19 +5172,34 @@
       return alert("Bitte Text und/oder ein Bild angeben.");
     }
     const days = parseInt($("announcementDurationSelect").value, 10) || 3;
+    const targetUsernameRaw = $("announcementTargetUsernameInput").value.trim();
+    let targetUid = null;
+    if(targetUsernameRaw){
+      // Nur an eine bestimmte Person (NEU): den Benutzernamen zur UID
+      // auflösen - existiert er nicht, wird abgebrochen statt versehentlich
+      // an ALLE zu senden.
+      const uname = normalizeUsername(targetUsernameRaw);
+      const unameDoc = await getDocFreshOrCached(db().collection("usernames").doc(uname));
+      if(!unameDoc.exists){
+        return alert(`Benutzername @${targetUsernameRaw} wurde nicht gefunden.`);
+      }
+      targetUid = unameDoc.data().uid;
+    }
     try{
       await db().collection("announcements").add({
         text: text.slice(0, 1000),
         imageDataUri: pendingAnnouncementImageDataUri || null,
         createdAt: Date.now(),
         expiresAt: Date.now() + days * 24 * 60 * 60 * 1000,
-        createdBy: currentUser.uid
+        createdBy: currentUser.uid,
+        targetUid: targetUid // null = an alle, sonst nur an diese eine Person
       });
       $("announcementTextInput").value = "";
       $("announcementImageInput").value = "";
+      $("announcementTargetUsernameInput").value = "";
       pendingAnnouncementImageDataUri = null;
       $("announcementImagePreviewWrap").style.display = "none";
-      showToast("📣 Ankündigung gesendet!");
+      showToast(targetUid ? `📣 Ankündigung an @${targetUsernameRaw} gesendet!` : "📣 Ankündigung an alle gesendet!");
       renderOwnerAnnouncementStatus();
       checkForAnnouncement();
     }catch(err){
@@ -5165,16 +5252,30 @@
 
   // Prüft beim App-Start/Wiederöffnen, ob eine aktive Ankündigung existiert,
   // die diese Person noch nicht gesehen hat - zeigt sie dann einmalig an.
+  // WICHTIG (NEU): holt jetzt die letzten paar Ankündigungen (nicht nur
+  // eine) und filtert selbst danach, ob sie an ALLE oder NUR an diese eine
+  // Person gerichtet ist - persönliche Ankündigungen haben Vorrang. Bewusst
+  // OHNE "where"-Filter in der Abfrage, sonst würden (a) ältere
+  // Ankündigungen ohne das neue "targetUid"-Feld nicht mehr gefunden und
+  // (b) ein zusätzlicher Firestore-Index nötig.
   async function checkForAnnouncement(){
     if(!firebaseInitialized || !currentUser) return;
     try{
-      const snap = await db().collection("announcements").orderBy("createdAt", "desc").limit(1).get();
+      const snap = await db().collection("announcements").orderBy("createdAt", "desc").limit(10).get();
       if(snap.empty) return;
-      const doc = snap.docs[0];
-      const data = doc.data();
-      if(data.expiresAt < Date.now()) return; // abgelaufen
       const seen = profile.dismissedAnnouncementIds || [];
-      if(seen.includes(doc.id)) return; // schon gesehen
+      const relevant = snap.docs
+        .map(d => ({ id: d.id, data: d.data() }))
+        .filter(({ id, data }) =>
+          data.expiresAt >= Date.now() &&
+          !seen.includes(id) &&
+          (!data.targetUid || data.targetUid === currentUser.uid)
+        );
+      if(relevant.length === 0) return;
+      // Persönliche Ankündigung (falls vorhanden) hat Vorrang vor einer
+      // allgemeinen an alle.
+      const candidate = relevant.find(r => r.data.targetUid === currentUser.uid) || relevant[0];
+      const { id: docId, data } = candidate;
       $("announcementTextDisplay").textContent = data.text || "";
       if(data.imageDataUri){
         $("announcementImageDisplay").src = data.imageDataUri;
@@ -5182,13 +5283,13 @@
       } else {
         $("announcementImageDisplay").style.display = "none";
       }
-      $("overlayAnnouncement").dataset.currentId = doc.id;
+      $("overlayAnnouncement").dataset.currentId = docId;
       $("overlayAnnouncement").style.display = "flex";
       // WICHTIG: sobald sie angezeigt wird, sofort als gesehen speichern -
       // nicht erst wenn auf X gedrückt wird. Sonst würde sie erneut
       // erscheinen, falls die App geschlossen wird, bevor jemand explizit
       // wegklickt (genau das war der gemeldete Fall).
-      profile.dismissedAnnouncementIds = [...new Set([...(profile.dismissedAnnouncementIds || []), doc.id])];
+      profile.dismissedAnnouncementIds = [...new Set([...(profile.dismissedAnnouncementIds || []), docId])];
       saveProfile();
     }catch(err){
       console.error("Ankündigung abrufen Fehler:", err);
@@ -5933,16 +6034,40 @@
   // dasselbe Popup nochmal - aber nur für die neu Hinzugekommenen, nicht
   // für alle, die sowieso schon online waren.
   let knownOnlineFriendUids = new Set();
+  // WICHTIG (Bugfix, größter Kontingent-Fresser): diese Funktion hat
+  // bisher ALLE 20 SEKUNDEN eine komplette Follower-Abfrage UND für JEDEN
+  // gegenseitigen Freund einen erzwungenen, teuren Server-Lesevorgang des
+  // GESAMTEN Profils gemacht. Bei z.B. 15 Freunden macht das grob
+  // (15 Lesevorgänge alle 20 Sekunden) ≈ 65.000 Lesevorgänge PRO TAG - für
+  // sich allein schon mehr als das komplette kostenlose Tageskontingent.
+  // Jetzt: seltener, die Follower-Liste eine Weile zwischengespeichert
+  // (ändert sich ja nicht ständig), und ein günstigerer Lesevorgang, der
+  // auch den lokalen Cache nutzen darf - "ist ein Freund online" muss
+  // nicht sekundengenau aktuell sein.
+  let cachedFollowersData = null;
+  let cachedFollowersAt = 0;
+  const FOLLOWERS_CACHE_MS = 5 * 60 * 1000; // 5 Minuten
   async function checkForNewlyOnlineFriends(){
     if(!firebaseInitialized || !currentUser) return;
     try{
       const following = profile.following || [];
       if(following.length === 0) return;
-      const followersData = await fetchFollowers(currentUser.uid);
-      const followerUids = followersData.map(f => f.uid);
+      if(!cachedFollowersData || (Date.now() - cachedFollowersAt) > FOLLOWERS_CACHE_MS){
+        cachedFollowersData = await fetchFollowers(currentUser.uid);
+        cachedFollowersAt = Date.now();
+      }
+      const followerUids = cachedFollowersData.map(f => f.uid);
       const mutualUids = following.filter(uid => followerUids.includes(uid));
       if(mutualUids.length === 0) return;
-      const friendDocs = await Promise.all(mutualUids.map(uid => fetchUserDoc(uid)));
+      // Günstiger Lesevorgang (darf Cache nutzen) statt des teuren
+      // erzwungenen Server-Reads von fetchUserDoc - für die reine
+      // Online-Erkennung reicht das völlig aus.
+      const friendDocs = await Promise.all(mutualUids.map(async uid => {
+        try{
+          const doc = await db().collection("users").doc(uid).get();
+          return doc.exists ? { ...doc.data(), uid } : null;
+        }catch(e){ return null; }
+      }));
       const onlineFriends = friendDocs.filter(u => u && isOnline(u));
       const currentOnlineUids = new Set(onlineFriends.map(u => u.uid));
       const newlyOnline = onlineFriends.filter(u => !knownOnlineFriendUids.has(u.uid));
@@ -7012,7 +7137,15 @@
     return u.streak;
   }
 
+  // WICHTIG (Bugfix): "streakCheckPending" verhindert, dass IRGENDEIN
+  // Aufrufpfad (renderHome() wird von über 10 Stellen aus aufgerufen, nicht
+  // nur von init() selbst) diese Prüfung schon VOR dem ersten Cloud-
+  // Abgleich ausführt - sonst könnte ein auf einem ANDEREN Gerät gekaufter
+  // Icecube, der lokal noch nicht bekannt ist, den Streak fälschlich
+  // brechen lassen (der gemeldete Bug "Icecube funktioniert nicht").
+  let streakCheckPending = false;
   function checkStreakDecay(){
+    if(streakCheckPending && !cloudSyncReady) return;
     if(!profile.lastStreakDate) return;
     const today = todayStr();
     const yesterday = yesterdayStr();
@@ -7203,8 +7336,8 @@
     $("betaHomeLevel").textContent = profile.level;
     $("betaHomeAura").textContent = profile.totalAura;
     $("betaHomeStreak").textContent = profile.streak || 0;
-    $("betaStreakCard").classList.toggle("has-bg-image", !!profile.streakBgImageEnabled);
-    $("betaContinueCard").classList.toggle("has-bg-image", !!profile.continueBgImageEnabled);
+    $("betaStreakCard").classList.add("has-bg-image");
+    $("betaContinueCard").classList.add("has-bg-image");
 
     const n = profile.streak || 0;
     $("betaStreakNum").textContent = n;
@@ -11502,21 +11635,9 @@
 
   $("peterMenuRow").addEventListener("click", () => {
     $("overlayPeterMenu").classList.add("show");
-    $("streakBgImageSwitch").classList.toggle("on", !!profile.streakBgImageEnabled);
   });
   $("peterMenuClose").addEventListener("click", () => {
     $("overlayPeterMenu").classList.remove("show");
-  });
-  $("streakBgImageSwitch").addEventListener("click", () => {
-    // Ein einziger Schalter steuert jetzt beide Hintergrundbilder
-    // gleichzeitig (Streak- UND Weitermachen-Karte), statt zwei getrennte
-    // Optionen zu haben.
-    profile.streakBgImageEnabled = !profile.streakBgImageEnabled;
-    profile.continueBgImageEnabled = profile.streakBgImageEnabled;
-    saveProfile();
-    $("streakBgImageSwitch").classList.toggle("on", profile.streakBgImageEnabled);
-    $("betaStreakCard").classList.toggle("has-bg-image", profile.streakBgImageEnabled);
-    $("betaContinueCard").classList.toggle("has-bg-image", profile.continueBgImageEnabled);
   });
 
   $("installAppRow").addEventListener("click", () => {
@@ -11699,15 +11820,22 @@
     pendingOwnerRegNotify = null;
   });
 
-  /* Onboarding-Kette (NEU): Schwierigkeit -> Tägliches Lernziel -> Login.
-     closeAllOnboardingOverlays() räumt vor jedem Schritt konsequent auf, damit
-     nie zwei Overlays gleichzeitig "show" haben (und so versehentlich Klicks
-     im Hintergrund blockieren könnten). */
-  function closeAllOnboardingOverlays(){
-    ["overlayIntroPitch", "overlayDifficulty", "overlayDailyGoal", "overlayWelcome"].forEach(id => {
-      const el = $(id);
-      if(el) el.classList.remove("show");
-    });
+  /* Einrichtung / Onboarding (NEU): ein Vollbild-Schritt-für-Schritt-Ablauf
+     statt mehrerer einzelner schwebender Overlays - Willkommen -> Level ->
+     Tägliches Lernziel -> Layout -> Login. */
+  const ONBOARDING_STEPS = ["obStepWelcome", "obStepLevel", "obStepGoal", "obStepLayout", "obStepAuth"];
+  function showOnboardingStep(stepId){
+    ONBOARDING_STEPS.forEach(id => { $(id).style.display = (id === stepId) ? "block" : "none"; });
+    const idx = ONBOARDING_STEPS.indexOf(stepId);
+    const pct = ((idx + 1) / ONBOARDING_STEPS.length) * 100;
+    $("obProgressFill").style.width = pct + "%";
+  }
+  function openOnboarding(){
+    $("onboardingScreen").style.display = "flex";
+    showOnboardingStep("obStepWelcome");
+  }
+  function closeOnboarding(){
+    $("onboardingScreen").style.display = "none";
   }
 
   let selectedDifficulty = "beginner";
@@ -11719,8 +11847,7 @@
     });
   });
   $("introPitchContinueBtn").addEventListener("click", () => {
-    closeAllOnboardingOverlays();
-    $("overlayDifficulty").classList.add("show");
+    showOnboardingStep("obStepLevel");
   });
 
   $("difficultyContinueBtn").addEventListener("click", () => {
@@ -11735,13 +11862,12 @@
     profile.levelProgress = 0;
     selectedTierIndex = tierIdx >= 0 ? tierIdx : null;
     saveProfile();
-    closeAllOnboardingOverlays();
     // Immer frisch mit der Auswahl-Phase starten (falls das Onboarding aus
     // irgendeinem Grund erneut durchlaufen wird).
     $("dailyGoalPickerPhase").style.display = "block";
     $("dailyGoalCalculatingPhase").style.display = "none";
     $("dailyGoalResultPhase").style.display = "none";
-    $("overlayDailyGoal").classList.add("show");
+    showOnboardingStep("obStepGoal");
   });
 
   /* Tägliches Lernziel (NEU) - erst nur die Auswahl, keine Zahlen. Nach "Weiter"
@@ -11790,7 +11916,25 @@
   $("dailyGoalResultContinueBtn").addEventListener("click", () => {
     profile.dailyGoal = selectedDailyGoal;
     saveProfile();
-    closeAllOnboardingOverlays();
+    showOnboardingStep("obStepLayout");
+  });
+
+  /* Layout wählen (NEU): Simpel oder Clean, mit einer kleinen Vorschau-
+     Kachel, die ungefähr zeigt, wie das jeweilige Layout aussieht. Die
+     Auswahl wird sofort angewendet (applyTheme()), damit man beim
+     Weiterklicken direkt im gewählten Layout landet. */
+  let selectedOnboardingLayout = "clean";
+  function selectOnboardingLayout(layout){
+    selectedOnboardingLayout = layout;
+    $("obLayoutSimpelBtn").classList.toggle("active", layout === "simpel");
+    $("obLayoutCleanBtn").classList.toggle("active", layout === "clean");
+  }
+  $("obLayoutSimpelBtn").addEventListener("click", () => selectOnboardingLayout("simpel"));
+  $("obLayoutCleanBtn").addEventListener("click", () => selectOnboardingLayout("clean"));
+  $("obLayoutContinueBtn").addEventListener("click", () => {
+    profile.layoutStyle = selectedOnboardingLayout;
+    saveProfile();
+    applyTheme();
     // Liegt ein Einladungscode vor (die Person kam über einen ?ref=-Link),
     // wird das GENAU HIER prominent gezeigt - das ist der erste Bildschirm,
     // an dem man sich einloggen/registrieren kann, also der Moment, wo der
@@ -11805,7 +11949,7 @@
       $("welcomeGuestBtn").disabled = false;
       $("welcomeGuestBtn").textContent = "Erstmal als Gast spielen";
     }
-    $("overlayWelcome").classList.add("show");
+    showOnboardingStep("obStepAuth");
   });
 
   // Sperrt den "Erstmal als Gast spielen"-Button 5 Sekunden lang, wenn der
@@ -11832,7 +11976,7 @@
   $("welcomeAuthBtn").addEventListener("click", () => {
     profile.hasSeenWelcome = true;
     saveProfile();
-    closeAllOnboardingOverlays();
+    closeOnboarding();
     renderSettings();
     showScreen("settings");
     // Direkt zu den Login-Feldern scrollen, damit man sie sofort sieht,
@@ -11846,7 +11990,7 @@
   $("welcomeGuestBtn").addEventListener("click", () => {
     profile.hasSeenWelcome = true;
     saveProfile();
-    closeAllOnboardingOverlays();
+    closeOnboarding();
     showToast("Gastmodus: Fortschritt nicht gesichert");
     renderHome();
   });
@@ -12019,6 +12163,13 @@
               // rohen Cloud-Daten übernehmen, genau wie beim Sperr-Status.
               profile.isMod = !!cloudData.isMod;
               cloudSyncReady = true;
+              // Bugfix (siehe init()): die Streak-/Icecube-Prüfung wird für
+              // bereits zuvor eingeloggte Geräte bewusst erst HIER
+              // nachgeholt - jetzt mit dem korrekten, gerade eben
+              // abgeglichenen Icecube-Stand, statt mit einem möglicherweise
+              // veralteten lokalen Wert von vor dem Abgleich.
+              streakCheckPending = false;
+              checkStreakDecay();
               // Falls die Person GERADE auf dem Einstellungen-Bildschirm ist,
               // wenn der Owner sie zum Mod ernennt (oder die Rolle entzieht),
               // soll der Schild-Button sofort erscheinen/verschwinden, ohne
@@ -13797,7 +13948,22 @@
     applyWideLayoutIfNeeded();
     loadProfile();
     refillLives();
-    checkStreakDecay();
+    // WICHTIG (Bugfix): NICHT hier sofort prüfen, wenn dieses Gerät schon
+    // mal eingeloggt war - der lokale Icecube-Stand könnte veraltet sein
+    // (z.B. Icecube auf einem ANDEREN Gerät gekauft), und diese Prüfung
+    // würde dann fälschlich den Streak brechen, obwohl in der Cloud
+    // eigentlich noch ein Icecube zum Schützen verfügbar wäre - genau der
+    // gemeldete Bug "Icecube funktioniert nicht". Für neue Geräte/Gäste
+    // ohne Cloud-Abgleich (kein lastFirebaseUid) ist der lokale Stand
+    // ohnehin die einzige Quelle, dort also sofort prüfen. Für alle
+    // anderen wird die Prüfung über "streakCheckPending" so lange
+    // blockiert (auch bei Aufrufen über renderHome()!), bis der
+    // Cloud-Abgleich abgeschlossen ist.
+    if(profile.lastFirebaseUid){
+      streakCheckPending = true;
+    } else {
+      checkStreakDecay();
+    }
     processWeeklyInviteRollover();
     ensureDailyMissions();
     // Falls die App zuletzt mitten in einer Lektion geschlossen wurde, ohne
@@ -13824,8 +13990,8 @@
     }
 
     playStartupIntro(() => {
-      if(!profile.hasSeenWelcome && !currentUser){
-        $("overlayIntroPitch").classList.add("show");
+      if(!profile.hasSeenWelcome){
+        openOnboarding();
       }
       maybeShowIOSInstallBanner();
     });

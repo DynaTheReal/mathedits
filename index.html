@@ -3184,6 +3184,11 @@
         <div class="d" style="margin-bottom:4px; margin-top:14px;">Benutzername ändern</div>
         <input type="text" id="ownerRenameInput" class="input-field" placeholder="Neuer Benutzername" style="text-transform:lowercase;">
 
+        <div style="margin-top:14px;">
+          <div class="d" style="font-weight:800; margin-bottom:6px;">💎 Aura-Verlauf</div>
+          <div id="ownerAuraHistoryList" style="max-height:180px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
+        </div>
+
         <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:12px; padding:10px; margin-top:14px;">
           <div class="d" style="font-weight:800; margin-bottom:8px; color:#ef4444;">🚫 Konto sperren</div>
           <div id="ownerBanStatus" class="d" style="margin-bottom:8px;">Aktuell nicht gesperrt.</div>
@@ -4163,7 +4168,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.92";
+  const APP_VERSION = "2.93";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5834,6 +5839,7 @@
         createdAt: Date.now()
       }));
       profile.totalAura -= amount;
+      logAuraTransaction(-amount, `Spende an @${donateAuraTargetUsername}`);
       saveProfile();
       renderHome();
       $("overlayDonateAura").classList.remove("show");
@@ -6932,6 +6938,7 @@
 
     profile.duelsPlayed = (profile.duelsPlayed || 0) + 1;
     profile.totalAura += auraGained;
+    logAuraTransaction(auraGained, "Duell");
     let outcome = "🤝 Unentschieden";
     if(myScore > oppScore){
       outcome = "🏆 Gewonnen";
@@ -7275,6 +7282,7 @@
     if(!profile.lastBrokenStreak || profile.lastBrokenStreak <= 0) return;
     if(profile.totalAura < STREAK_REPAIR_COST) return;
     profile.totalAura -= STREAK_REPAIR_COST;
+    logAuraTransaction(-STREAK_REPAIR_COST, "Streak-Reparatur");
     profile.streak = profile.lastBrokenStreak;
     profile.lastStreakDate = yesterdayStr(); // heute noch eine Lektion machen setzt den Streak fort
     profile.lastBrokenStreak = 0;
@@ -7952,12 +7960,55 @@
     }
   }
 
+  // Aura-Verlauf (NEU): protokolliert bedeutsame Aura-Änderungen, damit der
+  // Owner im Panel nachsehen kann, wann jemand wie viel Aura bekommen oder
+  // ausgegeben hat. Bewusst "und vergessen" (nicht awaited) - ein
+  // fehlgeschlagener Log-Eintrag soll niemals die eigentliche Aktion
+  // (Lektion, Kauf, ...) blockieren oder verlangsamen.
+  function logAuraTransaction(amount, reason, targetUid){
+    if(!firebaseInitialized || !currentUser || amount === 0) return;
+    db().collection("auraTransactions").add({
+      uid: targetUid || currentUser.uid,
+      amount,
+      reason,
+      createdAt: Date.now()
+    }).catch(err => console.error("Aura-Verlauf protokollieren Fehler:", err));
+  }
+
+  // Aura-Verlauf im Owner-Panel (NEU): zeigt die letzten 20 protokollierten
+  // Aura-Änderungen einer Person - wann, wie viel, wofür.
+  async function renderOwnerAuraHistory(uid){
+    const listEl = $("ownerAuraHistoryList");
+    listEl.innerHTML = `<div class="empty-hint" style="margin:0; text-align:left;">Lädt...</div>`;
+    try{
+      const snap = await db().collection("auraTransactions").where("uid", "==", uid).orderBy("createdAt", "desc").limit(20).get();
+      if(snap.empty){
+        listEl.innerHTML = `<div class="empty-hint" style="margin:0; text-align:left;">Noch kein protokollierter Aura-Verlauf für diese Person.</div>`;
+        return;
+      }
+      listEl.innerHTML = snap.docs.map(d => {
+        const t = d.data();
+        const positive = t.amount > 0;
+        const sign = positive ? "+" : "";
+        const color = positive ? "#4ade80" : "#ef4444";
+        return `<div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:5px 0; border-bottom:1px solid var(--border);">
+          <span style="opacity:.8;">${t.reason || "?"}<br><span style="font-size:10px; opacity:.6;">${formatRelativeTime(t.createdAt)}</span></span>
+          <span style="font-weight:800; color:${color};">${sign}${t.amount} 💎</span>
+        </div>`;
+      }).join("");
+    }catch(err){
+      console.error("Aura-Verlauf laden Fehler:", err);
+      listEl.innerHTML = `<div class="empty-hint" style="margin:0; text-align:left;">Verlauf konnte nicht geladen werden.</div>`;
+    }
+  }
+
   function claimChest(sourceType, sourceId){
     const chest = getChestRef(sourceType, sourceId);
     if(!chest || chest.claimed) return;
     const reward = CHEST_REWARDS[chest.tier] || CHEST_REWARDS.standard;
     chest.claimed = true;
     profile.totalAura += reward;
+    logAuraTransaction(reward, `Truhe (${chest.tier})`);
 
     // Truhen-Bonus-Item je Stufe (Aura gibt es bei jeder Stufe zusätzlich dazu):
     // Standard -> 1 Leben (nur wenn kein Super-Nutzer, die haben eh volle Leben),
@@ -7967,9 +8018,15 @@
       profile.lives = Math.min(MAX_LIVES, profile.lives + 1);
       bonusText = " + 1 Leben";
     } else if(chest.tier === "epic"){
-      profile.inventory.doubleAuraUntil = Date.now() + (15 * 60 * 1000);
+      // Stapeln (NEU): läuft ein Booster gerade schon, wird die neue Dauer
+      // OBEN DRAUF gerechnet, statt den Timer einfach zu überschreiben -
+      // sonst könnte eine zweite Truhe einen längeren, noch laufenden
+      // Booster sogar VERKÜRZEN.
+      const currentUntil = (profile.inventory && profile.inventory.doubleAuraUntil) || 0;
+      const baseTime = Math.max(currentUntil, Date.now());
+      profile.inventory.doubleAuraUntil = baseTime + (15 * 60 * 1000);
       bonusText = " + 2× Aura-Booster (15 Min)";
-      playAuraBoosterAnimation(15);
+      playAuraBoosterAnimation(Math.round((profile.inventory.doubleAuraUntil - Date.now()) / 60000));
     }
 
     // Bei Achievement-Truhen: falls das Achievement einen Titel freischaltet,
@@ -10292,6 +10349,7 @@
     }
     if(profile.totalAura >= 500){
       profile.totalAura -= 500;
+      logAuraTransaction(-500, "Icecube gekauft");
       profile.inventory.icecube = (profile.inventory.icecube || 0) + 1;
       saveProfile();
       renderShop();
@@ -10303,6 +10361,7 @@
   $("buyLife").addEventListener("click", () => {
     if(profile.totalAura >= 100 && profile.lives < MAX_LIVES){
       profile.totalAura -= 100;
+      logAuraTransaction(-100, "Leben gekauft");
       profile.lives = Math.min(MAX_LIVES, profile.lives + 1);
       saveProfile();
       renderShop();
@@ -10678,6 +10737,7 @@
         ? `Zuletzt bekannte IP: ${ownerEditingTargetIp}`
         : "Keine bekannte IP-Adresse für diese Person hinterlegt (noch nicht seit dem letzten Update eingeloggt).";
       $("ownerModStatus").textContent = data.isMod ? "🛡️ Ist aktuell Mod." : "Aktuell kein Mod.";
+      renderOwnerAuraHistory(targetUid);
 
       const unlockedThemes = data.unlockedThemes || ["black"];
       const box = $("ownerThemeCheckboxes");
@@ -10754,6 +10814,7 @@
         ownerLastEditAt: Date.now(),
         ...(newUsernameRaw ? { username: newUsernameRaw, usernameLower: normalizeUsername(newUsernameRaw) } : {})
       }, { merge: true });
+      logAuraTransaction(newAura, `Owner-Bearbeitung (auf ${newAura} gesetzt)`, ownerEditingUid);
 
       // Bearbeitet der Owner sein EIGENES Profil, muss der lokale Stand
       // SOFORT mit angepasst werden - sonst überschreibt der eigene
@@ -11011,7 +11072,10 @@
     try{
       const doc = await db().collection("users").doc(ownerEditingUid).get();
       const inventory = (doc.exists && doc.data().inventory) ? doc.data().inventory : {};
-      const newDoubleAuraUntil = Date.now() + 15 * 60 * 1000;
+      // Stapeln (NEU): siehe claimChest() - vom aktuellen Ablauf (falls
+      // noch aktiv) aus weiterrechnen, statt zu überschreiben.
+      const baseTime = Math.max(inventory.doubleAuraUntil || 0, Date.now());
+      const newDoubleAuraUntil = baseTime + 15 * 60 * 1000;
       await db().collection("users").doc(ownerEditingUid).set({
         inventory: { ...inventory, doubleAuraUntil: newDoubleAuraUntil },
         lastLocalSaveAt: Date.now()
@@ -11028,7 +11092,7 @@
         profile.inventory.doubleAuraUntil = newDoubleAuraUntil;
         lastWrittenProfileJSON = JSON.stringify(profile);
         saveProfile();
-        playAuraBoosterAnimation(15);
+        playAuraBoosterAnimation(Math.round((newDoubleAuraUntil - Date.now()) / 60000));
       }
     }catch(err){
       showToast("Fehlgeschlagen.");
@@ -11226,7 +11290,10 @@
     try{
       const doc = await db().collection("users").doc(modEditingUid).get();
       const inventory = (doc.exists && doc.data().inventory) ? doc.data().inventory : {};
-      const newDoubleAuraUntil = Date.now() + 15 * 60 * 1000;
+      // Stapeln (NEU): siehe claimChest() - vom aktuellen Ablauf (falls
+      // noch aktiv) aus weiterrechnen, statt zu überschreiben.
+      const baseTime = Math.max(inventory.doubleAuraUntil || 0, Date.now());
+      const newDoubleAuraUntil = baseTime + 15 * 60 * 1000;
       await db().collection("users").doc(modEditingUid).set({
         inventory: { ...inventory, doubleAuraUntil: newDoubleAuraUntil },
         lastLocalSaveAt: Date.now()
@@ -11237,7 +11304,7 @@
         profile.inventory.doubleAuraUntil = newDoubleAuraUntil;
         lastWrittenProfileJSON = JSON.stringify(profile);
         saveProfile();
-        playAuraBoosterAnimation(15);
+        playAuraBoosterAnimation(Math.round((newDoubleAuraUntil - Date.now()) / 60000));
       }
     }catch(err){
       showToast("Fehlgeschlagen.");
@@ -12136,17 +12203,20 @@
               lastWrittenProfileJSON = null; // erzwingt den Schreibvorgang unten
               saveProfile();
             } else {
-              // Wenn sich der eingeloggte Account seit dem letzten Mal auf
-              // diesem Gerät geändert hat (anderer Account, gemeinsam genutztes
-              // Gerät/Browser), darf der lokal zwischengespeicherte
-              // Benutzername NICHT einfach weiterverwendet werden - er würde
-              // sonst fälschlich für den neuen Account übernommen (zeigt z.B.
-              // den alten Testnamen statt des echten). In diesem Fall muss der
-              // Cloud-Benutzername gewinnen.
+              // WICHTIG (schwerwiegender Bugfix): wenn sich der eingeloggte
+              // Account seit dem letzten Mal auf diesem Gerät geändert hat
+              // (anderer Account, gemeinsam genutztes Gerät/Browser), darf
+              // NICHT nur der Benutzername zurückgesetzt werden - das
+              // GESAMTE lokale Profil muss auf einen frischen Stand
+              // zurückgesetzt werden. Sonst könnten Reste des VORHERIGEN
+              // Accounts (Aura, Level, Streak, ...) beim gleich folgenden
+              // Abgleich fälschlich als "neuerer lokaler Stand" gewinnen
+              // und sich so in den NEUEN Account einschleichen - genau der
+              // gemeldete Fall: Aura von Account A tauchte bei Account B
+              // auf und blieb sogar bestehen, als man später wieder zu
+              // Account A zurückwechselte.
               if(profile.lastFirebaseUid && profile.lastFirebaseUid !== user.uid){
-                profile.username = null;
-                profile.usernameLower = null;
-                profile.hasEverSetUsername = false;
+                profile = { ...DEFAULT_PROFILE };
               }
               // Wichtig gegen Mehrgeräte-Konflikte: nie blind übernehmen, sondern
               // den lokalen Stand mit dem Cloud-Stand abgleichen (höhere Werte
@@ -12457,7 +12527,13 @@
       currentUser = null;
       cloudSyncReady = false;
       showToast("Ausgeloggt");
-      loadProfile();
+      // WICHTIG (Bugfix): NICHT einfach das alte, gerade ausgeloggte Profil
+      // per loadProfile() wieder anzeigen - das würde weiterhin Aura/Level/
+      // Streak des GERADE VERLASSENEN Accounts zeigen, obwohl niemand mehr
+      // eingeloggt ist. Stattdessen auf ein frisches Gast-Profil
+      // zurücksetzen, wie es auch beim Kontowechsel passiert.
+      profile = { ...DEFAULT_PROFILE };
+      saveProfile();
       $("overlayUsername").classList.remove("show");
       renderSettings();
       renderHome();
@@ -13473,6 +13549,7 @@
     }
     const auraGained = lesson.aura + perfectBonus;
     profile.totalAura += auraGained;
+    logAuraTransaction(auraGained, "Lektion");
     selectedTierIndex = null;
     checkAchievements();
     saveProfile();

@@ -508,19 +508,32 @@
     --shadow: 0 10px 24px rgba(0,0,0,.55); --overlay-bg: rgba(20,30,15,.94);
     --rainbow-header: linear-gradient(90deg, #6aa832, #8b5a2b, #6aa832);
   }
+  /* Echtes Pixel-/Block-Raster im Hintergrund (NEU) - wie einzelne
+     Gras-/Erde-Blöcke, statt nur eingefärbter Flächen. */
+  [data-theme="blocks"] body{
+    background-image:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.14) 0 4px, transparent 4px 32px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.14) 0 4px, transparent 4px 32px),
+      repeating-linear-gradient(45deg, rgba(139,90,43,.08) 0 16px, rgba(106,168,50,.08) 16px 32px);
+  }
   [data-theme="blocks"] .btn-primary, [data-theme="blocks"] .buy-btn,
   [data-theme="blocks"] .card, [data-theme="blocks"] .shop-item,
   [data-theme="blocks"] .modal-card, [data-theme="blocks"] .lb-row,
-  [data-theme="blocks"] .mission-card, [data-theme="blocks"] .nav-item{
-    border-radius:4px !important;
+  [data-theme="blocks"] .mission-card, [data-theme="blocks"] .nav-item,
+  [data-theme="blocks"] .overlay-card, [data-theme="blocks"] .input-field{
+    border-radius:0 !important;
+    border-width:3px !important;
+    image-rendering: pixelated;
   }
   [data-theme="blocks"] .topbar, [data-theme="blocks"] .bottom-nav{
     box-shadow: 0 0 20px rgba(106,168,50,.25);
+    border-radius:0 !important;
   }
 
   /* THEME: NETZ-HELD (NEU) - Rot/Blau im Stil eines bekannten
-     Netz-schwingenden Comic-Helden, mit einem feinen Netz-Muster im
-     Hintergrund. Ebenfalls mit generischem Namen statt der Marke selbst. */
+     Netz-schwingenden Comic-Helden, mit einem echten, sichtbaren
+     Spinnennetz-Muster im Hintergrund. Ebenfalls mit generischem Namen
+     statt der Marke selbst. */
   [data-theme="webhero"]{
     --bg: #0d1a3d; --bg-soft: #122350; --card: #16295e; --card-2: #1c3170;
     --border: #d62828; --text: #eef2ff; --text-dim: #a8b8e8;
@@ -529,10 +542,16 @@
     --shadow: 0 10px 26px rgba(0,0,0,.6); --overlay-bg: rgba(10,18,50,.94);
     --rainbow-header: linear-gradient(90deg, #d62828, #3457d5, #d62828);
   }
-  [data-theme="webhero"] body, [data-theme="webhero"] .screen{
+  /* Echtes Spinnennetz (NEU): strahlende Linien aus der Mitte + konzentrische
+     Ringe, wie bei einem echten Netz - fest positioniert oben rechts, damit
+     der Rest des Bildschirms trotzdem gut lesbar bleibt. */
+  [data-theme="webhero"] body{
     background-image:
-      repeating-linear-gradient(45deg, rgba(214,40,40,.05) 0 2px, transparent 2px 40px),
-      repeating-linear-gradient(-45deg, rgba(52,87,213,.05) 0 2px, transparent 2px 40px);
+      repeating-conic-gradient(from 0deg at 100% 0%, rgba(255,255,255,.09) 0deg 1.5deg, transparent 1.5deg 30deg),
+      repeating-radial-gradient(circle at 100% 0%, rgba(255,255,255,.08) 0 1.5px, transparent 1.5px 60px),
+      repeating-linear-gradient(45deg, rgba(214,40,40,.04) 0 2px, transparent 2px 40px),
+      repeating-linear-gradient(-45deg, rgba(52,87,213,.04) 0 2px, transparent 2px 40px);
+    background-attachment: fixed;
   }
   [data-theme="webhero"] .topbar, [data-theme="webhero"] .bottom-nav{
     box-shadow: 0 0 24px rgba(214,40,40,.3);
@@ -2445,6 +2464,21 @@
 <div class="app" data-theme="dark" id="app">
   <div id="offlineBanner" style="display:none; position:fixed; top:0; left:0; right:0; z-index:97000; background:#ef4444; color:#fff; text-align:center; font-size:12px; font-weight:700; padding:6px 10px; padding-top:calc(6px + env(safe-area-inset-top));">📴 Kein Internet - nur Lektionen sind offline verfügbar</div>
 
+  <!-- Spieler-Ziel-Widget (NEU): zeigt sich allen online Spielern, solange
+       ein Ziel aktiv ist. Drückt man X, wird es kleiner (statt komplett zu
+       verschwinden), bleibt aber antippbar, um es wieder aufzuklappen. -->
+  <div id="playerGoalWidget" style="display:none; position:fixed; top:calc(10px + env(safe-area-inset-top)); left:10px; right:10px; z-index:96000;">
+    <div id="playerGoalWidgetFull" style="background:linear-gradient(135deg, rgba(168,85,247,.95), rgba(236,72,153,.95)); border-radius:16px; padding:12px 14px; box-shadow:0 8px 24px rgba(168,85,247,.4); color:#fff; display:flex; align-items:flex-start; gap:10px;">
+      <div style="font-size:22px;">🎯</div>
+      <div style="flex:1; min-width:0;">
+        <div style="font-weight:800; font-size:11px; opacity:.85; margin-bottom:2px;">SPIELER-ZIEL · NOCH <span id="playerGoalCountdown">10:00</span></div>
+        <div id="playerGoalText" style="font-size:13px; line-height:1.4;"></div>
+      </div>
+      <button id="playerGoalShrinkBtn" style="background:rgba(0,0,0,.2); border:none; color:#fff; width:26px; height:26px; border-radius:50%; font-size:13px; font-weight:800; cursor:pointer; flex-shrink:0;">✕</button>
+    </div>
+    <button id="playerGoalWidgetPill" style="display:none; background:linear-gradient(135deg, #a855f7, #ec4899); border:none; border-radius:99px; color:#fff; padding:6px 14px; font-size:12px; font-weight:800; cursor:pointer; box-shadow:0 4px 14px rgba(168,85,247,.4);">🎯 Ziel aktiv · <span id="playerGoalCountdownSmall">10:00</span></button>
+  </div>
+
   <!-- Online-Freunde-Popup (NEU): kurz beim App-Start, nur falls gerade
        Freunde online sind. -->
   <div id="onlineFriendsPopup" class="online-friends-popup" style="position:fixed; top:calc(14px + env(safe-area-inset-top)); left:50%; z-index:96000; background:var(--card, #1a1a1a); border:1.5px solid var(--border, #333); border-radius:14px; padding:10px 16px; max-width:calc(100% - 32px); box-shadow:0 10px 30px rgba(0,0,0,.35); display:flex; align-items:center; gap:8px;">
@@ -3338,6 +3372,7 @@
         <button class="owner-tool-icon-btn" id="ownerToolUpdateNotice" title="Update-Benachrichtigung">🔁</button>
         <button class="owner-tool-icon-btn" id="ownerToolPoll" title="Umfrage">📊</button>
         <button class="owner-tool-icon-btn" id="ownerToolCodes" title="Einlöse-Codes">🎁</button>
+        <button class="owner-tool-icon-btn" id="ownerToolPlayerGoal" title="Spieler-Ziel">🎯</button>
       </div>
     </div>
 
@@ -3438,8 +3473,10 @@
         <input type="number" id="ownerCodeLifeAmountInput" class="input-field" placeholder="Anzahl Leben (z.B. 1)" style="margin-bottom:8px; display:none;" min="1" value="1">
         <select id="ownerCodeChestTierSelect" class="input-field" style="margin-bottom:8px; display:none;">
           <option value="standard">Standard-Truhe</option>
+          <option value="rare">Seltene Truhe</option>
           <option value="epic">Epische Truhe</option>
           <option value="legendary">Legendäre Truhe</option>
+          <option value="ultra">Ultra-Truhe</option>
         </select>
         <select id="ownerCodeThemeSelect" class="input-field" style="margin-bottom:8px; display:none;"></select>
         <div class="settings-row" style="padding:6px 0; margin-bottom:8px;">
@@ -3450,6 +3487,19 @@
           <div class="switch" id="ownerCodePublicSwitch"><div class="knob"></div></div>
         </div>
         <button class="btn btn-primary btn-small" id="ownerSetCodeBtn" style="width:100%;">Code hinzufügen</button>
+      </div>
+    </div>
+
+    <!-- Spieler-Ziel (NEU): ein Ziel/Challenge, die für 10 Minuten allen
+         gerade online Spielern angezeigt wird. -->
+    <div class="overlay" id="overlayPlayerGoal">
+      <div class="modal-card" style="max-width:360px; text-align:left;">
+        <button class="banner-close-x" id="playerGoalClose" style="position:absolute; top:10px; right:12px;">✕</button>
+        <div style="font-weight:800; margin-bottom:8px;">🎯 Spieler-Ziel</div>
+        <div class="d" id="playerGoalStatus" style="margin-bottom:8px;">Aktuell kein aktives Ziel.</div>
+        <textarea id="playerGoalInput" class="input-field" rows="3" placeholder="z.B. Löst gemeinsam 500 Aufgaben in den nächsten 10 Minuten!" style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
+        <div class="empty-hint" style="text-align:left; margin-top:0; margin-bottom:8px;">Läuft automatisch nach 10 Minuten ab. Sichtbar für alle gerade online Spieler.</div>
+        <button class="btn btn-primary btn-small" id="playerGoalSendBtn" style="width:100%;">Ziel setzen</button>
       </div>
     </div>
 
@@ -4273,7 +4323,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.98";
+  const APP_VERSION = "2.99";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5702,6 +5752,96 @@
     return `${data.auraAmount || 500} Aura`;
   }
 
+  /* ========================================================
+     SPIELER-ZIEL (NEU): der Owner setzt ein Ziel/eine Challenge, die für
+     10 Minuten allen gerade geöffneten Apps angezeigt wird - mit
+     Live-Countdown. Drückt eine Person auf X, wird das Widget nur kleiner
+     (Pille), bleibt aber antippbar, statt komplett zu verschwinden.
+  ======================================================== */
+  let playerGoalCountdownInterval = null;
+  let playerGoalWidgetShrunk = false;
+
+  async function renderOwnerPlayerGoalStatus(){
+    if(!isOwner() || !firebaseInitialized) return;
+    try{
+      const doc = await db().collection("playerGoal").doc("current").get();
+      const statusEl = $("playerGoalStatus");
+      if(!doc.exists || !doc.data().expiresAt || doc.data().expiresAt < Date.now()){
+        statusEl.textContent = "Aktuell kein aktives Ziel.";
+        return;
+      }
+      const data = doc.data();
+      const minsLeft = Math.max(0, Math.ceil((data.expiresAt - Date.now()) / 60000));
+      statusEl.textContent = `Aktiv (noch ~${minsLeft} Min): "${data.text}"`;
+    }catch(err){
+      console.error("Spieler-Ziel-Status Fehler:", err);
+    }
+  }
+
+  async function sendPlayerGoal(){
+    if(!isOwner() || !firebaseInitialized || !currentUser) return;
+    const text = $("playerGoalInput").value.trim();
+    if(!text){
+      showToast("Bitte einen Zieltext eingeben.");
+      return;
+    }
+    try{
+      await db().collection("playerGoal").doc("current").set({
+        text: text.slice(0, 300),
+        createdAt: Date.now(),
+        expiresAt: Date.now() + 10 * 60 * 1000,
+        setByUid: currentUser.uid
+      });
+      $("playerGoalInput").value = "";
+      showToast("🎯 Spieler-Ziel gesetzt!");
+      renderOwnerPlayerGoalStatus();
+    }catch(err){
+      showToast("Ziel konnte nicht gesetzt werden.");
+      console.error("Spieler-Ziel setzen Fehler:", err);
+    }
+  }
+
+  function formatCountdown(ms){
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }
+
+  function updatePlayerGoalCountdown(expiresAt){
+    const remaining = expiresAt - Date.now();
+    if(remaining <= 0){
+      $("playerGoalWidget").style.display = "none";
+      if(playerGoalCountdownInterval){ clearInterval(playerGoalCountdownInterval); playerGoalCountdownInterval = null; }
+      return;
+    }
+    const text = formatCountdown(remaining);
+    $("playerGoalCountdown").textContent = text;
+    $("playerGoalCountdownSmall").textContent = text;
+  }
+
+  // Live-Beobachtung (NEU): sobald der Owner ein Ziel setzt, sehen alle
+  // gerade geöffneten Apps es fast sofort, ohne selbst aktiv nachfragen zu
+  // müssen.
+  function watchPlayerGoal(){
+    if(!firebaseInitialized || !currentUser) return;
+    db().collection("playerGoal").doc("current").onSnapshot((doc) => {
+      if(playerGoalCountdownInterval){ clearInterval(playerGoalCountdownInterval); playerGoalCountdownInterval = null; }
+      if(!doc.exists || !doc.data().expiresAt || doc.data().expiresAt < Date.now()){
+        $("playerGoalWidget").style.display = "none";
+        return;
+      }
+      const data = doc.data();
+      $("playerGoalText").textContent = data.text;
+      updatePlayerGoalCountdown(data.expiresAt);
+      $("playerGoalWidget").style.display = "block";
+      playerGoalWidgetShrunk = false;
+      $("playerGoalWidgetFull").style.display = "flex";
+      $("playerGoalWidgetPill").style.display = "none";
+      playerGoalCountdownInterval = setInterval(() => updatePlayerGoalCountdown(data.expiresAt), 1000);
+    }, (err) => console.error("Spieler-Ziel beobachten Fehler:", err));
+  }
+
   async function renderOwnerCodeStatus(){
     if(!isOwner() || !firebaseInitialized) return;
     const statusEl = $("ownerCodeStatus");
@@ -5709,11 +5849,28 @@
       const snap = await db().collection("redeemCodes").get();
       const active = snap.docs.filter(d => d.data().active);
       if(active.length === 0){
-        statusEl.textContent = "Aktuell: keine aktiven Codes.";
+        statusEl.innerHTML = "Aktuell: keine aktiven Codes.";
         return;
       }
-      const lines = active.map(d => `"${d.data().code}" (${rewardLabelForCode(d.data())})`);
-      statusEl.textContent = "Aktiv: " + lines.join(", ");
+      statusEl.innerHTML = active.map(d => `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; padding:4px 0;">
+          <span>"${d.data().code}" (${rewardLabelForCode(d.data())}${d.data().isPublic ? " · 🌍 öffentlich" : ""})</span>
+          <button class="owner-code-delete-btn" data-id="${d.id}" title="Code löschen" style="background:none; border:none; color:#ef4444; font-size:15px; cursor:pointer; padding:2px 6px; flex-shrink:0;">🗑️</button>
+        </div>
+      `).join("");
+      statusEl.querySelectorAll(".owner-code-delete-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          if(!confirm("Diesen Code wirklich löschen?")) return;
+          try{
+            await db().collection("redeemCodes").doc(btn.dataset.id).delete();
+            showToast("🗑️ Code gelöscht.");
+            renderOwnerCodeStatus();
+          }catch(err){
+            showToast("Löschen fehlgeschlagen.");
+            console.error(err);
+          }
+        });
+      });
     }catch(err){
       console.error("Code-Status Fehler:", err);
     }
@@ -7776,10 +7933,10 @@
   const ALL_MISSION_DEFS = [...DAILY_MISSION_DEFS, ...MISSION_POOL];
 
   // Aura-Belohnung je Truhen-Stufe (statt Euro, wie besprochen).
-  const CHEST_REWARDS = { standard: 50, epic: 100, legendary: 200 };
-  const CHEST_TIER_LABEL = { standard: "Standard", epic: "Episch", legendary: "Legendär" };
-  const CHEST_TIER_ICON = { standard: "📦", epic: "💜", legendary: "👑" };
-  const CHEST_TIER_ORDER = ["standard", "epic", "legendary"];
+  const CHEST_REWARDS = { standard: 50, rare: 100, epic: 200, legendary: 500, ultra: 1000 };
+  const CHEST_TIER_LABEL = { standard: "Standard", rare: "Selten", epic: "Episch", legendary: "Legendär", ultra: "Ultra" };
+  const CHEST_TIER_ICON = { standard: "📦", rare: "🔷", epic: "💜", legendary: "👑", ultra: "🌟" };
+  const CHEST_TIER_ORDER = ["standard", "rare", "epic", "legendary", "ultra"];
   const UPGRADE_CHANCE = 0.25;
   const MAX_CHEST_ATTEMPTS = 3; // insgesamt 3 Tipps auf die Truhe, wie ein Startdrop
 
@@ -8030,7 +8187,7 @@
       $("chestAttemptsText").textContent = `Versuche übrig: ${remaining}/${MAX_CHEST_ATTEMPTS}`;
       $("chestClaimBtn").style.display = "none";
     } else {
-      $("chestModalSub").textContent = chest.tier === "legendary"
+      $("chestModalSub").textContent = chest.tier === "ultra"
         ? "Maximale Stufe erreicht!"
         : "Keine Versuche mehr übrig.";
       $("chestAttemptsText").textContent = `Belohnung: +${CHEST_REWARDS[chest.tier]} Aura`;
@@ -8131,23 +8288,44 @@
     profile.totalAura += reward;
     logAuraTransaction(reward, `Truhe (${chest.tier})`);
 
-    // Truhen-Bonus-Item je Stufe (Aura gibt es bei jeder Stufe zusätzlich dazu):
-    // Standard -> 1 Leben (nur wenn kein Super-Nutzer, die haben eh volle Leben),
-    // Episch -> 2x Aura-Booster für 15 Minuten, Legendär -> kein Extra-Item.
+    // Truhen-Bonus je Stufe (Aura gibt es bei jeder Stufe zusätzlich dazu):
+    // Standard -> nur Aura, Selten -> 50% Chance auf 1 Leben,
+    // Episch -> 50% Chance auf 15-Minuten-Aura-Booster,
+    // Legendär/Ultra -> DREI UNABHÄNGIGE 50%-Würfe: 1 Leben, 30-Minuten-
+    // Aura-Booster, UND zusätzlich 5 Leben - kann also theoretisch alle
+    // drei gleichzeitig treffen.
     let bonusText = "";
-    if(chest.tier === "standard" && !isSuperUser()){
-      profile.lives = Math.min(MAX_LIVES, profile.lives + 1);
-      bonusText = " + 1 Leben";
+    if(chest.tier === "rare"){
+      if(Math.random() < 0.5 && !isSuperUser()){
+        profile.lives = Math.min(MAX_LIVES, profile.lives + 1);
+        bonusText += " + 1 Leben";
+      }
     } else if(chest.tier === "epic"){
-      // Stapeln (NEU): läuft ein Booster gerade schon, wird die neue Dauer
-      // OBEN DRAUF gerechnet, statt den Timer einfach zu überschreiben -
-      // sonst könnte eine zweite Truhe einen längeren, noch laufenden
-      // Booster sogar VERKÜRZEN.
-      const currentUntil = (profile.inventory && profile.inventory.doubleAuraUntil) || 0;
-      const baseTime = Math.max(currentUntil, Date.now());
-      profile.inventory.doubleAuraUntil = baseTime + (15 * 60 * 1000);
-      bonusText = " + 2× Aura-Booster (15 Min)";
-      playAuraBoosterAnimation(Math.round((profile.inventory.doubleAuraUntil - Date.now()) / 60000));
+      if(Math.random() < 0.5){
+        // Stapeln (siehe Bugfix weiter unten im Code): vom aktuellen
+        // Ablauf aus weiterrechnen, statt zu überschreiben.
+        const currentUntil = (profile.inventory && profile.inventory.doubleAuraUntil) || 0;
+        const baseTime = Math.max(currentUntil, Date.now());
+        profile.inventory.doubleAuraUntil = baseTime + (15 * 60 * 1000);
+        bonusText += " + 2× Aura-Booster (15 Min)";
+        playAuraBoosterAnimation(Math.round((profile.inventory.doubleAuraUntil - Date.now()) / 60000));
+      }
+    } else if(chest.tier === "legendary" || chest.tier === "ultra"){
+      if(Math.random() < 0.5 && !isSuperUser()){
+        profile.lives = Math.min(MAX_LIVES, profile.lives + 1);
+        bonusText += " + 1 Leben";
+      }
+      if(Math.random() < 0.5){
+        const currentUntil = (profile.inventory && profile.inventory.doubleAuraUntil) || 0;
+        const baseTime = Math.max(currentUntil, Date.now());
+        profile.inventory.doubleAuraUntil = baseTime + (30 * 60 * 1000);
+        bonusText += " + 2× Aura-Booster (30 Min)";
+        playAuraBoosterAnimation(Math.round((profile.inventory.doubleAuraUntil - Date.now()) / 60000));
+      }
+      if(Math.random() < 0.5 && !isSuperUser()){
+        profile.lives = Math.min(MAX_LIVES, profile.lives + 5);
+        bonusText += " + 5 Leben";
+      }
     }
 
     // Bei Achievement-Truhen: falls das Achievement einen Titel freischaltet,
@@ -11609,6 +11787,29 @@
     $("overlayOwnerCodes").classList.remove("show");
   });
 
+  $("ownerToolPlayerGoal").addEventListener("click", () => {
+    $("overlayPlayerGoal").classList.add("show");
+    renderOwnerPlayerGoalStatus();
+  });
+  $("playerGoalClose").addEventListener("click", () => {
+    $("overlayPlayerGoal").classList.remove("show");
+  });
+  $("playerGoalSendBtn").addEventListener("click", sendPlayerGoal);
+
+  // Verkleinern statt Schließen (NEU): das Widget bleibt als kleine Pille
+  // bestehen und kann wieder aufgeklappt werden, statt komplett zu
+  // verschwinden.
+  $("playerGoalShrinkBtn").addEventListener("click", () => {
+    playerGoalWidgetShrunk = true;
+    $("playerGoalWidgetFull").style.display = "none";
+    $("playerGoalWidgetPill").style.display = "block";
+  });
+  $("playerGoalWidgetPill").addEventListener("click", () => {
+    playerGoalWidgetShrunk = false;
+    $("playerGoalWidgetFull").style.display = "flex";
+    $("playerGoalWidgetPill").style.display = "none";
+  });
+
 
   $("announcementImageInput").addEventListener("change", async (e) => {
     const file = e.target.files[0];
@@ -12323,6 +12524,7 @@
         watchIncomingDuelLobbyInvites();
         watchSiteStopStatus();
         watchIncomingMessages();
+        watchPlayerGoal();
         syncUnsubscribe = db().collection("users").doc(user.uid).onSnapshot((doc) => {
           // Sehr wichtig gegen eine Rückkopplungsschleife: jeder eigene
           // Schreibvorgang (saveProfile) löst diesen Listener selbst wieder

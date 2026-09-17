@@ -2627,10 +2627,10 @@
     <div class="referral-banner">
       <div class="referral-banner-title">🎁 500 Aura gratis!</div>
       <div class="referral-banner-sub">Lade einen Freund über deinen persönlichen Link ein. Registriert er sich genau darüber, bekommst du 500 Aura geschenkt.</div>
-      <div class="add-friend-row" id="referralLinkRow" style="display:none;">
+      <div class="add-friend-row" id="referralLinkRow" style="display:none; align-items:center;">
         <input type="text" id="referralLinkInput" class="input-field" readonly>
-        <button class="btn btn-ghost btn-small" id="shareReferralBtn" title="Teilen">📤</button>
-        <button class="btn btn-primary btn-small" id="copyReferralBtn">Kopieren</button>
+        <button class="btn btn-primary btn-small" id="shareReferralBtn">Teilen</button>
+        <img id="referralQrCode" alt="QR-Code zum Einladungslink" style="width:44px; height:44px; border-radius:8px; background:#fff; padding:2px; flex-shrink:0;">
       </div>
       <div id="referralLoggedOutMsg" class="empty-hint" style="display:none; margin-top:2px; text-align:left;">
         Melde dich in den Einstellungen an und wähle einen Benutzernamen, um deinen Einladungslink zu bekommen.
@@ -3264,23 +3264,7 @@
         <div class="t">Design / Theme</div>
         <div class="d">Wähle dein Aussehen der App.</div>
       </div>
-      <select class="select-input" id="themeSelect">
-        <option value="black">Black</option>
-        <option value="white_clean">White Clean (🔒)</option>
-        <option value="clean">Clean (🔒)</option>
-        <option value="pink">Pink (🔒)</option>
-        <option value="glass">Glass (🔒)</option>
-        <option value="glow">Glow (🔒)</option>
-        <option value="glitch">Glitch (🔒)</option>
-        <option value="galaxy">Galaxy (🔒)</option>
-        <option value="sunset">Sunset (🔒)</option>
-        <option value="cyber">Cyber (🔒)</option>
-        <option value="royal">Royal (🔒)</option>
-        <option value="cloud">Cloud (🔒)</option>
-        <option value="toxic">Toxic (🔒)</option>
-        <option value="crimson">Crimson (🔒)</option>
-        <option value="minimal">Minimal (🔒)</option>
-      </select>
+      <select class="select-input" id="themeSelect"></select>
     </div>
 
     <div class="settings-row" id="ownerPanelRow" style="display:none; flex-direction:column; align-items:stretch;">
@@ -3865,10 +3849,10 @@
       <div style="font-size:42px; margin-bottom:8px;">🎁</div>
       <h2>500 Aura gratis!</h2>
       <p>Lade einen Freund über deinen persönlichen Einladungslink ein. Registriert er sich genau darüber als neuer Nutzer, bekommst du 500 Aura geschenkt.</p>
-      <div class="add-friend-row" id="referralPromoLinkRow" style="display:none; margin-bottom:14px;">
+      <div class="add-friend-row" id="referralPromoLinkRow" style="display:none; margin-bottom:14px; align-items:center;">
         <input type="text" id="referralPromoLinkInput" class="input-field" readonly>
-        <button class="btn btn-ghost btn-small" id="shareReferralPromoBtn" title="Teilen">📤</button>
-        <button class="btn btn-primary btn-small" id="copyReferralPromoBtn">Kopieren</button>
+        <button class="btn btn-primary btn-small" id="shareReferralPromoBtn">Teilen</button>
+        <img id="referralPromoQrCode" alt="QR-Code zum Einladungslink" style="width:44px; height:44px; border-radius:8px; background:#fff; padding:2px; flex-shrink:0;">
       </div>
       <div id="referralPromoLoggedOutMsg" class="empty-hint" style="display:none; text-align:left; margin-bottom:14px;">
         Melde dich an und wähle einen Benutzernamen, um deinen Einladungslink zu bekommen.
@@ -3906,16 +3890,13 @@
       <button class="btn btn-primary" id="friendProfileMessageBtn" style="margin-top:10px; display:none;">💬 Nachrichten</button>
       <button class="btn btn-primary" id="friendProfileDonateBtn" style="margin-top:10px; display:none;">🎁 Aura spenden</button>
 
-      <!-- Owner-Moderation direkt vom Profil aus (NEU) - im gleichen
-           kompakten Icon-Stil wie das Owner-Panel selbst. -->
-      <div id="friendProfileOwnerModBox" style="display:none; margin-top:14px; text-align:left;">
-        <div class="d" style="font-weight:800; margin-bottom:8px; color:#ef4444;">🚫 Owner-Moderation</div>
-        <div id="friendProfileBanStatus" class="d" style="margin-bottom:8px;">Aktuell nicht gesperrt.</div>
-        <div style="display:flex; gap:10px; justify-content:center;">
-          <button class="owner-tool-icon-btn" id="friendProfileBanBtn" title="Sperren (7 Tage)" style="border-color:#ef4444; color:#ef4444;">🚫</button>
-          <button class="owner-tool-icon-btn" id="friendProfileUnbanBtn" title="Entsperren">✅</button>
-          <button class="owner-tool-icon-btn" id="friendProfileIpBanBtn" title="IP + Konto sperren (7 Tage)" style="border-color:#7f1d1d; color:#f87171;">🌐</button>
-        </div>
+      <!-- Owner-Moderation direkt vom Profil aus (NEU): ein einziger
+           kompakter Mini-Button statt fest sichtbarer Bann-Buttons -
+           klappt beim Antippen das VOLLE Owner-Panel für genau diese
+           Person auf (Aura, Level, Streak, Designs, Sperren, Mod-Status,
+           Aura-Verlauf - alles), statt nur Bann-Möglichkeiten zu zeigen. -->
+      <div id="friendProfileOwnerModBox" style="display:none; margin-top:14px; text-align:center;">
+        <button class="btn btn-ghost btn-small" id="friendProfileOpenOwnerPanelBtn" style="border-color:#ef4444; color:#ef4444;">🛠️ Owner-Panel öffnen</button>
       </div>
 
       <button class="btn btn-ghost" id="closeFriendProfile" style="margin-top:10px;">Schließen</button>
@@ -4005,10 +3986,10 @@
       <div class="referral-banner" style="margin-top:10px;">
         <div class="referral-banner-title">🎁 500 Aura gratis!</div>
         <div class="referral-banner-sub">Lade einen Freund über deinen persönlichen Link ein. Registriert er sich genau darüber, bekommst du 500 Aura geschenkt und zählst einen Punkt fürs Leaderboard.</div>
-        <div class="add-friend-row" id="inviteLbLinkRow" style="display:none;">
+        <div class="add-friend-row" id="inviteLbLinkRow" style="display:none; align-items:center;">
           <input type="text" id="inviteLbLinkInput" class="input-field" readonly>
-          <button class="btn btn-ghost btn-small" id="shareInviteLbBtn" title="Teilen">📤</button>
-          <button class="btn btn-primary btn-small" id="copyInviteLbBtn">Kopieren</button>
+          <button class="btn btn-primary btn-small" id="shareInviteLbBtn">Teilen</button>
+          <img id="inviteLbQrCode" alt="QR-Code zum Einladungslink" style="width:44px; height:44px; border-radius:8px; background:#fff; padding:2px; flex-shrink:0;">
         </div>
         <div id="inviteLbLoggedOutMsg" class="empty-hint" style="display:none; margin-top:2px; text-align:left;">
           Melde dich in den Einstellungen an und wähle einen Benutzernamen, um deinen Einladungslink zu bekommen.
@@ -4323,7 +4304,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "2.99";
+  const APP_VERSION = "3.03";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -7862,17 +7843,12 @@
       ownerModBox.style.display = "block";
       friendProfileModTargetUid = u.uid;
       friendProfileModTargetIp = u.lastKnownIp || null;
-      if(u.banned && (u.bannedUntil === null || u.bannedUntil > Date.now())){
-        $("friendProfileBanStatus").textContent = u.bannedUntil === null
-          ? "🚫 Aktuell für immer gesperrt."
-          : `🚫 Aktuell gesperrt bis ${new Date(u.bannedUntil).toLocaleString("de-DE")}.`;
-      } else {
-        $("friendProfileBanStatus").textContent = "Aktuell nicht gesperrt.";
-      }
+      friendProfileModTargetUsername = u.username || null;
     } else {
       ownerModBox.style.display = "none";
       friendProfileModTargetUid = null;
       friendProfileModTargetIp = null;
+      friendProfileModTargetUsername = null;
     }
 
     $("overlayFriendProfile").classList.add("show");
@@ -7938,7 +7914,7 @@
   const CHEST_TIER_ICON = { standard: "📦", rare: "🔷", epic: "💜", legendary: "👑", ultra: "🌟" };
   const CHEST_TIER_ORDER = ["standard", "rare", "epic", "legendary", "ultra"];
   const UPGRADE_CHANCE = 0.25;
-  const MAX_CHEST_ATTEMPTS = 3; // insgesamt 3 Tipps auf die Truhe, wie ein Startdrop
+  const MAX_CHEST_ATTEMPTS = 4; // insgesamt 4 Tipps auf die Truhe, wie ein Startdrop
 
   function freshChest(){
     return { tier: "standard", attemptsUsed: 0, claimed: false };
@@ -8110,7 +8086,7 @@
 
   // Truhe kann noch getippt werden: höchste Stufe noch nicht erreicht UND Versuche übrig.
   function chestCanTap(chest){
-    return chest.tier !== "legendary" && chest.attemptsUsed < MAX_CHEST_ATTEMPTS;
+    return chest.tier !== "ultra" && chest.attemptsUsed < MAX_CHEST_ATTEMPTS;
   }
 
   // Liefert die Truhen-Referenz für eine Mission ODER ein Achievement, je nach
@@ -8394,7 +8370,7 @@
   // diesen Platz noch nicht belohnt bekommen haben.
   async function openInviteLeaderboard(){
     $("overlayInviteLeaderboard").classList.add("show");
-    renderReferralUI($("inviteLbLinkRow"), $("inviteLbLinkInput"), $("inviteLbLoggedOutMsg"));
+    renderReferralUI($("inviteLbLinkRow"), $("inviteLbLinkInput"), $("inviteLbLoggedOutMsg"), $("inviteLbQrCode"));
     if(!profile.hasSeenInviteLeaderboard){
       profile.hasSeenInviteLeaderboard = true;
       saveProfile();
@@ -8911,6 +8887,14 @@
     // geleert), den aus der Cloud übernehmen statt ihn zu verlieren.
     merged.username = localP.username || cloudP.username || null;
     merged.usernameLower = localP.usernameLower || cloudP.usernameLower || null;
+
+    // WICHTIG (defensive Absicherung, gemeldeter Bug: Einrichtung erschien
+    // erneut, obwohl die Person schon eingeloggt/eingerichtet war): sobald
+    // "hasSeenWelcome" auf IRGENDEINER Seite (lokal ODER Cloud) schon einmal
+    // true war, bleibt es das für immer - unabhängig davon, was sonst noch
+    // im Profil passiert. Verhindert zuverlässig, dass die Einrichtung
+    // jemals einer bereits eingerichteten Person erneut angezeigt wird.
+    merged.hasSeenWelcome = !!(localP.hasSeenWelcome || cloudP.hasSeenWelcome);
 
     // Statistik-Zähler für Achievements: immer der höhere Wert.
     merged.totalMistakes = Math.max(localP.totalMistakes || 0, cloudP.totalMistakes || 0);
@@ -10239,7 +10223,7 @@
     if(!profile.hasSeenReferralPromo){
       profile.hasSeenReferralPromo = true;
       saveProfile();
-      renderReferralUI($("referralPromoLinkRow"), $("referralPromoLinkInput"), $("referralPromoLoggedOutMsg"));
+      renderReferralUI($("referralPromoLinkRow"), $("referralPromoLinkInput"), $("referralPromoLoggedOutMsg"), $("referralPromoQrCode"));
       $("overlayReferralPromo").classList.add("show");
     }
   });
@@ -10421,11 +10405,17 @@
   function referralLink(){
     return `${location.origin}${location.pathname}?ref=${encodeURIComponent(profile.username)}`;
   }
-  function renderReferralUI(linkRowEl, linkInputEl, loggedOutMsgEl){
+  function renderReferralUI(linkRowEl, linkInputEl, loggedOutMsgEl, qrImgEl){
     const ready = !!(firebaseInitialized && currentUser && profile.username);
     linkRowEl.style.display = ready ? "flex" : "none";
     loggedOutMsgEl.style.display = ready ? "none" : "block";
-    if(ready) linkInputEl.value = referralLink();
+    if(ready){
+      const link = referralLink();
+      linkInputEl.value = link;
+      if(qrImgEl){
+        qrImgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=88x88&data=${encodeURIComponent(link)}`;
+      }
+    }
   }
 
   function copyReferralLink(inputEl){
@@ -10472,7 +10462,7 @@
 
   function renderShop(){
     $("shopAuraVal").textContent = profile.totalAura;
-    renderReferralUI($("referralLinkRow"), $("referralLinkInput"), $("referralLoggedOutMsg"));
+    renderReferralUI($("referralLinkRow"), $("referralLinkInput"), $("referralLoggedOutMsg"), $("referralQrCode"));
 
     const unlocked = profile.unlockedThemes || ["black"];
 
@@ -10872,6 +10862,7 @@
   let ownerEditingUid = null;
   let ownerEditingTargetIp = null;
   let friendProfileModTargetUid = null;
+  let friendProfileModTargetUsername = null;
   let friendProfileModTargetIp = null;
   let ownerEditingOldUsernameLower = null;
 
@@ -11739,9 +11730,19 @@
   $("ownerUnbanBtn").addEventListener("click", ownerUnbanUser);
   $("ownerIpBanBtn").addEventListener("click", ownerIpBanUser);
   $("ownerIpUnbanBtn").addEventListener("click", ownerIpUnbanUser);
-  $("friendProfileBanBtn").addEventListener("click", friendProfileBanUser);
-  $("friendProfileUnbanBtn").addEventListener("click", friendProfileUnbanUser);
-  $("friendProfileIpBanBtn").addEventListener("click", friendProfileIpBanUser);
+  $("friendProfileOpenOwnerPanelBtn").addEventListener("click", () => {
+    if(!friendProfileModTargetUsername) return;
+    $("overlayFriendProfile").classList.remove("show");
+    showScreen("settings");
+    renderSettings();
+    $("ownerSearchInput").value = friendProfileModTargetUsername;
+    ownerSearchUser();
+    // Kurze Verzögerung, damit der Bildschirmwechsel zuerst abgeschlossen
+    // ist, bevor zum Owner-Panel-Bereich gescrollt wird.
+    setTimeout(() => {
+      $("ownerPanelRow").scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 200);
+  });
   $("siteStopBtn").addEventListener("click", ownerStopSite);
   $("siteResumeBtn").addEventListener("click", ownerResumeSite);
   $("ownerMakeModBtn").addEventListener("click", ownerMakeMod);
@@ -11990,25 +11991,17 @@
       refBanner.style.display = "none";
     }
     
-    // Update Theme Dropdown mit Schloss-Symbolen
+    // Update Theme Dropdown mit Schloss-Symbolen (NEU: datengetrieben aus
+    // ALL_THEME_IDS statt fest einprogrammierter Optionen - sonst fehlen
+    // neu hinzugefügte Designs hier automatisch, wie es zuvor passiert ist.
     const unlocked = profile.unlockedThemes || ["black"];
     const select = $("themeSelect");
     if(select){
-      select.options[0].text = "Black";
-      select.options[1].text = "White Clean " + (unlocked.includes("white_clean") ? "" : "(🔒)");
-      select.options[2].text = "Clean " + (unlocked.includes("clean") ? "" : "(🔒)");
-      select.options[3].text = "Pink " + (unlocked.includes("pink") ? "" : "(🔒)");
-      select.options[4].text = "Glass " + (unlocked.includes("glass") ? "" : "(🔒)");
-      select.options[5].text = "Glow " + (unlocked.includes("glow") ? "" : "(🔒)");
-      select.options[6].text = "Glitch " + (unlocked.includes("glitch") ? "" : "(🔒)");
-      select.options[7].text = "Galaxy " + (unlocked.includes("galaxy") ? "" : "(🔒)");
-      select.options[8].text = "Sunset " + (unlocked.includes("sunset") ? "" : "(🔒)");
-      select.options[9].text = "Cyber " + (unlocked.includes("cyber") ? "" : "(🔒)");
-      select.options[10].text = "Royal " + (unlocked.includes("royal") ? "" : "(🔒)");
-      select.options[11].text = "Cloud " + (unlocked.includes("cloud") ? "" : "(🔒)");
-      select.options[12].text = "Toxic " + (unlocked.includes("toxic") ? "" : "(🔒)");
-      select.options[13].text = "Crimson " + (unlocked.includes("crimson") ? "" : "(🔒)");
-      select.options[14].text = "Minimal " + (unlocked.includes("minimal") ? "" : "(🔒)");
+      select.innerHTML = ALL_THEME_IDS.map(id => {
+        const label = THEME_DISPLAY_NAME[id] || id;
+        const lockIcon = (id === "black" || unlocked.includes(id)) ? "" : " (🔒)";
+        return `<option value="${id}">${label}${lockIcon}</option>`;
+      }).join("");
       select.value = profile.theme || "black";
     }
 
@@ -12192,21 +12185,12 @@
     }
   }
 
-  $("copyReferralBtn").addEventListener("click", () => {
-    copyReferralLink($("referralLinkInput"));
-  });
   $("shareReferralBtn").addEventListener("click", shareReferralLink);
   $("openInviteLeaderboardBtn").addEventListener("click", openInviteLeaderboard);
   $("closeInviteLeaderboard").addEventListener("click", () => {
     $("overlayInviteLeaderboard").classList.remove("show");
   });
-  $("copyInviteLbBtn").addEventListener("click", () => {
-    copyReferralLink($("inviteLbLinkInput"));
-  });
   $("shareInviteLbBtn").addEventListener("click", shareReferralLink);
-  $("copyReferralPromoBtn").addEventListener("click", () => {
-    copyReferralLink($("referralPromoLinkInput"));
-  });
   $("shareReferralPromoBtn").addEventListener("click", shareReferralLink);
   $("closeReferralPromo").addEventListener("click", () => {
     $("overlayReferralPromo").classList.remove("show");
@@ -12627,7 +12611,12 @@
               // möglicherweise noch nicht synchronisierten lokalen Wert.
               if(onboardingCheckPending){
                 onboardingCheckPending = false;
-                if(!profile.hasSeenWelcome){
+                // Doppelte Absicherung: hat diese Person bereits einen
+                // Benutzernamen gewählt, ist sie ZWEIFELSFREI schon ein
+                // bestehender, eingerichteter Account - unabhängig davon,
+                // was "hasSeenWelcome" gerade sagt, darf die Einrichtung
+                // dann NIE erneut erscheinen.
+                if(!profile.hasSeenWelcome && !profile.username){
                   openOnboarding();
                 } else {
                   renderHome();
@@ -14471,7 +14460,7 @@
       // lokale Stand ohnehin die einzige Quelle.
       if(profile.lastFirebaseUid){
         onboardingCheckPending = true;
-      } else if(!profile.hasSeenWelcome){
+      } else if(!profile.hasSeenWelcome && !profile.username){
         openOnboarding();
       }
       maybeShowIOSInstallBanner();

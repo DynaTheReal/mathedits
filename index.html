@@ -4314,7 +4314,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.04";
+  const APP_VERSION = "3.05";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5041,6 +5041,7 @@
         pendingFeedbackBonusAura: newPending,
         lastLocalSaveAt: Date.now()
       }, { merge: true });
+      logAuraTransaction(100, "Feedback-Geschenk (Owner)", targetUid);
       // Falls der Owner sich SELBST ein Geschenk gibt (z.B. zum Testen),
       // greift derselbe Mechanismus wie beim Aura-Booster: der eigene
       // geöffnete Tab bekommt das sonst nicht über den normalen Abgleich
@@ -5963,6 +5964,7 @@
       } else {
         const amount = data.auraAmount || 500;
         profile.totalAura += amount;
+        logAuraTransaction(amount, "Code eingelöst");
         showToast(`🎉 Code eingelöst! +${amount} Aura`);
       }
       saveProfile();
@@ -6143,6 +6145,7 @@
         });
         if(newIds.length === 0) return;
         profile.totalAura += total;
+        logAuraTransaction(total, newIds.length === 1 ? `Spende von @${lastFrom}` : `${newIds.length} Spenden erhalten`);
         profile.claimedAuraDonationIds = [...(profile.claimedAuraDonationIds || []), ...newIds];
         saveProfile();
         renderHome();
@@ -6175,6 +6178,7 @@
       console.log("[Einladung] Neue, noch nicht abgeholte Belohnungen:", newIds.length, "| Gesamt-Aura:", totalCredit);
       if(newIds.length === 0) return;
       profile.totalAura += totalCredit;
+      logAuraTransaction(totalCredit, newIds.length === 1 ? "Freund eingeladen" : `${newIds.length} Freunde eingeladen`);
       profile.claimedReferralRewardIds = [...(profile.claimedReferralRewardIds || []), ...newIds];
       profile.weeklyReferralCount = (profile.weeklyReferralCount || 0) + newIds.length;
 
@@ -7524,6 +7528,7 @@
       profile.claimedWeeklyInviteRewardAt = boundary;
       if(myRank === 1){
         profile.totalAura += 1000;
+        logAuraTransaction(1000, "Platz 1 Einladungs-Rangliste");
         saveProfile();
         showToast("🏆 Platz 1 im Invite Leaderboard! +1000 Aura");
       } else if(myRank === 2){
@@ -8026,6 +8031,7 @@
         if(!profile.dailyMissions.auraClaimedIds.includes(m.id)){
           profile.dailyMissions.auraClaimedIds.push(m.id);
           profile.totalAura += m.auraAmount;
+          logAuraTransaction(m.auraAmount, `Tagesmission: ${m.label}`);
         }
         showToast(`🎯 Tagesmission geschafft: "${m.label}" · +${m.auraAmount} Aura!`);
       } else {
@@ -10024,6 +10030,7 @@
     profile.lastLessonAt = Date.now();
     clearLessonInProgress();
     profile.totalAura += lesson.aura;
+    logAuraTransaction(lesson.aura, "Duell-Lektion");
     registerStreakActivity();
     saveProfile();
     lesson = null;
@@ -10641,6 +10648,7 @@
   function buyTheme(themeKey, cost, name){
     if(profile.totalAura >= cost){
       profile.totalAura -= cost;
+      logAuraTransaction(-cost, `Design gekauft: ${name}`);
       if(!profile.unlockedThemes) profile.unlockedThemes = ["black"];
       profile.unlockedThemes.push(themeKey);
       profile.theme = themeKey;
@@ -10690,6 +10698,7 @@
     }
     if(profile.totalAura >= cost){
       profile.totalAura -= cost;
+      logAuraTransaction(-cost, `Rahmen gekauft: ${name}`);
       if(!profile.unlockedFrames) profile.unlockedFrames = ["none"];
       profile.unlockedFrames.push(frameKey);
       profile.activeFrame = frameKey;
@@ -10724,6 +10733,7 @@
     }
     if(profile.totalAura >= cost){
       profile.totalAura -= cost;
+      logAuraTransaction(-cost, `Schrift gekauft: ${name}`);
       if(!profile.unlockedFonts) profile.unlockedFonts = ["none"];
       profile.unlockedFonts.push(fontKey);
       profile.activeFont = fontKey;
@@ -10864,6 +10874,7 @@
     blocks: "Blockwelt", webhero: "Netz-Held"
   };
   let ownerEditingUid = null;
+  let ownerEditingOriginalAura = 0;
   let ownerEditingTargetIp = null;
   let friendProfileModTargetUid = null;
   let friendProfileModTargetUsername = null;
@@ -11071,6 +11082,7 @@
       ownerEditingTargetIp = data.lastKnownIp || null;
       $("ownerTargetLabel").textContent = "@" + (data.username || uname);
       $("ownerAuraInput").value = data.totalAura || 0;
+      ownerEditingOriginalAura = data.totalAura || 0;
       $("ownerLevelInput").value = data.level || 0;
       $("ownerStreakInput").value = data.streak || 0;
       $("ownerRenameInput").value = "";
@@ -11162,7 +11174,11 @@
         ownerLastEditAt: Date.now(),
         ...(newUsernameRaw ? { username: newUsernameRaw, usernameLower: normalizeUsername(newUsernameRaw) } : {})
       }, { merge: true });
-      logAuraTransaction(newAura, `Owner-Bearbeitung (auf ${newAura} gesetzt)`, ownerEditingUid);
+      const auraDelta = newAura - ownerEditingOriginalAura;
+      if(auraDelta !== 0){
+        logAuraTransaction(auraDelta, "Owner-Bearbeitung", ownerEditingUid);
+      }
+      ownerEditingOriginalAura = newAura;
 
       // Bearbeitet der Owner sein EIGENES Profil, muss der lokale Stand
       // SOFORT mit angepasst werden - sonst überschreibt der eigene
@@ -11471,6 +11487,7 @@
      und vom Login-Passwort des Owners.
   ======================================================== */
   let modEditingUid = null;
+  let modEditingOriginalAura = 0;
 
   function requestModPasswordConfirm(){
     return new Promise((resolve) => {
@@ -11529,6 +11546,7 @@
       modEditingUid = targetUid;
       $("modTargetLabel").textContent = "@" + (data.username || uname);
       $("modAuraInput").value = data.totalAura || 0;
+      modEditingOriginalAura = data.totalAura || 0;
       $("modLevelInput").value = data.level || 0;
       $("modStreakInput").value = data.streak || 0;
       if(data.banned && (data.bannedUntil === null || data.bannedUntil > Date.now())){
@@ -11564,6 +11582,11 @@
         // ich den Aurastand nicht bearbeiten").
         lastLocalSaveAt: Date.now(), ownerLastEditAt: Date.now()
       }, { merge: true });
+      const modAuraDelta = newAura - modEditingOriginalAura;
+      if(modAuraDelta !== 0){
+        logAuraTransaction(modAuraDelta, "Mod-Bearbeitung", modEditingUid);
+      }
+      modEditingOriginalAura = newAura;
       showToast("✅ Änderungen gespeichert!");
     }catch(err){
       showToast("Speichern fehlgeschlagen - Firestore-Regeln geändert?");
@@ -13318,6 +13341,7 @@
     clearLessonInProgress();
     if(wasNormalLesson){
       profile.totalAura = Math.max(0, profile.totalAura - 10);
+      logAuraTransaction(-10, "Lektion abgebrochen");
       saveProfile();
     }
     playComboLossScare(() => {
@@ -14450,6 +14474,7 @@
     // 10-Aura-Abzug wie beim Abbruch.
     if(profile.lessonInProgressAt){
       profile.totalAura = Math.max(0, profile.totalAura - 10);
+      logAuraTransaction(-10, "App waehrend Lektion geschlossen");
       profile.lessonInProgressAt = null;
       showToast("Die App wurde während einer Lektion geschlossen - 10 Aura abgezogen.");
     }

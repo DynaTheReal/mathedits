@@ -2630,7 +2630,7 @@
       <div class="add-friend-row" id="referralLinkRow" style="display:none; align-items:center;">
         <input type="text" id="referralLinkInput" class="input-field" readonly>
         <button class="btn btn-primary btn-small" id="shareReferralBtn">Teilen</button>
-        <img id="referralQrCode" alt="QR-Code zum Einladungslink" style="width:44px; height:44px; border-radius:8px; background:#fff; padding:2px; flex-shrink:0;">
+        <button class="btn btn-ghost btn-small" id="referralQrCodeBtn" data-qr-link-input="referralLinkInput">QR-Code ansehen</button>
       </div>
       <div id="referralLoggedOutMsg" class="empty-hint" style="display:none; margin-top:2px; text-align:left;">
         Melde dich in den Einstellungen an und wähle einen Benutzernamen, um deinen Einladungslink zu bekommen.
@@ -3852,7 +3852,7 @@
       <div class="add-friend-row" id="referralPromoLinkRow" style="display:none; margin-bottom:14px; align-items:center;">
         <input type="text" id="referralPromoLinkInput" class="input-field" readonly>
         <button class="btn btn-primary btn-small" id="shareReferralPromoBtn">Teilen</button>
-        <img id="referralPromoQrCode" alt="QR-Code zum Einladungslink" style="width:44px; height:44px; border-radius:8px; background:#fff; padding:2px; flex-shrink:0;">
+        <button class="btn btn-ghost btn-small" id="referralPromoQrCodeBtn" data-qr-link-input="referralPromoLinkInput">QR-Code ansehen</button>
       </div>
       <div id="referralPromoLoggedOutMsg" class="empty-hint" style="display:none; text-align:left; margin-bottom:14px;">
         Melde dich an und wähle einen Benutzernamen, um deinen Einladungslink zu bekommen.
@@ -3977,6 +3977,16 @@
 
   <!-- Nachrichten: Übersicht der Freunde mit ungelesenen Nachrichten (NEU) -->
   <!-- Invite Leaderboard (NEU): Rangliste + Einladungslink, Top 3 bekommen eine Truhe -->
+  <!-- QR-Code gross anzeigen (NEU): ein gemeinsames Popup für alle drei
+       "Teilen"-Karten, statt den QR-Code klein permanent einzublenden. -->
+  <div class="overlay" id="overlayQrCodeView">
+    <div class="modal-card" style="max-width:280px;">
+      <button class="banner-close-x" id="qrCodeViewClose" style="position:absolute; top:10px; right:12px;">✕</button>
+      <div style="font-weight:800; margin-bottom:14px;">QR-Code</div>
+      <img id="qrCodeViewImage" alt="QR-Code zum Einladungslink" style="width:220px; height:220px; border-radius:12px; background:#fff; padding:10px; display:block; margin:0 auto;">
+    </div>
+  </div>
+
   <div class="overlay" id="overlayInviteLeaderboard">
     <div class="modal-card" style="max-width:420px;">
       <div style="font-size:36px; margin-bottom:6px;">🏆</div>
@@ -3989,7 +3999,7 @@
         <div class="add-friend-row" id="inviteLbLinkRow" style="display:none; align-items:center;">
           <input type="text" id="inviteLbLinkInput" class="input-field" readonly>
           <button class="btn btn-primary btn-small" id="shareInviteLbBtn">Teilen</button>
-          <img id="inviteLbQrCode" alt="QR-Code zum Einladungslink" style="width:44px; height:44px; border-radius:8px; background:#fff; padding:2px; flex-shrink:0;">
+          <button class="btn btn-ghost btn-small" id="inviteLbQrCodeBtn" data-qr-link-input="inviteLbLinkInput">QR-Code ansehen</button>
         </div>
         <div id="inviteLbLoggedOutMsg" class="empty-hint" style="display:none; margin-top:2px; text-align:left;">
           Melde dich in den Einstellungen an und wähle einen Benutzernamen, um deinen Einladungslink zu bekommen.
@@ -4304,7 +4314,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.03";
+  const APP_VERSION = "3.04";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -8370,7 +8380,7 @@
   // diesen Platz noch nicht belohnt bekommen haben.
   async function openInviteLeaderboard(){
     $("overlayInviteLeaderboard").classList.add("show");
-    renderReferralUI($("inviteLbLinkRow"), $("inviteLbLinkInput"), $("inviteLbLoggedOutMsg"), $("inviteLbQrCode"));
+    renderReferralUI($("inviteLbLinkRow"), $("inviteLbLinkInput"), $("inviteLbLoggedOutMsg"));
     if(!profile.hasSeenInviteLeaderboard){
       profile.hasSeenInviteLeaderboard = true;
       saveProfile();
@@ -10223,7 +10233,7 @@
     if(!profile.hasSeenReferralPromo){
       profile.hasSeenReferralPromo = true;
       saveProfile();
-      renderReferralUI($("referralPromoLinkRow"), $("referralPromoLinkInput"), $("referralPromoLoggedOutMsg"), $("referralPromoQrCode"));
+      renderReferralUI($("referralPromoLinkRow"), $("referralPromoLinkInput"), $("referralPromoLoggedOutMsg"));
       $("overlayReferralPromo").classList.add("show");
     }
   });
@@ -10405,17 +10415,11 @@
   function referralLink(){
     return `${location.origin}${location.pathname}?ref=${encodeURIComponent(profile.username)}`;
   }
-  function renderReferralUI(linkRowEl, linkInputEl, loggedOutMsgEl, qrImgEl){
+  function renderReferralUI(linkRowEl, linkInputEl, loggedOutMsgEl){
     const ready = !!(firebaseInitialized && currentUser && profile.username);
     linkRowEl.style.display = ready ? "flex" : "none";
     loggedOutMsgEl.style.display = ready ? "none" : "block";
-    if(ready){
-      const link = referralLink();
-      linkInputEl.value = link;
-      if(qrImgEl){
-        qrImgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=88x88&data=${encodeURIComponent(link)}`;
-      }
-    }
+    if(ready) linkInputEl.value = referralLink();
   }
 
   function copyReferralLink(inputEl){
@@ -10462,7 +10466,7 @@
 
   function renderShop(){
     $("shopAuraVal").textContent = profile.totalAura;
-    renderReferralUI($("referralLinkRow"), $("referralLinkInput"), $("referralLoggedOutMsg"), $("referralQrCode"));
+    renderReferralUI($("referralLinkRow"), $("referralLinkInput"), $("referralLoggedOutMsg"));
 
     const unlocked = profile.unlockedThemes || ["black"];
 
@@ -12186,6 +12190,22 @@
   }
 
   $("shareReferralBtn").addEventListener("click", shareReferralLink);
+
+  // QR-Code gross anzeigen (NEU): ein gemeinsamer Handler für alle drei
+  // "QR-Code ansehen"-Buttons - liest den zugehörigen Link erst beim
+  // Antippen aus, statt ihn dauerhaft im Hintergrund vorzuberechnen.
+  document.querySelectorAll("[data-qr-link-input]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const link = $(btn.dataset.qrLinkInput).value;
+      if(!link) return;
+      $("qrCodeViewImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(link)}`;
+      $("overlayQrCodeView").classList.add("show");
+    });
+  });
+  $("qrCodeViewClose").addEventListener("click", () => {
+    $("overlayQrCodeView").classList.remove("show");
+  });
+
   $("openInviteLeaderboardBtn").addEventListener("click", openInviteLeaderboard);
   $("closeInviteLeaderboard").addEventListener("click", () => {
     $("overlayInviteLeaderboard").classList.remove("show");

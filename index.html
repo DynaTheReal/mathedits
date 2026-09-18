@@ -508,27 +508,34 @@
     --shadow: 0 10px 24px rgba(0,0,0,.55); --overlay-bg: rgba(20,30,15,.94);
     --rainbow-header: linear-gradient(90deg, #6aa832, #8b5a2b, #6aa832);
   }
-  /* Echtes Pixel-Raster im Hintergrund (VERBESSERT): deutlich sichtbares
-     Schachbrett aus einzelnen Blöcken, wie in einem bekannten
-     Block-Aufbauspiel, statt nur eines feinen, kaum sichtbaren Musters. */
+  /* Echtes Pixel-Raster (STARK VERSTÄRKT): viele kleine, deutlich sichtbare
+     einzelne Pixel überall - nicht nur ein grobes Schachbrett im
+     Hintergrund, sondern auch auf Karten, Buttons und der Kopf-/Fußzeile. */
   [data-theme="blocks"] body{
     background-color:#1b2a17;
     background-image:
-      linear-gradient(45deg, rgba(0,0,0,.22) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.22) 75%),
-      linear-gradient(45deg, rgba(0,0,0,.22) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.22) 75%),
+      linear-gradient(45deg, rgba(0,0,0,.28) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.28) 75%),
+      linear-gradient(45deg, rgba(0,0,0,.28) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.28) 75%),
+      linear-gradient(-45deg, rgba(255,255,255,.04) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.04) 75%),
       linear-gradient(90deg, #253a1f, #1e301a);
-    background-size: 24px 24px, 24px 24px, 100% 100%;
-    background-position: 0 0, 12px 12px, 0 0;
+    background-size: 8px 8px, 8px 8px, 4px 4px, 100% 100%;
+    background-position: 0 0, 4px 4px, 0 0, 0 0;
     image-rendering: pixelated;
   }
   [data-theme="blocks"] .btn-primary, [data-theme="blocks"] .buy-btn,
   [data-theme="blocks"] .card, [data-theme="blocks"] .shop-item,
   [data-theme="blocks"] .modal-card, [data-theme="blocks"] .lb-row,
   [data-theme="blocks"] .mission-card, [data-theme="blocks"] .nav-item,
-  [data-theme="blocks"] .overlay-card, [data-theme="blocks"] .input-field{
+  [data-theme="blocks"] .overlay-card, [data-theme="blocks"] .input-field,
+  [data-theme="blocks"] .topbar, [data-theme="blocks"] .bottom-nav{
     border-radius:0 !important;
     border-width:3px !important;
     image-rendering: pixelated;
+    background-image:
+      linear-gradient(45deg, rgba(0,0,0,.12) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.12) 75%),
+      linear-gradient(45deg, rgba(0,0,0,.12) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.12) 75%);
+    background-size: 8px 8px, 8px 8px;
+    background-position: 0 0, 4px 4px;
   }
   /* Beveled Pixel-Button-Look (NEU): helle Kante oben/links, dunkle Kante
      unten/rechts - der klassische "3D-Block"-Effekt aus Pixel-Spielen. */
@@ -547,10 +554,10 @@
     text-shadow: 2px 2px 0 rgba(0,0,0,.4);
   }
 
-  /* THEME: NETZ-HELD (NEU) - Rot/Blau im Stil eines bekannten
-     Netz-schwingenden Comic-Helden, mit einem echten, sichtbaren
-     Spinnennetz-Muster im Hintergrund. Ebenfalls mit generischem Namen
-     statt der Marke selbst. */
+  /* THEME: COBWEB (NEU, vorher "Netz-Held") - Rot/Blau im Stil eines
+     bekannten Netz-schwingenden Comic-Helden, mit ECHTEN Spinnweben in
+     allen vier Bildschirmecken. Ebenfalls mit generischem Namen statt der
+     Marke selbst. */
   [data-theme="webhero"]{
     --bg: #0d1a3d; --bg-soft: #122350; --card: #16295e; --card-2: #1c3170;
     --border: #d62828; --text: #eef2ff; --text-dim: #a8b8e8;
@@ -559,13 +566,19 @@
     --shadow: 0 10px 26px rgba(0,0,0,.6); --overlay-bg: rgba(10,18,50,.94);
     --rainbow-header: linear-gradient(90deg, #d62828, #3457d5, #d62828);
   }
-  /* Echtes Spinnennetz (NEU): strahlende Linien aus der Mitte + konzentrische
-     Ringe, wie bei einem echten Netz - fest positioniert oben rechts, damit
-     der Rest des Bildschirms trotzdem gut lesbar bleibt. */
+  /* Echte Spinnweben (VERSTÄRKT): strahlende Linien + konzentrische Ringe
+     aus JEDER der vier Ecken, statt nur einer - fest positioniert, damit
+     die Bildschirmmitte trotzdem gut lesbar bleibt. */
   [data-theme="webhero"] body{
     background-image:
-      repeating-conic-gradient(from 0deg at 100% 0%, rgba(255,255,255,.09) 0deg 1.5deg, transparent 1.5deg 30deg),
-      repeating-radial-gradient(circle at 100% 0%, rgba(255,255,255,.08) 0 1.5px, transparent 1.5px 60px),
+      repeating-conic-gradient(from 0deg at 0% 0%, rgba(255,255,255,.1) 0deg 1.5deg, transparent 1.5deg 22.5deg),
+      repeating-radial-gradient(circle at 0% 0%, rgba(255,255,255,.09) 0 1.5px, transparent 1.5px 45px),
+      repeating-conic-gradient(from 0deg at 100% 0%, rgba(255,255,255,.1) 0deg 1.5deg, transparent 1.5deg 22.5deg),
+      repeating-radial-gradient(circle at 100% 0%, rgba(255,255,255,.09) 0 1.5px, transparent 1.5px 45px),
+      repeating-conic-gradient(from 0deg at 0% 100%, rgba(255,255,255,.1) 0deg 1.5deg, transparent 1.5deg 22.5deg),
+      repeating-radial-gradient(circle at 0% 100%, rgba(255,255,255,.09) 0 1.5px, transparent 1.5px 45px),
+      repeating-conic-gradient(from 0deg at 100% 100%, rgba(255,255,255,.1) 0deg 1.5deg, transparent 1.5deg 22.5deg),
+      repeating-radial-gradient(circle at 100% 100%, rgba(255,255,255,.09) 0 1.5px, transparent 1.5px 45px),
       repeating-linear-gradient(45deg, rgba(214,40,40,.04) 0 2px, transparent 2px 40px),
       repeating-linear-gradient(-45deg, rgba(52,87,213,.04) 0 2px, transparent 2px 40px);
     background-attachment: fixed;
@@ -2882,8 +2895,8 @@
     <div class="shop-item theme-preview theme-preview-blocks">
       <div class="item-icon">🟩</div>
       <div class="item-info">
-        <div class="item-title">Blockwelt Theme</div>
-        <div class="item-desc">Erdige Grün-/Brauntöne mit eckigen, blockigen Formen - im Stil eines bekannten Block-Aufbauspiels.</div>
+        <div class="item-title">Pixel Theme</div>
+        <div class="item-desc">Überall sichtbare Pixel-Blöcke, erdige Grün-/Brauntöne im Stil eines bekannten Block-Aufbauspiels.</div>
       </div>
       <button class="buy-btn" id="buyBlocksTheme">900 Aura</button>
     </div>
@@ -2891,8 +2904,8 @@
     <div class="shop-item theme-preview theme-preview-webhero">
       <div class="item-icon">🕸️</div>
       <div class="item-info">
-        <div class="item-title">Netz-Held Theme</div>
-        <div class="item-desc">Rot und Blau mit feinem Netz-Muster - im Stil eines bekannten netz-schwingenden Comic-Helden.</div>
+        <div class="item-title">CobWeb Theme</div>
+        <div class="item-desc">Rot und Blau mit echten Spinnweben in den Ecken - im Stil eines bekannten netz-schwingenden Comic-Helden.</div>
       </div>
       <button class="buy-btn" id="buyWebheroTheme">900 Aura</button>
     </div>
@@ -3547,7 +3560,9 @@
           <button class="difficulty-btn active" id="auraHistoryViewDays" data-view="days" style="padding:6px 10px; font-size:12px;">Tage</button>
           <button class="difficulty-btn" id="auraHistoryViewHours" data-view="hours" style="padding:6px 10px; font-size:12px;">Stunden</button>
         </div>
-        <svg id="auraHistoryChart" viewBox="0 0 320 130" style="width:100%; height:130px; margin-bottom:6px; overflow:visible;"></svg>
+        <div style="overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:6px; border-radius:8px;">
+          <svg id="auraHistoryChart" style="height:150px; display:block;"></svg>
+        </div>
         <div id="auraHistoryChartEmpty" class="empty-hint" style="display:none; margin-top:0; text-align:left;">Noch zu wenig Verlauf für ein Diagramm.</div>
 
         <div id="ownerAuraHistoryList" style="max-height:35vh; overflow-y:auto; display:flex; flex-direction:column; gap:4px; margin-top:10px;"></div>
@@ -4466,7 +4481,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.11";
+  const APP_VERSION = "3.12";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -8544,7 +8559,7 @@
     const emptyEl = $("auraHistoryChartEmpty");
     const transactions = auraHistoryCurrentTransactions;
     if(transactions.length === 0){
-      svg.innerHTML = "";
+      svg.innerHTML = ""; svg.removeAttribute("width");
       emptyEl.style.display = "block";
       return;
     }
@@ -8558,41 +8573,78 @@
     }
     const bucketed = bucketAuraTimeline(points, auraHistoryCurrentView);
     if(bucketed.length < 2){
-      svg.innerHTML = "";
+      svg.innerHTML = ""; svg.removeAttribute("width");
       emptyEl.style.display = "block";
       return;
     }
     emptyEl.style.display = "none";
 
-    const W = 320, H = 130, PAD = 10;
+    // NEU: feste Pixelbreite je Datenpunkt statt alles in eine feste Breite
+    // zu quetschen - das SVG wird dadurch breiter als der sichtbare
+    // Bereich und ist per Wisch/Scroll nach links und rechts durchsuchbar.
+    const COL_W = 56, H = 150, PAD_TOP = 26, PAD_BOTTOM = 34, PAD_SIDE = 30;
+    const W = Math.max(320, PAD_SIDE * 2 + (bucketed.length - 1) * COL_W);
+    svg.setAttribute("width", W);
+    svg.setAttribute("height", H);
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
     const values = bucketed.map(b => b.value);
     const minV = Math.min(...values, 0);
     const maxV = Math.max(...values, 1);
     const range = Math.max(1, maxV - minV);
-    const xStep = (W - PAD * 2) / (bucketed.length - 1);
+    const plotTop = PAD_TOP, plotBottom = H - PAD_BOTTOM;
+    const xStep = bucketed.length > 1 ? (W - PAD_SIDE * 2) / (bucketed.length - 1) : 0;
 
     const coords = bucketed.map((b, i) => ({
-      x: PAD + i * xStep,
-      y: H - PAD - ((b.value - minV) / range) * (H - PAD * 2),
+      x: PAD_SIDE + i * xStep,
+      y: plotBottom - ((b.value - minV) / range) * (plotBottom - plotTop),
       value: b.value, time: b.time
     }));
 
     const pathD = coords.map((c, i) => (i === 0 ? "M" : "L") + c.x.toFixed(1) + "," + c.y.toFixed(1)).join(" ");
-    const areaD = pathD + ` L${coords[coords.length - 1].x.toFixed(1)},${H - PAD} L${coords[0].x.toFixed(1)},${H - PAD} Z`;
+    const areaD = pathD + ` L${coords[coords.length - 1].x.toFixed(1)},${plotBottom} L${coords[0].x.toFixed(1)},${plotBottom} Z`;
 
-    const fmtLabel = t => auraHistoryCurrentView === "hours"
-      ? new Date(t).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })
-      : new Date(t).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+    const fmtDay = t => new Date(t).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+    const fmtTime = t => new Date(t).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+
+    // Waagrechte Raster-Linien (NEU): 4 gleichmäßige Referenzwerte.
+    const hGridLevels = 4;
+    let hGridLines = "";
+    for(let i = 0; i <= hGridLevels; i++){
+      const v = minV + (range * i / hGridLevels);
+      const y = plotBottom - (i / hGridLevels) * (plotBottom - plotTop);
+      hGridLines += `<line x1="${PAD_SIDE}" y1="${y.toFixed(1)}" x2="${W - PAD_SIDE + 10}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3"></line>`;
+      hGridLines += `<text x="4" y="${(y + 3).toFixed(1)}" font-size="9" fill="var(--text-dim)">${Math.round(v)}</text>`;
+    }
+
+    // Senkrechte Raster-Linien je Tag/Stunde (NEU), mit Datum/Uhrzeit
+    // darunter - bei der Tage-Ansicht steht das Datum, bei der
+    // Stunden-Ansicht Datum UND Uhrzeit übereinander für mehr Info.
+    let vGridLines = "";
+    coords.forEach((c, i) => {
+      vGridLines += `<line x1="${c.x.toFixed(1)}" y1="${plotTop}" x2="${c.x.toFixed(1)}" y2="${plotBottom}" stroke="var(--border)" stroke-width="1" opacity="0.5"></line>`;
+      if(auraHistoryCurrentView === "hours"){
+        vGridLines += `<text x="${c.x.toFixed(1)}" y="${plotBottom + 13}" font-size="8.5" fill="var(--text-dim)" text-anchor="middle">${fmtTime(c.time)}</text>`;
+        vGridLines += `<text x="${c.x.toFixed(1)}" y="${plotBottom + 24}" font-size="8" fill="var(--text-dim)" text-anchor="middle" opacity="0.75">${fmtDay(c.time)}</text>`;
+      } else {
+        vGridLines += `<text x="${c.x.toFixed(1)}" y="${plotBottom + 14}" font-size="9" fill="var(--text-dim)" text-anchor="middle">${fmtDay(c.time)}</text>`;
+      }
+      // Wert direkt über jedem Punkt (NEU) - mehr Information auf einen Blick.
+      vGridLines += `<text x="${c.x.toFixed(1)}" y="${(c.y - 8).toFixed(1)}" font-size="9" font-weight="800" fill="#a855f7" text-anchor="middle">${Math.round(c.value)}</text>`;
+    });
 
     svg.innerHTML = `
+      ${hGridLines}
+      ${vGridLines}
       <path d="${areaD}" fill="rgba(168,85,247,.15)" stroke="none"></path>
       <path d="${pathD}" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path>
-      ${coords.map(c => `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="2.5" fill="#a855f7"></circle>`).join("")}
-      <text x="${coords[0].x.toFixed(1)}" y="${H - 1}" font-size="9" fill="var(--text-dim)" text-anchor="start">${fmtLabel(coords[0].time)}</text>
-      <text x="${coords[coords.length - 1].x.toFixed(1)}" y="${H - 1}" font-size="9" fill="var(--text-dim)" text-anchor="end">${fmtLabel(coords[coords.length - 1].time)}</text>
-      <text x="${PAD}" y="12" font-size="9" fill="var(--text-dim)">${Math.round(maxV)} 💎</text>
-      <text x="${PAD}" y="${H - PAD - 2}" font-size="9" fill="var(--text-dim)">${Math.round(minV)} 💎</text>
+      ${coords.map(c => `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="3" fill="#a855f7" stroke="var(--card)" stroke-width="1.5"></circle>`).join("")}
     `;
+    // Direkt zum aktuellsten (rechten) Ende scrollen, damit man sofort den
+    // neuesten Stand sieht und von dort aus nach links in die Vergangenheit
+    // zurückscrollen kann.
+    const wrap = svg.parentElement;
+    if(wrap) wrap.scrollLeft = wrap.scrollWidth;
   }
 
   async function renderOwnerAuraHistory(uid){
@@ -11062,8 +11114,8 @@
   $("buyToxicTheme").addEventListener("click", () => buyTheme("toxic", 1400, "Toxic"));
   $("buyCrimsonTheme").addEventListener("click", () => buyTheme("crimson", 1400, "Crimson"));
   $("buyMinimalTheme").addEventListener("click", () => buyTheme("minimal", 700, "Minimal"));
-  $("buyBlocksTheme").addEventListener("click", () => buyTheme("blocks", 900, "Blockwelt"));
-  $("buyWebheroTheme").addEventListener("click", () => buyTheme("webhero", 900, "Netz-Held"));
+  $("buyBlocksTheme").addEventListener("click", () => buyTheme("blocks", 900, "Pixel"));
+  $("buyWebheroTheme").addEventListener("click", () => buyTheme("webhero", 900, "CobWeb"));
   $("buyDarkwolfTheme").addEventListener("click", () => buyTheme("darkwolf", 900, "Dark Wolf"));
   $("buyIceTheme").addEventListener("click", () => buyTheme("ice", 900, "Ice"));
 
@@ -11262,7 +11314,7 @@
     glass: "Glas", glow: "Glow", glitch: "Glitch", galaxy: "Galaxy",
     sunset: "Sunset", cyber: "Cyber", royal: "Royal", cloud: "Cloud",
     toxic: "Toxic", crimson: "Crimson", minimal: "Minimal",
-    blocks: "Blockwelt", webhero: "Netz-Held", darkwolf: "Dark Wolf", ice: "Ice"
+    blocks: "Pixel", webhero: "CobWeb", darkwolf: "Dark Wolf", ice: "Ice"
   };
   let ownerEditingUid = null;
   let ownerEditingOriginalAura = 0;

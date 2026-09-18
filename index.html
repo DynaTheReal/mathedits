@@ -905,6 +905,13 @@
     background:linear-gradient(135deg, #22c55e, #16a34a) !important;
     color:#06210f !important; border-color:#22c55e !important;
   }
+  .feedback-category-btn, .feedback-priority-btn{
+    flex:1; padding:10px; border-radius:12px; border:1.5px solid var(--border);
+    background:var(--card); color:var(--text-dim); font-weight:800; font-size:13px; cursor:pointer;
+  }
+  #feedbackCategoryIdea.active{ border-color:#3b82f6; background:rgba(59,130,246,.15); color:#93c5fd; }
+  #feedbackCategoryBug.active{ border-color:#ef4444; background:rgba(239,68,68,.15); color:#fca5a5; }
+  .feedback-priority-btn.active{ border-color:#f59e0b; background:rgba(245,158,11,.15); color:#fcd34d; }
   .style-editor-chip{
     padding:8px 14px; border-radius:99px; border:1.5px solid var(--border);
     background:var(--card); color:var(--text); font-size:13px; font-weight:700; cursor:pointer;
@@ -2472,7 +2479,13 @@
       <div style="font-size:22px;">🎯</div>
       <div style="flex:1; min-width:0;">
         <div style="font-weight:800; font-size:11px; opacity:.85; margin-bottom:2px;">SPIELER-ZIEL · NOCH <span id="playerGoalCountdown">10:00</span></div>
-        <div id="playerGoalText" style="font-size:13px; line-height:1.4;"></div>
+        <div id="playerGoalText" style="font-size:13px; line-height:1.4; margin-bottom:6px;"></div>
+        <div id="playerGoalProgressWrap" style="display:none;">
+          <div style="background:rgba(0,0,0,.2); border-radius:99px; height:8px; overflow:hidden; margin-bottom:3px;">
+            <div id="playerGoalProgressFill" style="background:#fff; height:100%; width:0%; border-radius:99px; transition:width .4s ease;"></div>
+          </div>
+          <div style="font-size:11px; font-weight:800; opacity:.9;" id="playerGoalProgressText"></div>
+        </div>
       </div>
       <button id="playerGoalShrinkBtn" style="background:rgba(0,0,0,.2); border:none; color:#fff; width:26px; height:26px; border-radius:50%; font-size:13px; font-weight:800; cursor:pointer; flex-shrink:0;">✕</button>
     </div>
@@ -3259,6 +3272,14 @@
       </div>
     </div>
 
+    <div class="settings-row" id="supportSettingsRow" style="cursor:pointer;">
+      <div class="info">
+        <div class="t">💬 Support</div>
+        <div class="d">Ideen vorschlagen oder Bugs melden - landet direkt beim Owner.</div>
+      </div>
+      <div style="font-size:20px;">→</div>
+    </div>
+
     <div class="settings-row">
       <div class="info">
         <div class="t">Design / Theme</div>
@@ -3481,8 +3502,33 @@
         <button class="banner-close-x" id="playerGoalClose" style="position:absolute; top:10px; right:12px;">✕</button>
         <div style="font-weight:800; margin-bottom:8px;">🎯 Spieler-Ziel</div>
         <div class="d" id="playerGoalStatus" style="margin-bottom:8px;">Aktuell kein aktives Ziel.</div>
-        <textarea id="playerGoalInput" class="input-field" rows="3" placeholder="z.B. Löst gemeinsam 500 Aufgaben in den nächsten 10 Minuten!" style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
-        <div class="empty-hint" style="text-align:left; margin-top:0; margin-bottom:8px;">Läuft automatisch nach 10 Minuten ab. Sichtbar für alle gerade online Spieler.</div>
+
+        <div style="background:rgba(168,85,247,.1); border:1.5px solid #a855f7; border-radius:12px; padding:10px; margin-bottom:12px; text-align:center;">
+          <div class="d" style="margin-bottom:4px;">Gerade live</div>
+          <div style="font-size:26px; font-weight:900;" id="playerGoalLiveCount">…</div>
+          <button class="btn btn-ghost btn-small" id="playerGoalRefreshBtn" style="margin-top:6px;">🔄 Aktualisieren</button>
+        </div>
+
+        <div class="d" style="font-weight:800; margin-bottom:6px;">Was zählen?</div>
+        <div class="difficulty-picker" style="margin-bottom:12px;">
+          <button class="difficulty-btn active" id="playerGoalMetricOnline" data-metric="online">👥 Online<span>Spieler in der App</span></button>
+          <button class="difficulty-btn" id="playerGoalMetricLesson" data-metric="inLesson">🎮 In Lektion<span>Gerade aktiv spielend</span></button>
+        </div>
+
+        <textarea id="playerGoalInput" class="input-field" rows="2" placeholder="z.B. Kommt zusammen online!" style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
+
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <div style="flex:1;">
+            <div class="d" style="margin-bottom:4px;">Ziel-Anzahl</div>
+            <input type="number" id="playerGoalTargetInput" class="input-field" placeholder="z.B. 10" min="1">
+          </div>
+          <div style="flex:1;">
+            <div class="d" style="margin-bottom:4px;">Belohnung (Aura)</div>
+            <input type="number" id="playerGoalRewardInput" class="input-field" placeholder="z.B. 100" min="1">
+          </div>
+        </div>
+
+        <div class="empty-hint" style="text-align:left; margin-top:0; margin-bottom:8px;">Läuft automatisch nach 10 Minuten ab. Wird das Ziel erreicht, bekommt jede Person, die gerade online/aktiv ist, die Belohnung automatisch gutgeschrieben.</div>
         <button class="btn btn-primary btn-small" id="playerGoalSendBtn" style="width:100%;">Ziel setzen</button>
       </div>
     </div>
@@ -3940,14 +3986,28 @@
 
   <!-- Feedback geben (NEU) -->
   <div class="overlay" id="overlayFeedback">
-    <div class="modal-card" style="max-width:340px;">
-      <div style="font-size:36px; margin-bottom:6px;">💬</div>
-      <h2>Feedback geben</h2>
-      <p>Was läuft gut, was sollte besser sein? Landet direkt beim Owner.</p>
-      <p style="font-size:11.5px; opacity:.7; margin-top:-8px; margin-bottom:12px;">🎁 Für besonders gutes Feedback gibt's vielleicht sogar Aura als Dankeschön!</p>
+    <div class="modal-card" style="max-width:340px; text-align:left;">
+      <div style="font-size:36px; margin-bottom:6px; text-align:center;">💬</div>
+      <h2 style="text-align:center;">Support</h2>
+      <p style="text-align:center;">Was läuft gut, was sollte besser sein? Landet direkt beim Owner.</p>
+      <p style="font-size:11.5px; opacity:.7; margin-top:-8px; margin-bottom:12px; text-align:center;">🎁 Für besonders gutes Feedback gibt's vielleicht sogar Aura als Dankeschön!</p>
+
+      <div class="d" style="font-weight:800; margin-bottom:6px;">Kategorie</div>
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <button class="feedback-category-btn active" id="feedbackCategoryIdea" data-category="idea">💡 Idee</button>
+        <button class="feedback-category-btn" id="feedbackCategoryBug" data-category="bug">🐛 Bug</button>
+      </div>
+
+      <div class="d" style="font-weight:800; margin-bottom:6px;">Priorität</div>
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <button class="feedback-priority-btn active" id="feedbackPriority1" data-priority="1">❗</button>
+        <button class="feedback-priority-btn" id="feedbackPriority2" data-priority="2">❗❗</button>
+        <button class="feedback-priority-btn" id="feedbackPriority3" data-priority="3">❗❗❗</button>
+      </div>
+
       <textarea id="feedbackInput" class="input-field" rows="4" placeholder="Dein Feedback..." style="width:100%; resize:vertical; font-family:inherit; margin-bottom:12px;"></textarea>
-      <button class="btn btn-primary" id="feedbackSendBtn">Senden</button>
-      <button class="btn btn-ghost" id="feedbackCancelBtn" style="margin-top:10px;">Abbrechen</button>
+      <button class="btn btn-primary" id="feedbackSendBtn" style="width:100%;">Senden</button>
+      <button class="btn btn-ghost" id="feedbackCancelBtn" style="margin-top:10px; width:100%;">Abbrechen</button>
     </div>
   </div>
 
@@ -4314,7 +4374,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.05";
+  const APP_VERSION = "3.08";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -4566,6 +4626,7 @@
     hasSeenReferralPromo: false,
     referredBy: null,
     claimedReferralRewardIds: [], // welche referralRewards-Dokumente lokal schon gutgeschrieben wurden
+    claimedPlayerGoalIds: [], // welche Spieler-Ziel-Belohnungen (per Zeitstempel) schon abgeholt wurden
     lastBrokenStreak: 0, // für die Streak-Reparatur im Shop
     usedStreakRestoreViaInvite: false, // einmalige Streak-Rettung durch Freundes-Einladung - schon genutzt?
     unlockedFrames: ["none"],
@@ -5010,7 +5071,9 @@
         text: text.slice(0, 1000),
         fromUid: currentUser.uid,
         fromUsername: profile.username || "?",
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        category: feedbackSelectedCategory,
+        priority: feedbackSelectedPriority
       }));
       $("feedbackInput").value = "";
       $("overlayFeedback").classList.remove("show");
@@ -5096,8 +5159,13 @@
         const row = document.createElement("div");
         row.className = "owner-feedback-row";
         row.style.cssText = "padding:8px 0; border-bottom:1px solid rgba(59,130,246,.2); font-size:12.5px; display:flex; align-items:flex-start; gap:8px;";
+        const isBug = data.category === "bug";
+        const categoryBadge = data.category
+          ? `<span style="color:${isBug ? "#f87171" : "#93c5fd"}; font-weight:800;">${isBug ? "🐛 Bug" : "💡 Idee"}</span> · `
+          : "";
+        const priorityBadge = data.priority ? `${"❗".repeat(data.priority)} ` : "";
         row.innerHTML = `
-          <div style="flex:1;${isNew ? " font-weight:800;" : " opacity:.65;"}">${isNew ? "🆕 " : ""}<b>@${data.fromUsername || "?"}</b>: ${data.text || ""}<br><span style="opacity:.6; font-size:11px;">${formatRelativeTime(data.createdAt)}</span></div>
+          <div style="flex:1;${isNew ? " font-weight:800;" : " opacity:.65;"}">${isNew ? "🆕 " : ""}${priorityBadge}${categoryBadge}<b>@${data.fromUsername || "?"}</b>: ${data.text || ""}<br><span style="opacity:.6; font-size:11px;">${formatRelativeTime(data.createdAt)}</span></div>
           <button class="owner-feedback-gift-btn" data-uid="${data.fromUid || ""}" data-name="${data.fromUsername || "?"}" title="100 Aura schenken" style="background:none; border:none; color:#facc15; font-size:16px; cursor:pointer; padding:2px 6px; flex-shrink:0;">🎁</button>
           <button class="owner-feedback-dismiss-btn" data-id="${d.id}" style="background:none; border:none; color:var(--text-dim); font-size:16px; font-weight:800; cursor:pointer; padding:2px 6px; flex-shrink:0;">✕</button>
         `;
@@ -5745,13 +5813,41 @@
   }
 
   /* ========================================================
-     SPIELER-ZIEL (NEU): der Owner setzt ein Ziel/eine Challenge, die für
-     10 Minuten allen gerade geöffneten Apps angezeigt wird - mit
-     Live-Countdown. Drückt eine Person auf X, wird das Widget nur kleiner
-     (Pille), bleibt aber antippbar, statt komplett zu verschwinden.
+     SPIELER-ZIEL (NEU): der Owner setzt ein echtes, messbares Ziel (z.B.
+     "10 Spieler online" oder "5 gerade in einer Lektion") mit einer
+     festgelegten Belohnung. Wird das Ziel erreicht, bekommt JEDE Person,
+     die gerade online/aktiv ist, die Belohnung automatisch gutgeschrieben -
+     ganz ohne eigenen Server: jedes offene Gerät prüft das selbst
+     periodisch und schreibt sich die Belohnung bei Erreichen selbst gut
+     (genau wie bei Empfehlungs- und Spenden-Belohnungen in dieser App).
   ======================================================== */
   let playerGoalCountdownInterval = null;
   let playerGoalWidgetShrunk = false;
+  let playerGoalCheckInterval = null;
+  let playerGoalOwnerModalMetric = "online";
+
+  // Gemeinsamer Zähl-Helfer (NEU): liest die komplette users-Sammlung
+  // einmalig (wie bei EarthLive) und zählt je nach gewählter Metrik.
+  async function fetchLiveCount(metric){
+    const snap = await db().collection("users").get();
+    const users = snap.docs.map(d => d.data());
+    if(metric === "inLesson"){
+      return users.filter(u => isInLesson(u)).length;
+    }
+    return users.filter(u => isOnline(u)).length;
+  }
+
+  async function refreshPlayerGoalOwnerLiveCount(){
+    const el = $("playerGoalLiveCount");
+    el.textContent = "…";
+    try{
+      const count = await fetchLiveCount(playerGoalOwnerModalMetric);
+      el.textContent = count;
+    }catch(err){
+      el.textContent = "-";
+      console.error("Live-Zaehlung Fehler:", err);
+    }
+  }
 
   async function renderOwnerPlayerGoalStatus(){
     if(!isOwner() || !firebaseInitialized) return;
@@ -5764,7 +5860,7 @@
       }
       const data = doc.data();
       const minsLeft = Math.max(0, Math.ceil((data.expiresAt - Date.now()) / 60000));
-      statusEl.textContent = `Aktiv (noch ~${minsLeft} Min): "${data.text}"`;
+      statusEl.textContent = `Aktiv (noch ~${minsLeft} Min): Ziel ${data.targetCount} (${data.metric === "inLesson" ? "in Lektion" : "online"}) · +${data.rewardAmount} Aura`;
     }catch(err){
       console.error("Spieler-Ziel-Status Fehler:", err);
     }
@@ -5773,18 +5869,31 @@
   async function sendPlayerGoal(){
     if(!isOwner() || !firebaseInitialized || !currentUser) return;
     const text = $("playerGoalInput").value.trim();
-    if(!text){
-      showToast("Bitte einen Zieltext eingeben.");
+    const targetCount = parseInt($("playerGoalTargetInput").value, 10);
+    const rewardAmount = parseInt($("playerGoalRewardInput").value, 10);
+    if(!targetCount || targetCount <= 0){
+      showToast("Bitte eine gültige Ziel-Anzahl eingeben.");
+      return;
+    }
+    if(!rewardAmount || rewardAmount <= 0){
+      showToast("Bitte eine gültige Belohnung eingeben.");
       return;
     }
     try{
+      const startCount = await fetchLiveCount(playerGoalOwnerModalMetric);
       await db().collection("playerGoal").doc("current").set({
         text: text.slice(0, 300),
+        metric: playerGoalOwnerModalMetric,
+        targetCount,
+        rewardAmount,
+        startCount,
         createdAt: Date.now(),
         expiresAt: Date.now() + 10 * 60 * 1000,
         setByUid: currentUser.uid
       });
       $("playerGoalInput").value = "";
+      $("playerGoalTargetInput").value = "";
+      $("playerGoalRewardInput").value = "";
       showToast("🎯 Spieler-Ziel gesetzt!");
       renderOwnerPlayerGoalStatus();
     }catch(err){
@@ -5805,11 +5914,40 @@
     if(remaining <= 0){
       $("playerGoalWidget").style.display = "none";
       if(playerGoalCountdownInterval){ clearInterval(playerGoalCountdownInterval); playerGoalCountdownInterval = null; }
+      if(playerGoalCheckInterval){ clearInterval(playerGoalCheckInterval); playerGoalCheckInterval = null; }
       return;
     }
     const text = formatCountdown(remaining);
     $("playerGoalCountdown").textContent = text;
     $("playerGoalCountdownSmall").textContent = text;
+  }
+
+  // Prüft den aktuellen Live-Stand gegen das Ziel, aktualisiert die
+  // Fortschrittsanzeige, und schreibt sich selbst die Belohnung gut, sobald
+  // das Ziel erreicht ist UND diese Person es noch nicht für GENAU dieses
+  // Ziel (per createdAt erkannt) abgeholt hat.
+  async function checkPlayerGoalProgress(goalId, data){
+    try{
+      const current = await fetchLiveCount(data.metric);
+      const pct = Math.min(100, Math.round((current / data.targetCount) * 100));
+      $("playerGoalProgressWrap").style.display = "block";
+      $("playerGoalProgressFill").style.width = pct + "%";
+      $("playerGoalProgressText").textContent = `${current} / ${data.targetCount} (${data.metric === "inLesson" ? "in Lektion" : "online"})`;
+
+      if(current >= data.targetCount){
+        const claimed = profile.claimedPlayerGoalIds || [];
+        if(!claimed.includes(goalId) && currentUser){
+          profile.totalAura += data.rewardAmount;
+          logAuraTransaction(data.rewardAmount, "Spieler-Ziel erreicht");
+          profile.claimedPlayerGoalIds = [...claimed, goalId];
+          saveProfile();
+          renderHome();
+          showToast(`🎉 Spieler-Ziel erreicht! +${data.rewardAmount} Aura`);
+        }
+      }
+    }catch(err){
+      console.error("Spieler-Ziel-Fortschritt Fehler:", err);
+    }
   }
 
   // Live-Beobachtung (NEU): sobald der Owner ein Ziel setzt, sehen alle
@@ -5819,18 +5957,27 @@
     if(!firebaseInitialized || !currentUser) return;
     db().collection("playerGoal").doc("current").onSnapshot((doc) => {
       if(playerGoalCountdownInterval){ clearInterval(playerGoalCountdownInterval); playerGoalCountdownInterval = null; }
+      if(playerGoalCheckInterval){ clearInterval(playerGoalCheckInterval); playerGoalCheckInterval = null; }
       if(!doc.exists || !doc.data().expiresAt || doc.data().expiresAt < Date.now()){
         $("playerGoalWidget").style.display = "none";
         return;
       }
       const data = doc.data();
-      $("playerGoalText").textContent = data.text;
+      const goalId = String(data.createdAt);
+      $("playerGoalText").textContent = data.text || `Ziel: ${data.targetCount} ${data.metric === "inLesson" ? "in einer Lektion" : "online"}`;
       updatePlayerGoalCountdown(data.expiresAt);
       $("playerGoalWidget").style.display = "block";
       playerGoalWidgetShrunk = false;
       $("playerGoalWidgetFull").style.display = "flex";
       $("playerGoalWidgetPill").style.display = "none";
       playerGoalCountdownInterval = setInterval(() => updatePlayerGoalCountdown(data.expiresAt), 1000);
+
+      // Sofort einmal prüfen, dann alle 15 Sekunden erneut - so bleibt der
+      // Fortschritt live, ohne die Datenbank pausenlos abzufragen.
+      if(data.targetCount){
+        checkPlayerGoalProgress(goalId, data);
+        playerGoalCheckInterval = setInterval(() => checkPlayerGoalProgress(goalId, data), 15000);
+      }
     }, (err) => console.error("Spieler-Ziel beobachten Fehler:", err));
   }
 
@@ -8237,12 +8384,20 @@
   // (Lektion, Kauf, ...) blockieren oder verlangsamen.
   function logAuraTransaction(amount, reason, targetUid){
     if(!firebaseInitialized || !currentUser || amount === 0) return;
-    db().collection("auraTransactions").add({
-      uid: targetUid || currentUser.uid,
-      amount,
-      reason,
-      createdAt: Date.now()
-    }).catch(err => console.error("Aura-Verlauf protokollieren Fehler:", err));
+    // WICHTIG: das reine Protokollieren darf NIE den aufrufenden Code
+    // unterbrechen (z.B. das Vermerken einer bereits abgeholten
+    // Spieler-Ziel-Belohnung direkt danach) - deshalb hier zusätzlich
+    // synchron abgesichert, nicht nur mit .catch() auf das Promise.
+    try{
+      db().collection("auraTransactions").add({
+        uid: targetUid || currentUser.uid,
+        amount,
+        reason,
+        createdAt: Date.now()
+      }).catch(err => console.error("Aura-Verlauf protokollieren Fehler:", err));
+    }catch(err){
+      console.error("Aura-Verlauf protokollieren Fehler:", err);
+    }
   }
 
   // Aura-Verlauf im Owner-Panel (NEU): zeigt die letzten 20 protokollierten
@@ -8251,13 +8406,24 @@
     const listEl = $("ownerAuraHistoryList");
     listEl.innerHTML = `<div class="empty-hint" style="margin:0; text-align:left;">Lädt...</div>`;
     try{
-      const snap = await db().collection("auraTransactions").where("uid", "==", uid).orderBy("createdAt", "desc").limit(20).get();
+      // WICHTIG (Bugfix): KEIN orderBy() in der Abfrage - das würde
+      // zusammen mit dem where() einen zusätzlichen Firestore-Index
+      // erfordern, der erst manuell in der Firebase-Konsole angelegt
+      // werden müsste (genau der gemeldete Fehler "Aura-Verlauf konnte
+      // nicht geladen werden"). Stattdessen wird hier ungeordnet
+      // geholt und danach in JavaScript sortiert - eine reine
+      // Gleichheitsabfrage auf ein einzelnes Feld braucht keinen
+      // speziellen Index.
+      const snap = await db().collection("auraTransactions").where("uid", "==", uid).get();
       if(snap.empty){
         listEl.innerHTML = `<div class="empty-hint" style="margin:0; text-align:left;">Noch kein protokollierter Aura-Verlauf für diese Person.</div>`;
         return;
       }
-      listEl.innerHTML = snap.docs.map(d => {
-        const t = d.data();
+      const sorted = snap.docs
+        .map(d => d.data())
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+        .slice(0, 20);
+      listEl.innerHTML = sorted.map(t => {
         const positive = t.amount > 0;
         const sign = positive ? "+" : "";
         const color = positive ? "#4ade80" : "#ef4444";
@@ -9760,20 +9926,20 @@
           renderDuelOpponentProgress(data);
         }
       } else if(data.status === "finished"){
-        // NEU: Wenn jemand anderes gerade als Erster fertig geworden ist,
-        // während ich noch mitten in meiner eigenen Lektion war, wird die
-        // hier sofort abgebrochen - ich habe verloren, muss nicht mehr
-        // weiterspielen. Ein einzelner Fehler bei EINER Aufgabe löst das
-        // NICHT aus - nur wenn jemand wirklich alle Fragen fertig hat.
-        if(lesson && lesson.isDuelLobby && lesson.duelLobbyId === lobbyId && duelLobbyFinishedId !== lobbyId){
-          stopTimer();
-          pendingAdvanceAt = null;
-          lesson = null;
-          clearLessonInProgress();
-          showScreen("duelresults");
+        // WICHTIG (Bugfix, gemeldeter Fehler: "Duell bricht nach 1-2
+        // Aufgaben ab"): hier wurde bisher die eigene, noch laufende
+        // Lektion SOFORT zwangsweise abgebrochen, sobald jemand anderes
+        // als Erster fertig wurde - selbst wenn man selbst erst 1-2 Fragen
+        // beantwortet hatte. Das fühlte sich wie ein Absturz an. Jetzt läuft
+        // die eigene Lektion einfach normal zu Ende weiter (man weiß zwar
+        // schon, dass man nicht mehr gewinnen kann, aber man darf seine 10
+        // Aufgaben trotzdem fertig spielen und bekommt dafür ganz normal
+        // Aura) - erst wenn man SELBST fertig ist, zeigt finishDuelLobbyLesson()
+        // korrekt das bereits feststehende Ergebnis (Gegner hat gewonnen).
+        if(!(lesson && lesson.isDuelLobby && lesson.duelLobbyId === lobbyId)){
+          duelLobbyFinishedId = null;
+          renderDuelResultsScreen(data);
         }
-        duelLobbyFinishedId = null;
-        renderDuelResultsScreen(data);
       }
     }, (err) => console.error("Duell-Lobby beobachten Fehler:", err));
   }
@@ -11818,9 +11984,23 @@
   $("ownerToolPlayerGoal").addEventListener("click", () => {
     $("overlayPlayerGoal").classList.add("show");
     renderOwnerPlayerGoalStatus();
+    refreshPlayerGoalOwnerLiveCount();
   });
   $("playerGoalClose").addEventListener("click", () => {
     $("overlayPlayerGoal").classList.remove("show");
+  });
+  $("playerGoalRefreshBtn").addEventListener("click", refreshPlayerGoalOwnerLiveCount);
+  $("playerGoalMetricOnline").addEventListener("click", () => {
+    playerGoalOwnerModalMetric = "online";
+    $("playerGoalMetricOnline").classList.add("active");
+    $("playerGoalMetricLesson").classList.remove("active");
+    refreshPlayerGoalOwnerLiveCount();
+  });
+  $("playerGoalMetricLesson").addEventListener("click", () => {
+    playerGoalOwnerModalMetric = "inLesson";
+    $("playerGoalMetricLesson").classList.add("active");
+    $("playerGoalMetricOnline").classList.remove("active");
+    refreshPlayerGoalOwnerLiveCount();
   });
   $("playerGoalSendBtn").addEventListener("click", sendPlayerGoal);
 
@@ -11969,9 +12149,36 @@
     $("overlayRedeemCode").classList.remove("show");
   });
 
-  $("feedbackBtn").addEventListener("click", () => {
+  let feedbackSelectedCategory = "idea";
+  let feedbackSelectedPriority = 1;
+  function openFeedbackModal(){
     $("feedbackInput").value = "";
+    feedbackSelectedCategory = "idea";
+    feedbackSelectedPriority = 1;
+    $("feedbackCategoryIdea").classList.add("active");
+    $("feedbackCategoryBug").classList.remove("active");
+    $("feedbackPriority1").classList.add("active");
+    $("feedbackPriority2").classList.remove("active");
+    $("feedbackPriority3").classList.remove("active");
     $("overlayFeedback").classList.add("show");
+  }
+  $("feedbackBtn").addEventListener("click", openFeedbackModal);
+  $("supportSettingsRow").addEventListener("click", openFeedbackModal);
+  $("feedbackCategoryIdea").addEventListener("click", () => {
+    feedbackSelectedCategory = "idea";
+    $("feedbackCategoryIdea").classList.add("active");
+    $("feedbackCategoryBug").classList.remove("active");
+  });
+  $("feedbackCategoryBug").addEventListener("click", () => {
+    feedbackSelectedCategory = "bug";
+    $("feedbackCategoryBug").classList.add("active");
+    $("feedbackCategoryIdea").classList.remove("active");
+  });
+  [1, 2, 3].forEach(p => {
+    $(`feedbackPriority${p}`).addEventListener("click", () => {
+      feedbackSelectedPriority = p;
+      [1, 2, 3].forEach(o => $(`feedbackPriority${o}`).classList.toggle("active", o === p));
+    });
   });
   $("feedbackSendBtn").addEventListener("click", sendFeedback);
   $("feedbackCancelBtn").addEventListener("click", () => {

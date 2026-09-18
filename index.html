@@ -508,13 +508,18 @@
     --shadow: 0 10px 24px rgba(0,0,0,.55); --overlay-bg: rgba(20,30,15,.94);
     --rainbow-header: linear-gradient(90deg, #6aa832, #8b5a2b, #6aa832);
   }
-  /* Echtes Pixel-/Block-Raster im Hintergrund (NEU) - wie einzelne
-     Gras-/Erde-Blöcke, statt nur eingefärbter Flächen. */
+  /* Echtes Pixel-Raster im Hintergrund (VERBESSERT): deutlich sichtbares
+     Schachbrett aus einzelnen Blöcken, wie in einem bekannten
+     Block-Aufbauspiel, statt nur eines feinen, kaum sichtbaren Musters. */
   [data-theme="blocks"] body{
+    background-color:#1b2a17;
     background-image:
-      repeating-linear-gradient(0deg, rgba(0,0,0,.14) 0 4px, transparent 4px 32px),
-      repeating-linear-gradient(90deg, rgba(0,0,0,.14) 0 4px, transparent 4px 32px),
-      repeating-linear-gradient(45deg, rgba(139,90,43,.08) 0 16px, rgba(106,168,50,.08) 16px 32px);
+      linear-gradient(45deg, rgba(0,0,0,.22) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.22) 75%),
+      linear-gradient(45deg, rgba(0,0,0,.22) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.22) 75%),
+      linear-gradient(90deg, #253a1f, #1e301a);
+    background-size: 24px 24px, 24px 24px, 100% 100%;
+    background-position: 0 0, 12px 12px, 0 0;
+    image-rendering: pixelated;
   }
   [data-theme="blocks"] .btn-primary, [data-theme="blocks"] .buy-btn,
   [data-theme="blocks"] .card, [data-theme="blocks"] .shop-item,
@@ -525,9 +530,21 @@
     border-width:3px !important;
     image-rendering: pixelated;
   }
+  /* Beveled Pixel-Button-Look (NEU): helle Kante oben/links, dunkle Kante
+     unten/rechts - der klassische "3D-Block"-Effekt aus Pixel-Spielen. */
+  [data-theme="blocks"] .btn-primary, [data-theme="blocks"] .buy-btn{
+    box-shadow: inset 3px 3px 0 rgba(255,255,255,.25), inset -3px -3px 0 rgba(0,0,0,.35) !important;
+  }
+  [data-theme="blocks"] .card, [data-theme="blocks"] .shop-item,
+  [data-theme="blocks"] .modal-card, [data-theme="blocks"] .mission-card{
+    box-shadow: inset 2px 2px 0 rgba(255,255,255,.08), inset -2px -2px 0 rgba(0,0,0,.3) !important;
+  }
   [data-theme="blocks"] .topbar, [data-theme="blocks"] .bottom-nav{
     box-shadow: 0 0 20px rgba(106,168,50,.25);
     border-radius:0 !important;
+  }
+  [data-theme="blocks"] h1, [data-theme="blocks"] h2, [data-theme="blocks"] .t{
+    text-shadow: 2px 2px 0 rgba(0,0,0,.4);
   }
 
   /* THEME: NETZ-HELD (NEU) - Rot/Blau im Stil eines bekannten
@@ -555,6 +572,58 @@
   }
   [data-theme="webhero"] .topbar, [data-theme="webhero"] .bottom-nav{
     box-shadow: 0 0 24px rgba(214,40,40,.3);
+  }
+
+  /* THEME: DARK WOLF (NEU) - düstere Grau-/Anthrazittöne mit kühlem,
+     mondlicht-artigem Silberblau als Akzent, für einen ruhigen,
+     nächtlichen "Rudel bei Nacht"-Look. */
+  [data-theme="darkwolf"]{
+    --bg: #0e1013; --bg-soft: #15181c; --card: #1c2126; --card-2: #242a30;
+    --border: #3a424b; --text: #e6ecf2; --text-dim: #8a97a3;
+    --accent: #7b8fa6; --accent-text: #0e1013; --accent-2: #4a5a6b;
+    --danger: #e05c5c; --success: #6bbf8c;
+    --shadow: 0 10px 26px rgba(0,0,0,.65); --overlay-bg: rgba(8,10,12,.95);
+    --rainbow-header: linear-gradient(90deg, #4a5a6b, #7b8fa6, #4a5a6b);
+  }
+  /* Fernes Mondlicht (NEU): sanfter, kalter Lichtschein oben, dazu ein
+     ganz feines "Fell"-Streifenmuster im Hintergrund. */
+  [data-theme="darkwolf"] body{
+    background-image:
+      radial-gradient(ellipse 600px 400px at 85% -5%, rgba(123,143,166,.16), transparent 65%),
+      repeating-linear-gradient(115deg, rgba(255,255,255,.015) 0 2px, transparent 2px 7px);
+    background-attachment: fixed;
+  }
+  [data-theme="darkwolf"] .topbar, [data-theme="darkwolf"] .bottom-nav{
+    box-shadow: 0 0 18px rgba(123,143,166,.18);
+  }
+  [data-theme="darkwolf"] .card, [data-theme="darkwolf"] .modal-card,
+  [data-theme="darkwolf"] .shop-item, [data-theme="darkwolf"] .mission-card{
+    box-shadow: 0 0 0 1px rgba(123,143,166,.08) inset;
+  }
+
+  /* THEME: ICE (NEU) - kühle Blau-/Weißtöne mit glasig-kristalliner
+     Optik, wie gefrorenes Wasser. */
+  [data-theme="ice"]{
+    --bg: #eaf6ff; --bg-soft: #dcf0fc; --card: #ffffff; --card-2: #f0f9ff;
+    --border: #b8e2f5; --text: #0b2a3d; --text-dim: #5a8299;
+    --accent: #38bdf8; --accent-text: #04202e; --accent-2: #7dd3fc;
+    --danger: #ef4444; --success: #22c55e;
+    --shadow: 0 8px 22px rgba(56,189,248,.18); --overlay-bg: rgba(234,246,255,.92);
+    --rainbow-header: linear-gradient(90deg, #38bdf8, #7dd3fc, #38bdf8);
+  }
+  /* Kristall-/Eissplitter-Muster (NEU): feine, facettierte Linien, wie
+     Risse in einer Eisscholle. */
+  [data-theme="ice"] body{
+    background-image:
+      linear-gradient(120deg, rgba(56,189,248,.06) 0 1px, transparent 1px 90px),
+      linear-gradient(60deg, rgba(56,189,248,.06) 0 1px, transparent 1px 90px),
+      linear-gradient(0deg, rgba(56,189,248,.05) 0 1px, transparent 1px 90px);
+  }
+  [data-theme="ice"] .card, [data-theme="ice"] .modal-card,
+  [data-theme="ice"] .shop-item, [data-theme="ice"] .mission-card,
+  [data-theme="ice"] .topbar, [data-theme="ice"] .bottom-nav{
+    backdrop-filter: blur(6px) saturate(1.2);
+    box-shadow: 0 0 0 1px rgba(56,189,248,.15) inset;
   }
 
   /* ---------- Aura-Booster-Animation (NEU) ---------- */
@@ -1125,6 +1194,8 @@
   .theme-preview-minimal .buy-btn{ background:#1a1a1a !important; color:#fff !important; }
   .theme-preview-blocks .buy-btn{ background:#6aa832 !important; color:#12210a !important; }
   .theme-preview-webhero .buy-btn{ background:linear-gradient(90deg, #d62828, #3457d5) !important; color:#fff !important; }
+  .theme-preview-darkwolf .buy-btn{ background:linear-gradient(90deg, #4a5a6b, #7b8fa6) !important; color:#0e1013 !important; }
+  .theme-preview-ice .buy-btn{ background:linear-gradient(90deg, #38bdf8, #7dd3fc) !important; color:#04202e !important; }
 
   /* ---------- settings screen ---------- */
   .settings-title{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:20px; margin-left:8px; color: var(--text);}
@@ -2826,6 +2897,24 @@
       <button class="buy-btn" id="buyWebheroTheme">900 Aura</button>
     </div>
 
+    <div class="shop-item theme-preview theme-preview-darkwolf">
+      <div class="item-icon">🐺</div>
+      <div class="item-info">
+        <div class="item-title">Dark Wolf Theme</div>
+        <div class="item-desc">Düsteres Grau mit kühlem, mondlicht-artigem Silberblau - ruhig und nächtlich.</div>
+      </div>
+      <button class="buy-btn" id="buyDarkwolfTheme">900 Aura</button>
+    </div>
+
+    <div class="shop-item theme-preview theme-preview-ice">
+      <div class="item-icon">❄️</div>
+      <div class="item-info">
+        <div class="item-title">Ice Theme</div>
+        <div class="item-desc">Kühles Blau und Weiß mit glasig-kristalliner Optik, wie gefrorenes Wasser.</div>
+      </div>
+      <button class="buy-btn" id="buyIceTheme">900 Aura</button>
+    </div>
+
     <div class="shop-section-title" id="shopSectionFrames">Profilrahmen</div>
 
     <div class="shop-item">
@@ -3449,11 +3538,19 @@
     <!-- Aura-Verlauf (NEU): sauberes Popup mit mehr Details (genaue Zeit)
          statt einer immer sichtbaren Liste im Bearbeitungsformular. -->
     <div class="overlay" id="overlayOwnerAuraHistory">
-      <div class="modal-card" style="max-width:380px; text-align:left;">
+      <div class="modal-card" style="max-width:400px; text-align:left;">
         <button class="banner-close-x" id="ownerAuraHistoryClose" style="position:absolute; top:10px; right:12px;">✕</button>
         <div style="font-weight:800; margin-bottom:2px;">💎 Aura-Verlauf</div>
-        <div class="d" id="ownerAuraHistoryTarget" style="margin-bottom:12px;"></div>
-        <div id="ownerAuraHistoryList" style="max-height:50vh; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
+        <div class="d" id="ownerAuraHistoryTarget" style="margin-bottom:10px;"></div>
+
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <button class="difficulty-btn active" id="auraHistoryViewDays" data-view="days" style="padding:6px 10px; font-size:12px;">Tage</button>
+          <button class="difficulty-btn" id="auraHistoryViewHours" data-view="hours" style="padding:6px 10px; font-size:12px;">Stunden</button>
+        </div>
+        <svg id="auraHistoryChart" viewBox="0 0 320 130" style="width:100%; height:130px; margin-bottom:6px; overflow:visible;"></svg>
+        <div id="auraHistoryChartEmpty" class="empty-hint" style="display:none; margin-top:0; text-align:left;">Noch zu wenig Verlauf für ein Diagramm.</div>
+
+        <div id="ownerAuraHistoryList" style="max-height:35vh; overflow-y:auto; display:flex; flex-direction:column; gap:4px; margin-top:10px;"></div>
       </div>
     </div>
 
@@ -4369,7 +4466,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.09";
+  const APP_VERSION = "3.11";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -4600,6 +4697,7 @@
     level: 0,
     levelProgress: 0, // 0,1,2 von 3 - man braucht 3 Lektionen für ein volles Level
     totalAura: 0,
+    lastKnownGoodAura: 0, // Absicherung gegen ungültige/verlorene Aura-Werte (siehe saveProfile)
     lessonsCompleted: 0,
     theme: "black",
     unlockedThemes: ["black"], // Freigeschaltete Designs
@@ -4734,6 +4832,18 @@
 
   function saveProfile(){
     try{
+      // WICHTIG (schwerwiegender Bugfix: gemeldeter Aura-Verlust bis auf
+      // 0): sollte "totalAura" aus IRGENDEINEM Grund ungültig geworden
+      // sein (NaN, negativ, fehlt), NIEMALS in diesem Zustand speichern -
+      // das würde sich sonst über den Cloud-Abgleich auf andere Geräte
+      // ausbreiten und die Aura endgültig auf 0 zurücksetzen. Stattdessen
+      // wird der letzte bekannte gültige Wert wiederhergestellt.
+      if(typeof profile.totalAura !== "number" || !isFinite(profile.totalAura) || profile.totalAura < 0){
+        console.error("Ungültiger Aura-Wert erkannt und korrigiert:", profile.totalAura);
+        profile.totalAura = (typeof profile.lastKnownGoodAura === "number" && isFinite(profile.lastKnownGoodAura)) ? profile.lastKnownGoodAura : 0;
+      } else {
+        profile.lastKnownGoodAura = profile.totalAura;
+      }
       // "lastLocalSaveAt" nur aktualisieren, wenn sich INHALTLICH etwas
       // geändert hat - nicht bei jedem 10-Sekunden-Herzschlag, der nur
       // "lastActiveAt" berührt. Sonst würde dieser Zeitstempel dauerhaft
@@ -8397,9 +8507,98 @@
 
   // Aura-Verlauf im Owner-Panel (NEU): zeigt die letzten 20 protokollierten
   // Aura-Änderungen einer Person - wann, wie viel, wofür.
+  let auraHistoryCurrentTransactions = [];
+  let auraHistoryCurrentTotal = 0;
+  let auraHistoryCurrentView = "days";
+
+  // Aura-Verlauf-Diagramm (NEU): berechnet aus den einzelnen Änderungen
+  // (+20, -700, ...) einen fortlaufenden Kontostand über die Zeit - rückwärts
+  // vom aktuell bekannten Gesamtwert aus, da einzelne Änderungen ja nur
+  // Differenzen sind, kein absoluter Stand.
+  function computeAuraTimeline(transactionsDesc, currentTotal){
+    let total = currentTotal;
+    const points = [];
+    for(const t of transactionsDesc){
+      points.push({ time: t.createdAt, value: total });
+      total -= (t.amount || 0);
+    }
+    points.reverse(); // jetzt chronologisch (älteste zuerst)
+    if(points.length > 0){
+      points.unshift({ time: points[0].time - 1, value: total });
+    }
+    return points;
+  }
+
+  function bucketAuraTimeline(points, view){
+    const bucketMs = view === "hours" ? (60 * 60 * 1000) : (24 * 60 * 60 * 1000);
+    const buckets = new Map();
+    points.forEach(p => {
+      const key = Math.floor(p.time / bucketMs);
+      buckets.set(key, p.value); // chronologisch durchlaufen - der letzte Wert je Zeitfenster gewinnt automatisch
+    });
+    return [...buckets.entries()].sort((a, b) => a[0] - b[0]).map(([key, value]) => ({ time: key * bucketMs, value }));
+  }
+
+  function renderAuraHistoryChart(){
+    const svg = $("auraHistoryChart");
+    const emptyEl = $("auraHistoryChartEmpty");
+    const transactions = auraHistoryCurrentTransactions;
+    if(transactions.length === 0){
+      svg.innerHTML = "";
+      emptyEl.style.display = "block";
+      return;
+    }
+    let points = computeAuraTimeline(transactions, auraHistoryCurrentTotal);
+    if(auraHistoryCurrentView === "hours"){
+      // Stunden-Ansicht: nur die letzten 48 Stunden, für mehr Detail statt
+      // einer riesigen, unübersichtlichen Zeitspanne.
+      const cutoff = Date.now() - 48 * 60 * 60 * 1000;
+      const filtered = points.filter(p => p.time >= cutoff);
+      points = filtered.length > 0 ? filtered : points.slice(-2);
+    }
+    const bucketed = bucketAuraTimeline(points, auraHistoryCurrentView);
+    if(bucketed.length < 2){
+      svg.innerHTML = "";
+      emptyEl.style.display = "block";
+      return;
+    }
+    emptyEl.style.display = "none";
+
+    const W = 320, H = 130, PAD = 10;
+    const values = bucketed.map(b => b.value);
+    const minV = Math.min(...values, 0);
+    const maxV = Math.max(...values, 1);
+    const range = Math.max(1, maxV - minV);
+    const xStep = (W - PAD * 2) / (bucketed.length - 1);
+
+    const coords = bucketed.map((b, i) => ({
+      x: PAD + i * xStep,
+      y: H - PAD - ((b.value - minV) / range) * (H - PAD * 2),
+      value: b.value, time: b.time
+    }));
+
+    const pathD = coords.map((c, i) => (i === 0 ? "M" : "L") + c.x.toFixed(1) + "," + c.y.toFixed(1)).join(" ");
+    const areaD = pathD + ` L${coords[coords.length - 1].x.toFixed(1)},${H - PAD} L${coords[0].x.toFixed(1)},${H - PAD} Z`;
+
+    const fmtLabel = t => auraHistoryCurrentView === "hours"
+      ? new Date(t).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })
+      : new Date(t).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+
+    svg.innerHTML = `
+      <path d="${areaD}" fill="rgba(168,85,247,.15)" stroke="none"></path>
+      <path d="${pathD}" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path>
+      ${coords.map(c => `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="2.5" fill="#a855f7"></circle>`).join("")}
+      <text x="${coords[0].x.toFixed(1)}" y="${H - 1}" font-size="9" fill="var(--text-dim)" text-anchor="start">${fmtLabel(coords[0].time)}</text>
+      <text x="${coords[coords.length - 1].x.toFixed(1)}" y="${H - 1}" font-size="9" fill="var(--text-dim)" text-anchor="end">${fmtLabel(coords[coords.length - 1].time)}</text>
+      <text x="${PAD}" y="12" font-size="9" fill="var(--text-dim)">${Math.round(maxV)} 💎</text>
+      <text x="${PAD}" y="${H - PAD - 2}" font-size="9" fill="var(--text-dim)">${Math.round(minV)} 💎</text>
+    `;
+  }
+
   async function renderOwnerAuraHistory(uid){
     const listEl = $("ownerAuraHistoryList");
     listEl.innerHTML = `<div class="empty-hint" style="margin:0; text-align:left;">Lädt...</div>`;
+    $("auraHistoryChartEmpty").style.display = "none";
     try{
       // WICHTIG (Bugfix): KEIN orderBy() in der Abfrage - das würde
       // zusammen mit dem where() einen zusätzlichen Firestore-Index
@@ -8409,16 +8608,23 @@
       // geholt und danach in JavaScript sortiert - eine reine
       // Gleichheitsabfrage auf ein einzelnes Feld braucht keinen
       // speziellen Index.
-      const snap = await db().collection("auraTransactions").where("uid", "==", uid).get();
-      if(snap.empty){
+      const [txSnap, userDoc] = await Promise.all([
+        db().collection("auraTransactions").where("uid", "==", uid).get(),
+        db().collection("users").doc(uid).get()
+      ]);
+      auraHistoryCurrentTotal = (userDoc.exists && userDoc.data().totalAura) || 0;
+      if(txSnap.empty){
         listEl.innerHTML = `<div class="empty-hint" style="margin:0; text-align:left;">Noch kein protokollierter Aura-Verlauf für diese Person.</div>`;
+        auraHistoryCurrentTransactions = [];
+        renderAuraHistoryChart();
         return;
       }
-      const sorted = snap.docs
+      const sorted = txSnap.docs
         .map(d => d.data())
-        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-        .slice(0, 20);
-      listEl.innerHTML = sorted.map(t => {
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      auraHistoryCurrentTransactions = sorted;
+      renderAuraHistoryChart();
+      listEl.innerHTML = sorted.slice(0, 20).map(t => {
         const positive = t.amount > 0;
         const sign = positive ? "+" : "";
         const color = positive ? "#4ade80" : "#ef4444";
@@ -9025,7 +9231,29 @@
     const cloudOwnerEditAt = cloudP.ownerLastEditAt || 0;
     const localAppliedOwnerEditAt = localP.ownerLastEditAt || 0;
     const ownerEditIsNewer = cloudOwnerEditAt > localAppliedOwnerEditAt;
-    merged.totalAura = ownerEditIsNewer ? (cloudP.totalAura || 0) : (localNewer ? (localP.totalAura || 0) : (cloudP.totalAura || 0));
+    // WICHTIG (schwerwiegender Bugfix: gemeldeter Aura-Verlust bis auf 0):
+    // ist die "gewinnende" Seite aus irgendeinem Grund kein gültiger,
+    // nicht-negativer Wert (z.B. NaN oder fehlt komplett), NICHT einfach
+    // still auf 0 zurückfallen - das hätte genau diesen Datenverlust zur
+    // Folge gehabt. Stattdessen die jeweils ANDERE Seite nehmen, falls DIE
+    // gültig ist, und NUR wenn wirklich BEIDE Seiten ungültig sind, auf 0
+    // zurückfallen.
+    const isValidAura = v => typeof v === "number" && isFinite(v) && v >= 0;
+    const rawLocalAura = localP.totalAura;
+    const rawCloudAura = cloudP.totalAura;
+    const pickAura = preferLocal => {
+      const primary = preferLocal ? rawLocalAura : rawCloudAura;
+      const secondary = preferLocal ? rawCloudAura : rawLocalAura;
+      if(isValidAura(primary)) return primary;
+      if(isValidAura(secondary)) return secondary;
+      // Beide Seiten ungültig (sehr unwahrscheinlich) - letzte Absicherung:
+      // den zuletzt bekannten guten Wert nehmen, statt auf 0 zu gehen.
+      if(isValidAura(localP.lastKnownGoodAura)) return localP.lastKnownGoodAura;
+      if(isValidAura(cloudP.lastKnownGoodAura)) return cloudP.lastKnownGoodAura;
+      return 0;
+    };
+    merged.totalAura = ownerEditIsNewer ? pickAura(false) : pickAura(localNewer);
+    merged.lastKnownGoodAura = merged.totalAura;
     if(ownerEditIsNewer){
       merged.level = (cloudP.level === undefined || cloudP.level === null) ? 0 : cloudP.level;
       merged.levelProgress = cloudP.levelProgress || 0;
@@ -10693,8 +10921,8 @@
       bGlitchTheme.disabled = profile.totalAura < 1500;
     }
 
-    const NEW_THEME_PRICES = { galaxy: 1800, sunset: 1200, cyber: 1600, royal: 2000, cloud: 900, toxic: 1400, crimson: 1400, minimal: 700, blocks: 900, webhero: 900 };
-    const NEW_THEME_BTN_IDS = { galaxy: "buyGalaxyTheme", sunset: "buySunsetTheme", cyber: "buyCyberTheme", royal: "buyRoyalTheme", cloud: "buyCloudTheme", toxic: "buyToxicTheme", crimson: "buyCrimsonTheme", minimal: "buyMinimalTheme", blocks: "buyBlocksTheme", webhero: "buyWebheroTheme" };
+    const NEW_THEME_PRICES = { galaxy: 1800, sunset: 1200, cyber: 1600, royal: 2000, cloud: 900, toxic: 1400, crimson: 1400, minimal: 700, blocks: 900, webhero: 900, darkwolf: 900, ice: 900 };
+    const NEW_THEME_BTN_IDS = { galaxy: "buyGalaxyTheme", sunset: "buySunsetTheme", cyber: "buyCyberTheme", royal: "buyRoyalTheme", cloud: "buyCloudTheme", toxic: "buyToxicTheme", crimson: "buyCrimsonTheme", minimal: "buyMinimalTheme", blocks: "buyBlocksTheme", webhero: "buyWebheroTheme", darkwolf: "buyDarkwolfTheme", ice: "buyIceTheme" };
     Object.keys(NEW_THEME_PRICES).forEach(themeId => {
       const btn = $(NEW_THEME_BTN_IDS[themeId]);
       if(!btn) return;
@@ -10836,6 +11064,8 @@
   $("buyMinimalTheme").addEventListener("click", () => buyTheme("minimal", 700, "Minimal"));
   $("buyBlocksTheme").addEventListener("click", () => buyTheme("blocks", 900, "Blockwelt"));
   $("buyWebheroTheme").addEventListener("click", () => buyTheme("webhero", 900, "Netz-Held"));
+  $("buyDarkwolfTheme").addEventListener("click", () => buyTheme("darkwolf", 900, "Dark Wolf"));
+  $("buyIceTheme").addEventListener("click", () => buyTheme("ice", 900, "Ice"));
 
   const FRAME_DEFS = [
     { key: "pink", cost: 300, name: "Pink" },
@@ -11026,13 +11256,13 @@
      Nutzer per Benutzername und erlaubt, dessen Aura/Level/Streak/
      freigeschaltete Designs direkt in dessen Firestore-Dokument zu setzen.
   ======================================================== */
-  const ALL_THEME_IDS = ["black", "white_clean", "clean", "pink", "glass", "glow", "glitch", "galaxy", "sunset", "cyber", "royal", "cloud", "toxic", "crimson", "minimal", "blocks", "webhero"];
+  const ALL_THEME_IDS = ["black", "white_clean", "clean", "pink", "glass", "glow", "glitch", "galaxy", "sunset", "cyber", "royal", "cloud", "toxic", "crimson", "minimal", "blocks", "webhero", "darkwolf", "ice"];
   const THEME_DISPLAY_NAME = {
     black: "Schwarz", white_clean: "Weiß Clean", clean: "Clean", pink: "Pink",
     glass: "Glas", glow: "Glow", glitch: "Glitch", galaxy: "Galaxy",
     sunset: "Sunset", cyber: "Cyber", royal: "Royal", cloud: "Cloud",
     toxic: "Toxic", crimson: "Crimson", minimal: "Minimal",
-    blocks: "Blockwelt", webhero: "Netz-Held"
+    blocks: "Blockwelt", webhero: "Netz-Held", darkwolf: "Dark Wolf", ice: "Ice"
   };
   let ownerEditingUid = null;
   let ownerEditingOriginalAura = 0;
@@ -11917,10 +12147,25 @@
     if(!ownerEditingUid) return;
     $("ownerAuraHistoryTarget").textContent = $("ownerTargetLabel").textContent;
     $("overlayOwnerAuraHistory").classList.add("show");
+    auraHistoryCurrentView = "days";
+    $("auraHistoryViewDays").classList.add("active");
+    $("auraHistoryViewHours").classList.remove("active");
     renderOwnerAuraHistory(ownerEditingUid);
   });
   $("ownerAuraHistoryClose").addEventListener("click", () => {
     $("overlayOwnerAuraHistory").classList.remove("show");
+  });
+  $("auraHistoryViewDays").addEventListener("click", () => {
+    auraHistoryCurrentView = "days";
+    $("auraHistoryViewDays").classList.add("active");
+    $("auraHistoryViewHours").classList.remove("active");
+    renderAuraHistoryChart();
+  });
+  $("auraHistoryViewHours").addEventListener("click", () => {
+    auraHistoryCurrentView = "hours";
+    $("auraHistoryViewHours").classList.add("active");
+    $("auraHistoryViewDays").classList.remove("active");
+    renderAuraHistoryChart();
   });
   $("ownerBanBtn").addEventListener("click", ownerBanUser);
   $("ownerUnbanBtn").addEventListener("click", ownerUnbanUser);

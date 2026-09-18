@@ -3320,44 +3320,28 @@
         <div class="d" style="margin-bottom:4px; margin-top:14px;">Benutzername ändern</div>
         <input type="text" id="ownerRenameInput" class="input-field" placeholder="Neuer Benutzername" style="text-transform:lowercase;">
 
-        <div style="margin-top:14px;">
-          <div class="d" style="font-weight:800; margin-bottom:6px;">💎 Aura-Verlauf</div>
-          <div id="ownerAuraHistoryList" style="max-height:180px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
-        </div>
+        <div class="d" style="margin-bottom:6px; margin-top:16px;">Status</div>
+        <div id="ownerBanStatus" class="d" style="margin-bottom:2px;">Aktuell nicht gesperrt.</div>
+        <div id="ownerIpBanStatus" class="d" style="margin-bottom:2px; font-size:11.5px; opacity:.8;"></div>
+        <div id="ownerModStatus" class="d" style="margin-bottom:8px;">Aktuell kein Mod.</div>
 
-        <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:12px; padding:10px; margin-top:14px;">
-          <div class="d" style="font-weight:800; margin-bottom:8px; color:#ef4444;">🚫 Konto sperren</div>
-          <div id="ownerBanStatus" class="d" style="margin-bottom:8px;">Aktuell nicht gesperrt.</div>
-          <div id="ownerIpBanStatus" class="d" style="margin-bottom:8px; font-size:11.5px; opacity:.8;"></div>
-          <select id="ownerBanDurationSelect" class="input-field" style="margin-bottom:8px;">
-            <option value="1">1 Tag</option>
-            <option value="3">3 Tage</option>
-            <option value="7">7 Tage</option>
-            <option value="30">30 Tage</option>
-            <option value="forever">Für immer</option>
-          </select>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-primary btn-small" id="ownerBanBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Sperren</button>
-            <button class="btn btn-ghost btn-small" id="ownerUnbanBtn" style="flex:1;">Entsperren</button>
-          </div>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="btn btn-primary btn-small" id="ownerIpBanBtn" style="flex:1; background:#7f1d1d; border-color:#7f1d1d;">🌐 IP sperren</button>
-            <button class="btn btn-ghost btn-small" id="ownerIpUnbanBtn" style="flex:1;">IP entsperren</button>
-          </div>
-        </div>
-
-        <div style="background:rgba(250,204,21,.1); border:1.5px solid #facc15; border-radius:12px; padding:10px; margin-top:14px;">
-          <div class="d" style="font-weight:800; margin-bottom:8px; color:#facc15;">🛡️ Mod-Rolle</div>
-          <div id="ownerModStatus" class="d" style="margin-bottom:8px;">Aktuell kein Mod.</div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-primary btn-small" id="ownerMakeModBtn" style="flex:1; background:#facc15; color:#000; border-color:#facc15;">Zum Mod ernennen</button>
-            <button class="btn btn-ghost btn-small" id="ownerRemoveModBtn" style="flex:1;">Mod entfernen</button>
-          </div>
-        </div>
-
-        <div style="background:rgba(168,85,247,.1); border:1.5px solid #a855f7; border-radius:12px; padding:10px; margin-top:14px;">
-          <div class="d" style="font-weight:800; margin-bottom:8px; color:#a855f7;">✨ Aura-Booster verleihen</div>
-          <button class="btn btn-primary btn-small" id="ownerGiveBoosterBtn" style="width:100%; background:#a855f7; border-color:#a855f7;">15 Min Aura-Booster geben</button>
+        <div class="d" style="margin-bottom:8px;">Aktionen</div>
+        <select id="ownerBanDurationSelect" class="input-field" style="margin-bottom:10px;">
+          <option value="1">1 Tag</option>
+          <option value="3">3 Tage</option>
+          <option value="7">7 Tage</option>
+          <option value="30">30 Tage</option>
+          <option value="forever">Für immer</option>
+        </select>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+          <button class="owner-tool-icon-btn" id="ownerToolAuraHistory" title="Aura-Verlauf">💎</button>
+          <button class="owner-tool-icon-btn" id="ownerBanBtn" title="Sperren" style="border-color:#ef4444; color:#ef4444;">🚫</button>
+          <button class="owner-tool-icon-btn" id="ownerUnbanBtn" title="Entsperren">✅</button>
+          <button class="owner-tool-icon-btn" id="ownerIpBanBtn" title="IP sperren" style="border-color:#7f1d1d; color:#f87171;">🌐</button>
+          <button class="owner-tool-icon-btn" id="ownerIpUnbanBtn" title="IP entsperren">🌍</button>
+          <button class="owner-tool-icon-btn" id="ownerMakeModBtn" title="Zum Mod ernennen" style="border-color:#facc15; color:#facc15;">🛡️</button>
+          <button class="owner-tool-icon-btn" id="ownerRemoveModBtn" title="Mod entfernen">🚷</button>
+          <button class="owner-tool-icon-btn" id="ownerGiveBoosterBtn" title="Aura-Booster geben" style="border-color:#a855f7; color:#a855f7;">✨</button>
         </div>
 
         <button class="btn btn-primary" id="ownerSaveBtn" style="margin-top:16px;">Änderungen speichern</button>
@@ -3459,6 +3443,17 @@
           <div style="font-weight:800; margin-bottom:8px;">📈 Umfrage-Ergebnisse</div>
           <div id="pollResultsList" style="max-height:220px; overflow-y:auto;"></div>
         </div>
+      </div>
+    </div>
+
+    <!-- Aura-Verlauf (NEU): sauberes Popup mit mehr Details (genaue Zeit)
+         statt einer immer sichtbaren Liste im Bearbeitungsformular. -->
+    <div class="overlay" id="overlayOwnerAuraHistory">
+      <div class="modal-card" style="max-width:380px; text-align:left;">
+        <button class="banner-close-x" id="ownerAuraHistoryClose" style="position:absolute; top:10px; right:12px;">✕</button>
+        <div style="font-weight:800; margin-bottom:2px;">💎 Aura-Verlauf</div>
+        <div class="d" id="ownerAuraHistoryTarget" style="margin-bottom:12px;"></div>
+        <div id="ownerAuraHistoryList" style="max-height:50vh; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
       </div>
     </div>
 
@@ -4374,7 +4369,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.08";
+  const APP_VERSION = "3.09";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -8427,9 +8422,9 @@
         const positive = t.amount > 0;
         const sign = positive ? "+" : "";
         const color = positive ? "#4ade80" : "#ef4444";
-        return `<div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:5px 0; border-bottom:1px solid var(--border);">
-          <span style="opacity:.8;">${t.reason || "?"}<br><span style="font-size:10px; opacity:.6;">${formatRelativeTime(t.createdAt)}</span></span>
-          <span style="font-weight:800; color:${color};">${sign}${t.amount} 💎</span>
+        return `<div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:6px 0; border-bottom:1px solid var(--border);">
+          <span style="opacity:.85;">${t.reason || "?"}<br><span style="font-size:10.5px; opacity:.6;">${new Date(t.createdAt).toLocaleString("de-DE")}</span></span>
+          <span style="font-weight:800; color:${color}; flex-shrink:0; margin-left:8px;">${sign}${t.amount} 💎</span>
         </div>`;
       }).join("");
     }catch(err){
@@ -11263,7 +11258,6 @@
         ? `Zuletzt bekannte IP: ${ownerEditingTargetIp}`
         : "Keine bekannte IP-Adresse für diese Person hinterlegt (noch nicht seit dem letzten Update eingeloggt).";
       $("ownerModStatus").textContent = data.isMod ? "🛡️ Ist aktuell Mod." : "Aktuell kein Mod.";
-      renderOwnerAuraHistory(targetUid);
 
       const unlockedThemes = data.unlockedThemes || ["black"];
       const box = $("ownerThemeCheckboxes");
@@ -11919,6 +11913,15 @@
 
   $("ownerSearchBtn").addEventListener("click", ownerSearchUser);
   $("ownerSaveBtn").addEventListener("click", ownerSaveChanges);
+  $("ownerToolAuraHistory").addEventListener("click", () => {
+    if(!ownerEditingUid) return;
+    $("ownerAuraHistoryTarget").textContent = $("ownerTargetLabel").textContent;
+    $("overlayOwnerAuraHistory").classList.add("show");
+    renderOwnerAuraHistory(ownerEditingUid);
+  });
+  $("ownerAuraHistoryClose").addEventListener("click", () => {
+    $("overlayOwnerAuraHistory").classList.remove("show");
+  });
   $("ownerBanBtn").addEventListener("click", ownerBanUser);
   $("ownerUnbanBtn").addEventListener("click", ownerUnbanUser);
   $("ownerIpBanBtn").addEventListener("click", ownerIpBanUser);

@@ -3730,6 +3730,24 @@
       </div>
     </div>
 
+    <!-- Feedback-Warnung (NEU): eigenes Fenster mit Text UND Bild statt nur
+         eines einfachen Text-Prompts - die Person sieht beim nächsten
+         Öffnen ein Banner mit dem Text oben und dem Bild darunter. -->
+    <div class="overlay" id="overlayFeedbackWarn">
+      <div class="modal-card" style="max-width:360px; text-align:left;">
+        <button class="banner-close-x" id="feedbackWarnClose" style="position:absolute; top:10px; right:12px;">✕</button>
+        <div style="font-weight:800; margin-bottom:8px; color:#f97316;">❗ Warnung senden</div>
+        <div class="d" id="feedbackWarnTarget" style="margin-bottom:8px;"></div>
+        <textarea id="feedbackWarnTextInput" class="input-field" rows="3" style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
+        <input type="file" id="feedbackWarnImageInput" accept="image/*" style="margin-bottom:8px; width:100%; font-size:12px;">
+        <div id="feedbackWarnImagePreviewWrap" style="display:none; margin-bottom:8px;">
+          <img id="feedbackWarnImagePreview" style="max-width:100%; max-height:140px; border-radius:10px; display:block;">
+          <button class="btn btn-ghost btn-small" id="feedbackWarnImageRemoveBtn" style="margin-top:6px;">Bild entfernen</button>
+        </div>
+        <button class="btn btn-primary btn-small" id="feedbackWarnSendBtn" style="width:100%; background:#f97316; border-color:#f97316;">Warnung senden</button>
+      </div>
+    </div>
+
     <div class="overlay" id="overlayOwnerSiteStop">
       <div class="modal-card" style="max-width:360px; text-align:left;">
         <button class="banner-close-x" id="ownerToolSiteStopClose" style="position:absolute; top:10px; right:12px;">✕</button>
@@ -3878,7 +3896,7 @@
 
     <!-- "Beta"-Menü (NEU, vorher "Peter"): Beta-Einstellungen zum Ausprobieren -->
     <div class="overlay" id="overlayPeterMenu">
-      <div class="modal-card" style="max-width:360px; text-align:left;">
+      <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto;">
         <button class="banner-close-x" id="peterMenuClose" style="position:absolute; top:10px; right:12px;">✕</button>
         <div style="font-size:32px; margin-bottom:6px;">🧪</div>
         <h2 style="margin-bottom:14px;">Beta</h2>
@@ -4738,7 +4756,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.15";
+  const APP_VERSION = "3.16";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5552,32 +5570,18 @@
         listEl.appendChild(row);
       });
       listEl.querySelectorAll(".owner-feedback-warn-btn").forEach(btn => {
-        btn.addEventListener("click", async () => {
+        btn.addEventListener("click", () => {
           const uid = btn.dataset.uid;
           const name = btn.dataset.name;
           if(!uid) return showToast("Kein Nutzer-Konto zu diesem Feedback gefunden.");
-          const message = prompt(
-            `Warnung an @${name} senden - erscheint als Banner in der App:`,
-            "Bitte setze die Priorität nur bei wirklich wichtigen Themen so hoch und formuliere dein Feedback etwas klarer, danke!"
-          );
-          if(!message || !message.trim()) return;
-          btn.disabled = true;
-          try{
-            await db().collection("announcements").add({
-              text: message.trim().slice(0, 1000),
-              imageDataUri: null,
-              createdAt: Date.now(),
-              expiresAt: Date.now() + 3 * 24 * 60 * 60 * 1000,
-              createdBy: currentUser.uid,
-              targetUid: uid
-            });
-            showToast(`❗ Warnung an @${name} gesendet.`);
-          }catch(err){
-            showToast("Warnung konnte nicht gesendet werden.");
-            console.error("Feedback-Warnung Fehler:", err);
-          } finally {
-            btn.disabled = false;
-          }
+          feedbackWarnTargetUid = uid;
+          feedbackWarnTargetName = name;
+          pendingFeedbackWarnImageDataUri = null;
+          $("feedbackWarnTarget").textContent = `An @${name} - erscheint als Banner mit Text und Bild in der App.`;
+          $("feedbackWarnTextInput").value = "Bitte setze die Priorität nur bei wirklich wichtigen Themen so hoch und formuliere dein Feedback etwas klarer, danke!";
+          $("feedbackWarnImageInput").value = "";
+          $("feedbackWarnImagePreviewWrap").style.display = "none";
+          $("overlayFeedbackWarn").classList.add("show");
         });
       });
       listEl.querySelectorAll(".owner-feedback-gift-btn").forEach(btn => {
@@ -5764,6 +5768,9 @@
      jede Person sieht sie genau einmal, solange sie noch aktiv ist.
   ======================================================== */
   let pendingAnnouncementImageDataUri = null;
+  let pendingFeedbackWarnImageDataUri = null;
+  let feedbackWarnTargetUid = null;
+  let feedbackWarnTargetName = null;
 
   // Verkleinert ein hochgeladenes Bild auf eine vernünftige Größe, bevor es
   // als Data-URI in Firestore gespeichert wird (Dokumente dürfen dort nur
@@ -12713,6 +12720,54 @@
   });
   $("announcementSendBtn").addEventListener("click", sendAnnouncement);
   $("announcementDeleteBtn").addEventListener("click", deleteCurrentAnnouncement);
+
+  $("feedbackWarnImageInput").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      pendingFeedbackWarnImageDataUri = await compressImageFile(file);
+      $("feedbackWarnImagePreview").src = pendingFeedbackWarnImageDataUri;
+      $("feedbackWarnImagePreviewWrap").style.display = "block";
+    }catch(err){
+      showToast("Bild konnte nicht geladen werden.");
+      console.error(err);
+    }
+  });
+  $("feedbackWarnImageRemoveBtn").addEventListener("click", () => {
+    pendingFeedbackWarnImageDataUri = null;
+    $("feedbackWarnImageInput").value = "";
+    $("feedbackWarnImagePreviewWrap").style.display = "none";
+  });
+  $("feedbackWarnClose").addEventListener("click", () => {
+    $("overlayFeedbackWarn").classList.remove("show");
+  });
+  $("feedbackWarnSendBtn").addEventListener("click", async () => {
+    const text = $("feedbackWarnTextInput").value.trim();
+    if(!text && !pendingFeedbackWarnImageDataUri){
+      showToast("Bitte Text und/oder ein Bild angeben.");
+      return;
+    }
+    if(!feedbackWarnTargetUid) return;
+    const btn = $("feedbackWarnSendBtn");
+    btn.disabled = true;
+    try{
+      await db().collection("announcements").add({
+        text: text.slice(0, 1000),
+        imageDataUri: pendingFeedbackWarnImageDataUri || null,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + 3 * 24 * 60 * 60 * 1000,
+        createdBy: currentUser.uid,
+        targetUid: feedbackWarnTargetUid
+      });
+      showToast(`❗ Warnung an @${feedbackWarnTargetName} gesendet.`);
+      $("overlayFeedbackWarn").classList.remove("show");
+    }catch(err){
+      showToast("Warnung konnte nicht gesendet werden.");
+      console.error("Feedback-Warnung Fehler:", err);
+    } finally {
+      btn.disabled = false;
+    }
+  });
   $("announcementCloseBtn").addEventListener("click", dismissAnnouncement);
   $("feedbackGiftCloseBtn").addEventListener("click", () => {
     $("overlayFeedbackGift").style.display = "none";

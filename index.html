@@ -2142,32 +2142,141 @@
     100%{ opacity:0; transform:translate(var(--nx), var(--ny)) scale(.2); }
   }
 
-  /* Aura-Overlay-Motiv: KOSMOS (NEU, Beta-Einstellung) - Sternenfeld-Explosion
-     mit einem sich sanft drehenden Icon, wie ein kleines Portal ins All. */
-  #overlayAura[data-aura-motif="cosmos"] .overlay-card{
-    background: radial-gradient(ellipse at center, rgba(168,85,247,.18), transparent 70%), var(--card);
+  /* ============================================================
+     VIER NEUE, LÄNGERE AURA-OVERLAY-MOTIVE (NEU) - behalten die
+     bekannten Blitz-/Totenkopf-Icons bei, inszenieren sie aber jeweils
+     ganz anders und aufwändiger als das bisherige kurze Pop-Auftauchen.
+  ============================================================ */
+
+  /* MOTIV: BLITZEINSCHLAG - ein Blitz zuckt von oben rein, der Bildschirm
+     blitzt kurz auf, dann eine Schockwelle und die Zahl knallt rein. */
+  #overlayAura[data-aura-motif="lightning"] .overlay-card{ overflow:visible; }
+  .lightning-flash{
+    position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none;
+    animation: lightning-flash-anim .5s ease-out forwards;
   }
-  #overlayAura[data-aura-motif="cosmos"] .aura-fig{
-    animation: aura-pop-cosmos .8s cubic-bezier(.2,1.2,.3,1);
+  @keyframes lightning-flash-anim{
+    0%{ opacity:0; } 4%{ opacity:.85; } 9%{ opacity:.1; } 14%{ opacity:.6; } 22%{ opacity:0; }
   }
-  @keyframes aura-pop-cosmos{
-    0%{ transform:scale(0) rotate(-180deg); opacity:0; }
-    60%{ transform:scale(1.2) rotate(20deg); opacity:1; }
-    100%{ transform:scale(1) rotate(0deg); }
+  .lightning-bolt{
+    position:absolute; left:50%; top:-160px; width:56px; height:160px; margin-left:-28px;
+    clip-path: polygon(45% 0%, 60% 0%, 35% 45%, 55% 45%, 20% 100%, 40% 50%, 22% 50%);
+    background:linear-gradient(180deg, #fff, #a855f7);
+    filter: drop-shadow(0 0 12px #a855f7);
+    animation: lightning-bolt-strike .45s cubic-bezier(.7,0,1,1) forwards;
   }
-  #overlayAura[data-aura-motif="cosmos"] .aura-text{
-    background:linear-gradient(90deg, #818cf8, #e879f9, #818cf8);
-    -webkit-background-clip:text; background-clip:text; color:transparent;
+  @keyframes lightning-bolt-strike{
+    0%{ top:-160px; opacity:1; }
+    75%{ top:0; opacity:1; }
+    100%{ top:0; opacity:0; }
   }
-  .cosmos-star{
-    position:absolute; color:#fff; font-size:10px; opacity:0;
-    animation: cosmos-star-fly 1.3s ease-out forwards;
+  #overlayAura[data-aura-motif="lightning"] .aura-fig{
+    animation: aura-pop-lightning-impact .5s cubic-bezier(.34,1.56,.64,1) .42s backwards;
   }
-  @keyframes cosmos-star-fly{
-    0%{ opacity:0; transform:translate(0,0) scale(.3) rotate(0deg); }
-    15%{ opacity:1; }
-    100%{ opacity:0; transform:translate(var(--nx), var(--ny)) scale(1.1) rotate(180deg); }
+  @keyframes aura-pop-lightning-impact{
+    0%{ transform:scale(0); opacity:0; }
+    60%{ transform:scale(1.3); opacity:1; }
+    100%{ transform:scale(1); }
   }
+  .lightning-shockwave{
+    position:absolute; inset:-40px; border-radius:50%; border:3px solid #a855f7; opacity:0;
+    animation: lightning-shockwave-anim .7s ease-out .42s forwards;
+  }
+  @keyframes lightning-shockwave-anim{
+    0%{ transform:scale(.2); opacity:1; }
+    100%{ transform:scale(2); opacity:0; }
+  }
+  #overlayAura[data-aura-motif="lightning"] .aura-text{
+    opacity:0;
+    animation: aura-text-slam .35s ease-out .78s forwards;
+  }
+  @keyframes aura-text-slam{
+    0%{ transform:scale(2.2); opacity:0; }
+    60%{ transform:scale(.92); opacity:1; }
+    100%{ transform:scale(1); opacity:1; }
+  }
+
+  /* MOTIV: SUNBURST - Icon zoomt riesig rein mit rotierenden Lichtstrahlen,
+     die Zahl zählt sich sichtbar von 0 hoch. */
+  .sunburst-rays{
+    position:absolute; inset:-60px; opacity:0;
+    background: repeating-conic-gradient(from 0deg, rgba(250,204,21,.35) 0deg 6deg, transparent 6deg 24deg);
+    border-radius:50%;
+    animation: sunburst-rays-anim 1.4s ease-out forwards, sunburst-rays-spin 1.4s linear forwards;
+  }
+  @keyframes sunburst-rays-anim{
+    0%{ opacity:0; transform:scale(.2); }
+    25%{ opacity:.9; }
+    100%{ opacity:0; transform:scale(1.6); }
+  }
+  @keyframes sunburst-rays-spin{
+    0%{ transform:rotate(0deg) scale(.2); }
+    100%{ transform:rotate(140deg) scale(1.6); }
+  }
+  #overlayAura[data-aura-motif="sunburst"] .aura-fig{
+    animation: aura-pop-sunburst .9s cubic-bezier(.2,1.3,.3,1);
+    filter: drop-shadow(0 0 22px #facc15);
+  }
+  @keyframes aura-pop-sunburst{
+    0%{ transform:scale(0); opacity:0; }
+    45%{ transform:scale(1.5); opacity:1; }
+    100%{ transform:scale(1); }
+  }
+
+  /* MOTIV: SPIN-IMPACT - Icon dreht sich mehrfach wie eine Münze mit
+     Bewegungsunschärfe rein und landet mit spürbarem Wums (Screen-Wackler). */
+  #overlayAura[data-aura-motif="spin"] .aura-fig{
+    animation: aura-spin-impact 1s cubic-bezier(.3,.9,.4,1);
+  }
+  @keyframes aura-spin-impact{
+    0%{ transform:scale(.4) rotateY(0deg) rotateZ(-8deg); opacity:0; filter:blur(6px); }
+    55%{ transform:scale(1.15) rotateY(720deg) rotateZ(0deg); opacity:1; filter:blur(1px); }
+    72%{ transform:scale(.9) rotateY(900deg); filter:blur(0px); }
+    86%{ transform:scale(1.06) rotateY(940deg); }
+    100%{ transform:scale(1) rotateY(960deg); }
+  }
+  #overlayAura[data-aura-motif="spin"] .overlay-card{
+    animation: aura-screen-shake .4s ease-out .58s;
+  }
+  @keyframes aura-screen-shake{
+    0%, 100%{ transform:translate(0,0); }
+    20%{ transform:translate(-4px,2px); }
+    40%{ transform:translate(4px,-2px); }
+    60%{ transform:translate(-3px,1px); }
+    80%{ transform:translate(3px,-1px); }
+  }
+
+  /* MOTIV: IGNITE - Icon baut sich erst langsam aus Funken auf, bevor es in
+     einem finalen Feuerausbruch explodiert. */
+  #overlayAura[data-aura-motif="ignite"] .aura-fig{
+    animation: aura-ignite-buildup 1.3s ease-in forwards;
+  }
+  @keyframes aura-ignite-buildup{
+    0%{ transform:scale(.5); opacity:.25; filter: brightness(.6) drop-shadow(0 0 0 transparent); }
+    70%{ transform:scale(.85); opacity:.7; filter: brightness(.9) drop-shadow(0 0 6px #f97316); }
+    85%{ transform:scale(1.35); opacity:1; filter: brightness(1.4) drop-shadow(0 0 30px #f97316); }
+    100%{ transform:scale(1); opacity:1; filter: brightness(1) drop-shadow(0 0 14px #f97316); }
+  }
+  .ignite-ember{
+    position:absolute; width:4px; height:4px; border-radius:50%; background:#f97316;
+    box-shadow:0 0 6px 1px #f97316; opacity:0;
+    animation: ignite-ember-gather 1.1s ease-in forwards;
+  }
+  @keyframes ignite-ember-gather{
+    0%{ opacity:0; transform:translate(var(--ex), var(--ey)) scale(.5); }
+    70%{ opacity:.9; transform:translate(calc(var(--ex) * .15), calc(var(--ey) * .15)) scale(1); }
+    100%{ opacity:0; transform:translate(0,0) scale(.4); }
+  }
+  .ignite-burst{
+    position:absolute; width:5px; height:5px; border-radius:50%; background:#fbbf24;
+    box-shadow:0 0 8px 2px #f97316; opacity:0;
+    animation: ignite-burst-fly .8s ease-out 1.05s forwards;
+  }
+  @keyframes ignite-burst-fly{
+    0%{ opacity:1; transform:translate(0,0) scale(1); }
+    100%{ opacity:0; transform:translate(var(--nx), var(--ny)) scale(.2); }
+  }
+
 
   .meme-card{
     background:#0a0a0a; border-radius:18px; padding:0; overflow:hidden; border:3px solid #fff;
@@ -3790,7 +3899,10 @@
         <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
           <button class="aura-anim-choice active" id="auraMotifChoiceClassic" data-motif="classic">⚡ Klassisch</button>
           <button class="aura-anim-choice" id="auraMotifChoiceNeon" data-motif="neon">💠 Neon - leuchtender Ring</button>
-          <button class="aura-anim-choice" id="auraMotifChoiceCosmos" data-motif="cosmos">🌟 Kosmos - Sternenfeld</button>
+          <button class="aura-anim-choice" id="auraMotifChoiceLightning" data-motif="lightning">⚡ Blitzeinschlag - Blitz + Schockwelle</button>
+          <button class="aura-anim-choice" id="auraMotifChoiceSunburst" data-motif="sunburst">💥 Sunburst - Lichtstrahlen-Explosion</button>
+          <button class="aura-anim-choice" id="auraMotifChoiceSpin" data-motif="spin">🌀 Spin-Impact - dreht mit Wums rein</button>
+          <button class="aura-anim-choice" id="auraMotifChoiceIgnite" data-motif="ignite">🔥 Ignite - baut sich zum Ausbruch auf</button>
         </div>
         <button class="btn btn-ghost btn-small" id="auraMotifPreviewBtn" style="width:100%;">Motiv-Vorschau abspielen</button>
       </div>
@@ -4626,7 +4738,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.14";
+  const APP_VERSION = "3.15";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -4859,7 +4971,7 @@
     totalAura: 0,
     lastKnownGoodAura: 0, // Absicherung gegen ungültige/verlorene Aura-Werte (siehe saveProfile)
     auraGainAnimationStyle: "off", // Beta-Einstellung: "off" | "soft" | "pulse" | "sparkle"
-    auraOverlayMotif: "classic", // Beta-Einstellung: "classic" | "neon" | "cosmos"
+    auraOverlayMotif: "classic", // Beta-Einstellung: "classic" | "neon" | "lightning" | "sunburst" | "spin" | "ignite"
     lessonsCompleted: 0,
     theme: "black",
     unlockedThemes: ["black"], // Freigeschaltete Designs
@@ -12877,8 +12989,8 @@
     saveProfile();
     AURA_ANIM_STYLES.forEach(s => $(AURA_ANIM_BTN_IDS[s]).classList.toggle("active", s === style));
   }
-  const AURA_MOTIFS = ["classic", "neon", "cosmos"];
-  const AURA_MOTIF_BTN_IDS = { classic: "auraMotifChoiceClassic", neon: "auraMotifChoiceNeon", cosmos: "auraMotifChoiceCosmos" };
+  const AURA_MOTIFS = ["classic", "neon", "lightning", "sunburst", "spin", "ignite"];
+  const AURA_MOTIF_BTN_IDS = { classic: "auraMotifChoiceClassic", neon: "auraMotifChoiceNeon", lightning: "auraMotifChoiceLightning", sunburst: "auraMotifChoiceSunburst", spin: "auraMotifChoiceSpin", ignite: "auraMotifChoiceIgnite" };
   function selectAuraMotif(motif){
     profile.auraOverlayMotif = motif;
     saveProfile();
@@ -14916,8 +15028,17 @@
   const AURA_MOTIF_ICONS = {
     classic: { normal: "⚡", fast: "💀" },
     neon: { normal: "🔷", fast: "💠" },
-    cosmos: { normal: "🌟", fast: "☄️" }
+    lightning: { normal: "⚡", fast: "💀" },
+    sunburst: { normal: "⚡", fast: "💀" },
+    spin: { normal: "⚡", fast: "💀" },
+    ignite: { normal: "⚡", fast: "💀" }
   };
+
+  // Mindestdauer je Motiv (NEU): die neuen, aufwändigeren Animationen
+  // brauchen mehr Zeit, um vollständig abzulaufen, als die bisherige kurze
+  // Standardanzeige - die tatsächliche Anzeigedauer ist deshalb IMMER
+  // mindestens so lang wie die Animation selbst braucht.
+  const AURA_MOTIF_MIN_MS = { lightning: 1300, sunburst: 1500, spin: 1100, ignite: 2000 };
 
   function showAuraOverlay(isAuraEdit, amount, showMs){
     const motif = profile.auraOverlayMotif || "classic";
@@ -14934,8 +15055,42 @@
     const ov = $("overlayAura");
     ov.dataset.auraMotif = motif;
     spawnParticles(motif);
+
+    // Sunburst (NEU): die Zahl zählt sich sichtbar von 0 auf den echten
+    // Wert hoch, statt sofort fertig dazustehen.
+    if(motif === "sunburst" && amount > 0){
+      const titleEl = $("auraTitle");
+      const duration = 700, steps = Math.min(amount, 24), stepTime = duration / steps;
+      let shown = 0;
+      const countInterval = setInterval(() => {
+        shown = Math.min(amount, shown + Math.max(1, Math.round(amount / steps)));
+        titleEl.textContent = `+${shown} AURA`;
+        if(shown >= amount) clearInterval(countInterval);
+      }, stepTime);
+    }
+
+    // Blitzeinschlag (NEU): Vollbild-Blitz + Blitz-Balken werden extra
+    // eingefügt, da sie über den gesamten Bildschirm gehen, nicht nur
+    // innerhalb der Karte.
+    const card = ov.querySelector(".overlay-card");
+    card.querySelectorAll(".lightning-flash, .lightning-bolt, .lightning-shockwave").forEach(el => el.remove());
+    if(motif === "lightning"){
+      const flash = document.createElement("div");
+      flash.className = "lightning-flash";
+      document.body.appendChild(flash);
+      setTimeout(() => flash.remove(), 550);
+      const bolt = document.createElement("div");
+      bolt.className = "lightning-bolt";
+      card.appendChild(bolt);
+      const shock = document.createElement("div");
+      shock.className = "lightning-shockwave";
+      card.appendChild(shock);
+    }
+
+    const minMs = AURA_MOTIF_MIN_MS[motif] || 0;
+    const finalMs = Math.max(showMs || 1000, minMs);
     ov.classList.add("show");
-    setTimeout(() => ov.classList.remove("show"), showMs || 1000);
+    setTimeout(() => ov.classList.remove("show"), finalMs);
   }
 
   function spawnParticles(motif){
@@ -14954,24 +15109,39 @@
         s.style.animationDelay = (Math.random() * .15) + "s";
         wrap.appendChild(s);
       }
-    } else if(motif === "cosmos"){
-      // Kosmos: kleine Sterne, die wie eine Explosion nach außen driften.
-      const starIcons = ["✦", "✧", "⋆", "★"];
-      for(let i = 0; i < 14; i++){
-        const s = document.createElement("span");
-        s.className = "cosmos-star";
+    } else if(motif === "ignite"){
+      // Ignite: Funken sammeln sich erst von außen zum Icon hin (Aufbau-
+      // Phase), danach ein finaler Funken-Ausbruch nach außen.
+      for(let i = 0; i < 10; i++){
+        const e = document.createElement("span");
+        e.className = "ignite-ember";
         const angle = Math.random() * Math.PI * 2;
-        const dist = 50 + Math.random() * 70;
-        s.style.setProperty("--nx", (Math.cos(angle) * dist).toFixed(1) + "px");
-        s.style.setProperty("--ny", (Math.sin(angle) * dist).toFixed(1) + "px");
-        s.textContent = starIcons[randInt(0, starIcons.length - 1)];
-        s.style.left = "50%"; s.style.top = "45%";
-        s.style.fontSize = randInt(10, 18) + "px";
-        s.style.animationDelay = (Math.random() * .2) + "s";
-        wrap.appendChild(s);
+        const dist = 50 + Math.random() * 50;
+        e.style.setProperty("--ex", (Math.cos(angle) * dist).toFixed(1) + "px");
+        e.style.setProperty("--ey", (Math.sin(angle) * dist).toFixed(1) + "px");
+        e.style.left = "50%"; e.style.top = "45%";
+        e.style.animationDelay = (Math.random() * .3) + "s";
+        wrap.appendChild(e);
       }
+      for(let i = 0; i < 12; i++){
+        const b = document.createElement("span");
+        b.className = "ignite-burst";
+        const angle = (Math.PI * 2 * i) / 12;
+        const dist = 55 + Math.random() * 35;
+        b.style.setProperty("--nx", (Math.cos(angle) * dist).toFixed(1) + "px");
+        b.style.setProperty("--ny", (Math.sin(angle) * dist).toFixed(1) + "px");
+        b.style.left = "50%"; b.style.top = "45%";
+        wrap.appendChild(b);
+      }
+    } else if(motif === "sunburst"){
+      // Sunburst: die rotierenden Lichtstrahlen sind rein CSS-basiert
+      // (siehe .sunburst-rays) - hier nur das Element einfügen.
+      const rays = document.createElement("div");
+      rays.className = "sunburst-rays";
+      wrap.appendChild(rays);
     } else {
-      // Klassisch: das bisherige Emoji-Funken-Muster.
+      // Klassisch, Blitzeinschlag & Spin-Impact: das bisherige
+      // Emoji-Funken-Muster als gemeinsame Basis-Deko.
       const icons = ["⚡","✨","💫","🔥"];
       for(let i=0;i<10;i++){
         const s = document.createElement("span");

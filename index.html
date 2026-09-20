@@ -994,6 +994,61 @@
   #feedbackCategoryIdea.active{ border-color:#3b82f6; background:rgba(59,130,246,.15); color:#93c5fd; }
   #feedbackCategoryBug.active{ border-color:#ef4444; background:rgba(239,68,68,.15); color:#fca5a5; }
   .feedback-priority-btn.active{ border-color:#f59e0b; background:rgba(245,158,11,.15); color:#fcd34d; }
+
+  .aura-anim-choice{
+    text-align:left; padding:10px 12px; border-radius:12px; border:1.5px solid var(--border);
+    background:var(--card); color:var(--text); font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .aura-anim-choice.active{
+    border-color:#a855f7; background:rgba(168,85,247,.15); color:var(--text);
+    box-shadow:0 0 10px rgba(168,85,247,.25);
+  }
+
+  /* Aura-Gewinn-Animationen (NEU): drei clean gestaltete Stile, alle als
+     fest positionierte Overlays über der Aura-Anzeige. */
+  #auraGainAnimLayer{
+    position:fixed; inset:0; z-index:98800; pointer-events:none; overflow:hidden;
+  }
+  .aura-anim-soft-text{
+    position:fixed; font-family:'Baloo 2',sans-serif; font-weight:900; font-size:20px;
+    color:#a855f7; text-shadow:0 0 14px rgba(168,85,247,.6);
+    animation: auraSoftFloat 1.6s ease-out forwards;
+  }
+  @keyframes auraSoftFloat{
+    0%{ opacity:0; transform:translateY(0) scale(.8); }
+    15%{ opacity:1; transform:translateY(-6px) scale(1.05); }
+    100%{ opacity:0; transform:translateY(-46px) scale(1); }
+  }
+  .aura-anim-pulse-ring{
+    position:fixed; width:14px; height:14px; margin-left:-7px; margin-top:-7px;
+    border-radius:50%; border:2.5px solid #a855f7;
+    animation: auraPulseRing 0.9s ease-out forwards;
+  }
+  @keyframes auraPulseRing{
+    0%{ opacity:.9; transform:scale(1); }
+    100%{ opacity:0; transform:scale(6); }
+  }
+  .aura-anim-pulse-text{
+    position:fixed; font-family:'Baloo 2',sans-serif; font-weight:900; font-size:18px;
+    color:#a855f7; text-shadow:0 0 10px rgba(168,85,247,.7);
+    animation: auraPulseText 0.9s cubic-bezier(.2,1.4,.4,1) forwards;
+  }
+  @keyframes auraPulseText{
+    0%{ opacity:0; transform:scale(0.4); }
+    35%{ opacity:1; transform:scale(1.25); }
+    70%{ transform:scale(1); }
+    100%{ opacity:0; transform:scale(1) translateY(-10px); }
+  }
+  .aura-anim-spark{
+    position:fixed; width:5px; height:5px; border-radius:50%; background:#a855f7;
+    box-shadow:0 0 6px 1px rgba(168,85,247,.8);
+    animation: auraSparkFly 0.85s ease-out forwards;
+  }
+  @keyframes auraSparkFly{
+    0%{ opacity:1; transform:translate(0,0) scale(1); }
+    100%{ opacity:0; transform:translate(var(--sx), var(--sy)) scale(0.3); }
+  }
+
   .style-editor-chip{
     padding:8px 14px; border-radius:99px; border:1.5px solid var(--border);
     background:var(--card); color:var(--text); font-size:13px; font-weight:700; cursor:pointer;
@@ -2558,6 +2613,10 @@
   <!-- Spieler-Ziel-Widget (NEU): zeigt sich allen online Spielern, solange
        ein Ziel aktiv ist. Drückt man X, wird es kleiner (statt komplett zu
        verschwinden), bleibt aber antippbar, um es wieder aufzuklappen. -->
+  <!-- Aura-Gewinn-Animation (NEU): leerer Container, in den die einzelnen
+       Animations-Elemente dynamisch eingefügt werden. -->
+  <div id="auraGainAnimLayer"></div>
+
   <div id="playerGoalWidget" style="display:none; position:fixed; top:calc(10px + env(safe-area-inset-top)); left:10px; right:10px; z-index:96000;">
     <div id="playerGoalWidgetFull" style="background:linear-gradient(135deg, rgba(168,85,247,.95), rgba(236,72,153,.95)); border-radius:16px; padding:12px 14px; box-shadow:0 8px 24px rgba(168,85,247,.4); color:#fff; display:flex; align-items:flex-start; gap:10px;">
       <div style="font-size:22px;">🎯</div>
@@ -3647,7 +3706,16 @@
         <div style="font-size:32px; margin-bottom:6px;">🧪</div>
         <h2 style="margin-bottom:14px;">Beta</h2>
         <div class="d" style="font-weight:800; margin-bottom:10px;">Betaeinstellungen</div>
-        <div class="empty-hint" style="text-align:left; margin-top:0;">Aktuell keine Beta-Einstellungen verfügbar.</div>
+
+        <div class="d" style="font-weight:800; margin-bottom:8px;">✨ Aura-Animation</div>
+        <div class="d" style="margin-bottom:10px;">Spielt eine Animation ab, sobald du Aura bekommst.</div>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+          <button class="aura-anim-choice active" id="auraAnimChoiceOff" data-style="off">Aus</button>
+          <button class="aura-anim-choice" id="auraAnimChoiceSoft" data-style="soft">🌊 Sanft - fließt sanft nach oben</button>
+          <button class="aura-anim-choice" id="auraAnimChoicePulse" data-style="pulse">💫 Puls - Ring pulsiert nach außen</button>
+          <button class="aura-anim-choice" id="auraAnimChoiceSparkle" data-style="sparkle">✨ Funkeln - kleine Funken sprühen</button>
+        </div>
+        <button class="btn btn-ghost btn-small" id="auraAnimPreviewBtn" style="width:100%;">Vorschau abspielen</button>
       </div>
     </div>
 
@@ -4481,7 +4549,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.12";
+  const APP_VERSION = "3.13";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -4713,6 +4781,7 @@
     levelProgress: 0, // 0,1,2 von 3 - man braucht 3 Lektionen für ein volles Level
     totalAura: 0,
     lastKnownGoodAura: 0, // Absicherung gegen ungültige/verlorene Aura-Werte (siehe saveProfile)
+    auraGainAnimationStyle: "off", // Beta-Einstellung: "off" | "soft" | "pulse" | "sparkle"
     lessonsCompleted: 0,
     theme: "black",
     unlockedThemes: ["black"], // Freigeschaltete Designs
@@ -5286,10 +5355,40 @@
         const priorityBadge = data.priority ? `${"❗".repeat(data.priority)} ` : "";
         row.innerHTML = `
           <div style="flex:1;${isNew ? " font-weight:800;" : " opacity:.65;"}">${isNew ? "🆕 " : ""}${priorityBadge}${categoryBadge}<b>@${data.fromUsername || "?"}</b>: ${data.text || ""}<br><span style="opacity:.6; font-size:11px;">${formatRelativeTime(data.createdAt)}</span></div>
+          <button class="owner-feedback-warn-btn" data-uid="${data.fromUid || ""}" data-name="${data.fromUsername || "?"}" title="Person zu diesem Feedback warnen" style="background:none; border:none; color:#f97316; font-size:16px; cursor:pointer; padding:2px 6px; flex-shrink:0;">❗</button>
           <button class="owner-feedback-gift-btn" data-uid="${data.fromUid || ""}" data-name="${data.fromUsername || "?"}" title="100 Aura schenken" style="background:none; border:none; color:#facc15; font-size:16px; cursor:pointer; padding:2px 6px; flex-shrink:0;">🎁</button>
           <button class="owner-feedback-dismiss-btn" data-id="${d.id}" style="background:none; border:none; color:var(--text-dim); font-size:16px; font-weight:800; cursor:pointer; padding:2px 6px; flex-shrink:0;">✕</button>
         `;
         listEl.appendChild(row);
+      });
+      listEl.querySelectorAll(".owner-feedback-warn-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const uid = btn.dataset.uid;
+          const name = btn.dataset.name;
+          if(!uid) return showToast("Kein Nutzer-Konto zu diesem Feedback gefunden.");
+          const message = prompt(
+            `Warnung an @${name} senden - erscheint als Banner in der App:`,
+            "Bitte setze die Priorität nur bei wirklich wichtigen Themen so hoch und formuliere dein Feedback etwas klarer, danke!"
+          );
+          if(!message || !message.trim()) return;
+          btn.disabled = true;
+          try{
+            await db().collection("announcements").add({
+              text: message.trim().slice(0, 1000),
+              imageDataUri: null,
+              createdAt: Date.now(),
+              expiresAt: Date.now() + 3 * 24 * 60 * 60 * 1000,
+              createdBy: currentUser.uid,
+              targetUid: uid
+            });
+            showToast(`❗ Warnung an @${name} gesendet.`);
+          }catch(err){
+            showToast("Warnung konnte nicht gesendet werden.");
+            console.error("Feedback-Warnung Fehler:", err);
+          } finally {
+            btn.disabled = false;
+          }
+        });
       });
       listEl.querySelectorAll(".owner-feedback-gift-btn").forEach(btn => {
         btn.addEventListener("click", async () => {
@@ -8504,6 +8603,12 @@
   // (Lektion, Kauf, ...) blockieren oder verlangsamen.
   function logAuraTransaction(amount, reason, targetUid){
     if(!firebaseInitialized || !currentUser || amount === 0) return;
+    // Aura-Gewinn-Animation (NEU, Beta-Einstellung): nur auslösen, wenn es
+    // WIRKLICH die eigene Aura ist, die gerade steigt - nicht wenn der
+    // Owner die Aura einer ANDEREN Person bearbeitet.
+    if(amount > 0 && (!targetUid || targetUid === currentUser.uid)){
+      playAuraGainAnimation(amount);
+    }
     // WICHTIG: das reine Protokollieren darf NIE den aufrufenden Code
     // unterbrechen (z.B. das Vermerken einer bereits abgeholten
     // Spieler-Ziel-Belohnung direkt danach) - deshalb hier zusätzlich
@@ -8517,6 +8622,78 @@
       }).catch(err => console.error("Aura-Verlauf protokollieren Fehler:", err));
     }catch(err){
       console.error("Aura-Verlauf protokollieren Fehler:", err);
+    }
+  }
+
+  // Aura-Gewinn-Animation (NEU): drei wählbare, clean gestaltete Stile.
+  // Positioniert sich an der Aura-Anzeige, die auf dem aktuellen Bildschirm
+  // gerade sichtbar ist (Home oder Profil), fällt sonst auf die
+  // Bildschirmmitte zurück.
+  function findVisibleAuraAnchor(){
+    const candidates = ["homeAura", "profileAuraVal", "shopAuraVal"];
+    for(const id of candidates){
+      const el = $(id);
+      if(el && el.offsetParent !== null){
+        const rect = el.getBoundingClientRect();
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      }
+    }
+    return { x: window.innerWidth / 2, y: 120 };
+  }
+
+  function playAuraGainAnimation(amount){
+    const style = profile.auraGainAnimationStyle;
+    if(!style || style === "off") return;
+    const layer = $("auraGainAnimLayer");
+    if(!layer) return;
+    const anchor = findVisibleAuraAnchor();
+
+    if(style === "soft"){
+      const el = document.createElement("div");
+      el.className = "aura-anim-soft-text";
+      el.textContent = `+${amount} 💎`;
+      el.style.left = anchor.x + "px";
+      el.style.top = anchor.y + "px";
+      el.style.transform = "translate(-50%, -50%)";
+      layer.appendChild(el);
+      setTimeout(() => el.remove(), 1700);
+    } else if(style === "pulse"){
+      const ring = document.createElement("div");
+      ring.className = "aura-anim-pulse-ring";
+      ring.style.left = anchor.x + "px";
+      ring.style.top = anchor.y + "px";
+      layer.appendChild(ring);
+      const txt = document.createElement("div");
+      txt.className = "aura-anim-pulse-text";
+      txt.textContent = `+${amount}`;
+      txt.style.left = anchor.x + "px";
+      txt.style.top = anchor.y + "px";
+      txt.style.transform = "translate(-50%, -50%)";
+      layer.appendChild(txt);
+      setTimeout(() => { ring.remove(); txt.remove(); }, 1000);
+    } else if(style === "sparkle"){
+      const count = 8;
+      for(let i = 0; i < count; i++){
+        const spark = document.createElement("div");
+        spark.className = "aura-anim-spark";
+        const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+        const dist = 28 + Math.random() * 18;
+        spark.style.setProperty("--sx", (Math.cos(angle) * dist).toFixed(1) + "px");
+        spark.style.setProperty("--sy", (Math.sin(angle) * dist).toFixed(1) + "px");
+        spark.style.left = anchor.x + "px";
+        spark.style.top = anchor.y + "px";
+        layer.appendChild(spark);
+        setTimeout(() => spark.remove(), 900);
+      }
+      const txt = document.createElement("div");
+      txt.className = "aura-anim-soft-text";
+      txt.style.fontSize = "16px";
+      txt.textContent = `+${amount}`;
+      txt.style.left = anchor.x + "px";
+      txt.style.top = anchor.y + "px";
+      txt.style.transform = "translate(-50%, -50%)";
+      layer.appendChild(txt);
+      setTimeout(() => txt.remove(), 1700);
     }
   }
 
@@ -9329,8 +9506,16 @@
     ]));
 
     const li = localP.inventory || {}, ci = cloudP.inventory || {};
+    // WICHTIG (Bugfix, gleiche Ursache wie beim Combo-Zähler): "icecube" ist
+    // ein VERBRAUCHBARER Bestand, der beim Einsetzen (Streak-Schutz) auch
+    // WENIGER werden muss - "der höhere Wert gewinnt" hätte hier genau wie
+    // beim Combo-Zähler einen gerade erfolgten Verbrauch rückgängig gemacht,
+    // sobald ein noch nicht synchronisierter, älterer Cloud-Stand gewinnt
+    // (gemeldeter Bug: "Icecube wird beim Einlösen nicht abgezogen").
+    // "doubleAuraUntil" bleibt korrekt bei Math.max, da das ein Ablauf-
+    // Zeitstempel ist, der durch Stapeln nur wachsen oder gleich bleiben darf.
     merged.inventory = {
-      icecube: Math.max(li.icecube || 0, ci.icecube || 0),
+      icecube: localNewer ? (li.icecube || 0) : (ci.icecube || 0),
       doubleAuraUntil: Math.max(li.doubleAuraUntil || 0, ci.doubleAuraUntil || 0)
     };
 
@@ -12607,11 +12792,31 @@
     renderHome();
   });
 
+  const AURA_ANIM_STYLES = ["off", "soft", "pulse", "sparkle"];
+  const AURA_ANIM_BTN_IDS = { off: "auraAnimChoiceOff", soft: "auraAnimChoiceSoft", pulse: "auraAnimChoicePulse", sparkle: "auraAnimChoiceSparkle" };
+  function selectAuraAnimStyle(style){
+    profile.auraGainAnimationStyle = style;
+    saveProfile();
+    AURA_ANIM_STYLES.forEach(s => $(AURA_ANIM_BTN_IDS[s]).classList.toggle("active", s === style));
+  }
   $("peterMenuRow").addEventListener("click", () => {
     $("overlayPeterMenu").classList.add("show");
+    const current = profile.auraGainAnimationStyle || "off";
+    AURA_ANIM_STYLES.forEach(s => $(AURA_ANIM_BTN_IDS[s]).classList.toggle("active", s === current));
   });
   $("peterMenuClose").addEventListener("click", () => {
     $("overlayPeterMenu").classList.remove("show");
+  });
+  AURA_ANIM_STYLES.forEach(s => {
+    $(AURA_ANIM_BTN_IDS[s]).addEventListener("click", () => selectAuraAnimStyle(s));
+  });
+  $("auraAnimPreviewBtn").addEventListener("click", () => {
+    const style = profile.auraGainAnimationStyle;
+    if(!style || style === "off"){
+      showToast("Wähle zuerst einen Stil aus.");
+      return;
+    }
+    playAuraGainAnimation(50);
   });
 
   $("installAppRow").addEventListener("click", () => {

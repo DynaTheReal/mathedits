@@ -789,21 +789,77 @@
       0 0 90px color-mix(in srgb, var(--accent) 15%, transparent),
       inset 0 0 70px color-mix(in srgb, var(--accent) 8%, transparent);
   }
-  /* Lektion-Start-Animation (NEU, Beta-Einstellung): 3 wählbare
-     Übergangs-Stile, per JS-Klasse ausgelöst. */
-  #screen-lesson.lesson-anim-fade{ animation: lesson-anim-fade .5s ease-out; }
-  @keyframes lesson-anim-fade{ 0%{ opacity:0; } 100%{ opacity:1; } }
-  #screen-lesson.lesson-anim-slide{ animation: lesson-anim-slide .45s cubic-bezier(.2,1,.3,1); }
-  @keyframes lesson-anim-slide{ 0%{ opacity:0; transform:translateY(28px); } 100%{ opacity:1; transform:translateY(0); } }
-  #screen-lesson.lesson-anim-zoom{ animation: lesson-anim-zoom .4s cubic-bezier(.3,1.3,.4,1); }
-  @keyframes lesson-anim-zoom{ 0%{ opacity:0; transform:scale(.9); } 100%{ opacity:1; transform:scale(1); } }
+  /* Lektion-Start- & Bildschirmwechsel-Animationen (NEU, stark erweitert,
+     Beta-Einstellung): gemeinsame Keyframes, die von BEIDEN Kategorien
+     genutzt werden - reicht von ganz simplen bis zu richtig aufwändigen,
+     coolen Übergängen. */
+  @keyframes tanim-fade{ 0%{ opacity:0; } 100%{ opacity:1; } }
+  @keyframes tanim-slide{ 0%{ opacity:0; transform:translateY(28px); } 100%{ opacity:1; transform:translateY(0); } }
+  @keyframes tanim-zoom{ 0%{ opacity:0; transform:scale(.9); } 100%{ opacity:1; transform:scale(1); } }
+  @keyframes tanim-slideleft{ 0%{ opacity:0; transform:translateX(-40px); } 100%{ opacity:1; transform:translateX(0); } }
+  @keyframes tanim-slideright{ 0%{ opacity:0; transform:translateX(40px); } 100%{ opacity:1; transform:translateX(0); } }
+  @keyframes tanim-flip{
+    0%{ opacity:0; transform:perspective(800px) rotateY(-90deg); }
+    100%{ opacity:1; transform:perspective(800px) rotateY(0deg); }
+  }
+  @keyframes tanim-bounce{
+    0%{ opacity:0; transform:scale(.4); }
+    55%{ opacity:1; transform:scale(1.08); }
+    75%{ transform:scale(.96); }
+    100%{ transform:scale(1); }
+  }
+  @keyframes tanim-blur{
+    0%{ opacity:0; filter:blur(14px); transform:scale(1.03); }
+    100%{ opacity:1; filter:blur(0); transform:scale(1); }
+  }
+  @keyframes tanim-rotate{
+    0%{ opacity:0; transform:rotate(-6deg) scale(.85); }
+    100%{ opacity:1; transform:rotate(0deg) scale(1); }
+  }
+  @keyframes tanim-curtain{
+    0%{ clip-path: inset(0 100% 0 0); }
+    100%{ clip-path: inset(0 0 0 0); }
+  }
+  @keyframes tanim-glitch{
+    0%{ opacity:0; transform:translate(-6px,0); filter:hue-rotate(0deg); }
+    20%{ opacity:1; transform:translate(5px,-2px); filter:hue-rotate(90deg); }
+    40%{ transform:translate(-4px,2px); filter:hue-rotate(180deg); }
+    60%{ transform:translate(3px,0); filter:hue-rotate(270deg); }
+    80%{ transform:translate(-2px,1px); filter:hue-rotate(360deg); }
+    100%{ opacity:1; transform:translate(0,0); filter:hue-rotate(0deg); }
+  }
+  @keyframes tanim-elastic{
+    0%{ opacity:0; transform:scale(.3); }
+    40%{ opacity:1; transform:scale(1.15); }
+    60%{ transform:scale(.92); }
+    80%{ transform:scale(1.05); }
+    100%{ transform:scale(1); }
+  }
+  #screen-lesson.lesson-anim-fade{ animation: tanim-fade .5s ease-out; }
+  #screen-lesson.lesson-anim-slide{ animation: tanim-slide .45s cubic-bezier(.2,1,.3,1); }
+  #screen-lesson.lesson-anim-zoom{ animation: tanim-zoom .4s cubic-bezier(.3,1.3,.4,1); }
+  #screen-lesson.lesson-anim-slideleft{ animation: tanim-slideleft .42s cubic-bezier(.2,1,.3,1); }
+  #screen-lesson.lesson-anim-slideright{ animation: tanim-slideright .42s cubic-bezier(.2,1,.3,1); }
+  #screen-lesson.lesson-anim-flip{ animation: tanim-flip .55s cubic-bezier(.3,.9,.4,1); transform-style:preserve-3d; }
+  #screen-lesson.lesson-anim-bounce{ animation: tanim-bounce .6s cubic-bezier(.2,1,.3,1); }
+  #screen-lesson.lesson-anim-blur{ animation: tanim-blur .5s ease-out; }
+  #screen-lesson.lesson-anim-rotate{ animation: tanim-rotate .45s cubic-bezier(.2,1,.3,1); }
+  #screen-lesson.lesson-anim-curtain{ animation: tanim-curtain .5s cubic-bezier(.4,0,.2,1); }
+  #screen-lesson.lesson-anim-glitch{ animation: tanim-glitch .5s steps(6); }
+  #screen-lesson.lesson-anim-elastic{ animation: tanim-elastic .8s cubic-bezier(.2,1,.3,1); }
 
-  /* Bildschirmwechsel-Animation (NEU, Beta-Einstellung): allgemeiner
-     Übergang bei JEDEM Bildschirmwechsel (Home -> Shop, Shop -> Rangliste,
-     usw.), nutzt dieselben 3 Stile wie der Lektion-Start. */
-  .screen.nav-anim-fade{ animation: lesson-anim-fade .4s ease-out; }
-  .screen.nav-anim-slide{ animation: lesson-anim-slide .38s cubic-bezier(.2,1,.3,1); }
-  .screen.nav-anim-zoom{ animation: lesson-anim-zoom .35s cubic-bezier(.3,1.3,.4,1); }
+  .screen.nav-anim-fade{ animation: tanim-fade .4s ease-out; }
+  .screen.nav-anim-slide{ animation: tanim-slide .38s cubic-bezier(.2,1,.3,1); }
+  .screen.nav-anim-zoom{ animation: tanim-zoom .35s cubic-bezier(.3,1.3,.4,1); }
+  .screen.nav-anim-slideleft{ animation: tanim-slideleft .36s cubic-bezier(.2,1,.3,1); }
+  .screen.nav-anim-slideright{ animation: tanim-slideright .36s cubic-bezier(.2,1,.3,1); }
+  .screen.nav-anim-flip{ animation: tanim-flip .5s cubic-bezier(.3,.9,.4,1); transform-style:preserve-3d; }
+  .screen.nav-anim-bounce{ animation: tanim-bounce .55s cubic-bezier(.2,1,.3,1); }
+  .screen.nav-anim-blur{ animation: tanim-blur .45s ease-out; }
+  .screen.nav-anim-rotate{ animation: tanim-rotate .4s cubic-bezier(.2,1,.3,1); }
+  .screen.nav-anim-curtain{ animation: tanim-curtain .45s cubic-bezier(.4,0,.2,1); }
+  .screen.nav-anim-glitch{ animation: tanim-glitch .45s steps(6); }
+  .screen.nav-anim-elastic{ animation: tanim-elastic .7s cubic-bezier(.2,1,.3,1); }
 
 
   /* Extra Platz unten bei Screens mit sichtbarer Bottom-Nav, damit Inhalte
@@ -3893,7 +3949,7 @@
 
     <!-- "Beta"-Menü (NEU, vorher "Peter"): Beta-Einstellungen zum Ausprobieren -->
     <div class="overlay" id="overlayPeterMenu">
-      <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto;">
+      <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
         <button id="peterMenuClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
         <div style="font-size:32px; margin-bottom:6px;">🧪</div>
         <h2 style="margin-bottom:14px;">Beta</h2>
@@ -3926,7 +3982,16 @@
           <button class="aura-anim-choice active" id="lessonAnimChoiceOff" data-style="off">Aus</button>
           <button class="aura-anim-choice" id="lessonAnimChoiceFade" data-style="fade">🌫️ Fade - blendet sanft ein</button>
           <button class="aura-anim-choice" id="lessonAnimChoiceSlide" data-style="slide">⬆️ Slide - gleitet von unten rein</button>
+          <button class="aura-anim-choice" id="lessonAnimChoiceSlideleft" data-style="slideleft">⬅️ Slide-Links - gleitet von links rein</button>
+          <button class="aura-anim-choice" id="lessonAnimChoiceSlideright" data-style="slideright">➡️ Slide-Rechts - gleitet von rechts rein</button>
           <button class="aura-anim-choice" id="lessonAnimChoiceZoom" data-style="zoom">🔍 Zoom - zoomt sanft rein</button>
+          <button class="aura-anim-choice" id="lessonAnimChoiceRotate" data-style="rotate">🔄 Rotate - dreht sich leicht rein</button>
+          <button class="aura-anim-choice" id="lessonAnimChoiceBlur" data-style="blur">💧 Blur - wird scharf</button>
+          <button class="aura-anim-choice" id="lessonAnimChoiceFlip" data-style="flip">🃏 Flip - dreht sich wie eine Karte</button>
+          <button class="aura-anim-choice" id="lessonAnimChoiceBounce" data-style="bounce">🏀 Bounce - hüpft beim Reinkommen</button>
+          <button class="aura-anim-choice" id="lessonAnimChoiceElastic" data-style="elastic">🎯 Elastic - federt mehrfach nach</button>
+          <button class="aura-anim-choice" id="lessonAnimChoiceCurtain" data-style="curtain">🎭 Curtain - zieht sich wie ein Vorhang auf</button>
+          <button class="aura-anim-choice" id="lessonAnimChoiceGlitch" data-style="glitch">👾 Glitch - flackert wild rein</button>
         </div>
 
         <div class="d" style="font-weight:800; margin-bottom:8px;">🔀 Bildschirmwechsel-Animation</div>
@@ -3935,10 +4000,20 @@
           <button class="aura-anim-choice active" id="navAnimChoiceOff" data-style="off">Aus</button>
           <button class="aura-anim-choice" id="navAnimChoiceFade" data-style="fade">🌫️ Fade - blendet sanft ein</button>
           <button class="aura-anim-choice" id="navAnimChoiceSlide" data-style="slide">⬆️ Slide - gleitet von unten rein</button>
+          <button class="aura-anim-choice" id="navAnimChoiceSlideleft" data-style="slideleft">⬅️ Slide-Links - gleitet von links rein</button>
+          <button class="aura-anim-choice" id="navAnimChoiceSlideright" data-style="slideright">➡️ Slide-Rechts - gleitet von rechts rein</button>
           <button class="aura-anim-choice" id="navAnimChoiceZoom" data-style="zoom">🔍 Zoom - zoomt sanft rein</button>
+          <button class="aura-anim-choice" id="navAnimChoiceRotate" data-style="rotate">🔄 Rotate - dreht sich leicht rein</button>
+          <button class="aura-anim-choice" id="navAnimChoiceBlur" data-style="blur">💧 Blur - wird scharf</button>
+          <button class="aura-anim-choice" id="navAnimChoiceFlip" data-style="flip">🃏 Flip - dreht sich wie eine Karte</button>
+          <button class="aura-anim-choice" id="navAnimChoiceBounce" data-style="bounce">🏀 Bounce - hüpft beim Reinkommen</button>
+          <button class="aura-anim-choice" id="navAnimChoiceElastic" data-style="elastic">🎯 Elastic - federt mehrfach nach</button>
+          <button class="aura-anim-choice" id="navAnimChoiceCurtain" data-style="curtain">🎭 Curtain - zieht sich wie ein Vorhang auf</button>
+          <button class="aura-anim-choice" id="navAnimChoiceGlitch" data-style="glitch">👾 Glitch - flackert wild rein</button>
         </div>
       </div>
     </div>
+
 
     <div style="background:rgba(250,204,21,.1); border:1.5px solid #facc15; border-radius:14px; padding:12px; margin:0 20px 16px; display:none;" id="ownerAdminPassBox">
       <div style="font-weight:800; margin-bottom:8px; color:#facc15;">🔐 Admin-Aktions-Passwort</div>
@@ -4786,7 +4861,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.18";
+  const APP_VERSION = "3.19";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5020,8 +5095,8 @@
     lastKnownGoodAura: 0, // Absicherung gegen ungültige/verlorene Aura-Werte (siehe saveProfile)
     auraGainAnimationStyle: "off", // Beta-Einstellung: "off" | "soft" | "pulse" | "sparkle"
     auraOverlayMotif: "classic", // Beta-Einstellung: "classic" | "neon" | "lightning" | "spin" | "ignite"
-    lessonStartAnimStyle: "off", // Beta-Einstellung: "off" | "fade" | "slide" | "zoom"
-    screenNavAnimStyle: "off", // Beta-Einstellung: "off" | "fade" | "slide" | "zoom"
+    lessonStartAnimStyle: "off", // Beta-Einstellung: "off" | "fade" | "slide" | "slideleft" | "slideright" | "zoom" | "rotate" | "blur" | "flip" | "bounce" | "elastic" | "curtain" | "glitch"
+    screenNavAnimStyle: "off", // Beta-Einstellung: siehe lessonStartAnimStyle
     lessonsCompleted: 0,
     theme: "black",
     unlockedThemes: ["black"], // Freigeschaltete Designs
@@ -11138,7 +11213,7 @@
     const navAnim = profile.screenNavAnimStyle;
     if(navAnim && navAnim !== "off"){
       const el = screens[name];
-      el.classList.remove("nav-anim-fade", "nav-anim-slide", "nav-anim-zoom");
+      el.classList.remove("nav-anim-fade", "nav-anim-slide", "nav-anim-slideleft", "nav-anim-slideright", "nav-anim-zoom", "nav-anim-rotate", "nav-anim-blur", "nav-anim-flip", "nav-anim-bounce", "nav-anim-elastic", "nav-anim-curtain", "nav-anim-glitch");
       void el.offsetWidth;
       el.classList.add("nav-anim-" + navAnim);
     }
@@ -13172,9 +13247,9 @@
     saveProfile();
     AURA_MOTIFS.forEach(m => $(AURA_MOTIF_BTN_IDS[m]).classList.toggle("active", m === motif));
   }
-  const SIMPLE_ANIM_STYLES = ["off", "fade", "slide", "zoom"];
-  const LESSON_ANIM_BTN_IDS = { off: "lessonAnimChoiceOff", fade: "lessonAnimChoiceFade", slide: "lessonAnimChoiceSlide", zoom: "lessonAnimChoiceZoom" };
-  const NAV_ANIM_BTN_IDS = { off: "navAnimChoiceOff", fade: "navAnimChoiceFade", slide: "navAnimChoiceSlide", zoom: "navAnimChoiceZoom" };
+  const SIMPLE_ANIM_STYLES = ["off", "fade", "slide", "slideleft", "slideright", "zoom", "rotate", "blur", "flip", "bounce", "elastic", "curtain", "glitch"];
+  const LESSON_ANIM_BTN_IDS = { off: "lessonAnimChoiceOff", fade: "lessonAnimChoiceFade", slide: "lessonAnimChoiceSlide", slideleft: "lessonAnimChoiceSlideleft", slideright: "lessonAnimChoiceSlideright", zoom: "lessonAnimChoiceZoom", rotate: "lessonAnimChoiceRotate", blur: "lessonAnimChoiceBlur", flip: "lessonAnimChoiceFlip", bounce: "lessonAnimChoiceBounce", elastic: "lessonAnimChoiceElastic", curtain: "lessonAnimChoiceCurtain", glitch: "lessonAnimChoiceGlitch" };
+  const NAV_ANIM_BTN_IDS = { off: "navAnimChoiceOff", fade: "navAnimChoiceFade", slide: "navAnimChoiceSlide", slideleft: "navAnimChoiceSlideleft", slideright: "navAnimChoiceSlideright", zoom: "navAnimChoiceZoom", rotate: "navAnimChoiceRotate", blur: "navAnimChoiceBlur", flip: "navAnimChoiceFlip", bounce: "navAnimChoiceBounce", elastic: "navAnimChoiceElastic", curtain: "navAnimChoiceCurtain", glitch: "navAnimChoiceGlitch" };
   function selectLessonAnimStyle(style){
     profile.lessonStartAnimStyle = style;
     saveProfile();
@@ -14526,7 +14601,7 @@
     const lessonAnim = profile.lessonStartAnimStyle;
     if(lessonAnim && lessonAnim !== "off"){
       const el = $("screen-lesson");
-      el.classList.remove("lesson-anim-fade", "lesson-anim-slide", "lesson-anim-zoom");
+      el.classList.remove("lesson-anim-fade", "lesson-anim-slide", "lesson-anim-slideleft", "lesson-anim-slideright", "lesson-anim-zoom", "lesson-anim-rotate", "lesson-anim-blur", "lesson-anim-flip", "lesson-anim-bounce", "lesson-anim-elastic", "lesson-anim-curtain", "lesson-anim-glitch");
       void el.offsetWidth; // erzwingt einen Reflow, damit die Animation bei erneutem Start sauber neu abspielt
       el.classList.add("lesson-anim-" + lessonAnim);
     }

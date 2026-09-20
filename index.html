@@ -789,6 +789,22 @@
       0 0 90px color-mix(in srgb, var(--accent) 15%, transparent),
       inset 0 0 70px color-mix(in srgb, var(--accent) 8%, transparent);
   }
+  /* Lektion-Start-Animation (NEU, Beta-Einstellung): 3 wählbare
+     Übergangs-Stile, per JS-Klasse ausgelöst. */
+  #screen-lesson.lesson-anim-fade{ animation: lesson-anim-fade .5s ease-out; }
+  @keyframes lesson-anim-fade{ 0%{ opacity:0; } 100%{ opacity:1; } }
+  #screen-lesson.lesson-anim-slide{ animation: lesson-anim-slide .45s cubic-bezier(.2,1,.3,1); }
+  @keyframes lesson-anim-slide{ 0%{ opacity:0; transform:translateY(28px); } 100%{ opacity:1; transform:translateY(0); } }
+  #screen-lesson.lesson-anim-zoom{ animation: lesson-anim-zoom .4s cubic-bezier(.3,1.3,.4,1); }
+  @keyframes lesson-anim-zoom{ 0%{ opacity:0; transform:scale(.9); } 100%{ opacity:1; transform:scale(1); } }
+
+  /* Bildschirmwechsel-Animation (NEU, Beta-Einstellung): allgemeiner
+     Übergang bei JEDEM Bildschirmwechsel (Home -> Shop, Shop -> Rangliste,
+     usw.), nutzt dieselben 3 Stile wie der Lektion-Start. */
+  .screen.nav-anim-fade{ animation: lesson-anim-fade .4s ease-out; }
+  .screen.nav-anim-slide{ animation: lesson-anim-slide .38s cubic-bezier(.2,1,.3,1); }
+  .screen.nav-anim-zoom{ animation: lesson-anim-zoom .35s cubic-bezier(.3,1.3,.4,1); }
+
 
   /* Extra Platz unten bei Screens mit sichtbarer Bottom-Nav, damit Inhalte
      (z.B. der Start-Button) nie unter der Leiste verschwinden. */
@@ -2196,33 +2212,6 @@
     100%{ transform:scale(1); opacity:1; }
   }
 
-  /* MOTIV: SUNBURST - Icon zoomt riesig rein mit rotierenden Lichtstrahlen,
-     die Zahl zählt sich sichtbar von 0 hoch. */
-  .sunburst-rays{
-    position:absolute; inset:-60px; opacity:0;
-    background: repeating-conic-gradient(from 0deg, rgba(250,204,21,.35) 0deg 6deg, transparent 6deg 24deg);
-    border-radius:50%;
-    animation: sunburst-rays-anim 1.4s ease-out forwards, sunburst-rays-spin 1.4s linear forwards;
-  }
-  @keyframes sunburst-rays-anim{
-    0%{ opacity:0; transform:scale(.2); }
-    25%{ opacity:.9; }
-    100%{ opacity:0; transform:scale(1.6); }
-  }
-  @keyframes sunburst-rays-spin{
-    0%{ transform:rotate(0deg) scale(.2); }
-    100%{ transform:rotate(140deg) scale(1.6); }
-  }
-  #overlayAura[data-aura-motif="sunburst"] .aura-fig{
-    animation: aura-pop-sunburst .9s cubic-bezier(.2,1.3,.3,1);
-    filter: drop-shadow(0 0 22px #facc15);
-  }
-  @keyframes aura-pop-sunburst{
-    0%{ transform:scale(0); opacity:0; }
-    45%{ transform:scale(1.5); opacity:1; }
-    100%{ transform:scale(1); }
-  }
-
   /* MOTIV: SPIN-IMPACT - Icon dreht sich mehrfach wie eine Münze mit
      Bewegungsunschärfe rein und landet mit spürbarem Wums (Screen-Wackler). */
   #overlayAura[data-aura-motif="spin"] .aura-fig{
@@ -3618,6 +3607,14 @@
       <div style="font-size:20px;">→</div>
     </div>
 
+    <div class="settings-row" id="replayTutorialRow" style="cursor:pointer;">
+      <div class="info">
+        <div class="t">❓ Einführung erneut zeigen</div>
+        <div class="d">Zeigt dir nochmal, wo die wichtigsten Funktionen sind.</div>
+      </div>
+      <div style="font-size:20px;">→</div>
+    </div>
+
     <div class="settings-row">
       <div class="info">
         <div class="t">Design / Theme</div>
@@ -3897,7 +3894,7 @@
     <!-- "Beta"-Menü (NEU, vorher "Peter"): Beta-Einstellungen zum Ausprobieren -->
     <div class="overlay" id="overlayPeterMenu">
       <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto;">
-        <button class="banner-close-x" id="peterMenuClose" style="position:absolute; top:10px; right:12px;">✕</button>
+        <button id="peterMenuClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
         <div style="font-size:32px; margin-bottom:6px;">🧪</div>
         <h2 style="margin-bottom:14px;">Beta</h2>
         <div class="d" style="font-weight:800; margin-bottom:10px;">Betaeinstellungen</div>
@@ -3918,11 +3915,28 @@
           <button class="aura-anim-choice active" id="auraMotifChoiceClassic" data-motif="classic">⚡ Klassisch</button>
           <button class="aura-anim-choice" id="auraMotifChoiceNeon" data-motif="neon">💠 Neon - leuchtender Ring</button>
           <button class="aura-anim-choice" id="auraMotifChoiceLightning" data-motif="lightning">⚡ Blitzeinschlag - Blitz + Schockwelle</button>
-          <button class="aura-anim-choice" id="auraMotifChoiceSunburst" data-motif="sunburst">💥 Sunburst - Lichtstrahlen-Explosion</button>
           <button class="aura-anim-choice" id="auraMotifChoiceSpin" data-motif="spin">🌀 Spin-Impact - dreht mit Wums rein</button>
           <button class="aura-anim-choice" id="auraMotifChoiceIgnite" data-motif="ignite">🔥 Ignite - baut sich zum Ausbruch auf</button>
         </div>
-        <button class="btn btn-ghost btn-small" id="auraMotifPreviewBtn" style="width:100%;">Motiv-Vorschau abspielen</button>
+        <button class="btn btn-ghost btn-small" id="auraMotifPreviewBtn" style="width:100%; margin-bottom:16px;">Motiv-Vorschau abspielen</button>
+
+        <div class="d" style="font-weight:800; margin-bottom:8px;">🎬 Lektion-Start-Animation</div>
+        <div class="d" style="margin-bottom:10px;">Übergang, wenn eine Lektion beginnt.</div>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+          <button class="aura-anim-choice active" id="lessonAnimChoiceOff" data-style="off">Aus</button>
+          <button class="aura-anim-choice" id="lessonAnimChoiceFade" data-style="fade">🌫️ Fade - blendet sanft ein</button>
+          <button class="aura-anim-choice" id="lessonAnimChoiceSlide" data-style="slide">⬆️ Slide - gleitet von unten rein</button>
+          <button class="aura-anim-choice" id="lessonAnimChoiceZoom" data-style="zoom">🔍 Zoom - zoomt sanft rein</button>
+        </div>
+
+        <div class="d" style="font-weight:800; margin-bottom:8px;">🔀 Bildschirmwechsel-Animation</div>
+        <div class="d" style="margin-bottom:10px;">Übergang bei JEDEM Wechsel zwischen Bildschirmen (Home, Shop, Rangliste, ...).</div>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:0;">
+          <button class="aura-anim-choice active" id="navAnimChoiceOff" data-style="off">Aus</button>
+          <button class="aura-anim-choice" id="navAnimChoiceFade" data-style="fade">🌫️ Fade - blendet sanft ein</button>
+          <button class="aura-anim-choice" id="navAnimChoiceSlide" data-style="slide">⬆️ Slide - gleitet von unten rein</button>
+          <button class="aura-anim-choice" id="navAnimChoiceZoom" data-style="zoom">🔍 Zoom - zoomt sanft rein</button>
+        </div>
       </div>
     </div>
 
@@ -4421,6 +4435,22 @@
   <!-- Invite Leaderboard (NEU): Rangliste + Einladungslink, Top 3 bekommen eine Truhe -->
   <!-- QR-Code gross anzeigen (NEU): ein gemeinsames Popup für alle drei
        "Teilen"-Karten, statt den QR-Code klein permanent einzublenden. -->
+  <!-- Geführte Einführung (NEU): dimmt den Bildschirm grau ab, hebt aber
+       das jeweils erklärte UI-Element mit einem lila Rahmen hervor. -->
+  <div id="overlayTutorial" style="display:none; position:fixed; inset:0; z-index:99400;">
+    <div id="tutorialHighlight" style="position:absolute; border-radius:16px; border:3px solid #a855f7; box-shadow:0 0 0 9999px rgba(14,14,20,.78), 0 0 26px rgba(168,85,247,.75); transition:left .4s cubic-bezier(.4,0,.2,1), top .4s cubic-bezier(.4,0,.2,1), width .4s cubic-bezier(.4,0,.2,1), height .4s cubic-bezier(.4,0,.2,1); pointer-events:none;"></div>
+    <div id="tutorialBubble" style="position:absolute; background:var(--card); border:1.5px solid #a855f7; border-radius:16px; padding:16px; max-width:270px; box-shadow:0 14px 34px rgba(0,0,0,.45); transition:left .4s cubic-bezier(.4,0,.2,1), top .4s cubic-bezier(.4,0,.2,1);">
+      <div id="tutorialBubbleText" style="font-size:14px; line-height:1.45; margin-bottom:12px; color:var(--text);"></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <span id="tutorialStepIndicator" style="font-size:11px; opacity:.6; flex-shrink:0;"></span>
+        <div style="display:flex; gap:8px;">
+          <button id="tutorialSkipBtn" class="btn btn-ghost btn-small" style="padding:8px 12px;">Überspringen</button>
+          <button id="tutorialNextBtn" class="btn btn-primary btn-small" style="padding:8px 14px;">Weiter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="overlay" id="overlayQrCodeView">
     <div class="modal-card" style="max-width:280px;">
       <button class="banner-close-x" id="qrCodeViewClose" style="position:absolute; top:10px; right:12px;">✕</button>
@@ -4756,7 +4786,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.16";
+  const APP_VERSION = "3.18";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -4989,7 +5019,9 @@
     totalAura: 0,
     lastKnownGoodAura: 0, // Absicherung gegen ungültige/verlorene Aura-Werte (siehe saveProfile)
     auraGainAnimationStyle: "off", // Beta-Einstellung: "off" | "soft" | "pulse" | "sparkle"
-    auraOverlayMotif: "classic", // Beta-Einstellung: "classic" | "neon" | "lightning" | "sunburst" | "spin" | "ignite"
+    auraOverlayMotif: "classic", // Beta-Einstellung: "classic" | "neon" | "lightning" | "spin" | "ignite"
+    lessonStartAnimStyle: "off", // Beta-Einstellung: "off" | "fade" | "slide" | "zoom"
+    screenNavAnimStyle: "off", // Beta-Einstellung: "off" | "fade" | "slide" | "zoom"
     lessonsCompleted: 0,
     theme: "black",
     unlockedThemes: ["black"], // Freigeschaltete Designs
@@ -8826,6 +8858,87 @@
   // Positioniert sich an der Aura-Anzeige, die auf dem aktuellen Bildschirm
   // gerade sichtbar ist (Home oder Profil), fällt sonst auf die
   // Bildschirmmitte zurück.
+  /* ========================================================
+     GEFÜHRTE EINFÜHRUNG (NEU): Spotlight-Tutorial, das nacheinander
+     echte UI-Elemente auf dem Home-Bildschirm hervorhebt. Läuft einmal
+     nach der Einrichtung (nach der Layout-Wahl, vor dem Login), und kann
+     über das "?"-Symbol in den Einstellungen jederzeit erneut gestartet
+     werden. Jeder Schritt hat ein eigenes Ziel-Element je nach gewähltem
+     Layout (Simpel/Clean), da sich die Bildschirme unterscheiden.
+  ======================================================== */
+  const TUTORIAL_STEPS = [
+    { normal: "#startBtn", beta: "#betaContinueBtn", text: "Hier startest du deine nächste Lektion!" },
+    { normal: ".stats-row.layout-normal-only", beta: ".beta-stat-pill", text: "Hier siehst du auf einen Blick deine Leben, dein Level, deine Aura und deinen Streak." },
+    { normal: "#settingsBtn", beta: "#settingsBtn", text: "Hier findest du alle Einstellungen der App - inklusive dieser Einführung, falls du sie nochmal sehen willst." },
+    { normal: "#navShop", beta: "#navShop", text: "Im Shop kannst du deine Aura für Designs, Rahmen, Schriften und mehr ausgeben." },
+    { normal: "#navLeaderboard", beta: "#navLeaderboard", text: "Hier siehst du die Rangliste - wie schneidest du im Vergleich zu anderen ab?" }
+  ];
+  let tutorialStepIndex = 0;
+  let tutorialOnComplete = null;
+
+  function startTutorial(onComplete){
+    tutorialStepIndex = 0;
+    tutorialOnComplete = onComplete || null;
+    showScreen("home");
+    renderHome();
+    $("overlayTutorial").style.display = "block";
+    // Kurze Verzögerung, damit der Home-Bildschirm garantiert fertig
+    // gezeichnet ist, bevor die erste Position berechnet wird.
+    setTimeout(() => showTutorialStep(0), 80);
+  }
+
+  function endTutorial(){
+    $("overlayTutorial").style.display = "none";
+    if(tutorialOnComplete){
+      const cb = tutorialOnComplete;
+      tutorialOnComplete = null;
+      cb();
+    }
+  }
+
+  function showTutorialStep(i){
+    if(i >= TUTORIAL_STEPS.length){ endTutorial(); return; }
+    const step = TUTORIAL_STEPS[i];
+    const isBeta = document.body.classList.contains("layout-beta");
+    const selector = isBeta ? step.beta : step.normal;
+    const el = document.querySelector(selector);
+    if(!el || el.offsetParent === null){
+      // Ziel-Element existiert gerade nicht (z.B. Screen noch nicht bereit) -
+      // diesen Schritt überspringen statt die Einführung hängen zu lassen.
+      tutorialStepIndex = i + 1;
+      showTutorialStep(tutorialStepIndex);
+      return;
+    }
+    tutorialStepIndex = i;
+    const rect = el.getBoundingClientRect();
+    const pad = 8;
+    const hl = $("tutorialHighlight");
+    hl.style.left = (rect.left - pad) + "px";
+    hl.style.top = (rect.top - pad) + "px";
+    hl.style.width = (rect.width + pad * 2) + "px";
+    hl.style.height = (rect.height + pad * 2) + "px";
+
+    $("tutorialBubbleText").textContent = step.text;
+    $("tutorialStepIndicator").textContent = `${i + 1}/${TUTORIAL_STEPS.length}`;
+    $("tutorialNextBtn").textContent = (i === TUTORIAL_STEPS.length - 1) ? "Fertig" : "Weiter";
+
+    // Sprechblase unter das hervorgehobene Element setzen - reicht das
+    // nicht mehr auf den Bildschirm, stattdessen darüber platzieren.
+    const bubble = $("tutorialBubble");
+    const bubbleWidth = Math.min(270, window.innerWidth - 32);
+    bubble.style.width = bubbleWidth + "px";
+    let bubbleTop = rect.bottom + pad + 14;
+    const estBubbleHeight = 120;
+    if(bubbleTop + estBubbleHeight > window.innerHeight){
+      bubbleTop = Math.max(16, rect.top - pad - estBubbleHeight - 14);
+    }
+    let bubbleLeft = rect.left + rect.width / 2 - bubbleWidth / 2;
+    bubbleLeft = Math.max(16, Math.min(bubbleLeft, window.innerWidth - bubbleWidth - 16));
+    bubble.style.top = bubbleTop + "px";
+    bubble.style.left = bubbleLeft + "px";
+  }
+
+
   function findVisibleAuraAnchor(){
     const candidates = ["homeAura", "profileAuraVal", "shopAuraVal"];
     for(const id of candidates){
@@ -11021,6 +11134,14 @@
     }
     Object.values(screens).forEach(s => s.classList.remove("active"));
     screens[name].classList.add("active");
+    // Bildschirmwechsel-Animation (NEU, Beta-Einstellung)
+    const navAnim = profile.screenNavAnimStyle;
+    if(navAnim && navAnim !== "off"){
+      const el = screens[name];
+      el.classList.remove("nav-anim-fade", "nav-anim-slide", "nav-anim-zoom");
+      void el.offsetWidth;
+      el.classList.add("nav-anim-" + navAnim);
+    }
 
     // Absicherung gegen einen auf dem iPad gelegentlich hängen bleibenden,
     // unsichtbaren Vollbild-Overlay (der "Dein Ernst?"-Schreckmoment) - der
@@ -13044,12 +13165,25 @@
     saveProfile();
     AURA_ANIM_STYLES.forEach(s => $(AURA_ANIM_BTN_IDS[s]).classList.toggle("active", s === style));
   }
-  const AURA_MOTIFS = ["classic", "neon", "lightning", "sunburst", "spin", "ignite"];
-  const AURA_MOTIF_BTN_IDS = { classic: "auraMotifChoiceClassic", neon: "auraMotifChoiceNeon", lightning: "auraMotifChoiceLightning", sunburst: "auraMotifChoiceSunburst", spin: "auraMotifChoiceSpin", ignite: "auraMotifChoiceIgnite" };
+  const AURA_MOTIFS = ["classic", "neon", "lightning", "spin", "ignite"];
+  const AURA_MOTIF_BTN_IDS = { classic: "auraMotifChoiceClassic", neon: "auraMotifChoiceNeon", lightning: "auraMotifChoiceLightning", spin: "auraMotifChoiceSpin", ignite: "auraMotifChoiceIgnite" };
   function selectAuraMotif(motif){
     profile.auraOverlayMotif = motif;
     saveProfile();
     AURA_MOTIFS.forEach(m => $(AURA_MOTIF_BTN_IDS[m]).classList.toggle("active", m === motif));
+  }
+  const SIMPLE_ANIM_STYLES = ["off", "fade", "slide", "zoom"];
+  const LESSON_ANIM_BTN_IDS = { off: "lessonAnimChoiceOff", fade: "lessonAnimChoiceFade", slide: "lessonAnimChoiceSlide", zoom: "lessonAnimChoiceZoom" };
+  const NAV_ANIM_BTN_IDS = { off: "navAnimChoiceOff", fade: "navAnimChoiceFade", slide: "navAnimChoiceSlide", zoom: "navAnimChoiceZoom" };
+  function selectLessonAnimStyle(style){
+    profile.lessonStartAnimStyle = style;
+    saveProfile();
+    SIMPLE_ANIM_STYLES.forEach(s => $(LESSON_ANIM_BTN_IDS[s]).classList.toggle("active", s === style));
+  }
+  function selectNavAnimStyle(style){
+    profile.screenNavAnimStyle = style;
+    saveProfile();
+    SIMPLE_ANIM_STYLES.forEach(s => $(NAV_ANIM_BTN_IDS[s]).classList.toggle("active", s === style));
   }
   $("peterMenuRow").addEventListener("click", () => {
     $("overlayPeterMenu").classList.add("show");
@@ -13057,15 +13191,31 @@
     AURA_ANIM_STYLES.forEach(s => $(AURA_ANIM_BTN_IDS[s]).classList.toggle("active", s === current));
     const currentMotif = profile.auraOverlayMotif || "classic";
     AURA_MOTIFS.forEach(m => $(AURA_MOTIF_BTN_IDS[m]).classList.toggle("active", m === currentMotif));
+    const currentLessonAnim = profile.lessonStartAnimStyle || "off";
+    SIMPLE_ANIM_STYLES.forEach(s => $(LESSON_ANIM_BTN_IDS[s]).classList.toggle("active", s === currentLessonAnim));
+    const currentNavAnim = profile.screenNavAnimStyle || "off";
+    SIMPLE_ANIM_STYLES.forEach(s => $(NAV_ANIM_BTN_IDS[s]).classList.toggle("active", s === currentNavAnim));
+    // Bugfix (doppeltes Scrollen): der Hintergrund-Bildschirm hat selbst
+    // ein eigenes overflow-y:auto - ohne diese Sperre konnte man sowohl im
+    // Menü ALS AUCH im Bildschirm dahinter gleichzeitig scrollen, was sich
+    // verwirrend wie "zweimal scrollen" anfühlte.
+    const activeScreen = document.querySelector(".screen.active");
+    if(activeScreen) activeScreen.style.overflow = "hidden";
   });
   $("peterMenuClose").addEventListener("click", () => {
     $("overlayPeterMenu").classList.remove("show");
+    const activeScreen = document.querySelector(".screen.active");
+    if(activeScreen) activeScreen.style.overflow = "";
   });
   AURA_ANIM_STYLES.forEach(s => {
     $(AURA_ANIM_BTN_IDS[s]).addEventListener("click", () => selectAuraAnimStyle(s));
   });
   AURA_MOTIFS.forEach(m => {
     $(AURA_MOTIF_BTN_IDS[m]).addEventListener("click", () => selectAuraMotif(m));
+  });
+  SIMPLE_ANIM_STYLES.forEach(s => {
+    $(LESSON_ANIM_BTN_IDS[s]).addEventListener("click", () => selectLessonAnimStyle(s));
+    $(NAV_ANIM_BTN_IDS[s]).addEventListener("click", () => selectNavAnimStyle(s));
   });
   $("auraAnimPreviewBtn").addEventListener("click", () => {
     const style = profile.auraGainAnimationStyle;
@@ -13077,6 +13227,16 @@
   });
   $("auraMotifPreviewBtn").addEventListener("click", () => {
     showAuraOverlay(false, 25, 1400);
+  });
+
+  $("tutorialNextBtn").addEventListener("click", () => {
+    showTutorialStep(tutorialStepIndex + 1);
+  });
+  $("tutorialSkipBtn").addEventListener("click", () => {
+    endTutorial();
+  });
+  $("replayTutorialRow").addEventListener("click", () => {
+    startTutorial(null);
   });
 
   $("installAppRow").addEventListener("click", () => {
@@ -13395,7 +13555,15 @@
       $("welcomeGuestBtn").disabled = false;
       $("welcomeGuestBtn").textContent = "Erstmal als Gast spielen";
     }
-    showOnboardingStep("obStepAuth");
+    // Geführte Einführung (NEU): läuft zwischen Layout-Wahl und Login -
+    // dafür die Vollbild-Einrichtung kurz ausblenden, echte
+    // Bildschirm-Elemente zeigen und hervorheben, danach direkt beim
+    // Login-Schritt weitermachen (nicht wieder von vorne beginnen).
+    closeOnboarding();
+    startTutorial(() => {
+      $("onboardingScreen").style.display = "flex";
+      showOnboardingStep("obStepAuth");
+    });
   });
 
   // Sperrt den "Erstmal als Gast spielen"-Button 5 Sekunden lang, wenn der
@@ -14354,6 +14522,14 @@
     updateComboCounter(lesson.streakThisLesson);
     markLessonInProgress();
     showScreen("lesson");
+    // Lektion-Start-Animation (NEU, Beta-Einstellung)
+    const lessonAnim = profile.lessonStartAnimStyle;
+    if(lessonAnim && lessonAnim !== "off"){
+      const el = $("screen-lesson");
+      el.classList.remove("lesson-anim-fade", "lesson-anim-slide", "lesson-anim-zoom");
+      void el.offsetWidth; // erzwingt einen Reflow, damit die Animation bei erneutem Start sauber neu abspielt
+      el.classList.add("lesson-anim-" + lessonAnim);
+    }
     renderQuestion();
   }
 
@@ -15084,7 +15260,6 @@
     classic: { normal: "⚡", fast: "💀" },
     neon: { normal: "🔷", fast: "💠" },
     lightning: { normal: "⚡", fast: "💀" },
-    sunburst: { normal: "⚡", fast: "💀" },
     spin: { normal: "⚡", fast: "💀" },
     ignite: { normal: "⚡", fast: "💀" }
   };
@@ -15093,7 +15268,7 @@
   // brauchen mehr Zeit, um vollständig abzulaufen, als die bisherige kurze
   // Standardanzeige - die tatsächliche Anzeigedauer ist deshalb IMMER
   // mindestens so lang wie die Animation selbst braucht.
-  const AURA_MOTIF_MIN_MS = { lightning: 1300, sunburst: 1500, spin: 1100, ignite: 2000 };
+  const AURA_MOTIF_MIN_MS = { lightning: 1300, spin: 1100, ignite: 2000 };
 
   function showAuraOverlay(isAuraEdit, amount, showMs){
     const motif = profile.auraOverlayMotif || "classic";
@@ -15110,19 +15285,6 @@
     const ov = $("overlayAura");
     ov.dataset.auraMotif = motif;
     spawnParticles(motif);
-
-    // Sunburst (NEU): die Zahl zählt sich sichtbar von 0 auf den echten
-    // Wert hoch, statt sofort fertig dazustehen.
-    if(motif === "sunburst" && amount > 0){
-      const titleEl = $("auraTitle");
-      const duration = 700, steps = Math.min(amount, 24), stepTime = duration / steps;
-      let shown = 0;
-      const countInterval = setInterval(() => {
-        shown = Math.min(amount, shown + Math.max(1, Math.round(amount / steps)));
-        titleEl.textContent = `+${shown} AURA`;
-        if(shown >= amount) clearInterval(countInterval);
-      }, stepTime);
-    }
 
     // Blitzeinschlag (NEU): Vollbild-Blitz + Blitz-Balken werden extra
     // eingefügt, da sie über den gesamten Bildschirm gehen, nicht nur
@@ -15188,12 +15350,6 @@
         b.style.left = "50%"; b.style.top = "45%";
         wrap.appendChild(b);
       }
-    } else if(motif === "sunburst"){
-      // Sunburst: die rotierenden Lichtstrahlen sind rein CSS-basiert
-      // (siehe .sunburst-rays) - hier nur das Element einfügen.
-      const rays = document.createElement("div");
-      rays.className = "sunburst-rays";
-      wrap.appendChild(rays);
     } else {
       // Klassisch, Blitzeinschlag & Spin-Impact: das bisherige
       // Emoji-Funken-Muster als gemeinsame Basis-Deko.

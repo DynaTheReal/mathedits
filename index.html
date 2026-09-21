@@ -1340,13 +1340,16 @@
   /* ---------- settings screen ---------- */
   .settings-title{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:20px; margin-left:8px; color: var(--text);}
   .settings-row{
-    background:var(--card); border:1px solid var(--border); border-radius:20px;
-    padding:16px 18px; display:flex; align-items:center; justify-content:space-between;
-    gap:14px; margin-top:14px;
+    background:var(--card); border:1px solid color-mix(in srgb, var(--border) 55%, transparent); border-radius:16px;
+    padding:14px 16px; display:flex; align-items:center; justify-content:space-between;
+    gap:14px; margin-top:10px; transition:border-color .15s, background .15s;
+  }
+  .settings-row[style*="cursor:pointer"]:hover{
+    border-color:var(--accent); background:color-mix(in srgb, var(--accent) 6%, var(--card));
   }
   .settings-row .info{flex:1;}
-  .settings-row .t{font-weight:700; font-size:15px; margin-bottom:3px; color: var(--text);}
-  .settings-row .d{font-size:12.5px; color:var(--text); opacity:.85; line-height:1.4;}
+  .settings-row .t{font-weight:700; font-size:14.5px; margin-bottom:2px; color: var(--text);}
+  .settings-row .d{font-size:12px; color:var(--text); opacity:.75; line-height:1.4;}
   
   .select-input {
     background: var(--card-2);
@@ -4538,9 +4541,16 @@
       <select class="select-input" id="appearanceThemeSelect" style="width:100%; margin-bottom:16px;"></select>
 
       <div class="d" style="font-weight:800; margin-bottom:8px;">Layout beim App-Start</div>
-      <div style="display:flex; gap:8px;">
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
         <button class="aura-anim-choice" id="appearanceLayoutSimpel" data-layout="simpel" style="flex:1; text-align:center;">Simpel</button>
         <button class="aura-anim-choice" id="appearanceLayoutClean" data-layout="clean" style="flex:1; text-align:center;">Clean</button>
+      </div>
+
+      <div class="d" style="font-weight:800; margin-bottom:6px;">Aura-Animation in Lektionen</div>
+      <div class="d" style="margin-bottom:8px;">Das große Bild nach jeder richtigen Antwort.</div>
+      <div style="display:flex; gap:8px;">
+        <button class="aura-anim-choice" id="appearanceMotifClassic" data-motif="classic" style="flex:1; text-align:center;">⚡ Klassisch</button>
+        <button class="aura-anim-choice" id="appearanceMotifIgnite" data-motif="ignite" style="flex:1; text-align:center;">🔥 Aufladend</button>
       </div>
     </div>
   </div>
@@ -4560,8 +4570,8 @@
   </div>
 
   <div class="overlay" id="overlayQrCodeView">
-    <div class="modal-card" style="max-width:280px;">
-      <button class="banner-close-x" id="qrCodeViewClose" style="position:absolute; top:10px; right:12px;">✕</button>
+    <div class="modal-card" style="max-width:280px; position:relative;">
+      <button id="qrCodeViewClose" style="position:absolute; top:10px; right:10px; width:36px; height:36px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:18px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
       <div style="font-weight:800; margin-bottom:14px;">QR-Code</div>
       <img id="qrCodeViewImage" alt="QR-Code zum Einladungslink" style="width:220px; height:220px; border-radius:12px; background:#fff; padding:10px; display:block; margin:0 auto;">
     </div>
@@ -4894,7 +4904,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.20";
+  const APP_VERSION = "3.21";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5127,7 +5137,7 @@
     totalAura: 0,
     lastKnownGoodAura: 0, // Absicherung gegen ungültige/verlorene Aura-Werte (siehe saveProfile)
     auraGainAnimationStyle: "off", // Beta-Einstellung: "off" | "soft" | "pulse" | "sparkle"
-    auraOverlayMotif: "classic", // Beta-Einstellung: "classic" | "neon" | "lightning" | "spin" | "ignite"
+    auraOverlayMotif: "classic", // Aussehen-Einstellung: "classic" | "ignite"
     lessonStartAnimStyle: "off", // Beta-Einstellung: "off" | "fade" | "slide" | "slideleft" | "slideright" | "zoom" | "rotate" | "blur" | "flip" | "bounce" | "elastic" | "curtain" | "glitch"
     screenNavAnimStyle: "off", // Beta-Einstellung: siehe lessonStartAnimStyle
     lessonsCompleted: 0,
@@ -5192,6 +5202,8 @@
     lastSeenUpdateNoticeAt: 0, // bis wann Owner-Update-Hinweise schon gesehen wurden
     hasReceivedStreak2Chest: false, // ob die Truhe für den ersten zweitägigen Streak schon vergeben wurde
     streak2Chest: null, // Truhe für den ersten zweitägigen Streak
+    hasReceivedCombo50Chest: false, // ob die einmalige Truhe für eine 50er-Combo schon vergeben wurde
+    combo50Chest: null, // einmalige Truhe für die erste 50er-Combo im Leben
     manuallyUnlockedFreeTiers: [], // kostenlose Stufen über der aktiven Stufe, die bewusst mit Warnung bestätigt wurden
     factStats: {}, // Trends: pro Zahl (1-20) {correct, wrong} bei Multiplikations-Aufgaben
     factPairStats: {}, // Trends-Detailansicht: pro Reihe (1-20) x Spalte (1-12) {correct, wrong}
@@ -9696,6 +9708,18 @@
       wrap.appendChild(card);
     }
 
+    if(profile.combo50Chest){
+      const card = document.createElement("div");
+      card.className = "mission-card";
+      const chestHtml = buildChestHtml(profile.combo50Chest, "combo50", "combo50", "");
+      card.innerHTML = `
+        <div class="m-title">⚡ 50er-Combo!</div>
+        <div class="m-sub">Einmalige Belohnung für deine erste 50er-Serie</div>
+        ${chestHtml}
+      `;
+      wrap.appendChild(card);
+    }
+
     if(profile.installChest){
       const card = document.createElement("div");
       card.className = "mission-card";
@@ -9989,6 +10013,7 @@
     ]));
     merged.lastSeenUpdateNoticeAt = Math.max(localP.lastSeenUpdateNoticeAt || 0, cloudP.lastSeenUpdateNoticeAt || 0);
     merged.hasReceivedStreak2Chest = !!(localP.hasReceivedStreak2Chest || cloudP.hasReceivedStreak2Chest);
+    merged.hasReceivedCombo50Chest = !!(localP.hasReceivedCombo50Chest || cloudP.hasReceivedCombo50Chest);
     // Truhen (KRITISCH): einmal eingelöst muss IMMER eingelöst bleiben,
     // egal welche Seite sonst als "neuer" gilt - sonst ließe sich dieselbe
     // Truhe durch einen Reload im richtigen Moment mehrfach abholen (genau
@@ -9996,6 +10021,8 @@
     // bereits vorhandene pickFurtherChest()-Logik wie bei Achievements.
     merged.streak2Chest = localP.streak2Chest || cloudP.streak2Chest
       ? pickFurtherChest(localP.streak2Chest, cloudP.streak2Chest) : null;
+    merged.combo50Chest = localP.combo50Chest || cloudP.combo50Chest
+      ? pickFurtherChest(localP.combo50Chest, cloudP.combo50Chest) : null;
     merged.installChest = localP.installChest || cloudP.installChest
       ? pickFurtherChest(localP.installChest, cloudP.installChest) : null;
     merged.manuallyUnlockedFreeTiers = Array.from(new Set([
@@ -13316,6 +13343,9 @@
     const currentLayout = profile.layoutStyle === "simpel" ? "simpel" : "clean";
     $("appearanceLayoutSimpel").classList.toggle("active", currentLayout === "simpel");
     $("appearanceLayoutClean").classList.toggle("active", currentLayout === "clean");
+    const currentMotif = profile.auraOverlayMotif === "ignite" ? "ignite" : "classic";
+    $("appearanceMotifClassic").classList.toggle("active", currentMotif === "classic");
+    $("appearanceMotifIgnite").classList.toggle("active", currentMotif === "ignite");
   });
   $("appearanceClose").addEventListener("click", () => {
     $("overlayAppearance").classList.remove("show");
@@ -13330,6 +13360,15 @@
       $("appearanceLayoutSimpel").classList.toggle("active", layout === "simpel");
       $("appearanceLayoutClean").classList.toggle("active", layout === "clean");
       showToast(`Layout auf "${layout === "simpel" ? "Simpel" : "Clean"}" gesetzt.`);
+    });
+  });
+  ["appearanceMotifClassic", "appearanceMotifIgnite"].forEach(id => {
+    $(id).addEventListener("click", () => {
+      const motif = $(id).dataset.motif;
+      profile.auraOverlayMotif = motif;
+      saveProfile();
+      $("appearanceMotifClassic").classList.toggle("active", motif === "classic");
+      $("appearanceMotifIgnite").classList.toggle("active", motif === "ignite");
     });
   });
 
@@ -14964,6 +15003,13 @@
         lesson.streakThisLesson = (lesson.streakThisLesson || 0) + 1;
         if(lesson.isMainProgression){
           profile.comboCount = (profile.comboCount || 0) + 1;
+          // Einmalige Truhe fürs Leben bei der ersten 50er-Combo (NEU).
+          if(profile.comboCount === 50 && !profile.hasReceivedCombo50Chest){
+            profile.hasReceivedCombo50Chest = true;
+            profile.combo50Chest = freshChest();
+            updateMissionsBadge();
+            showToast("🔥 50er-Combo! Eine Truhe wartet in den Missionen.");
+          }
           checkAchievements();
         }
       } else {
@@ -15365,11 +15411,10 @@
   const AURA_MOTIF_MIN_MS = { lightning: 1300, spin: 1100, ignite: 2000 };
 
   function showAuraOverlay(isAuraEdit, amount, showMs){
-    // NEU: kein wählbares Motiv mehr - die klassischen Blitz-/Totenkopf-
-    // Icons bleiben immer, aber zu 50% Chance läuft automatisch die
-    // "Ignite"-Aufladen-Animation statt des einfachen Pop-Auftauchens, für
-    // Abwechslung ohne eigene Einstellung dafür.
-    const motif = Math.random() < 0.5 ? "ignite" : "classic";
+    // Wählbar im Aussehen-Menü (nicht mehr zufällig 50/50): klassische
+    // Blitz-/Totenkopf-Icons bleiben immer, die Animation selbst ist aber
+    // fest wählbar zwischen "klassisch" und "aufladend" (Ignite).
+    const motif = profile.auraOverlayMotif === "ignite" ? "ignite" : "classic";
     const icons = AURA_MOTIF_ICONS.classic;
     if(isAuraEdit){
       $("auraEmoji").textContent = icons.fast;
@@ -15824,4 +15869,3 @@
 </script>
 </body>
 </html>
-(

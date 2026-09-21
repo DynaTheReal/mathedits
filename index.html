@@ -4904,7 +4904,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.22";
+  const APP_VERSION = "3.23";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6554,17 +6554,44 @@
     const statusEl = $("ownerCodeStatus");
     try{
       const snap = await db().collection("redeemCodes").get();
-      const active = snap.docs.filter(d => d.data().active);
-      if(active.length === 0){
-        statusEl.innerHTML = "Aktuell: keine aktiven Codes.";
+      // NEU: nicht mehr nur aktive Codes zeigen - auch bereits verbrauchte
+      // Einzel-Codes bleiben sichtbar, damit man nachträglich sehen kann,
+      // wer sie eingelöst hat. Aktive Codes zuerst, verbrauchte danach.
+      const all = [...snap.docs].sort((a, b) => (b.data().active ? 1 : 0) - (a.data().active ? 1 : 0));
+      if(all.length === 0){
+        statusEl.innerHTML = "Aktuell: keine Codes vorhanden.";
         return;
       }
-      statusEl.innerHTML = active.map(d => `
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; padding:4px 0;">
-          <span>"${d.data().code}" (${rewardLabelForCode(d.data())}${d.data().isPublic ? " · 🌍 öffentlich" : ""})</span>
-          <button class="owner-code-delete-btn" data-id="${d.id}" title="Code löschen" style="background:none; border:none; color:#ef4444; font-size:15px; cursor:pointer; padding:2px 6px; flex-shrink:0;">🗑️</button>
+      statusEl.innerHTML = all.map(d => {
+        const data = d.data();
+        let redeemedInfo;
+        if(data.isPublic){
+          const names = data.redeemedByUsernames || [];
+          const uidCount = (data.redeemedByUids || []).length;
+          if(uidCount === 0){
+            redeemedInfo = "Noch von niemandem eingelöst";
+          } else if(names.length > 0){
+            redeemedInfo = `Eingelöst von: ${names.map(n => "@" + n).join(", ")}`;
+          } else {
+            redeemedInfo = `${uidCount}× eingelöst`; // ältere Einlösungen ohne gespeicherten Namen
+          }
+        } else if(!data.active && data.redeemedByUsername){
+          redeemedInfo = `Eingelöst von @${data.redeemedByUsername}`;
+        } else if(!data.active){
+          redeemedInfo = "Eingelöst (kein Name gespeichert)";
+        } else {
+          redeemedInfo = "Noch nicht eingelöst";
+        }
+        return `
+        <div style="padding:6px 0; border-bottom:1px solid var(--border);">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+            <span>${data.active ? "" : "🚫 "}"${data.code}" (${rewardLabelForCode(data)}${data.isPublic ? " · 🌍 öffentlich" : ""})</span>
+            <button class="owner-code-delete-btn" data-id="${d.id}" title="Code löschen" style="background:none; border:none; color:#ef4444; font-size:15px; cursor:pointer; padding:2px 6px; flex-shrink:0;">🗑️</button>
+          </div>
+          <div style="font-size:11px; opacity:.7; margin-top:2px;">${redeemedInfo}</div>
         </div>
-      `).join("");
+      `;
+      }).join("");
       statusEl.querySelectorAll(".owner-code-delete-btn").forEach(btn => {
         btn.addEventListener("click", async () => {
           if(!confirm("Diesen Code wirklich löschen?")) return;
@@ -6651,7 +6678,8 @@
           return;
         }
         await doc.ref.update({
-          redeemedByUids: [...(data.redeemedByUids || []), currentUser.uid]
+          redeemedByUids: [...(data.redeemedByUids || []), currentUser.uid],
+          redeemedByUsernames: [...(data.redeemedByUsernames || []), profile.username || "?"]
         });
       } else {
         // Kippt NUR active auf false - schlägt fehl, falls jemand anderes

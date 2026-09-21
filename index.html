@@ -3914,6 +3914,18 @@
           <div class="switch" id="ownerCodePublicSwitch"><div class="knob"></div></div>
         </div>
         <button class="btn btn-primary btn-small" id="ownerSetCodeBtn" style="width:100%;">Code hinzufügen</button>
+        <button class="btn btn-ghost btn-small" id="ownerCodeHistoryBtn" style="width:100%; margin-top:8px;">📜 Einlöse-Verlauf</button>
+      </div>
+    </div>
+
+    <!-- Einlöse-Verlauf (NEU): scrollbare Liste aller bisherigen
+         Code-Einlösungen (Einzel- und öffentliche Codes zusammen),
+         neueste zuerst. -->
+    <div class="overlay" id="overlayCodeHistory">
+      <div class="modal-card" style="max-width:380px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
+        <button id="codeHistoryClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+        <div style="font-weight:800; margin-bottom:12px;">📜 Einlöse-Verlauf</div>
+        <div id="codeHistoryList" style="max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
       </div>
     </div>
 
@@ -4904,7 +4916,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.23";
+  const APP_VERSION = "3.24";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6549,6 +6561,44 @@
     }, (err) => console.error("Spieler-Ziel beobachten Fehler:", err));
   }
 
+  async function renderCodeHistory(){
+    if(!isOwner() || !firebaseInitialized) return;
+    const listEl = $("codeHistoryList");
+    listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Lädt...</div>";
+    try{
+      const snap = await db().collection("redeemCodes").get();
+      // Baut aus allen Codes eine einzige, flache, chronologisch sortierte
+      // Liste - Einzel-Codes tragen genau eine Einlösung, öffentliche
+      // Codes können mehrere enthalten.
+      const entries = [];
+      snap.docs.forEach(d => {
+        const data = d.data();
+        if(data.isPublic){
+          const names = data.redeemedByUsernames || [];
+          const times = data.redeemedByTimestamps || [];
+          names.forEach((name, i) => {
+            entries.push({ code: data.code, username: name, time: times[i] || 0 });
+          });
+        } else if(!data.active && data.redeemedByUsername){
+          entries.push({ code: data.code, username: data.redeemedByUsername, time: data.redeemedAt || 0 });
+        }
+      });
+      if(entries.length === 0){
+        listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Noch keine Code-Einlösungen.</div>";
+        return;
+      }
+      entries.sort((a, b) => b.time - a.time);
+      listEl.innerHTML = entries.map(e => `
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:6px 0; border-bottom:1px solid var(--border);">
+          <span style="opacity:.85;">@${e.username}<br><span style="font-size:10.5px; opacity:.6;">"${e.code}"${e.time ? " · " + new Date(e.time).toLocaleString("de-DE") : ""}</span></span>
+        </div>
+      `).join("");
+    }catch(err){
+      listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Verlauf konnte nicht geladen werden.</div>";
+      console.error("Code-Verlauf Fehler:", err);
+    }
+  }
+
   async function renderOwnerCodeStatus(){
     if(!isOwner() || !firebaseInitialized) return;
     const statusEl = $("ownerCodeStatus");
@@ -6679,7 +6729,8 @@
         }
         await doc.ref.update({
           redeemedByUids: [...(data.redeemedByUids || []), currentUser.uid],
-          redeemedByUsernames: [...(data.redeemedByUsernames || []), profile.username || "?"]
+          redeemedByUsernames: [...(data.redeemedByUsernames || []), profile.username || "?"],
+          redeemedByTimestamps: [...(data.redeemedByTimestamps || []), Date.now()]
         });
       } else {
         // Kippt NUR active auf false - schlägt fehl, falls jemand anderes
@@ -8867,6 +8918,9 @@
     if(sourceType === "streak2"){
       return profile.streak2Chest;
     }
+    if(sourceType === "combo50"){
+      return profile.combo50Chest;
+    }
     if(sourceType === "redeemcode"){
       return profile.redeemedCodeChests ? profile.redeemedCodeChests[sourceId] : null;
     }
@@ -8895,6 +8949,8 @@
       title = (sourceId === "rank2a" || sourceId === "rank2b") ? "🥈 Platz 2 im Invite Leaderboard" : "🥉 Platz 3 im Invite Leaderboard";
     } else if(sourceType === "streak2"){
       title = "🔥 2 Tage am Stück!";
+    } else if(sourceType === "combo50"){
+      title = "⚡ 50er-Combo!";
     } else if(sourceType === "redeemcode"){
       title = "🎁 Einlöse-Code";
     } else if(sourceType === "install"){
@@ -13166,6 +13222,13 @@
     `<option value="${id}">${THEME_DISPLAY_NAME[id] || id}</option>`
   ).join("");
   $("ownerSetCodeBtn").addEventListener("click", ownerSetRedeemCode);
+  $("ownerCodeHistoryBtn").addEventListener("click", () => {
+    $("overlayCodeHistory").classList.add("show");
+    renderCodeHistory();
+  });
+  $("codeHistoryClose").addEventListener("click", () => {
+    $("overlayCodeHistory").classList.remove("show");
+  });
 
   $("redeemCodeBtn").addEventListener("click", () => {
     $("redeemCodeInput").value = "";

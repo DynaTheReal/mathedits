@@ -1111,6 +1111,34 @@
     70%{ transform:scale(1); }
     100%{ opacity:0; transform:scale(1) translateY(-10px); }
   }
+  /* Nachrichten (NEU): Sprechblasen-Einflug-Animation, Ungelesen-Punkt,
+     Abschick-Animation. */
+  .chat-unread-dot{
+    width:10px; height:10px; border-radius:50%; background:#22c55e;
+    box-shadow:0 0 6px 1px rgba(34,197,94,.7);
+  }
+  @keyframes chat-bubble-in{ 0%{ opacity:0; transform:translateY(8px) scale(.95); } 100%{ opacity:1; transform:translateY(0) scale(1); } }
+
+  /* Coole Abschick-Animation (NEU): Button pulsiert kurz mit einem Ring,
+     der Pfeil "schießt" einmal kurz nach vorne und zurück. */
+  #chatSendBtn{ transition:transform .15s; position:relative; overflow:visible; }
+  #chatSendBtn.chat-send-pulse{ animation: chat-send-pulse .45s ease-out; }
+  @keyframes chat-send-pulse{
+    0%{ transform:scale(1); }
+    35%{ transform:scale(.85) translateX(3px); }
+    60%{ transform:scale(1.15) translateX(-2px); }
+    100%{ transform:scale(1); }
+  }
+  .chat-send-ring{
+    position:absolute; inset:0; border-radius:50%; border:2px solid var(--accent);
+    animation: chat-send-ring-anim .5s ease-out forwards; pointer-events:none;
+  }
+  @keyframes chat-send-ring-anim{
+    0%{ transform:scale(1); opacity:.9; }
+    100%{ transform:scale(2.2); opacity:0; }
+  }
+
+
   .aura-anim-spark{
     position:fixed; width:5px; height:5px; border-radius:50%; background:#a855f7;
     box-shadow:0 0 6px 1px rgba(168,85,247,.8);
@@ -2422,6 +2450,7 @@
   }
   .chat-bubble{
     max-width:75%; padding:9px 13px; border-radius:16px; font-size:13.5px; line-height:1.4; word-break:break-word;
+    animation: chat-bubble-in .25s cubic-bezier(.2,1,.3,1);
   }
   .chat-bubble.mine{
     align-self:flex-end; background:var(--accent); color:var(--accent-text); border-bottom-right-radius:4px;
@@ -2887,6 +2916,7 @@
     <div class="topbar">
       <div class="brand"><span class="dot"></span>MathEdits</div>
       <div class="topbar-actions">
+        <div class="theme-toggle" id="homeChatBtn" title="Nachrichten" style="position:relative;">💬<span id="chatUnreadDot" style="display:none; position:absolute; top:2px; right:2px; width:10px; height:10px; border-radius:50%; background:#22c55e; box-shadow:0 0 6px 1px rgba(34,197,94,.7); border:1.5px solid var(--card);"></span></div>
         <div class="theme-toggle" id="duelLobbyBtn" title="Duell-Lobby">⚔️</div>
         <div class="theme-toggle" id="earthLiveBtn" title="EarthLive">🌐</div>
         <div class="theme-toggle" id="settingsBtn">⚙️</div>
@@ -3914,7 +3944,6 @@
           <div class="switch" id="ownerCodePublicSwitch"><div class="knob"></div></div>
         </div>
         <button class="btn btn-primary btn-small" id="ownerSetCodeBtn" style="width:100%;">Code hinzufügen</button>
-        <button class="btn btn-ghost btn-small" id="ownerCodeHistoryBtn" style="width:100%; margin-top:8px;">📜 Einlöse-Verlauf</button>
       </div>
     </div>
 
@@ -3922,10 +3951,11 @@
          Code-Einlösungen (Einzel- und öffentliche Codes zusammen),
          neueste zuerst. -->
     <div class="overlay" id="overlayCodeHistory">
-      <div class="modal-card" style="max-width:380px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
+      <div class="modal-card" style="max-width:340px; text-align:left; position:relative;">
         <button id="codeHistoryClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
-        <div style="font-weight:800; margin-bottom:12px;">📜 Einlöse-Verlauf</div>
-        <div id="codeHistoryList" style="max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
+        <div style="font-weight:800; margin-bottom:2px;">📜 Einlöse-Verlauf</div>
+        <div class="d" id="codeHistoryCodeLabel" style="margin-bottom:12px;"></div>
+        <div id="codeHistoryList" style="max-height:50vh; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
       </div>
     </div>
 
@@ -4619,9 +4649,19 @@
     <div class="modal-card" style="max-width:400px;">
       <div style="font-size:36px; margin-bottom:6px;">💬</div>
       <h2>Nachrichten</h2>
-      <p>Wähle einen Freund, um zu chatten.</p>
-      <div id="messagesFriendsList" style="max-height:50vh; overflow-y:auto; margin-top:6px;"></div>
+      <button class="btn btn-primary btn-small" id="openNewChatPickerBtn" style="width:100%; margin:10px 0;">✏️ Neuer Chat</button>
+      <div id="messagesFriendsList" style="max-height:50vh; overflow-y:auto; margin-top:6px; text-align:left;"></div>
       <button class="btn btn-ghost" id="closeMessagesList" style="margin-top:16px;">Schließen</button>
+    </div>
+  </div>
+
+  <!-- Neuer Chat (NEU): Freunde, mit denen noch nicht geschrieben wurde -
+       also die, die noch nicht in der obigen Liste stehen. -->
+  <div class="overlay" id="overlayNewChatPicker">
+    <div class="modal-card" style="max-width:380px; text-align:left; max-height:80vh; overflow-y:auto; position:relative;">
+      <button id="newChatPickerClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+      <div style="font-weight:800; margin-bottom:12px;">✏️ Neuer Chat</div>
+      <div id="newChatPickerList" style="display:flex; flex-direction:column; gap:4px;"></div>
     </div>
   </div>
 
@@ -4916,7 +4956,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.24";
+  const APP_VERSION = "3.26";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6561,36 +6601,36 @@
     }, (err) => console.error("Spieler-Ziel beobachten Fehler:", err));
   }
 
-  async function renderCodeHistory(){
+  async function renderCodeHistory(codeDocId){
     if(!isOwner() || !firebaseInitialized) return;
     const listEl = $("codeHistoryList");
     listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Lädt...</div>";
+    $("codeHistoryCodeLabel").textContent = "";
     try{
-      const snap = await db().collection("redeemCodes").get();
-      // Baut aus allen Codes eine einzige, flache, chronologisch sortierte
-      // Liste - Einzel-Codes tragen genau eine Einlösung, öffentliche
-      // Codes können mehrere enthalten.
+      const doc = await db().collection("redeemCodes").doc(codeDocId).get();
+      if(!doc.exists){
+        listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Code nicht gefunden.</div>";
+        return;
+      }
+      const data = doc.data();
+      $("codeHistoryCodeLabel").textContent = `"${data.code}"`;
       const entries = [];
-      snap.docs.forEach(d => {
-        const data = d.data();
-        if(data.isPublic){
-          const names = data.redeemedByUsernames || [];
-          const times = data.redeemedByTimestamps || [];
-          names.forEach((name, i) => {
-            entries.push({ code: data.code, username: name, time: times[i] || 0 });
-          });
-        } else if(!data.active && data.redeemedByUsername){
-          entries.push({ code: data.code, username: data.redeemedByUsername, time: data.redeemedAt || 0 });
-        }
-      });
+      if(data.isPublic){
+        const names = data.redeemedByUsernames || [];
+        const times = data.redeemedByTimestamps || [];
+        names.forEach((name, i) => entries.push({ username: name, time: times[i] || 0 }));
+      } else if(data.redeemedByUsername){
+        entries.push({ username: data.redeemedByUsername, time: data.redeemedAt || 0 });
+      }
       if(entries.length === 0){
-        listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Noch keine Code-Einlösungen.</div>";
+        listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Noch keine Einlösungen für diesen Code.</div>";
         return;
       }
       entries.sort((a, b) => b.time - a.time);
       listEl.innerHTML = entries.map(e => `
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:6px 0; border-bottom:1px solid var(--border);">
-          <span style="opacity:.85;">@${e.username}<br><span style="font-size:10.5px; opacity:.6;">"${e.code}"${e.time ? " · " + new Date(e.time).toLocaleString("de-DE") : ""}</span></span>
+          <span style="opacity:.85;">@${e.username}</span>
+          <span style="font-size:10.5px; opacity:.6;">${e.time ? new Date(e.time).toLocaleString("de-DE") : ""}</span>
         </div>
       `).join("");
     }catch(err){
@@ -6614,34 +6654,25 @@
       }
       statusEl.innerHTML = all.map(d => {
         const data = d.data();
-        let redeemedInfo;
-        if(data.isPublic){
-          const names = data.redeemedByUsernames || [];
-          const uidCount = (data.redeemedByUids || []).length;
-          if(uidCount === 0){
-            redeemedInfo = "Noch von niemandem eingelöst";
-          } else if(names.length > 0){
-            redeemedInfo = `Eingelöst von: ${names.map(n => "@" + n).join(", ")}`;
-          } else {
-            redeemedInfo = `${uidCount}× eingelöst`; // ältere Einlösungen ohne gespeicherten Namen
-          }
-        } else if(!data.active && data.redeemedByUsername){
-          redeemedInfo = `Eingelöst von @${data.redeemedByUsername}`;
-        } else if(!data.active){
-          redeemedInfo = "Eingelöst (kein Name gespeichert)";
-        } else {
-          redeemedInfo = "Noch nicht eingelöst";
-        }
+        const hasHistory = data.isPublic ? (data.redeemedByUids || []).length > 0 : (!data.active && !!data.redeemedByUsername);
         return `
         <div style="padding:6px 0; border-bottom:1px solid var(--border);">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
             <span>${data.active ? "" : "🚫 "}"${data.code}" (${rewardLabelForCode(data)}${data.isPublic ? " · 🌍 öffentlich" : ""})</span>
-            <button class="owner-code-delete-btn" data-id="${d.id}" title="Code löschen" style="background:none; border:none; color:#ef4444; font-size:15px; cursor:pointer; padding:2px 6px; flex-shrink:0;">🗑️</button>
+            <div style="display:flex; gap:2px; flex-shrink:0;">
+              ${hasHistory ? `<button class="owner-code-history-btn" data-id="${d.id}" data-code="${data.code}" title="Einlöse-Verlauf" style="background:none; border:none; color:var(--text-dim); font-size:14px; cursor:pointer; padding:2px 6px;">📜</button>` : ""}
+              <button class="owner-code-delete-btn" data-id="${d.id}" title="Code löschen" style="background:none; border:none; color:#ef4444; font-size:15px; cursor:pointer; padding:2px 6px;">🗑️</button>
+            </div>
           </div>
-          <div style="font-size:11px; opacity:.7; margin-top:2px;">${redeemedInfo}</div>
         </div>
       `;
       }).join("");
+      statusEl.querySelectorAll(".owner-code-history-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          $("overlayCodeHistory").classList.add("show");
+          renderCodeHistory(btn.dataset.id);
+        });
+      });
       statusEl.querySelectorAll(".owner-code-delete-btn").forEach(btn => {
         btn.addEventListener("click", async () => {
           if(!confirm("Diesen Code wirklich löschen?")) return;
@@ -7171,7 +7202,6 @@
 
   async function fetchUserDoc(uid){
     try{
-      // WICHTIG: explizit vom Server lesen, nicht aus dem lokalen Cache -
       // sonst können hier veraltete Werte (z.B. Aura) auftauchen, wenn die
       // gesuchte Person gerade offline ist und es deshalb keinen aktuellen
       // Live-Abgleich für ihr Dokument gab (derselbe Fehler wie vorher bei
@@ -7389,32 +7419,100 @@
     return [uidA, uidB].sort().join("_");
   }
 
-  // Übersicht: listet alle gegenseitigen Freunde auf, mit Badge für
-  // ungelesene Nachrichten pro Person.
+  let mutualFriendsCache = []; // [{uid, username}] - vom letzten Öffnen der Liste, für den Neuer-Chat-Picker wiederverwendet
+  let chattedWithUidsCache = new Set();
+
+  // Übersicht (NEU, sortiert nach dem letzten Chat): zeigt nur Freunde, mit
+  // denen schon geschrieben wurde, neueste Unterhaltung zuerst - mit
+  // Vorschau der letzten Nachricht und grünem Punkt bei ungelesenen
+  // Nachrichten. Wer noch nicht geschrieben hat, findet sich stattdessen
+  // über den "Neuer Chat"-Button.
   async function openMessagesList(){
     if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
     $("overlayMessagesList").classList.add("show");
     const listEl = $("messagesFriendsList");
-    listEl.innerHTML = "<div class='empty-hint'>Lade Freunde …</div>";
-    const following = profile.following || [];
-    const followers = await fetchFollowers(currentUser.uid);
-    const mutualUids = following.filter(uid => followers.some(f => f.uid === uid));
-    if(mutualUids.length === 0){
-      listEl.innerHTML = "<div class='empty-hint'>Noch keine gegenseitigen Freunde zum Chatten.</div>";
+    listEl.innerHTML = "<div class='empty-hint'>Lädt...</div>";
+    try{
+      const following = profile.following || [];
+      const followers = await fetchFollowers(currentUser.uid);
+      const mutualUids = following.filter(uid => followers.some(f => f.uid === uid));
+      const friendDocs = await Promise.all(mutualUids.map(async uid => ({ uid, u: await fetchUserDoc(uid) })));
+      mutualFriendsCache = friendDocs.map(({ uid, u }) => ({
+        uid, username: u ? (u.username || "Unbekannt") : ((profile.friendUsernameCache || {})[uid] || "Unbekannt")
+      }));
+
+      // Letzte Nachricht je Freund ermitteln (NEU): Firestore kennt kein
+      // "group by", daher hier die letzten Nachrichten client-seitig nach
+      // Gesprächspartner gruppiert - die neueste je Partner gewinnt.
+      const msgSnap = await db().collection("messages")
+        .where("participants", "array-contains", currentUser.uid)
+        .orderBy("createdAt", "desc")
+        .limit(300)
+        .get();
+      const lastMsgByFriend = {};
+      msgSnap.docs.forEach(d => {
+        const m = d.data();
+        const otherUid = m.fromUid === currentUser.uid ? m.toUid : m.fromUid;
+        if(!lastMsgByFriend[otherUid]) lastMsgByFriend[otherUid] = m; // erste Fundstelle = neueste (absteigend sortiert)
+      });
+      chattedWithUidsCache = new Set(Object.keys(lastMsgByFriend));
+
+      const chatted = mutualFriendsCache
+        .filter(f => lastMsgByFriend[f.uid])
+        .sort((a, b) => (lastMsgByFriend[b.uid].createdAt || 0) - (lastMsgByFriend[a.uid].createdAt || 0));
+
+      if(chatted.length === 0){
+        listEl.innerHTML = "<div class='empty-hint'>Noch keine Chats. Starte über \"✏️ Neuer Chat\" einen neuen!</div>";
+        return;
+      }
+      listEl.innerHTML = "";
+      chatted.forEach(({ uid, username }) => {
+        const lastMsg = lastMsgByFriend[uid];
+        const unread = unreadCountsByFriend[uid] || 0;
+        const mine = lastMsg.fromUid === currentUser.uid;
+        const row = document.createElement("div");
+        row.className = "msg-friend-row";
+        row.innerHTML = `
+          <div style="flex:1; min-width:0;">
+            <span class="name">@${username}</span>
+            <div style="font-size:11.5px; opacity:.65; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;">${mine ? "Du: " : ""}${(lastMsg.text || "").slice(0, 50)}</div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0;">
+            <span style="font-size:10px; opacity:.55;">${formatRelativeTime(lastMsg.createdAt)}</span>
+            ${unread > 0 ? `<div style="width:10px; height:10px; border-radius:50%; background:#22c55e; box-shadow:0 0 6px 1px rgba(34,197,94,.7);"></div>` : ""}
+          </div>
+        `;
+        row.addEventListener("click", () => openChat(uid, username));
+        listEl.appendChild(row);
+      });
+    }catch(err){
+      console.error("Nachrichtenliste Fehler:", err);
+      listEl.innerHTML = "<div class='empty-hint'>Konnte nicht geladen werden.</div>";
+    }
+  }
+
+  // Neuer Chat (NEU): zeigt gegenseitige Freunde, mit denen noch KEIN Chat
+  // existiert - nutzt den Cache vom letzten Öffnen der Nachrichtenliste.
+  function openNewChatPicker(){
+    $("overlayNewChatPicker").classList.add("show");
+    const listEl = $("newChatPickerList");
+    const notChattedYet = mutualFriendsCache.filter(f => !chattedWithUidsCache.has(f.uid));
+    if(notChattedYet.length === 0){
+      listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Mit allen deinen Freunden hast du schon geschrieben, oder du hast noch keine Freunde.</div>";
       return;
     }
-    const friendDocs = await Promise.all(mutualUids.map(async uid => ({ uid, u: await fetchUserDoc(uid) })));
-    listEl.innerHTML = "";
-    friendDocs.forEach(({ uid, u }) => {
-      const uname = u ? (u.username || "Unbekannt") : ((profile.friendUsernameCache || {})[uid] || "Unbekannt");
-      const row = document.createElement("div");
-      row.className = "msg-friend-row";
-      const unread = unreadCountsByFriend[uid] || 0;
-      row.innerHTML = `<span class="name">@${uname}</span>` + (unread > 0 ? `<span class="msg-unread-badge">${unread}</span>` : "");
-      row.addEventListener("click", () => openChat(uid, uname));
-      listEl.appendChild(row);
+    listEl.innerHTML = notChattedYet.map(f => `
+      <div class="msg-friend-row" data-uid="${f.uid}" data-name="${f.username}"><span class="name">@${f.username}</span></div>
+    `).join("");
+    listEl.querySelectorAll(".msg-friend-row").forEach(row => {
+      row.addEventListener("click", () => {
+        $("overlayNewChatPicker").classList.remove("show");
+        openChat(row.dataset.uid, row.dataset.name);
+      });
     });
   }
+
+
 
   // Öffnet den Chat mit einem bestimmten Freund, hört in Echtzeit auf neue
   // Nachrichten und markiert eingehende Nachrichten sofort als gelesen.
@@ -7491,6 +7589,20 @@
     }
     lastChatMessageSentAt = now;
     input.value = "";
+
+    // Coole Abschick-Animation (NEU): kurzer Puls am Button + ein
+    // expandierender Ring, der danach von selbst verschwindet.
+    const sendBtn = $("chatSendBtn");
+    if(sendBtn){
+      sendBtn.classList.remove("chat-send-pulse");
+      void sendBtn.offsetWidth; // erzwingt Reflow, damit die Animation bei jedem Senden neu abspielt
+      sendBtn.classList.add("chat-send-pulse");
+      const ring = document.createElement("div");
+      ring.className = "chat-send-ring";
+      sendBtn.appendChild(ring);
+      setTimeout(() => ring.remove(), 550);
+    }
+
     const cid = chatIdFor(currentUser.uid, openChatFriendUid);
     console.log("[Chat] Sende Nachricht. chatId=" + cid + ", von=" + currentUser.uid + ", an=" + openChatFriendUid);
     try{
@@ -7589,6 +7701,9 @@
     const badge = $("messagesBadge");
     const navBadge = $("profileNavBadge");
     const n = totalUnreadMessages();
+    // Grüner Punkt am Home-Symbol (NEU): zusätzlich zur bestehenden Zahl.
+    const dot = $("chatUnreadDot");
+    if(dot) dot.style.display = n > 0 ? "block" : "none";
     if(badge){
       if(n > 0){
         badge.textContent = n;
@@ -13222,10 +13337,6 @@
     `<option value="${id}">${THEME_DISPLAY_NAME[id] || id}</option>`
   ).join("");
   $("ownerSetCodeBtn").addEventListener("click", ownerSetRedeemCode);
-  $("ownerCodeHistoryBtn").addEventListener("click", () => {
-    $("overlayCodeHistory").classList.add("show");
-    renderCodeHistory();
-  });
   $("codeHistoryClose").addEventListener("click", () => {
     $("overlayCodeHistory").classList.remove("show");
   });
@@ -13634,7 +13745,10 @@
   });
 
   $("openMessagesBtn").addEventListener("click", openMessagesList);
+  $("homeChatBtn").addEventListener("click", openMessagesList);
   $("closeMessagesList").addEventListener("click", () => $("overlayMessagesList").classList.remove("show"));
+  $("openNewChatPickerBtn").addEventListener("click", openNewChatPicker);
+  $("newChatPickerClose").addEventListener("click", () => $("overlayNewChatPicker").classList.remove("show"));
   $("backFromChat").addEventListener("click", () => { closeChat(); $("overlayMessagesList").classList.add("show"); });
   $("chatSendBtn").addEventListener("click", sendChatMessage);
   $("chatInput").addEventListener("keydown", (e) => { if(e.key === "Enter") sendChatMessage(); });

@@ -2151,6 +2151,11 @@
     -webkit-backdrop-filter: none;
   }
   .overlay.show{opacity:1; pointer-events:auto;}
+  /* Ranzoom-Effekt beim Öffnen (NEU): läuft jetzt automatisch bei JEDEM
+     Menü/Fenster, das sich öffnet - keine eigene Einstellung mehr nötig. */
+  .overlay.show .modal-card, .overlay.show .overlay-card{
+    animation: tanim-zoom .3s cubic-bezier(.3,1.3,.4,1);
+  }
   .overlay-card{text-align:center; max-width:340px; width:100%;}
 
   .aura-fig{font-size:96px; display:inline-block; animation: aura-pop .55s cubic-bezier(.22,1.4,.4,1);}
@@ -3955,27 +3960,6 @@
         <h2 style="margin-bottom:14px;">Beta</h2>
         <div class="d" style="font-weight:800; margin-bottom:10px;">Betaeinstellungen</div>
 
-        <div class="d" style="font-weight:800; margin-bottom:8px;">✨ Aura-Animation</div>
-        <div class="d" style="margin-bottom:10px;">Spielt eine Animation ab, sobald du Aura bekommst.</div>
-        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
-          <button class="aura-anim-choice active" id="auraAnimChoiceOff" data-style="off">Aus</button>
-          <button class="aura-anim-choice" id="auraAnimChoiceSoft" data-style="soft">🌊 Sanft - fließt sanft nach oben</button>
-          <button class="aura-anim-choice" id="auraAnimChoicePulse" data-style="pulse">💫 Puls - Ring pulsiert nach außen</button>
-          <button class="aura-anim-choice" id="auraAnimChoiceSparkle" data-style="sparkle">✨ Funkeln - kleine Funken sprühen</button>
-        </div>
-        <button class="btn btn-ghost btn-small" id="auraAnimPreviewBtn" style="width:100%; margin-bottom:16px;">Vorschau abspielen</button>
-
-        <div class="d" style="font-weight:800; margin-bottom:8px;">🎨 Aura-Overlay-Motiv</div>
-        <div class="d" style="margin-bottom:10px;">Das große Bild nach jeder richtigen Antwort in einer Lektion.</div>
-        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
-          <button class="aura-anim-choice active" id="auraMotifChoiceClassic" data-motif="classic">⚡ Klassisch</button>
-          <button class="aura-anim-choice" id="auraMotifChoiceNeon" data-motif="neon">💠 Neon - leuchtender Ring</button>
-          <button class="aura-anim-choice" id="auraMotifChoiceLightning" data-motif="lightning">⚡ Blitzeinschlag - Blitz + Schockwelle</button>
-          <button class="aura-anim-choice" id="auraMotifChoiceSpin" data-motif="spin">🌀 Spin-Impact - dreht mit Wums rein</button>
-          <button class="aura-anim-choice" id="auraMotifChoiceIgnite" data-motif="ignite">🔥 Ignite - baut sich zum Ausbruch auf</button>
-        </div>
-        <button class="btn btn-ghost btn-small" id="auraMotifPreviewBtn" style="width:100%; margin-bottom:16px;">Motiv-Vorschau abspielen</button>
-
         <div class="d" style="font-weight:800; margin-bottom:8px;">🎬 Lektion-Start-Animation</div>
         <div class="d" style="margin-bottom:10px;">Übergang, wenn eine Lektion beginnt.</div>
         <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
@@ -4022,12 +4006,20 @@
       <button class="btn btn-primary btn-small" id="saveAdminActionPasswordBtn" style="width:100%;">Speichern</button>
     </div>
 
-    <div class="settings-row">
+    <div class="settings-row" id="accessibilitySettingsRow" style="cursor:pointer;">
       <div class="info">
-        <div class="t">Long Mode</div>
-        <div class="d">Aura-Edits und Memes bleiben 4 Sekunden statt kurz sichtbar.</div>
+        <div class="t">♿ Barrierefreiheit</div>
+        <div class="d">Long Edits, Design und die Einführung.</div>
       </div>
-      <div class="switch" id="longModeSwitch"><div class="knob"></div></div>
+      <div style="font-size:20px;">→</div>
+    </div>
+
+    <div class="settings-row" id="appearanceSettingsRow" style="cursor:pointer;">
+      <div class="info">
+        <div class="t">🎨 Aussehen</div>
+        <div class="d">Design und Layout beim App-Start.</div>
+      </div>
+      <div style="font-size:20px;">→</div>
     </div>
 
     <div class="settings-row">
@@ -4512,6 +4504,47 @@
        "Teilen"-Karten, statt den QR-Code klein permanent einzublenden. -->
   <!-- Geführte Einführung (NEU): dimmt den Bildschirm grau ab, hebt aber
        das jeweils erklärte UI-Element mit einem lila Rahmen hervor. -->
+  <!-- Barrierefreiheit (NEU): Long Edits (vorher "Long Mode"), Design,
+       und die Einführung an einem Ort. -->
+  <div class="overlay" id="overlayAccessibility">
+    <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
+      <button id="accessibilityClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+      <div style="font-size:32px; margin-bottom:6px;">♿</div>
+      <h2 style="margin-bottom:14px;">Barrierefreiheit</h2>
+
+      <div class="settings-row" style="padding:0 0 14px;">
+        <div class="info">
+          <div class="t">Long Edits</div>
+          <div class="d">Aura-Edits und Memes bleiben 4 Sekunden statt kurz sichtbar.</div>
+        </div>
+        <div class="switch" id="longModeSwitch"><div class="knob"></div></div>
+      </div>
+
+      <div class="d" style="font-weight:800; margin-bottom:6px;">Design / Theme</div>
+      <select class="select-input" id="accessibilityThemeSelect" style="width:100%; margin-bottom:14px;"></select>
+
+      <button class="btn btn-ghost btn-small" id="accessibilityTutorialBtn" style="width:100%;">❓ Einführung erneut zeigen</button>
+    </div>
+  </div>
+
+  <!-- Aussehen (NEU): Design und das Layout, mit dem die App startet. -->
+  <div class="overlay" id="overlayAppearance">
+    <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
+      <button id="appearanceClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+      <div style="font-size:32px; margin-bottom:6px;">🎨</div>
+      <h2 style="margin-bottom:14px;">Aussehen</h2>
+
+      <div class="d" style="font-weight:800; margin-bottom:6px;">Design / Theme</div>
+      <select class="select-input" id="appearanceThemeSelect" style="width:100%; margin-bottom:16px;"></select>
+
+      <div class="d" style="font-weight:800; margin-bottom:8px;">Layout beim App-Start</div>
+      <div style="display:flex; gap:8px;">
+        <button class="aura-anim-choice" id="appearanceLayoutSimpel" data-layout="simpel" style="flex:1; text-align:center;">Simpel</button>
+        <button class="aura-anim-choice" id="appearanceLayoutClean" data-layout="clean" style="flex:1; text-align:center;">Clean</button>
+      </div>
+    </div>
+  </div>
+
   <div id="overlayTutorial" style="display:none; position:fixed; inset:0; z-index:99400;">
     <div id="tutorialHighlight" style="position:absolute; border-radius:16px; border:3px solid #a855f7; box-shadow:0 0 0 9999px rgba(14,14,20,.78), 0 0 26px rgba(168,85,247,.75); transition:left .4s cubic-bezier(.4,0,.2,1), top .4s cubic-bezier(.4,0,.2,1), width .4s cubic-bezier(.4,0,.2,1), height .4s cubic-bezier(.4,0,.2,1); pointer-events:none;"></div>
     <div id="tutorialBubble" style="position:absolute; background:var(--card); border:1.5px solid #a855f7; border-radius:16px; padding:16px; max-width:270px; box-shadow:0 14px 34px rgba(0,0,0,.45); transition:left .4s cubic-bezier(.4,0,.2,1), top .4s cubic-bezier(.4,0,.2,1);">
@@ -4861,7 +4894,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.19";
+  const APP_VERSION = "3.20";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -8907,10 +8940,13 @@
   // (Lektion, Kauf, ...) blockieren oder verlangsamen.
   function logAuraTransaction(amount, reason, targetUid){
     if(!firebaseInitialized || !currentUser || amount === 0) return;
-    // Aura-Gewinn-Animation (NEU, Beta-Einstellung): nur auslösen, wenn es
-    // WIRKLICH die eigene Aura ist, die gerade steigt - nicht wenn der
-    // Owner die Aura einer ANDEREN Person bearbeitet.
-    if(amount > 0 && (!targetUid || targetUid === currentUser.uid)){
+    // Aura-Gewinn-Animation (NEU): nur auslösen, wenn es WIRKLICH die
+    // eigene Aura ist, die gerade steigt - nicht wenn der Owner die Aura
+    // einer ANDEREN Person bearbeitet. Läuft NUR außerhalb einer Lektion -
+    // innerhalb einer Lektion übernimmt bereits das große Aura-Overlay
+    // diese Rolle, die kleine Version würde sich sonst überlagern.
+    const inLesson = screens.lesson && screens.lesson.classList.contains("active");
+    if(amount > 0 && !inLesson && (!targetUid || targetUid === currentUser.uid)){
       playAuraGainAnimation(amount);
     }
     // WICHTIG: das reine Protokollieren darf NIE den aufrufenden Code
@@ -9027,59 +9063,33 @@
   }
 
   function playAuraGainAnimation(amount){
-    const style = profile.auraGainAnimationStyle;
-    if(!style || style === "off") return;
+    // NEU: kein wählbarer Stil mehr - läuft automatisch immer im
+    // "Funkeln"-Stil, sobald Aura außerhalb einer Lektion verdient wird.
     const layer = $("auraGainAnimLayer");
     if(!layer) return;
     const anchor = findVisibleAuraAnchor();
-
-    if(style === "soft"){
-      const el = document.createElement("div");
-      el.className = "aura-anim-soft-text";
-      el.textContent = `+${amount} 💎`;
-      el.style.left = anchor.x + "px";
-      el.style.top = anchor.y + "px";
-      el.style.transform = "translate(-50%, -50%)";
-      layer.appendChild(el);
-      setTimeout(() => el.remove(), 1700);
-    } else if(style === "pulse"){
-      const ring = document.createElement("div");
-      ring.className = "aura-anim-pulse-ring";
-      ring.style.left = anchor.x + "px";
-      ring.style.top = anchor.y + "px";
-      layer.appendChild(ring);
-      const txt = document.createElement("div");
-      txt.className = "aura-anim-pulse-text";
-      txt.textContent = `+${amount}`;
-      txt.style.left = anchor.x + "px";
-      txt.style.top = anchor.y + "px";
-      txt.style.transform = "translate(-50%, -50%)";
-      layer.appendChild(txt);
-      setTimeout(() => { ring.remove(); txt.remove(); }, 1000);
-    } else if(style === "sparkle"){
-      const count = 8;
-      for(let i = 0; i < count; i++){
-        const spark = document.createElement("div");
-        spark.className = "aura-anim-spark";
-        const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
-        const dist = 28 + Math.random() * 18;
-        spark.style.setProperty("--sx", (Math.cos(angle) * dist).toFixed(1) + "px");
-        spark.style.setProperty("--sy", (Math.sin(angle) * dist).toFixed(1) + "px");
-        spark.style.left = anchor.x + "px";
-        spark.style.top = anchor.y + "px";
-        layer.appendChild(spark);
-        setTimeout(() => spark.remove(), 900);
-      }
-      const txt = document.createElement("div");
-      txt.className = "aura-anim-soft-text";
-      txt.style.fontSize = "16px";
-      txt.textContent = `+${amount}`;
-      txt.style.left = anchor.x + "px";
-      txt.style.top = anchor.y + "px";
-      txt.style.transform = "translate(-50%, -50%)";
-      layer.appendChild(txt);
-      setTimeout(() => txt.remove(), 1700);
+    const count = 8;
+    for(let i = 0; i < count; i++){
+      const spark = document.createElement("div");
+      spark.className = "aura-anim-spark";
+      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+      const dist = 28 + Math.random() * 18;
+      spark.style.setProperty("--sx", (Math.cos(angle) * dist).toFixed(1) + "px");
+      spark.style.setProperty("--sy", (Math.sin(angle) * dist).toFixed(1) + "px");
+      spark.style.left = anchor.x + "px";
+      spark.style.top = anchor.y + "px";
+      layer.appendChild(spark);
+      setTimeout(() => spark.remove(), 900);
     }
+    const txt = document.createElement("div");
+    txt.className = "aura-anim-soft-text";
+    txt.style.fontSize = "16px";
+    txt.textContent = `+${amount}`;
+    txt.style.left = anchor.x + "px";
+    txt.style.top = anchor.y + "px";
+    txt.style.transform = "translate(-50%, -50%)";
+    layer.appendChild(txt);
+    setTimeout(() => txt.remove(), 1700);
   }
 
   // Aura-Verlauf im Owner-Panel (NEU): zeigt die letzten 20 protokollierten
@@ -11867,7 +11877,16 @@
   $("themeToggleMissions").addEventListener("click", toggleTheme);
   $("themeToggleTrends").addEventListener("click", toggleTheme);
   
-  $("themeSelect").addEventListener("change", (e) => {
+  function populateThemeSelect(select, unlocked){
+    if(!select) return;
+    select.innerHTML = ALL_THEME_IDS.map(id => {
+      const label = THEME_DISPLAY_NAME[id] || id;
+      const lockIcon = (id === "black" || unlocked.includes(id)) ? "" : " (🔒)";
+      return `<option value="${id}">${label}${lockIcon}</option>`;
+    }).join("");
+    select.value = profile.theme || "black";
+  }
+  function handleThemeSelectChange(e){
     const val = e.target.value;
     const unlocked = profile.unlockedThemes || ["black"];
     if(unlocked.includes(val)){
@@ -11879,7 +11898,10 @@
       showToast("🔒 Kaufe dieses Theme zuerst im Shop!");
       e.target.value = profile.theme;
     }
-  });
+  }
+  $("themeSelect").addEventListener("change", handleThemeSelectChange);
+  $("accessibilityThemeSelect").addEventListener("change", handleThemeSelectChange);
+  $("appearanceThemeSelect").addEventListener("change", handleThemeSelectChange);
 
   /* ========================================================
      OWNER-BEREICH (NEU) - nur für OWNER_USERNAME sichtbar. Sucht einen
@@ -13154,16 +13176,12 @@
     // Update Theme Dropdown mit Schloss-Symbolen (NEU: datengetrieben aus
     // ALL_THEME_IDS statt fest einprogrammierter Optionen - sonst fehlen
     // neu hinzugefügte Designs hier automatisch, wie es zuvor passiert ist.
+    // Wiederverwendbar (NEU): befüllt auch die Kopien in "Barrierefreiheit"
+    // und "Aussehen", nicht nur das Haupt-Dropdown.
     const unlocked = profile.unlockedThemes || ["black"];
-    const select = $("themeSelect");
-    if(select){
-      select.innerHTML = ALL_THEME_IDS.map(id => {
-        const label = THEME_DISPLAY_NAME[id] || id;
-        const lockIcon = (id === "black" || unlocked.includes(id)) ? "" : " (🔒)";
-        return `<option value="${id}">${label}${lockIcon}</option>`;
-      }).join("");
-      select.value = profile.theme || "black";
-    }
+    populateThemeSelect($("themeSelect"), unlocked);
+    populateThemeSelect($("accessibilityThemeSelect"), unlocked);
+    populateThemeSelect($("appearanceThemeSelect"), unlocked);
 
     $("ownerPanelRow").style.display = isOwner() ? "flex" : "none";
     $("modPanelBtn").style.display = isMod() ? "block" : "none";
@@ -13233,20 +13251,6 @@
     renderHome();
   });
 
-  const AURA_ANIM_STYLES = ["off", "soft", "pulse", "sparkle"];
-  const AURA_ANIM_BTN_IDS = { off: "auraAnimChoiceOff", soft: "auraAnimChoiceSoft", pulse: "auraAnimChoicePulse", sparkle: "auraAnimChoiceSparkle" };
-  function selectAuraAnimStyle(style){
-    profile.auraGainAnimationStyle = style;
-    saveProfile();
-    AURA_ANIM_STYLES.forEach(s => $(AURA_ANIM_BTN_IDS[s]).classList.toggle("active", s === style));
-  }
-  const AURA_MOTIFS = ["classic", "neon", "lightning", "spin", "ignite"];
-  const AURA_MOTIF_BTN_IDS = { classic: "auraMotifChoiceClassic", neon: "auraMotifChoiceNeon", lightning: "auraMotifChoiceLightning", spin: "auraMotifChoiceSpin", ignite: "auraMotifChoiceIgnite" };
-  function selectAuraMotif(motif){
-    profile.auraOverlayMotif = motif;
-    saveProfile();
-    AURA_MOTIFS.forEach(m => $(AURA_MOTIF_BTN_IDS[m]).classList.toggle("active", m === motif));
-  }
   const SIMPLE_ANIM_STYLES = ["off", "fade", "slide", "slideleft", "slideright", "zoom", "rotate", "blur", "flip", "bounce", "elastic", "curtain", "glitch"];
   const LESSON_ANIM_BTN_IDS = { off: "lessonAnimChoiceOff", fade: "lessonAnimChoiceFade", slide: "lessonAnimChoiceSlide", slideleft: "lessonAnimChoiceSlideleft", slideright: "lessonAnimChoiceSlideright", zoom: "lessonAnimChoiceZoom", rotate: "lessonAnimChoiceRotate", blur: "lessonAnimChoiceBlur", flip: "lessonAnimChoiceFlip", bounce: "lessonAnimChoiceBounce", elastic: "lessonAnimChoiceElastic", curtain: "lessonAnimChoiceCurtain", glitch: "lessonAnimChoiceGlitch" };
   const NAV_ANIM_BTN_IDS = { off: "navAnimChoiceOff", fade: "navAnimChoiceFade", slide: "navAnimChoiceSlide", slideleft: "navAnimChoiceSlideleft", slideright: "navAnimChoiceSlideright", zoom: "navAnimChoiceZoom", rotate: "navAnimChoiceRotate", blur: "navAnimChoiceBlur", flip: "navAnimChoiceFlip", bounce: "navAnimChoiceBounce", elastic: "navAnimChoiceElastic", curtain: "navAnimChoiceCurtain", glitch: "navAnimChoiceGlitch" };
@@ -13262,10 +13266,6 @@
   }
   $("peterMenuRow").addEventListener("click", () => {
     $("overlayPeterMenu").classList.add("show");
-    const current = profile.auraGainAnimationStyle || "off";
-    AURA_ANIM_STYLES.forEach(s => $(AURA_ANIM_BTN_IDS[s]).classList.toggle("active", s === current));
-    const currentMotif = profile.auraOverlayMotif || "classic";
-    AURA_MOTIFS.forEach(m => $(AURA_MOTIF_BTN_IDS[m]).classList.toggle("active", m === currentMotif));
     const currentLessonAnim = profile.lessonStartAnimStyle || "off";
     SIMPLE_ANIM_STYLES.forEach(s => $(LESSON_ANIM_BTN_IDS[s]).classList.toggle("active", s === currentLessonAnim));
     const currentNavAnim = profile.screenNavAnimStyle || "off";
@@ -13282,26 +13282,9 @@
     const activeScreen = document.querySelector(".screen.active");
     if(activeScreen) activeScreen.style.overflow = "";
   });
-  AURA_ANIM_STYLES.forEach(s => {
-    $(AURA_ANIM_BTN_IDS[s]).addEventListener("click", () => selectAuraAnimStyle(s));
-  });
-  AURA_MOTIFS.forEach(m => {
-    $(AURA_MOTIF_BTN_IDS[m]).addEventListener("click", () => selectAuraMotif(m));
-  });
   SIMPLE_ANIM_STYLES.forEach(s => {
     $(LESSON_ANIM_BTN_IDS[s]).addEventListener("click", () => selectLessonAnimStyle(s));
     $(NAV_ANIM_BTN_IDS[s]).addEventListener("click", () => selectNavAnimStyle(s));
-  });
-  $("auraAnimPreviewBtn").addEventListener("click", () => {
-    const style = profile.auraGainAnimationStyle;
-    if(!style || style === "off"){
-      showToast("Wähle zuerst einen Stil aus.");
-      return;
-    }
-    playAuraGainAnimation(50);
-  });
-  $("auraMotifPreviewBtn").addEventListener("click", () => {
-    showAuraOverlay(false, 25, 1400);
   });
 
   $("tutorialNextBtn").addEventListener("click", () => {
@@ -13312,6 +13295,42 @@
   });
   $("replayTutorialRow").addEventListener("click", () => {
     startTutorial(null);
+  });
+
+  $("accessibilitySettingsRow").addEventListener("click", () => {
+    $("overlayAccessibility").classList.add("show");
+    $("longModeSwitch").classList.toggle("on", !!profile.longMode);
+    populateThemeSelect($("accessibilityThemeSelect"), profile.unlockedThemes || ["black"]);
+  });
+  $("accessibilityClose").addEventListener("click", () => {
+    $("overlayAccessibility").classList.remove("show");
+  });
+  $("accessibilityTutorialBtn").addEventListener("click", () => {
+    $("overlayAccessibility").classList.remove("show");
+    startTutorial(null);
+  });
+
+  $("appearanceSettingsRow").addEventListener("click", () => {
+    $("overlayAppearance").classList.add("show");
+    populateThemeSelect($("appearanceThemeSelect"), profile.unlockedThemes || ["black"]);
+    const currentLayout = profile.layoutStyle === "simpel" ? "simpel" : "clean";
+    $("appearanceLayoutSimpel").classList.toggle("active", currentLayout === "simpel");
+    $("appearanceLayoutClean").classList.toggle("active", currentLayout === "clean");
+  });
+  $("appearanceClose").addEventListener("click", () => {
+    $("overlayAppearance").classList.remove("show");
+  });
+  ["appearanceLayoutSimpel", "appearanceLayoutClean"].forEach(id => {
+    $(id).addEventListener("click", () => {
+      const layout = $(id).dataset.layout;
+      profile.layoutStyle = layout;
+      saveProfile();
+      applyTheme();
+      renderHome();
+      $("appearanceLayoutSimpel").classList.toggle("active", layout === "simpel");
+      $("appearanceLayoutClean").classList.toggle("active", layout === "clean");
+      showToast(`Layout auf "${layout === "simpel" ? "Simpel" : "Clean"}" gesetzt.`);
+    });
   });
 
   $("installAppRow").addEventListener("click", () => {
@@ -15346,8 +15365,12 @@
   const AURA_MOTIF_MIN_MS = { lightning: 1300, spin: 1100, ignite: 2000 };
 
   function showAuraOverlay(isAuraEdit, amount, showMs){
-    const motif = profile.auraOverlayMotif || "classic";
-    const icons = AURA_MOTIF_ICONS[motif] || AURA_MOTIF_ICONS.classic;
+    // NEU: kein wählbares Motiv mehr - die klassischen Blitz-/Totenkopf-
+    // Icons bleiben immer, aber zu 50% Chance läuft automatisch die
+    // "Ignite"-Aufladen-Animation statt des einfachen Pop-Auftauchens, für
+    // Abwechslung ohne eigene Einstellung dafür.
+    const motif = Math.random() < 0.5 ? "ignite" : "classic";
+    const icons = AURA_MOTIF_ICONS.classic;
     if(isAuraEdit){
       $("auraEmoji").textContent = icons.fast;
       $("auraTitle").textContent = `+${amount} AURA`;
@@ -15360,24 +15383,6 @@
     const ov = $("overlayAura");
     ov.dataset.auraMotif = motif;
     spawnParticles(motif);
-
-    // Blitzeinschlag (NEU): Vollbild-Blitz + Blitz-Balken werden extra
-    // eingefügt, da sie über den gesamten Bildschirm gehen, nicht nur
-    // innerhalb der Karte.
-    const card = ov.querySelector(".overlay-card");
-    card.querySelectorAll(".lightning-flash, .lightning-bolt, .lightning-shockwave").forEach(el => el.remove());
-    if(motif === "lightning"){
-      const flash = document.createElement("div");
-      flash.className = "lightning-flash";
-      document.body.appendChild(flash);
-      setTimeout(() => flash.remove(), 550);
-      const bolt = document.createElement("div");
-      bolt.className = "lightning-bolt";
-      card.appendChild(bolt);
-      const shock = document.createElement("div");
-      shock.className = "lightning-shockwave";
-      card.appendChild(shock);
-    }
 
     const minMs = AURA_MOTIF_MIN_MS[motif] || 0;
     const finalMs = Math.max(showMs || 1000, minMs);
@@ -15819,3 +15824,4 @@
 </script>
 </body>
 </html>
+(

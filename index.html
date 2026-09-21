@@ -4904,7 +4904,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.21";
+  const APP_VERSION = "3.22";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -9130,12 +9130,26 @@
 
   function bucketAuraTimeline(points, view){
     const bucketMs = view === "hours" ? (60 * 60 * 1000) : (24 * 60 * 60 * 1000);
-    const buckets = new Map();
+    const sparse = new Map();
     points.forEach(p => {
       const key = Math.floor(p.time / bucketMs);
-      buckets.set(key, p.value); // chronologisch durchlaufen - der letzte Wert je Zeitfenster gewinnt automatisch
+      sparse.set(key, p.value); // chronologisch durchlaufen - der letzte Wert je Zeitfenster gewinnt automatisch
     });
-    return [...buckets.entries()].sort((a, b) => a[0] - b[0]).map(([key, value]) => ({ time: key * bucketMs, value }));
+    if(sparse.size === 0) return [];
+    // NEU: JEDEN Tag/jede Stunde im Zeitraum anzeigen, nicht nur die mit
+    // echten Änderungen - fehlende Zwischen-Zeiträume übernehmen einfach
+    // den zuletzt bekannten Stand (der Kontostand ändert sich ja nicht,
+    // nur weil nichts passiert ist).
+    const keys = [...sparse.keys()].sort((a, b) => a - b);
+    const firstKey = keys[0];
+    const lastKey = Math.floor(Date.now() / bucketMs); // bis heute/jetzt durchziehen
+    const filled = [];
+    let lastValue = sparse.get(firstKey);
+    for(let k = firstKey; k <= lastKey; k++){
+      if(sparse.has(k)) lastValue = sparse.get(k);
+      filled.push({ time: k * bucketMs, value: lastValue });
+    }
+    return filled;
   }
 
   function renderAuraHistoryChart(){
@@ -9407,9 +9421,19 @@
         .orderBy("weeklyReferralCount", "desc")
         .limit(20)
         .get();
+      // WICHTIG (Bugfix: "Rangliste resettet sich nicht zuverlässig für
+      // alle"): der wöchentliche Reset läuft bisher rein lokal auf dem
+      // jeweiligen Gerät der Person selbst (siehe processWeeklyInviteRollover)
+      // - hat jemand die App seit der letzten Wochengrenze nicht geöffnet,
+      // steht ihr/sein alter Zähler noch auf dem veralteten Stand, während
+      // alle ANDEREN längst zurückgesetzt sind. Hier wird deshalb zusätzlich
+      // geprüft: liegt der eigene letzte Rollover-Zeitpunkt VOR der
+      // aktuellen Wochengrenze, gilt der Eintrag als bereits zurückgesetzt
+      // (0), egal was noch in der Cloud steht.
+      const weeklyBoundary = getLastWeeklyBoundary(new Date());
       const entries = snap.docs
         .map(d => ({ ...d.data(), uid: d.id }))
-        .filter(e => !!e.username && (e.weeklyReferralCount || 0) > 0);
+        .filter(e => !!e.username && (e.lastWeeklyRolloverAt || 0) >= weeklyBoundary && (e.weeklyReferralCount || 0) > 0);
 
       listEl.innerHTML = "";
       if(entries.length === 0){

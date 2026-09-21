@@ -4956,7 +4956,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.26";
+  const APP_VERSION = "3.27";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -7444,14 +7444,20 @@
       // Letzte Nachricht je Freund ermitteln (NEU): Firestore kennt kein
       // "group by", daher hier die letzten Nachrichten client-seitig nach
       // Gesprächspartner gruppiert - die neueste je Partner gewinnt.
+      // WICHTIG (Bugfix: "letzte Chats konnten nicht geladen werden"): KEIN
+      // orderBy() in der Abfrage - zusammen mit dem where() auf
+      // "participants" (array-contains) würde das einen zusammengesetzten
+      // Firestore-Index erfordern, der in diesem Projekt nicht angelegt ist,
+      // wodurch die GESAMTE Abfrage fehlschlägt. Stattdessen ungeordnet
+      // holen und danach in JavaScript sortieren (derselbe Fix wie beim
+      // Aura-Verlauf).
       const msgSnap = await db().collection("messages")
         .where("participants", "array-contains", currentUser.uid)
-        .orderBy("createdAt", "desc")
         .limit(300)
         .get();
+      const sortedMsgs = msgSnap.docs.map(d => d.data()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       const lastMsgByFriend = {};
-      msgSnap.docs.forEach(d => {
-        const m = d.data();
+      sortedMsgs.forEach(m => {
         const otherUid = m.fromUid === currentUser.uid ? m.toUid : m.fromUid;
         if(!lastMsgByFriend[otherUid]) lastMsgByFriend[otherUid] = m; // erste Fundstelle = neueste (absteigend sortiert)
       });

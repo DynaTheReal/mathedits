@@ -5016,7 +5016,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.30";
+  const APP_VERSION = "3.31";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6713,29 +6713,63 @@
     const statusEl = $("ownerCodeStatus");
     try{
       const snap = await db().collection("redeemCodes").get();
-      // NEU: nicht mehr nur aktive Codes zeigen - auch bereits verbrauchte
-      // Einzel-Codes bleiben sichtbar, damit man nachträglich sehen kann,
-      // wer sie eingelöst hat. Aktive Codes zuerst, verbrauchte danach.
-      const all = [...snap.docs].sort((a, b) => (b.data().active ? 1 : 0) - (a.data().active ? 1 : 0));
-      if(all.length === 0){
+      const allDocs = snap.docs;
+      // NEU: klar in zwei Abschnitte getrennt - "Aktive Codes" (aktuell
+      // einlösbar) und "Eingelöste Codes" (die letzten 10 tatsächlichen
+      // Einlösungen, über Einzel- UND öffentliche Codes hinweg
+      // zusammengefasst und chronologisch sortiert - ein öffentlicher Code
+      // bleibt ja auch nach Einlösungen weiter aktiv, taucht also in
+      // BEIDEN Abschnitten auf).
+      const activeDocs = allDocs.filter(d => d.data().active);
+
+      const redemptionEntries = [];
+      allDocs.forEach(d => {
+        const data = d.data();
+        if(data.isPublic){
+          const names = data.redeemedByUsernames || [];
+          const times = data.redeemedByTimestamps || [];
+          names.forEach((name, i) => redemptionEntries.push({ code: data.code, docId: d.id, username: name, time: times[i] || 0 }));
+        } else if(!data.active && data.redeemedByUsername){
+          redemptionEntries.push({ code: data.code, docId: d.id, username: data.redeemedByUsername, time: data.redeemedAt || 0 });
+        }
+      });
+      redemptionEntries.sort((a, b) => b.time - a.time);
+      const recentRedemptions = redemptionEntries.slice(0, 10);
+
+      if(activeDocs.length === 0 && recentRedemptions.length === 0){
         statusEl.innerHTML = "Aktuell: keine Codes vorhanden.";
         return;
       }
-      statusEl.innerHTML = all.map(d => {
+
+      const codeRowHtml = d => {
         const data = d.data();
         const hasHistory = data.isPublic ? (data.redeemedByUids || []).length > 0 : (!data.active && !!data.redeemedByUsername);
         return `
         <div style="padding:6px 0; border-bottom:1px solid var(--border);">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
-            <span>${data.active ? "" : "🚫 "}"${data.code}" (${rewardLabelForCode(data)}${data.isPublic ? " · 🌍 öffentlich" : ""})</span>
+            <span>"${data.code}" (${rewardLabelForCode(data)}${data.isPublic ? " · 🌍 öffentlich" : ""})</span>
             <div style="display:flex; gap:2px; flex-shrink:0;">
               ${hasHistory ? `<button class="owner-code-history-btn" data-id="${d.id}" data-code="${data.code}" title="Einlöse-Verlauf" style="background:none; border:none; color:var(--text-dim); font-size:14px; cursor:pointer; padding:2px 6px;">📜</button>` : ""}
               <button class="owner-code-delete-btn" data-id="${d.id}" title="Code löschen" style="background:none; border:none; color:#ef4444; font-size:15px; cursor:pointer; padding:2px 6px;">🗑️</button>
             </div>
           </div>
-        </div>
+        </div>`;
+      };
+
+      statusEl.innerHTML = `
+        <div style="font-weight:800; margin-bottom:6px;">🟢 Aktive Codes</div>
+        ${activeDocs.length === 0
+          ? "<div class='empty-hint' style='margin:0 0 16px; text-align:left;'>Keine aktiven Codes.</div>"
+          : `<div style="margin-bottom:16px;">${activeDocs.map(codeRowHtml).join("")}</div>`}
+        <div style="font-weight:800; margin-bottom:6px;">✅ Eingelöste Codes (letzte 10)</div>
+        ${recentRedemptions.length === 0
+          ? "<div class='empty-hint' style='margin:0; text-align:left;'>Noch keine Einlösungen.</div>"
+          : recentRedemptions.map(e => `
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:6px 0; border-bottom:1px solid var(--border);">
+                <span style="opacity:.85;">@${e.username}<br><span style="font-size:10.5px; opacity:.6;">"${e.code}"${e.time ? " · " + new Date(e.time).toLocaleString("de-DE") : ""}</span></span>
+              </div>
+            `).join("")}
       `;
-      }).join("");
       statusEl.querySelectorAll(".owner-code-history-btn").forEach(btn => {
         btn.addEventListener("click", () => {
           $("overlayCodeHistory").classList.add("show");

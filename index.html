@@ -3391,6 +3391,7 @@
       <div class="stat-pill"><div class="val" id="profileLevel">1</div><div class="lbl">Level</div></div>
       <div class="stat-pill"><div class="val" id="profileStreak">0</div><div class="lbl">Streak</div></div>
       <div class="stat-pill"><div class="val" id="profileFriendsCount">0</div><div class="lbl">Freunde</div></div>
+      <div class="stat-pill"><div class="val" id="profileBestCombo">0</div><div class="lbl">Bester Combo</div></div>
     </div>
 
     <button class="btn btn-ghost btn-small" id="viewOwnStatsBtn" style="margin-bottom:10px;">📊 Meine Statistik ansehen</button>
@@ -4649,7 +4650,8 @@
     <div class="modal-card" style="max-width:400px;">
       <div style="font-size:36px; margin-bottom:6px;">💬</div>
       <h2>Nachrichten</h2>
-      <button class="btn btn-primary btn-small" id="openNewChatPickerBtn" style="width:100%; margin:10px 0;">✏️ Neuer Chat</button>
+      <button class="btn btn-primary btn-small" id="openNewChatPickerBtn" style="width:100%; margin:10px 0 6px;">✏️ Neuer Chat</button>
+      <button class="btn btn-ghost btn-small" id="openGroupsListBtn" style="width:100%; margin-bottom:10px;">👥 Gruppen</button>
       <div id="messagesFriendsList" style="max-height:50vh; overflow-y:auto; margin-top:6px; text-align:left;"></div>
       <button class="btn btn-ghost" id="closeMessagesList" style="margin-top:16px;">Schließen</button>
     </div>
@@ -4662,6 +4664,54 @@
       <button id="newChatPickerClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
       <div style="font-weight:800; margin-bottom:12px;">✏️ Neuer Chat</div>
       <div id="newChatPickerList" style="display:flex; flex-direction:column; gap:4px;"></div>
+    </div>
+  </div>
+
+  <!-- Gruppen (NEU): Liste, Erstellen, Mitglieder hinzufügen, Gespräch. -->
+  <div class="overlay" id="overlayGroupsList">
+    <div class="modal-card" style="max-width:400px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
+      <button id="groupsListClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+      <div style="font-weight:800; font-size:17px; margin-bottom:14px;">👥 Gruppen</div>
+      <button class="btn btn-primary btn-small" id="openNewGroupBtn" style="width:100%; margin-bottom:14px;">➕ Neue Gruppe</button>
+      <div id="groupsListItems" style="display:flex; flex-direction:column; gap:4px;"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlayNewGroup">
+    <div class="modal-card" style="max-width:380px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
+      <button id="newGroupClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+      <div style="font-weight:800; margin-bottom:12px;">➕ Neue Gruppe</div>
+      <input type="text" id="newGroupNameInput" class="input-field" placeholder="Gruppenname" style="margin-bottom:12px;" maxlength="40">
+      <div class="d" style="margin-bottom:6px;">Mitglieder auswählen:</div>
+      <div id="newGroupMemberPicker" style="display:flex; flex-direction:column; gap:4px; margin-bottom:14px;"></div>
+      <button class="btn btn-primary btn-small" id="createGroupBtn" style="width:100%;">Gruppe erstellen</button>
+    </div>
+  </div>
+
+  <div id="overlayGroupChat" style="display:none; position:fixed; inset:0; z-index:99300; background:var(--bg); flex-direction:column;">
+    <div class="topbar" style="flex-shrink:0;">
+      <div class="brand" style="display:flex; align-items:center; gap:8px; min-width:0;">
+        <button id="groupChatBack" style="background:none; border:none; color:var(--text); font-size:20px; cursor:pointer; padding:2px 6px 2px 0; flex-shrink:0;">←</button>
+        <span id="groupChatName" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Gruppe</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="theme-toggle" id="groupChatMembersBtn" title="Mitglieder">👥</div>
+      </div>
+    </div>
+    <div id="groupChatMessagesList" style="flex:1; overflow-y:auto; padding:12px 14px; display:flex; flex-direction:column; gap:8px;"></div>
+    <div style="flex-shrink:0; display:flex; gap:8px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); border-top:1px solid var(--border);">
+      <input type="text" id="groupChatInput" class="input-field" placeholder="Nachricht..." style="flex:1;" maxlength="500">
+      <button id="groupChatSendBtn" style="width:44px; height:44px; border-radius:50%; background:var(--accent); color:var(--accent-text); border:none; font-size:18px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center;">➤</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlayGroupMembers">
+    <div class="modal-card" style="max-width:380px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
+      <button id="groupMembersClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+      <div style="font-weight:800; margin-bottom:2px;">👥 Mitglieder</div>
+      <div id="groupMembersCurrentList" style="margin:10px 0 16px; display:flex; flex-direction:column; gap:4px;"></div>
+      <div class="d" style="font-weight:800; margin-bottom:6px;">Person hinzufügen:</div>
+      <div id="groupMembersAddList" style="display:flex; flex-direction:column; gap:4px;"></div>
     </div>
   </div>
 
@@ -4956,7 +5006,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.27";
+  const APP_VERSION = "3.28";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5233,6 +5283,8 @@
     friendUsernameCache: {}, // uid -> zuletzt bekannter Benutzername (Fallback, falls das Live-Profil kurzzeitig nicht ladbar ist)
     avatarData: null, // kleines, komprimiertes Profilbild als Base64-Data-URL
     comboCount: 0, // Aufgaben in Folge richtig am neuesten freigeschalteten Level (bleibt über Lektionen hinweg erhalten)
+    bestComboCount: 0, // höchster je erreichter Combo-Stand (bleibt bestehen, auch wenn der aktuelle Combo-Zähler auf 0 fällt)
+    dismissedFollowRequests: [], // abgelehnte Freundschaftsanfragen (blendet sie aus der eigenen Ansicht aus)
     comboLossCount: 0, // zählt Combo-Verluste, steuert den Schreckmoment (jeder 5., inkl. dem ersten)
     hasSeenSharePrompt: false, // "Teile diese Website"-Hinweis nach der ersten Lektion, erscheint nur einmal
     shareChest: null,
@@ -7237,6 +7289,7 @@
     $("profileAuraVal").textContent = profile.totalAura;
     $("profileLevel").textContent = profile.level;
     $("profileStreak").textContent = profile.streak || 0;
+    $("profileBestCombo").textContent = profile.bestComboCount || 0;
 
     if(profile.avatarData){
       $("profileAvatarImg").src = profile.avatarData;
@@ -7312,7 +7365,8 @@
     // Tab "Freundschaftsanfragen": eingehend (jemand folgt dir, du ihm noch
     // nicht) und gesendet (du folgst jemandem, der dir noch nicht folgt).
     const followBackListEl = $("followBackList");
-    const notFollowedBack = followersData.filter(f => !following.includes(f.uid));
+    const dismissed = profile.dismissedFollowRequests || [];
+    const notFollowedBack = followersData.filter(f => !following.includes(f.uid) && !dismissed.includes(f.uid));
     pendingFriendRequestCount = notFollowedBack.length;
     const reqTabBadge = $("friendRequestsTabBadge");
     if(reqTabBadge){
@@ -7332,12 +7386,23 @@
         const row = document.createElement("div");
         row.className = "friend-row";
         row.style.cursor = "pointer";
+        row.style.cssText += "display:flex; align-items:center; justify-content:space-between; gap:8px;";
         row.innerHTML = `<span class="name">${isOnline(f) ? `<span class="online-dot${isInLesson(f) ? " in-lesson" : ""}"></span>` : ""}@${f.username || (profile.friendUsernameCache || {})[f.uid] || "Unbekannt"}</span>`;
+        const btnWrap = document.createElement("span");
+        btnWrap.style.cssText = "display:flex; align-items:center; gap:6px; flex-shrink:0;";
         const btn = document.createElement("button");
         btn.className = "btn btn-primary btn-small";
         btn.textContent = "Zurückfolgen";
         btn.addEventListener("click", (e) => { e.stopPropagation(); followBack(f.uid); });
-        row.appendChild(btn);
+        const declineBtn = document.createElement("button");
+        declineBtn.className = "banner-close-x";
+        declineBtn.style.cssText = "position:static; font-size:15px; padding:6px;";
+        declineBtn.title = "Anfrage ablehnen";
+        declineBtn.textContent = "✕";
+        declineBtn.addEventListener("click", (e) => { e.stopPropagation(); declineFollowRequest(f.uid); });
+        btnWrap.appendChild(btn);
+        btnWrap.appendChild(declineBtn);
+        row.appendChild(btnWrap);
         row.addEventListener("click", () => openFriendProfile(f.uid));
         followBackListEl.appendChild(row);
       });
@@ -7366,6 +7431,20 @@
 
   // Freundschaftsanfrage zurückziehen (NEU): entfernt die Person wieder
   // aus "following", solange sie einem noch nicht zurückfolgt.
+  // Anfrage ablehnen (NEU): da die "following"-Liste der ANDEREN Person
+  // gehört, kann man sie nicht direkt entfernen (das wäre ein fremdes
+  // Profil bearbeiten). Stattdessen wird die Anfrage auf dem EIGENEN Profil
+  // als "abgelehnt" vermerkt, wodurch sie aus der eigenen Ansicht
+  // verschwindet - taucht sie später erneut auf (z.B. weil die Person neu
+  // folgt), wird sie wieder normal angezeigt.
+  function declineFollowRequest(uid){
+    profile.dismissedFollowRequests = profile.dismissedFollowRequests || [];
+    if(!profile.dismissedFollowRequests.includes(uid)) profile.dismissedFollowRequests.push(uid);
+    saveProfile();
+    renderProfile();
+    showToast("Anfrage abgelehnt.");
+  }
+
   function cancelFriendRequest(uid){
     profile.following = (profile.following || []).filter(u => u !== uid);
     saveProfile();
@@ -7516,6 +7595,218 @@
         openChat(row.dataset.uid, row.dataset.name);
       });
     });
+  }
+
+  /* ========================================================
+     GRUPPEN (NEU): mehrere Personen in einem gemeinsamen Chat. Nutzt
+     bewusst komplett eigene Namen (kein "chat*"/"Chat*"), um nicht mit dem
+     bestehenden 1:1-Nachrichtensystem zu kollidieren.
+  ======================================================== */
+  let groupsListUnsub = null;
+  let activeGroupId = null;
+  let groupMessagesUnsub = null;
+  let lastGroupMessageSentAt = 0;
+
+  async function openGroupsList(){
+    if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
+    $("overlayGroupsList").classList.add("show");
+    const listEl = $("groupsListItems");
+    listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Lädt...</div>";
+    if(groupsListUnsub) groupsListUnsub();
+    // WICHTIG: kein orderBy() hier - zusammen mit dem where() auf "members"
+    // (array-contains) würde das einen zusammengesetzten Index erfordern,
+    // der in diesem Projekt nicht existiert (derselbe Fehler wie zuvor bei
+    // der 1:1-Chat-Liste). Stattdessen client-seitig sortieren.
+    groupsListUnsub = db().collection("groups").where("members", "array-contains", currentUser.uid)
+      .onSnapshot(snap => {
+        const groups = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.lastMessageAt || b.createdAt || 0) - (a.lastMessageAt || a.createdAt || 0));
+        if(groups.length === 0){
+          listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Noch keine Gruppen. Erstelle eine neue!</div>";
+          return;
+        }
+        listEl.innerHTML = groups.map(g => `
+          <div class="msg-friend-row" data-id="${g.id}" data-name="${g.name}">
+            <div>
+              <span class="name">👥 ${g.name}</span>
+              <div style="font-size:11.5px; opacity:.65; margin-top:2px;">${(g.members || []).length} Mitglieder${g.lastMessage ? " · " + g.lastMessage.slice(0, 40) : ""}</div>
+            </div>
+          </div>
+        `).join("");
+        listEl.querySelectorAll(".msg-friend-row").forEach(row => {
+          row.addEventListener("click", () => openGroupChat(row.dataset.id, row.dataset.name));
+        });
+      }, err => {
+        console.error("Gruppenliste Fehler:", err);
+        listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Konnte nicht geladen werden.</div>";
+      });
+  }
+
+  function closeGroupsList(){
+    $("overlayGroupsList").classList.remove("show");
+    if(groupsListUnsub){ groupsListUnsub(); groupsListUnsub = null; }
+  }
+
+  function openNewGroupCreator(){
+    $("overlayNewGroup").classList.add("show");
+    $("newGroupNameInput").value = "";
+    const pickerEl = $("newGroupMemberPicker");
+    if(mutualFriendsCache.length === 0){
+      pickerEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Du hast noch keine Freunde, die du hinzufügen könntest.</div>";
+      return;
+    }
+    pickerEl.innerHTML = mutualFriendsCache.map(f => `
+      <label class="msg-friend-row" style="cursor:pointer;">
+        <span class="name">@${f.username}</span>
+        <input type="checkbox" class="new-group-member-check" data-uid="${f.uid}" data-name="${f.username}" style="width:20px; height:20px; flex-shrink:0;">
+      </label>
+    `).join("");
+  }
+
+  async function createGroup(){
+    const name = $("newGroupNameInput").value.trim();
+    if(!name){ showToast("Bitte einen Gruppennamen eingeben."); return; }
+    const checked = [...document.querySelectorAll(".new-group-member-check:checked")];
+    if(checked.length === 0){ showToast("Bitte mindestens eine Person auswählen."); return; }
+    const members = [currentUser.uid, ...checked.map(c => c.dataset.uid)];
+    const memberUsernames = { [currentUser.uid]: profile.username || "?" };
+    checked.forEach(c => { memberUsernames[c.dataset.uid] = c.dataset.name; });
+    try{
+      const ref = await db().collection("groups").add({
+        name, members, memberUsernames,
+        createdBy: currentUser.uid, createdAt: Date.now(),
+        lastMessage: "", lastMessageAt: Date.now(), lastMessageBy: null
+      });
+      $("overlayNewGroup").classList.remove("show");
+      closeGroupsList();
+      openGroupChat(ref.id, name);
+    }catch(err){
+      showToast("Gruppe konnte nicht erstellt werden.");
+      console.error("Gruppe erstellen Fehler:", err);
+    }
+  }
+
+  function openGroupChat(groupId, groupName){
+    closeGroupsList();
+    $("overlayNewGroup").classList.remove("show");
+    activeGroupId = groupId;
+    $("groupChatName").textContent = "👥 " + groupName;
+    $("overlayGroupChat").style.display = "flex";
+    $("groupChatMessagesList").innerHTML = "<div class='empty-hint' style='margin:0;'>Lädt...</div>";
+
+    if(groupMessagesUnsub) groupMessagesUnsub();
+    groupMessagesUnsub = db().collection("groups").doc(groupId).collection("messages")
+      .onSnapshot(snap => {
+        const wrap = $("groupChatMessagesList");
+        const wasNearBottom = (wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight) < 80;
+        const msgs = snap.docs.map(d => d.data()).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+        wrap.innerHTML = msgs.map(m => {
+          const mine = m.fromUid === currentUser.uid;
+          const bubble = document.createElement("div");
+          bubble.className = "chat-bubble " + (mine ? "mine" : "theirs");
+          const textDiv = document.createElement("div");
+          textDiv.textContent = m.text || "";
+          const senderLine = !mine ? `<div style="font-size:10px; font-weight:800; opacity:.7; margin-bottom:2px;">@${m.fromUsername || "?"}</div>` : "";
+          const timeLine = `<span class="chat-bubble-time">${new Date(m.createdAt || 0).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}</span>`;
+          bubble.innerHTML = senderLine + textDiv.innerHTML.replace(/</g, "&lt;") + timeLine;
+          return bubble.outerHTML;
+        }).join("");
+        if(wasNearBottom) wrap.scrollTop = wrap.scrollHeight;
+      }, err => {
+        console.error("Gruppennachrichten Fehler:", err);
+        $("groupChatMessagesList").innerHTML = "<div class='empty-hint' style='margin:0;'>Konnte nicht geladen werden.</div>";
+      });
+  }
+
+  function closeGroupChat(){
+    $("overlayGroupChat").style.display = "none";
+    if(groupMessagesUnsub){ groupMessagesUnsub(); groupMessagesUnsub = null; }
+    activeGroupId = null;
+  }
+
+  async function sendGroupMessage(){
+    const input = $("groupChatInput");
+    const text = input.value.trim();
+    if(!text || !activeGroupId) return;
+    const now = Date.now();
+    if(now - lastGroupMessageSentAt < CHAT_MESSAGE_COOLDOWN_MS){
+      showToast("Bitte kurz warten, bevor du die nächste Nachricht schickst.");
+      return;
+    }
+    lastGroupMessageSentAt = now;
+    input.value = "";
+
+    // Coole Abschick-Animation (NEU, wie beim 1:1-Chat).
+    const sendBtn = $("groupChatSendBtn");
+    if(sendBtn){
+      sendBtn.classList.remove("chat-send-pulse");
+      void sendBtn.offsetWidth;
+      sendBtn.classList.add("chat-send-pulse");
+      const ring = document.createElement("div");
+      ring.className = "chat-send-ring";
+      sendBtn.appendChild(ring);
+      setTimeout(() => ring.remove(), 550);
+    }
+
+    try{
+      await db().collection("groups").doc(activeGroupId).collection("messages").add({
+        text, fromUid: currentUser.uid, fromUsername: profile.username || "?", createdAt: now
+      });
+      await db().collection("groups").doc(activeGroupId).set({
+        lastMessage: text, lastMessageAt: now, lastMessageBy: currentUser.uid
+      }, { merge: true });
+    }catch(err){
+      showToast("Nachricht konnte nicht gesendet werden.");
+      console.error("Gruppennachricht senden Fehler:", err);
+    }
+  }
+
+  // Mitglieder hinzufügen (NEU, explizit angefragt): zeigt aktuelle
+  // Mitglieder plus eine Liste von Freunden, die noch NICHT dabei sind.
+  async function openGroupMembers(){
+    if(!activeGroupId) return;
+    $("overlayGroupMembers").classList.add("show");
+    const currentEl = $("groupMembersCurrentList");
+    const addEl = $("groupMembersAddList");
+    currentEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Lädt...</div>";
+    addEl.innerHTML = "";
+    try{
+      const doc = await db().collection("groups").doc(activeGroupId).get();
+      if(!doc.exists) return;
+      const data = doc.data();
+      const memberUsernames = data.memberUsernames || {};
+      currentEl.innerHTML = (data.members || []).map(uid => `<div class="msg-friend-row"><span class="name">@${memberUsernames[uid] || "?"}</span></div>`).join("");
+      const notInGroup = mutualFriendsCache.filter(f => !(data.members || []).includes(f.uid));
+      if(notInGroup.length === 0){
+        addEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Alle deine Freunde sind schon dabei.</div>";
+        return;
+      }
+      addEl.innerHTML = notInGroup.map(f => `
+        <div class="msg-friend-row" data-uid="${f.uid}" data-name="${f.username}" style="cursor:pointer;">
+          <span class="name">@${f.username}</span>
+          <span style="font-size:13px; opacity:.7;">➕ Hinzufügen</span>
+        </div>
+      `).join("");
+      addEl.querySelectorAll(".msg-friend-row").forEach(row => {
+        row.addEventListener("click", async () => {
+          try{
+            await db().collection("groups").doc(activeGroupId).set({
+              members: [...(data.members || []), row.dataset.uid],
+              memberUsernames: { ...memberUsernames, [row.dataset.uid]: row.dataset.name }
+            }, { merge: true });
+            showToast(`@${row.dataset.name} wurde hinzugefügt.`);
+            openGroupMembers();
+          }catch(err){
+            showToast("Konnte nicht hinzugefügt werden.");
+            console.error("Mitglied hinzufügen Fehler:", err);
+          }
+        });
+      });
+    }catch(err){
+      currentEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Konnte nicht geladen werden.</div>";
+      console.error("Gruppenmitglieder Fehler:", err);
+    }
   }
 
 
@@ -10168,6 +10459,7 @@
     };
 
     merged.following = Array.from(new Set([...(localP.following || []), ...(cloudP.following || [])]));
+    merged.dismissedFollowRequests = Array.from(new Set([...(localP.dismissedFollowRequests || []), ...(cloudP.dismissedFollowRequests || [])]));
     merged.claimedReferralRewardIds = Array.from(new Set([
       ...(localP.claimedReferralRewardIds || []),
       ...(cloudP.claimedReferralRewardIds || [])
@@ -10204,6 +10496,10 @@
     // erfolgten Reset unbemerkt wieder rückgängig machen (das war die
     // Ursache für den gemeldeten Bug: "manchmal hab ich einfach 29").
     merged.comboCount = localNewer ? (localP.comboCount || 0) : (cloudP.comboCount || 0);
+    // Bester Combo-Wert (NEU): anders als der aktuelle Combo-Zähler ist das
+    // ein reiner Rekordwert, der niemals sinken darf - deshalb hier bewusst
+    // der höhere Wert beider Seiten, nicht "die neuere Seite gewinnt".
+    merged.bestComboCount = Math.max(localP.bestComboCount || 0, cloudP.bestComboCount || 0);
     merged.comboLossCount = Math.max(localP.comboLossCount || 0, cloudP.comboLossCount || 0);
     merged.hasSeenSharePrompt = !!(localP.hasSeenSharePrompt || cloudP.hasSeenSharePrompt);
     merged.hasEverSetUsername = !!(localP.hasEverSetUsername || cloudP.hasEverSetUsername || cloudP.username);
@@ -12202,7 +12498,8 @@
       .onSnapshot((snap) => {
         const followers = snap.docs.map(d => ({ ...d.data(), uid: d.id }));
         const following = profile.following || [];
-        const notFollowedBack = followers.filter(f => !following.includes(f.uid));
+        const dismissed = profile.dismissedFollowRequests || [];
+        const notFollowedBack = followers.filter(f => !following.includes(f.uid) && !dismissed.includes(f.uid));
         pendingFriendRequestCount = notFollowedBack.length;
         const reqTabBadge = $("friendRequestsTabBadge");
         if(reqTabBadge){
@@ -13755,6 +14052,24 @@
   $("closeMessagesList").addEventListener("click", () => $("overlayMessagesList").classList.remove("show"));
   $("openNewChatPickerBtn").addEventListener("click", openNewChatPicker);
   $("newChatPickerClose").addEventListener("click", () => $("overlayNewChatPicker").classList.remove("show"));
+  $("openGroupsListBtn").addEventListener("click", () => {
+    $("overlayMessagesList").classList.remove("show");
+    openGroupsList();
+  });
+  $("groupsListClose").addEventListener("click", closeGroupsList);
+  $("openNewGroupBtn").addEventListener("click", openNewGroupCreator);
+  $("newGroupClose").addEventListener("click", () => $("overlayNewGroup").classList.remove("show"));
+  $("createGroupBtn").addEventListener("click", createGroup);
+  $("groupChatBack").addEventListener("click", () => {
+    closeGroupChat();
+    openGroupsList();
+  });
+  $("groupChatSendBtn").addEventListener("click", sendGroupMessage);
+  $("groupChatInput").addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){ e.preventDefault(); sendGroupMessage(); }
+  });
+  $("groupChatMembersBtn").addEventListener("click", openGroupMembers);
+  $("groupMembersClose").addEventListener("click", () => $("overlayGroupMembers").classList.remove("show"));
   $("backFromChat").addEventListener("click", () => { closeChat(); $("overlayMessagesList").classList.add("show"); });
   $("chatSendBtn").addEventListener("click", sendChatMessage);
   $("chatInput").addEventListener("keydown", (e) => { if(e.key === "Enter") sendChatMessage(); });
@@ -15238,6 +15553,12 @@
         lesson.streakThisLesson = (lesson.streakThisLesson || 0) + 1;
         if(lesson.isMainProgression){
           profile.comboCount = (profile.comboCount || 0) + 1;
+          // Bester Combo-Wert (NEU): merkt sich den höchsten je erreichten
+          // Stand, unabhängig davon, dass der aktuelle Combo-Zähler später
+          // wieder auf 0 fallen kann.
+          if(profile.comboCount > (profile.bestComboCount || 0)){
+            profile.bestComboCount = profile.comboCount;
+          }
           // Einmalige Truhe fürs Leben bei der ersten 50er-Combo (NEU).
           if(profile.comboCount === 50 && !profile.hasReceivedCombo50Chest){
             profile.hasReceivedCombo50Chest = true;

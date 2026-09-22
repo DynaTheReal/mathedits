@@ -3978,7 +3978,7 @@
         <div style="font-weight:800; margin-bottom:8px;">🎯 Spieler-Ziel</div>
         <div class="d" id="playerGoalStatus" style="margin-bottom:8px;">Aktuell kein aktives Ziel.</div>
 
-        <div style="background:rgba(168,85,247,.1); border:1.5px solid #a855f7; border-radius:12px; padding:10px; margin-bottom:12px; text-align:center;">
+        <div id="playerGoalLiveCountBox" style="background:rgba(168,85,247,.1); border:1.5px solid #a855f7; border-radius:12px; padding:10px; margin-bottom:12px; text-align:center;">
           <div class="d" style="margin-bottom:4px;">Gerade live</div>
           <div style="font-size:26px; font-weight:900;" id="playerGoalLiveCount">…</div>
           <button class="btn btn-ghost btn-small" id="playerGoalRefreshBtn" style="margin-top:6px;">🔄 Aktualisieren</button>
@@ -3987,13 +3987,13 @@
         <div class="d" style="font-weight:800; margin-bottom:6px;">Was zählen?</div>
         <div class="difficulty-picker" style="margin-bottom:12px;">
           <button class="difficulty-btn active" id="playerGoalMetricOnline" data-metric="online">👥 Online<span>Spieler in der App</span></button>
-          <button class="difficulty-btn" id="playerGoalMetricLesson" data-metric="inLesson">🎮 In Lektion<span>Gerade aktiv spielend</span></button>
+          <button class="difficulty-btn" id="playerGoalMetricInvite" data-metric="invite">🎉 Einladungen<span>Wer in der Zeit einlädt, bekommt Aura</span></button>
         </div>
 
         <textarea id="playerGoalInput" class="input-field" rows="2" placeholder="z.B. Kommt zusammen online!" style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
 
         <div style="display:flex; gap:8px; margin-bottom:8px;">
-          <div style="flex:1;">
+          <div style="flex:1;" id="playerGoalTargetWrap">
             <div class="d" style="margin-bottom:4px;">Ziel-Anzahl</div>
             <input type="number" id="playerGoalTargetInput" class="input-field" placeholder="z.B. 10" min="1">
           </div>
@@ -4946,6 +4946,14 @@
     </div>
   </div>
 
+  <!-- Spieler-Ziel gewonnen (NEU): große Anzeige, die von selbst wieder
+       verschwindet, statt nur eines kleinen Toasts. -->
+  <div id="overlayPlayerGoalWon" style="display:none; position:fixed; inset:0; z-index:98600; background:rgba(10,10,16,.75); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); align-items:center; justify-content:center; text-align:center; flex-direction:column; padding:32px;">
+    <div style="font-size:56px; margin-bottom:10px; animation: aura-pop-lightning-impact .5s cubic-bezier(.34,1.56,.64,1);">🎉</div>
+    <div style="font-size:26px; font-weight:900; font-family:'Baloo 2',sans-serif; color:#fff; margin-bottom:6px;">Du hast die Aura gewonnen!</div>
+    <div id="playerGoalWonAmount" style="font-size:20px; font-weight:800; color:#a855f7;">+100 Aura</div>
+  </div>
+
   <div class="overlay" id="overlayAura">
     <div class="overlay-card" style="position:relative;">
       <div class="aura-particles" id="auraParticles"></div>
@@ -5016,7 +5024,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.31";
+  const APP_VERSION = "3.32";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6549,7 +6557,9 @@
       }
       const data = doc.data();
       const minsLeft = Math.max(0, Math.ceil((data.expiresAt - Date.now()) / 60000));
-      statusEl.textContent = `Aktiv (noch ~${minsLeft} Min): Ziel ${data.targetCount} (${data.metric === "inLesson" ? "in Lektion" : "online"}) · +${data.rewardAmount} Aura`;
+      statusEl.textContent = data.metric === "invite"
+        ? `Aktiv (noch ~${minsLeft} Min): Einladungen · +${data.rewardAmount} Aura pro Einladung`
+        : `Aktiv (noch ~${minsLeft} Min): Ziel ${data.targetCount} online · +${data.rewardAmount} Aura`;
     }catch(err){
       console.error("Spieler-Ziel-Status Fehler:", err);
     }
@@ -6558,9 +6568,10 @@
   async function sendPlayerGoal(){
     if(!isOwner() || !firebaseInitialized || !currentUser) return;
     const text = $("playerGoalInput").value.trim();
-    const targetCount = parseInt($("playerGoalTargetInput").value, 10);
+    const isInvite = playerGoalOwnerModalMetric === "invite";
+    const targetCount = isInvite ? 1 : parseInt($("playerGoalTargetInput").value, 10);
     const rewardAmount = parseInt($("playerGoalRewardInput").value, 10);
-    if(!targetCount || targetCount <= 0){
+    if(!isInvite && (!targetCount || targetCount <= 0)){
       showToast("Bitte eine gültige Ziel-Anzahl eingeben.");
       return;
     }
@@ -6569,7 +6580,9 @@
       return;
     }
     try{
-      const startCount = await fetchLiveCount(playerGoalOwnerModalMetric);
+      // Beim "Einladungen"-Ziel gibt es keinen sinnvollen Live-Zähler -
+      // startCount bleibt einfach 0.
+      const startCount = isInvite ? 0 : await fetchLiveCount(playerGoalOwnerModalMetric);
       await db().collection("playerGoal").doc("current").set({
         text: text.slice(0, 300),
         metric: playerGoalOwnerModalMetric,
@@ -6615,13 +6628,22 @@
   // Fortschrittsanzeige, und schreibt sich selbst die Belohnung gut, sobald
   // das Ziel erreicht ist UND diese Person es noch nicht für GENAU dieses
   // Ziel (per createdAt erkannt) abgeholt hat.
+  // Spieler-Ziel gewonnen (NEU): große Anzeige statt eines kleinen Toasts -
+  // verschwindet nach kurzer Zeit von selbst wieder.
+  function showPlayerGoalWonBanner(amount){
+    $("playerGoalWonAmount").textContent = `+${amount} Aura`;
+    const el = $("overlayPlayerGoalWon");
+    el.style.display = "flex";
+    setTimeout(() => { el.style.display = "none"; }, 2800);
+  }
+
   async function checkPlayerGoalProgress(goalId, data){
     try{
       const current = await fetchLiveCount(data.metric);
       const pct = Math.min(100, Math.round((current / data.targetCount) * 100));
       $("playerGoalProgressWrap").style.display = "block";
       $("playerGoalProgressFill").style.width = pct + "%";
-      $("playerGoalProgressText").textContent = `${current} / ${data.targetCount} (${data.metric === "inLesson" ? "in Lektion" : "online"})`;
+      $("playerGoalProgressText").textContent = `${current} / ${data.targetCount} online`;
 
       if(current >= data.targetCount){
         const claimed = profile.claimedPlayerGoalIds || [];
@@ -6631,7 +6653,7 @@
           profile.claimedPlayerGoalIds = [...claimed, goalId];
           saveProfile();
           renderHome();
-          showToast(`🎉 Spieler-Ziel erreicht! +${data.rewardAmount} Aura`);
+          showPlayerGoalWonBanner(data.rewardAmount);
         }
       }
     }catch(err){
@@ -6653,7 +6675,7 @@
       }
       const data = doc.data();
       const goalId = String(data.createdAt);
-      $("playerGoalText").textContent = data.text || `Ziel: ${data.targetCount} ${data.metric === "inLesson" ? "in einer Lektion" : "online"}`;
+      $("playerGoalText").textContent = data.text || (data.metric === "invite" ? "Lade jetzt einen Freund ein und bekomme Aura!" : `Ziel: ${data.targetCount} online`);
       updatePlayerGoalCountdown(data.expiresAt);
       $("playerGoalWidget").style.display = "block";
       playerGoalWidgetShrunk = false;
@@ -6663,7 +6685,10 @@
 
       // Sofort einmal prüfen, dann alle 15 Sekunden erneut - so bleibt der
       // Fortschritt live, ohne die Datenbank pausenlos abzufragen.
-      if(data.targetCount){
+      // WICHTIG: beim "Einladungen"-Ziel gibt es keine gemeinsame Schwelle
+      // zu prüfen - die Belohnung läuft separat über processPendingReferral,
+      // sobald jemand wirklich erfolgreich einlädt.
+      if(data.targetCount && data.metric !== "invite"){
         checkPlayerGoalProgress(goalId, data);
         playerGoalCheckInterval = setInterval(() => checkPlayerGoalProgress(goalId, data), 15000);
       }
@@ -6954,9 +6979,23 @@
         return;
       }
       console.log("[Einladung] Lege referralRewards-Dokument an: toUid=" + referrerUid + ", fromUid=" + newUid);
+      // Spieler-Ziel "Einladungen" (NEU): läuft gerade ein aktives Ziel
+      // dieser Art, bekommt NUR die einladende Person zusätzlich die dort
+      // festgelegte Belohnung obendrauf - die eingeladene Person bekommt
+      // dadurch nichts extra, nur den normalen Willkommens-Bonus.
+      let bonusAmount = 0;
+      try{
+        const goalDoc = await db().collection("playerGoal").doc("current").get();
+        if(goalDoc.exists){
+          const goalData = goalDoc.data();
+          if(goalData.metric === "invite" && goalData.expiresAt > Date.now()){
+            bonusAmount = goalData.rewardAmount || 0;
+          }
+        }
+      }catch(e){ console.error("[Einladung] Spieler-Ziel-Prüfung Fehler:", e); }
       await db().collection("referralRewards").add({
         toUid: referrerUid,
-        amount: REFERRAL_REWARD,
+        amount: REFERRAL_REWARD + bonusAmount,
         fromUid: newUid,
         fromUsername: newUsername,
         createdAt: Date.now()
@@ -13503,14 +13542,20 @@
   $("playerGoalMetricOnline").addEventListener("click", () => {
     playerGoalOwnerModalMetric = "online";
     $("playerGoalMetricOnline").classList.add("active");
-    $("playerGoalMetricLesson").classList.remove("active");
+    $("playerGoalMetricInvite").classList.remove("active");
+    $("playerGoalLiveCountBox").style.display = "block";
+    $("playerGoalTargetWrap").style.display = "block";
     refreshPlayerGoalOwnerLiveCount();
   });
-  $("playerGoalMetricLesson").addEventListener("click", () => {
-    playerGoalOwnerModalMetric = "inLesson";
-    $("playerGoalMetricLesson").classList.add("active");
+  $("playerGoalMetricInvite").addEventListener("click", () => {
+    playerGoalOwnerModalMetric = "invite";
+    $("playerGoalMetricInvite").classList.add("active");
     $("playerGoalMetricOnline").classList.remove("active");
-    refreshPlayerGoalOwnerLiveCount();
+    // Kein Live-Zähler und keine Ziel-Anzahl nötig - jede Einladung
+    // während der aktiven Zeit belohnt direkt die einladende Person,
+    // es gibt keine gemeinsame Schwelle zu erreichen.
+    $("playerGoalLiveCountBox").style.display = "none";
+    $("playerGoalTargetWrap").style.display = "none";
   });
   $("playerGoalSendBtn").addEventListener("click", sendPlayerGoal);
 

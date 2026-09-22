@@ -5006,7 +5006,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.28";
+  const APP_VERSION = "3.29";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5049,6 +5049,13 @@
 
   // IP-Bann prüfen und aktuelle IP am Profil vermerken (NEU).
   async function checkIpBanAndRecord(uid){
+    // WICHTIG (kritischer Bugfix: "Owner selbst durch eigenen IP-Bann
+    // ausgesperrt"): der Owner-Account darf NIEMALS durch einen IP-Bann
+    // gesperrt werden - z.B. wenn Owner und gebannte Person dasselbe
+    // Netzwerk/dieselbe IP teilen (WLAN, Familie, Mobilfunk-IP), würde der
+    // Owner sonst sich selbst aussperren. Die Prüfung wird für den Owner
+    // komplett übersprungen.
+    if(profile.username === OWNER_USERNAME) return;
     const ip = await fetchPublicIp();
     if(!ip) return;
     try{

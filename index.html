@@ -3919,7 +3919,7 @@
       <div class="modal-card" style="max-width:360px; text-align:left;">
         <button class="banner-close-x" id="ownerToolCodesClose" style="position:absolute; top:10px; right:12px;">✕</button>
         <div style="font-weight:800; margin-bottom:8px;">🎁 Einlöse-Codes</div>
-        <div class="d" id="ownerCodeStatus" style="margin-bottom:8px;">Aktuell: keine aktiven Codes.</div>
+        <button class="btn btn-ghost btn-small" id="ownerViewCodesListBtn" style="width:100%; margin-bottom:12px;">📋 Alle Codes ansehen</button>
         <input type="text" id="ownerCodeInput" class="input-field" placeholder="Neuer Code (z.B. MATHY500)" style="margin-bottom:8px; text-transform:uppercase;">
         <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
           <button class="btn btn-ghost btn-small" id="ownerCodeRewardAuraBtn" style="flex:1; min-width:70px;">Aura</button>
@@ -3945,6 +3945,16 @@
           <div class="switch" id="ownerCodePublicSwitch"><div class="knob"></div></div>
         </div>
         <button class="btn btn-primary btn-small" id="ownerSetCodeBtn" style="width:100%;">Code hinzufügen</button>
+      </div>
+    </div>
+
+    <!-- Codes-Liste (NEU): eigenes, scrollbares Fenster statt einer riesigen
+         Liste direkt im Erstellen-Menü, die dort alles zugestellt hat. -->
+    <div class="overlay" id="overlayOwnerCodesList">
+      <div class="modal-card" style="max-width:380px; text-align:left; max-height:80vh; overflow-y:auto; position:relative;">
+        <button id="ownerCodesListClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+        <div style="font-weight:800; margin-bottom:12px;">📋 Alle Codes</div>
+        <div class="d" id="ownerCodeStatus">Aktuell: keine Codes vorhanden.</div>
       </div>
     </div>
 
@@ -5006,7 +5016,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.29";
+  const APP_VERSION = "3.30";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -13432,7 +13442,13 @@
     $("overlayOwnerCodes").classList.add("show");
     selectOwnerCodeReward(ownerSelectedCodeReward);
     $("ownerCodePublicSwitch").classList.remove("on");
+  });
+  $("ownerViewCodesListBtn").addEventListener("click", () => {
+    $("overlayOwnerCodesList").classList.add("show");
     renderOwnerCodeStatus();
+  });
+  $("ownerCodesListClose").addEventListener("click", () => {
+    $("overlayOwnerCodesList").classList.remove("show");
   });
   $("ownerCodePublicSwitch").addEventListener("click", () => {
     $("ownerCodePublicSwitch").classList.toggle("on");
@@ -13752,7 +13768,6 @@
     $("ownerResetPasswordHint").style.display = isOwner() ? "block" : "none";
     if(isOwner()){
       renderOwnerRegistrationNotifications();
-      renderOwnerCodeStatus();
       renderOwnerFeedback();
       renderPollResults();
       renderOwnerAnnouncementStatus();

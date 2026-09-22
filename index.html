@@ -1113,6 +1113,8 @@
   }
   /* Nachrichten (NEU): Sprechblasen-Einflug-Animation, Ungelesen-Punkt,
      Abschick-Animation. */
+  .username-suggestion-row:last-child{ border-bottom:none !important; }
+  .username-suggestion-row:hover{ background:var(--card-2); }
   .chat-unread-dot{
     width:10px; height:10px; border-radius:50%; background:#22c55e;
     box-shadow:0 0 6px 1px rgba(34,197,94,.7);
@@ -3413,9 +3415,10 @@
       </div>
 
       <div class="social-tab-content" id="socialContentAdd" style="display:none;">
-        <div class="add-friend-row">
-          <input type="text" id="addFriendInput" class="input-field" placeholder="Benutzername">
+        <div class="add-friend-row" style="position:relative;">
+          <input type="text" id="addFriendInput" class="input-field" placeholder="Benutzername" autocomplete="off">
           <button class="btn btn-primary btn-small" id="addFriendBtn">Adden</button>
+          <div id="addFriendSuggestions" style="display:none; position:absolute; top:100%; left:0; right:76px; margin-top:4px; background:var(--card); border:1.5px solid var(--border); border-radius:12px; box-shadow:var(--shadow); max-height:220px; overflow-y:auto; z-index:20;"></div>
         </div>
       </div>
 
@@ -3579,9 +3582,10 @@
 
     <div style="padding:0 20px;">
       <div class="d" style="margin-bottom:4px;">Benutzername suchen</div>
-      <div style="display:flex; gap:8px; margin-bottom:16px;">
-        <input type="text" id="modSearchInput" class="input-field" placeholder="Benutzername" style="flex:1;">
+      <div style="display:flex; gap:8px; margin-bottom:16px; position:relative;">
+        <input type="text" id="modSearchInput" class="input-field" placeholder="Benutzername" style="flex:1;" autocomplete="off">
         <button class="btn btn-primary btn-small" id="modSearchBtn">Suchen</button>
+        <div id="modSearchSuggestions" style="display:none; position:absolute; top:100%; left:0; right:56px; margin-top:4px; background:var(--card); border:1.5px solid var(--border); border-radius:12px; box-shadow:var(--shadow); max-height:220px; overflow-y:auto; z-index:20;"></div>
       </div>
 
       <div id="modEditPanel" style="display:none; margin-top:6px;">
@@ -3732,9 +3736,10 @@
       </div>
 
       <div class="d" style="margin-bottom:6px;">Benutzername suchen</div>
-      <div style="display:flex; gap:8px;">
-        <input type="text" id="ownerSearchInput" class="input-field" placeholder="Benutzername" style="flex:1;">
+      <div style="display:flex; gap:8px; position:relative;">
+        <input type="text" id="ownerSearchInput" class="input-field" placeholder="Benutzername" style="flex:1;" autocomplete="off">
         <button class="btn btn-primary btn-small" id="ownerSearchBtn">Suchen</button>
+        <div id="ownerSearchSuggestions" style="display:none; position:absolute; top:100%; left:0; right:56px; margin-top:4px; background:var(--card); border:1.5px solid var(--border); border-radius:12px; box-shadow:var(--shadow); max-height:220px; overflow-y:auto; z-index:20;"></div>
       </div>
       <div id="ownerEditPanel" style="display:none; margin-top:16px;">
         <div class="d" id="ownerTargetLabel" style="margin-bottom:10px; font-weight:700;"></div>
@@ -3904,7 +3909,6 @@
         <button class="banner-close-x" id="ownerAuraHistoryClose" style="position:absolute; top:10px; right:12px;">✕</button>
         <div style="font-weight:800; margin-bottom:2px;">💎 Aura-Verlauf</div>
         <div class="d" id="ownerAuraHistoryTarget" style="margin-bottom:10px;"></div>
-        <button class="btn btn-ghost btn-small" id="ownerViewDonationsBtn" style="width:100%; margin-bottom:10px;">🎁 Erhaltene Spenden ansehen</button>
 
         <div style="display:flex; gap:8px; margin-bottom:8px;">
           <button class="difficulty-btn active" id="auraHistoryViewDays" data-view="days" style="padding:6px 10px; font-size:12px;">Tage</button>
@@ -3916,18 +3920,6 @@
         <div id="auraHistoryChartEmpty" class="empty-hint" style="display:none; margin-top:0; text-align:left;">Noch zu wenig Verlauf für ein Diagramm.</div>
 
         <div id="ownerAuraHistoryList" style="max-height:35vh; overflow-y:auto; display:flex; flex-direction:column; gap:4px; margin-top:10px;"></div>
-      </div>
-    </div>
-
-    <!-- Erhaltene Spenden (NEU): zeigt JEDE einzelne Spende mit Namen, auch
-         wenn ein alter, zusammengefasster Aura-Verlauf-Eintrag ("X Spenden
-         erhalten") die Namen nicht mehr zeigt - die einzelnen
-         Spenden-Datensätze bleiben in Firestore ja weiter bestehen. -->
-    <div class="overlay" id="overlayOwnerDonations">
-      <div class="modal-card" style="max-width:360px; text-align:left; max-height:70vh; overflow-y:auto; position:relative;">
-        <button id="ownerDonationsClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
-        <div style="font-weight:800; margin-bottom:12px;">🎁 Erhaltene Spenden</div>
-        <div id="ownerDonationsList"></div>
       </div>
     </div>
 
@@ -5040,7 +5032,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.34";
+  const APP_VERSION = "3.35";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -9859,34 +9851,6 @@
     if(wrap) wrap.scrollLeft = wrap.scrollWidth;
   }
 
-  // Erhaltene Spenden (NEU): holt ALLE Spenden-Datensätze direkt aus der
-  // Quelle (auraDonations-Sammlung), mit Namen - unabhängig davon, wie ein
-  // zusammengefasster Eintrag im Aura-Verlauf formuliert ist.
-  async function renderOwnerDonations(uid){
-    const listEl = $("ownerDonationsList");
-    listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Lädt...</div>";
-    try{
-      const snap = await db().collection("auraDonations").where("toUid", "==", uid).get();
-      if(snap.empty){
-        listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Noch keine Spenden erhalten.</div>";
-        return;
-      }
-      const entries = snap.docs.map(d => d.data()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-      listEl.innerHTML = entries.map(e => `
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:6px 0; border-bottom:1px solid var(--border);">
-          <span style="opacity:.85;">@${e.fromUsername || "?"}</span>
-          <span style="display:flex; flex-direction:column; align-items:flex-end;">
-            <span style="font-weight:800; color:#4ade80;">+${e.amount || 0} 💎</span>
-            <span style="font-size:10.5px; opacity:.6;">${e.createdAt ? new Date(e.createdAt).toLocaleString("de-DE") : ""}</span>
-          </span>
-        </div>
-      `).join("");
-    }catch(err){
-      listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Konnte nicht geladen werden.</div>";
-      console.error("Erhaltene Spenden Fehler:", err);
-    }
-  }
-
   async function renderOwnerAuraHistory(uid){
     const listEl = $("ownerAuraHistoryList");
     listEl.innerHTML = `<div class="empty-hint" style="margin:0; text-align:left;">Lädt...</div>`;
@@ -12136,6 +12100,10 @@
     addFriendByUsername(val);
     $("addFriendInput").value = "";
   });
+  wireUsernameAutocomplete($("addFriendInput"), $("addFriendSuggestions"), (uname) => {
+    addFriendByUsername(uname);
+    $("addFriendInput").value = "";
+  });
 
   $("socialTabFriends").addEventListener("click", () => switchSocialTab("friends"));
   $("socialTabAdd").addEventListener("click", () => switchSocialTab("add"));
@@ -12836,6 +12804,62 @@
     }catch(err){
       console.error("Owner-Registrierungs-Benachrichtigungen Fehler:", err);
     }
+  }
+
+  // Live-Vorschlagssuche für Benutzernamen (NEU): tippt man z.B. "L", werden
+  // sofort alle passenden Benutzernamen vorgeschlagen (Leo, Lirililarila,
+  // ...), tippt man weiter ("LO"), grenzt sich die Liste automatisch ein.
+  // Nutzt die "usernames"-Sammlung, deren Dokument-ID der Benutzername
+  // selbst ist - ein Bereichs-Vergleich auf die Dokument-ID liefert damit
+  // eine echte "beginnt mit"-Suche, ohne zusätzlichen Index.
+  async function searchUsernamesByPrefix(prefix, limitCount){
+    const lower = normalizeUsername(prefix);
+    if(!lower) return [];
+    const idField = firebase.firestore.FieldPath.documentId();
+    const snap = await db().collection("usernames")
+      .where(idField, ">=", lower)
+      .where(idField, "<", lower + "\uf8ff")
+      .limit(limitCount || 8)
+      .get();
+    return snap.docs.map(d => d.id);
+  }
+
+  // Verdrahtet ein Eingabefeld mit einer Vorschlags-Dropdown-Liste - beim
+  // Antippen eines Vorschlags wird das Feld ausgefüllt und onSelect
+  // aufgerufen (z.B. um direkt die Suche auszulösen).
+  function wireUsernameAutocomplete(inputEl, listEl, onSelect){
+    let debounceTimer = null;
+    let latestQueryToken = 0;
+    const hide = () => { listEl.style.display = "none"; listEl.innerHTML = ""; };
+    inputEl.addEventListener("input", () => {
+      const val = inputEl.value.trim();
+      if(debounceTimer) clearTimeout(debounceTimer);
+      if(!val){ hide(); return; }
+      debounceTimer = setTimeout(async () => {
+        const myToken = ++latestQueryToken;
+        try{
+          const names = await searchUsernamesByPrefix(val, 8);
+          if(myToken !== latestQueryToken) return; // eine neuere Eingabe ist inzwischen unterwegs
+          if(names.length === 0){ hide(); return; }
+          listEl.innerHTML = names.map(n => `<div class="username-suggestion-row" data-uname="${n}" style="padding:9px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--border);">@${n}</div>`).join("");
+          listEl.style.display = "block";
+          listEl.querySelectorAll(".username-suggestion-row").forEach(row => {
+            row.addEventListener("click", () => {
+              inputEl.value = row.dataset.uname;
+              hide();
+              if(onSelect) onSelect(row.dataset.uname);
+            });
+          });
+        }catch(err){
+          console.error("Benutzername-Vorschläge Fehler:", err);
+        }
+      }, 200);
+    });
+    inputEl.addEventListener("blur", () => {
+      // Kurze Verzögerung, damit ein Klick auf einen Vorschlag noch
+      // ankommt, bevor die Liste durch den Fokus-Verlust verschwindet.
+      setTimeout(hide, 150);
+    });
   }
 
   async function ownerSearchUser(){
@@ -13567,6 +13591,7 @@
   }
 
   $("ownerSearchBtn").addEventListener("click", ownerSearchUser);
+  wireUsernameAutocomplete($("ownerSearchInput"), $("ownerSearchSuggestions"), () => ownerSearchUser());
   $("ownerSaveBtn").addEventListener("click", ownerSaveChanges);
   $("ownerToolAuraHistory").addEventListener("click", () => {
     if(!ownerEditingUid) return;
@@ -13576,14 +13601,6 @@
     $("auraHistoryViewDays").classList.add("active");
     $("auraHistoryViewHours").classList.remove("active");
     renderOwnerAuraHistory(ownerEditingUid);
-  });
-  $("ownerViewDonationsBtn").addEventListener("click", () => {
-    if(!ownerEditingUid) return;
-    $("overlayOwnerDonations").classList.add("show");
-    renderOwnerDonations(ownerEditingUid);
-  });
-  $("ownerDonationsClose").addEventListener("click", () => {
-    $("overlayOwnerDonations").classList.remove("show");
   });
   $("ownerAuraHistoryClose").addEventListener("click", () => {
     $("overlayOwnerAuraHistory").classList.remove("show");
@@ -13807,6 +13824,7 @@
     renderSettings();
   });
   $("modSearchBtn").addEventListener("click", modSearchUser);
+  wireUsernameAutocomplete($("modSearchInput"), $("modSearchSuggestions"), () => modSearchUser());
   $("modSaveBtn").addEventListener("click", modSaveChanges);
   $("modBanBtn").addEventListener("click", modBanUser);
   $("modUnbanBtn").addEventListener("click", modUnbanUser);

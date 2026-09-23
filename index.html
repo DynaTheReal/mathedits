@@ -4711,7 +4711,7 @@
       </div>
     </div>
     <div id="groupChatMessagesList" style="flex:1; overflow-y:auto; padding:12px 14px; display:flex; flex-direction:column; gap:8px;"></div>
-    <div style="flex-shrink:0; display:flex; gap:8px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); border-top:1px solid var(--border);">
+    <div id="groupChatInputRow" style="flex-shrink:0; display:flex; gap:8px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); border-top:1px solid var(--border);">
       <input type="text" id="groupChatInput" class="input-field" placeholder="Nachricht..." style="flex:1;" maxlength="500">
       <button id="groupChatSendBtn" style="width:44px; height:44px; border-radius:50%; background:var(--accent); color:var(--accent-text); border:none; font-size:18px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center;">➤</button>
     </div>
@@ -4950,8 +4950,20 @@
 
   <!-- Spieler-Ziel gewonnen (NEU): große Anzeige, die von selbst wieder
        verschwindet, statt nur eines kleinen Toasts. -->
+  <!-- Sauberes Bestätigen-Popup (NEU): ersetzt window.confirm(). -->
+  <div class="overlay" id="overlayConfirmPopup">
+    <div class="modal-card" style="max-width:340px;">
+      <div style="font-size:32px; margin-bottom:8px;">❓</div>
+      <p id="confirmPopupText" style="margin-bottom:18px;"></p>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-ghost" id="confirmPopupCancelBtn" style="flex:1;">Abbrechen</button>
+        <button class="btn btn-primary" id="confirmPopupOkBtn" style="flex:1;">Ja</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Sauberes Fehler-/Hinweis-Popup (NEU): ersetzt die hässlichen
-       Browser-showErrorPopup()-Fenster im ganzen Programm. -->
+       Browser-alert()-Fenster im ganzen Programm. -->
   <div class="overlay" id="overlayErrorPopup">
     <div class="modal-card" style="max-width:340px;">
       <div style="font-size:32px; margin-bottom:8px;">⚠️</div>
@@ -5036,7 +5048,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.40";
+  const APP_VERSION = "3.41";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6174,7 +6186,7 @@
 
   async function deleteCurrentAnnouncement(){
     if(!isOwner() || !firebaseInitialized || !currentAnnouncementId) return showToast("Keine aktive Ankündigung zum Löschen.");
-    if(!confirm("Aktuelle Ankündigung wirklich löschen?")) return;
+    if(!(await showConfirmPopup("Aktuelle Ankündigung wirklich löschen?"))) return;
     try{
       await db().collection("announcements").doc(currentAnnouncementId).delete();
       currentAnnouncementId = null;
@@ -6824,7 +6836,7 @@
       });
       statusEl.querySelectorAll(".owner-code-delete-btn").forEach(btn => {
         btn.addEventListener("click", async () => {
-          if(!confirm("Diesen Code wirklich löschen?")) return;
+          if(!(await showConfirmPopup("Diesen Code wirklich löschen?"))) return;
           try{
             await db().collection("redeemCodes").doc(btn.dataset.id).delete();
             showToast("🗑️ Code gelöscht.");
@@ -7803,11 +7815,15 @@
     }
   }
 
-  function openGroupChat(groupId, groupName){
+  function openGroupChat(groupId, groupName, spectator){
     closeGroupsList();
     $("overlayNewGroup").classList.remove("show");
     activeGroupId = groupId;
-    $("groupChatName").textContent = "👥 " + groupName;
+    // Beobachter-Modus (NEU, für Mods): nur lesen, kein Senden - die Person
+    // wird NICHT als Mitglied eingetragen, ist für die Gruppe also
+    // unsichtbar.
+    $("groupChatName").textContent = (spectator ? "👁️ " : "👥 ") + groupName;
+    $("groupChatInputRow").style.display = spectator ? "none" : "flex";
     $("overlayGroupChat").style.display = "flex";
     $("groupChatMessagesList").innerHTML = "<div class='empty-hint' style='margin:0;'>Lädt...</div>";
 
@@ -8588,7 +8604,7 @@
           ev.stopPropagation();
           const uid = btn.dataset.uid;
           const uname = btn.dataset.name;
-          if(!confirm(`@${uname} unwiderruflich aus der Rangliste löschen (Account-Daten werden gelöscht, Benutzername wird wieder frei)?`)) return;
+          if(!(await showConfirmPopup(`@${uname} unwiderruflich aus der Rangliste löschen (Account-Daten werden gelöscht, Benutzername wird wieder frei)?`))) return;
           try{
             await db().collection("users").doc(uid).delete();
             // Auch die Benutzername-Reservierung freigeben - sonst bleibt
@@ -10114,7 +10130,7 @@
         btn.addEventListener("click", async (ev) => {
           ev.stopPropagation();
           const uid = btn.dataset.uid;
-          if(!confirm("Diese Person aus der Einladungs-Rangliste entfernen?")) return;
+          if(!(await showConfirmPopup("Diese Person aus der Einladungs-Rangliste entfernen?"))) return;
           try{
             await db().collection("users").doc(uid).set({ weeklyReferralCount: 0 }, { merge: true });
             showToast("✅ Entfernt.");
@@ -12161,14 +12177,34 @@
   $("socialTabAdd").addEventListener("click", () => switchSocialTab("add"));
   $("socialTabRequests").addEventListener("click", () => switchSocialTab("requests"));
 
-  // Sauberes Fehler-Popup (NEU): ersetzt window.showErrorPopup() - sieht wie der
+  // Sauberes Fehler-Popup (NEU): ersetzt window.alert() - sieht wie der
   // Rest der App aus statt wie ein hässliches Browser-Fenster. Wird wie
-  // showErrorPopup() aufgerufen ("return showErrorPopup(...)"), gibt aber sofort
+  // alert() aufgerufen ("return showErrorPopup(...)"), gibt aber sofort
   // undefined zurück, statt auf ein Schließen zu warten - genau wie die
   // aufrufenden Stellen es schon vorher erwartet haben.
   function showErrorPopup(message){
     $("errorPopupText").textContent = message;
     $("overlayErrorPopup").classList.add("show");
+  }
+
+  // Sauberes Bestätigen-Popup (NEU): ersetzt window.confirm(). Wird als
+  // "if(!(await showConfirmPopup(...))) return;" in einer async-Funktion
+  // verwendet - liefert per Promise true/false, genau wie confirm() es
+  // synchron getan hat.
+  function showConfirmPopup(message){
+    return new Promise((resolve) => {
+      $("confirmPopupText").textContent = message;
+      $("overlayConfirmPopup").classList.add("show");
+      function cleanup(){
+        $("overlayConfirmPopup").classList.remove("show");
+        $("confirmPopupOkBtn").removeEventListener("click", onOk);
+        $("confirmPopupCancelBtn").removeEventListener("click", onCancel);
+      }
+      function onOk(){ cleanup(); resolve(true); }
+      function onCancel(){ cleanup(); resolve(false); }
+      $("confirmPopupOkBtn").addEventListener("click", onOk);
+      $("confirmPopupCancelBtn").addEventListener("click", onCancel);
+    });
   }
 
   function showToast(msg){
@@ -12868,7 +12904,7 @@
           const uid = btn.dataset.uid;
           const uname = btn.dataset.uname;
           if(!uid) return;
-          if(!confirm(`@${uname} für IMMER sperren und alle Daten löschen? Das lässt sich nicht rückgängig machen.`)) return;
+          if(!(await showConfirmPopup(`@${uname} für IMMER sperren und alle Daten löschen? Das lässt sich nicht rückgängig machen.`))) return;
           try{
             // WICHTIG: Der eigentliche Firebase-Auth-Account kann von hier
             // aus NICHT wirklich gelöscht werden - das erfordert Admin-
@@ -13446,16 +13482,22 @@
       .orderBy("createdAt", "desc")
       .limit(50)
       .onSnapshot((snap) => {
-        renderModRegList(snap.docs.map(d => d.data()));
+        renderModRegList(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }, (err) => console.error("Mod-Panel Registrierungen Fehler:", err));
   }
 
-  function renderModRegList(entries){
+  // Wegklicken (NEU): einmal weggeklickte Registrierungen bleiben dauerhaft
+  // ausgeblendet (pro Mod-Gerät gemerkt) - die Liste zeigt dadurch immer
+  // nur die wirklich neuen, noch nicht bearbeiteten Registrierungen.
+  function renderModRegList(allEntries){
+    const dismissed = new Set(profile.dismissedModRegistrationIds || []);
+    const entries = allEntries.filter(e => !dismissed.has(e.id));
     const listEl = $("modRegList");
     $("modRegEmptyHint").style.display = entries.length === 0 ? "block" : "none";
     listEl.innerHTML = entries.map(data => `
-      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:10px;">
-        <div style="font-weight:800; margin-bottom:2px;">@${data.username || "?"}</div>
+      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:10px; position:relative;">
+        <button class="mod-reg-dismiss-btn" data-id="${data.id}" style="position:absolute; top:8px; right:8px; background:none; border:none; color:var(--text-dim); font-size:16px; font-weight:800; cursor:pointer; padding:4px;">✕</button>
+        <div style="font-weight:800; margin-bottom:2px; padding-right:24px;">@${data.username || "?"}</div>
         <div style="font-size:11px; opacity:.65; margin-bottom:8px;">${data.email || "?"} · ${formatRelativeTime(data.createdAt)}</div>
         <select class="input-field mod-reg-ban-duration" data-uid="${data.uid}" style="margin-bottom:8px; font-size:13px;">
           <option value="1">1 Tag sperren</option>
@@ -13466,6 +13508,13 @@
         <button class="btn btn-primary btn-small mod-reg-ban-btn" data-uid="${data.uid}" data-uname="${data.username || "?"}" style="width:100%; background:#ef4444; border-color:#ef4444;">🚫 Sperren</button>
       </div>
     `).join("");
+    listEl.querySelectorAll(".mod-reg-dismiss-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        profile.dismissedModRegistrationIds = [...(profile.dismissedModRegistrationIds || []), btn.dataset.id];
+        saveProfile();
+        renderModRegList(allEntries);
+      });
+    });
     listEl.querySelectorAll(".mod-reg-ban-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const uid = btn.dataset.uid;
@@ -13495,16 +13544,27 @@
   function renderModGroupsList(groups){
     const listEl = $("modGroupsList");
     $("modGroupsEmptyHint").style.display = groups.length === 0 ? "block" : "none";
-    listEl.innerHTML = groups.map(g => `
+    listEl.innerHTML = groups.map(g => {
+      const memberUsernames = g.memberUsernames || {};
+      const memberNames = (g.members || []).map(uid => `@${memberUsernames[uid] || "?"}`).join(", ") || "keine";
+      return `
       <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:10px;">
-        <div style="font-size:11px; opacity:.65; margin-bottom:6px;">${(g.members || []).length} Mitglieder</div>
+        <div style="font-size:11px; opacity:.65; margin-bottom:2px;">${(g.members || []).length} Mitglieder</div>
+        <div style="font-size:11px; opacity:.8; margin-bottom:8px;">${memberNames}</div>
         <input type="text" class="input-field mod-group-rename-input" data-id="${g.id}" value="${(g.name || "").replace(/"/g, "&quot;")}" maxlength="40" style="margin-bottom:8px;">
-        <div style="display:flex; gap:8px;">
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
           <button class="btn btn-primary btn-small mod-group-rename-btn" data-id="${g.id}" style="flex:1;">Umbenennen</button>
           <button class="btn btn-ghost btn-small mod-group-delete-btn" data-id="${g.id}" data-name="${(g.name || "").replace(/"/g, "&quot;")}" style="flex:1; border-color:#ef4444; color:#ef4444;">🗑️ Löschen</button>
         </div>
+        <button class="btn btn-ghost btn-small mod-group-spectate-btn" data-id="${g.id}" data-name="${(g.name || "").replace(/"/g, "&quot;")}" style="width:100%;">👁️ Als Zuschauer joinen (unsichtbar)</button>
       </div>
-    `).join("");
+    `;
+    }).join("");
+    listEl.querySelectorAll(".mod-group-spectate-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        openGroupChat(btn.dataset.id, btn.dataset.name, true);
+      });
+    });
     listEl.querySelectorAll(".mod-group-rename-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const id = btn.dataset.id;
@@ -13522,7 +13582,7 @@
     });
     listEl.querySelectorAll(".mod-group-delete-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
-        if(!confirm(`Die Gruppe "${btn.dataset.name}" wirklich löschen? Das lässt sich nicht rückgängig machen.`)) return;
+        if(!(await showConfirmPopup(`Die Gruppe "${btn.dataset.name}" wirklich löschen? Das lässt sich nicht rückgängig machen.`))) return;
         try{
           await db().collection("groups").doc(btn.dataset.id).delete();
           logModAction("Gruppe gelöscht", `"${btn.dataset.name}"`);
@@ -15138,7 +15198,7 @@
   // Daten ohne Login (die dann ohnehin nie wieder erreichbar wären).
   $("deleteAccountBtn").addEventListener("click", async () => {
     if(!firebaseInitialized || !currentUser) return showToast("Bitte zuerst einloggen.");
-    const sure = confirm("Dein Account wird UNWIDERRUFLICH gelöscht - Login, Benutzername und aller Fortschritt sind komplett weg. Wirklich fortfahren?");
+    const sure = await showConfirmPopup("Dein Account wird UNWIDERRUFLICH gelöscht - Login, Benutzername und aller Fortschritt sind komplett weg. Wirklich fortfahren?");
     if(!sure) return;
     const pass = prompt("Zur Bestätigung: dein Passwort eingeben");
     if(pass === null) return;
@@ -15204,7 +15264,7 @@
   // angemeldet, bleibt der Fortschritt sicher und kommt nach erneutem Login
   // ganz normal zurück.
   $("deleteAppBtn").addEventListener("click", async () => {
-    const sure = confirm(
+    const sure = await showConfirmPopup(
       "App auf diesem Gerät löschen? Das entfernt alle lokal gespeicherten Daten und meldet dich ab. Bist du angemeldet, bleiben deine Daten in der Cloud sicher - melde dich einfach wieder an, um weiterzumachen."
     );
     if(!sure) return;
@@ -15230,7 +15290,7 @@
   });
 
   $("resetDataBtn").addEventListener("click", async () => {
-    const sure = confirm(
+    const sure = await showConfirmPopup(
       "Bist du sicher? Das löscht deinen gesamten Fortschritt (Level, Aura, Streak, Erfolge, Käufe, Freunde ...) unwiderruflich. Dein Account/Login bleibt bestehen, aber die App startet danach komplett von vorne."
     );
     if(!sure) return;

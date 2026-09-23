@@ -3783,8 +3783,8 @@
       <select class="select-input" id="themeSelect"></select>
     </div>
 
-    <div class="settings-row" id="ownerPanelRow" style="display:none; flex-direction:column; align-items:stretch;">
-      <div class="t" style="margin-bottom:12px;">👑 Owner-Bereich</div>
+    <div class="settings-row" id="ownerPanelRow" style="display:none; flex-direction:column; align-items:stretch; border:1.5px solid #ffd700; box-shadow:0 0 16px rgba(255,215,0,.25);">
+      <div class="t" style="margin-bottom:12px;">👑 Owner-Panel</div>
 
       <div id="ownerRegNotifyBox" style="display:none; background:rgba(236,72,153,.1); border:1.5px solid #ec4899; border-radius:14px; padding:12px; margin-bottom:16px;">
         <div style="font-weight:800; margin-bottom:8px;">🔔 Neue Registrierungen</div>
@@ -3801,85 +3801,11 @@
         <div id="ownerModActionsList" style="max-height:220px; overflow-y:auto;"></div>
       </div>
 
-      <div class="d" style="margin-bottom:6px;">Benutzername suchen</div>
-      <div style="display:flex; gap:8px; position:relative;">
-        <input type="text" id="ownerSearchInput" class="input-field" placeholder="Benutzername" style="flex:1;" autocomplete="off">
-        <button class="btn btn-primary btn-small" id="ownerSearchBtn">Suchen</button>
-        <div id="ownerSearchSuggestions" style="display:none; position:absolute; top:100%; left:0; right:56px; margin-top:4px; background:var(--card); border:1.5px solid var(--border); border-radius:12px; box-shadow:var(--shadow); max-height:220px; overflow-y:auto; z-index:20;"></div>
-      </div>
-      <div id="ownerEditPanel" style="display:none; margin-top:16px;">
-        <div class="d" id="ownerTargetLabel" style="margin-bottom:10px; font-weight:700;"></div>
+      
 
-        <div id="ownerInfoBox" style="background:var(--card-2); border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin-bottom:14px; font-size:12px; line-height:1.7;"></div>
-
-        <div class="d" style="margin-bottom:4px;">Aura</div>
-        <input type="number" id="ownerAuraInput" class="input-field">
-        <div class="d" style="margin-bottom:4px; margin-top:10px;">Level</div>
-        <input type="number" id="ownerLevelInput" class="input-field">
-        <div class="d" style="margin-bottom:4px; margin-top:10px;">Streak</div>
-        <input type="number" id="ownerStreakInput" class="input-field">
-        <div class="d" style="margin-bottom:6px; margin-top:10px;">Freigeschaltete Designs</div>
-        <div id="ownerThemeCheckboxes" style="display:flex; flex-direction:column; gap:6px;"></div>
-
-        <div class="d" style="margin-bottom:4px; margin-top:14px;">Benutzername ändern</div>
-        <input type="text" id="ownerRenameInput" class="input-field" placeholder="Neuer Benutzername" style="text-transform:lowercase;">
-
-        <div class="d" style="margin-bottom:6px; margin-top:16px;">Status</div>
-        <div id="ownerBanStatus" class="d" style="margin-bottom:2px;">Aktuell nicht gesperrt.</div>
-        <div id="ownerIpBanStatus" class="d" style="margin-bottom:2px; font-size:11.5px; opacity:.8;"></div>
-        <div id="ownerModStatus" class="d" style="margin-bottom:8px;">Aktuell kein Mod.</div>
-
-        <div class="d" style="margin-bottom:8px;">Aktionen</div>
-        <div class="owner-category-grid" id="ownerPlayerToolsGrid">
-          <div class="owner-category-tile" id="ownerToolAuraHistory"><span class="icon">💎</span><span class="label">Aura-Verlauf</span></div>
-          <div class="owner-category-tile" id="ownerToolBans"><span class="icon">🚫</span><span class="label">Bans</span></div>
-          <div class="owner-category-tile" id="ownerToolModRole"><span class="icon">🛡️</span><span class="label">Mod-Rolle</span></div>
-          <div class="owner-category-tile" id="ownerToolBooster"><span class="icon">✨</span><span class="label">Booster</span></div>
-        </div>
-
-        <div class="owner-inline-panel" id="panelOwnerBans">
-          <div style="font-weight:800; margin-bottom:8px; color:#ef4444;">🚫 Bans</div>
-          <select id="ownerBanDurationSelect" class="input-field" style="margin-bottom:10px;">
-            <option value="1">1 Tag</option>
-            <option value="3">3 Tage</option>
-            <option value="7">7 Tage</option>
-            <option value="30">30 Tage</option>
-            <option value="forever">Für immer</option>
-          </select>
-          <div style="display:flex; gap:8px; margin-bottom:8px;">
-            <button class="btn btn-primary btn-small" id="ownerBanBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Sperren</button>
-            <button class="btn btn-ghost btn-small" id="ownerUnbanBtn" style="flex:1;">Entsperren</button>
-          </div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-primary btn-small" id="ownerIpBanBtn" style="flex:1; background:#7f1d1d; border-color:#7f1d1d;">🌐 IP sperren</button>
-            <button class="btn btn-ghost btn-small" id="ownerIpUnbanBtn" style="flex:1;">IP entsperren</button>
-          </div>
-        </div>
-
-        <div class="owner-inline-panel" id="panelOwnerModRole">
-          <div style="font-weight:800; margin-bottom:8px; color:#facc15;">🛡️ Mod-Rolle</div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-primary btn-small" id="ownerMakeModBtn" style="flex:1; background:#facc15; color:#000; border-color:#facc15;">Zum Mod ernennen</button>
-            <button class="btn btn-ghost btn-small" id="ownerRemoveModBtn" style="flex:1;">Mod entfernen</button>
-          </div>
-        </div>
-
-        <div class="owner-inline-panel" id="panelOwnerBooster">
-          <div style="font-weight:800; margin-bottom:8px; color:#a855f7;">✨ Aura-Booster verleihen</div>
-          <button class="btn btn-primary btn-small" id="ownerGiveBoosterBtn" style="width:100%; background:#a855f7; border-color:#a855f7;">15 Min Aura-Booster geben</button>
-        </div>
-
-        <button class="btn btn-primary" id="ownerSaveBtn" style="margin-top:16px;">Änderungen speichern</button>
-      </div>
-
-      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-top:20px; margin-bottom:16px;">
-        <div style="font-weight:800; margin-bottom:8px;">📢 Nachricht an alle senden</div>
-        <textarea id="ownerBroadcastInput" class="input-field" rows="3" placeholder="Nachricht an alle Nutzer weltweit..." style="width:100%; resize:vertical; font-family:inherit;"></textarea>
-        <button class="btn btn-primary btn-small" id="ownerSendBroadcastBtn" style="margin-top:8px; width:100%;">Senden</button>
-      </div>
-
-      <div class="d" style="margin-bottom:8px;">Mehr Werkzeuge</div>
+      <div class="d" style="margin-bottom:8px; margin-top:20px;">Kategorien</div>
       <div class="owner-category-grid" id="ownerToolIconsRow">
+        <div class="owner-category-tile" id="ownerToolBroadcast"><span class="icon">📢</span><span class="label">Nachrichten</span></div>
         <div class="owner-category-tile" id="ownerToolDevMode"><span class="icon">🛠️</span><span class="label">Entwicklermodus</span></div>
         <div class="owner-category-tile" id="ownerToolAnnouncement"><span class="icon">📣</span><span class="label">Ankündigung</span></div>
         <div class="owner-category-tile" id="ownerToolSiteStop"><span class="icon">🛑</span><span class="label">Website Not-Stopp</span></div>
@@ -3893,6 +3819,12 @@
            auf, statt ein eigenes Fenster zu öffnen - erst wird nichts
            ausgeführt, man sieht die Option, und erst der Button darin
            löst die eigentliche Aktion aus. -->
+      <div class="owner-inline-panel" id="panelOwnerBroadcast">
+        <div style="font-weight:800; margin-bottom:8px;">📢 Nachricht an alle senden</div>
+        <textarea id="ownerBroadcastInput" class="input-field" rows="3" placeholder="Nachricht an alle Nutzer weltweit..." style="width:100%; resize:vertical; font-family:inherit;"></textarea>
+        <button class="btn btn-primary btn-small" id="ownerSendBroadcastBtn" style="margin-top:8px; width:100%;">Senden</button>
+      </div>
+
       <div class="owner-inline-panel" id="panelOwnerDevMode">
         <div style="font-weight:800; margin-bottom:8px;">🛠️ Entwicklermodus</div>
         <div class="d" id="devModeStatus" style="margin-bottom:10px;">Aktuell aus.</div>
@@ -4028,6 +3960,80 @@
         <button class="btn btn-primary btn-small" id="playerGoalSendBtn" style="width:100%;">Ziel setzen</button>
       </div>
 
+    </div>
+
+    <div class="settings-row" id="playerPanelRow" style="display:none; flex-direction:column; align-items:stretch; border:1.5px solid var(--accent); box-shadow:0 0 16px color-mix(in srgb, var(--accent) 25%, transparent);">
+      <div class="t" style="margin-bottom:12px;">🔍 Player-Panel</div>
+      <div class="d" style="margin-bottom:6px;">Benutzername suchen</div>
+      <div style="display:flex; gap:8px; position:relative;">
+        <input type="text" id="ownerSearchInput" class="input-field" placeholder="Benutzername" style="flex:1;" autocomplete="off">
+        <button class="btn btn-primary btn-small" id="ownerSearchBtn">Suchen</button>
+        <div id="ownerSearchSuggestions" style="display:none; position:absolute; top:100%; left:0; right:56px; margin-top:4px; background:var(--card); border:1.5px solid var(--border); border-radius:12px; box-shadow:var(--shadow); max-height:220px; overflow-y:auto; z-index:20;"></div>
+      </div>
+      <div id="ownerEditPanel" style="display:none; margin-top:16px;">
+        <div class="d" id="ownerTargetLabel" style="margin-bottom:10px; font-weight:700;"></div>
+
+        <div id="ownerInfoBox" style="background:var(--card-2); border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin-bottom:14px; font-size:12px; line-height:1.7;"></div>
+
+        <div class="d" style="margin-bottom:4px;">Aura</div>
+        <input type="number" id="ownerAuraInput" class="input-field">
+        <div class="d" style="margin-bottom:4px; margin-top:10px;">Level</div>
+        <input type="number" id="ownerLevelInput" class="input-field">
+        <div class="d" style="margin-bottom:4px; margin-top:10px;">Streak</div>
+        <input type="number" id="ownerStreakInput" class="input-field">
+        <div class="d" style="margin-bottom:6px; margin-top:10px;">Freigeschaltete Designs</div>
+        <div id="ownerThemeCheckboxes" style="display:flex; flex-direction:column; gap:6px;"></div>
+
+        <div class="d" style="margin-bottom:4px; margin-top:14px;">Benutzername ändern</div>
+        <input type="text" id="ownerRenameInput" class="input-field" placeholder="Neuer Benutzername" style="text-transform:lowercase;">
+
+        <div class="d" style="margin-bottom:6px; margin-top:16px;">Status</div>
+        <div id="ownerBanStatus" class="d" style="margin-bottom:2px;">Aktuell nicht gesperrt.</div>
+        <div id="ownerIpBanStatus" class="d" style="margin-bottom:2px; font-size:11.5px; opacity:.8;"></div>
+        <div id="ownerModStatus" class="d" style="margin-bottom:8px;">Aktuell kein Mod.</div>
+
+        <div class="d" style="margin-bottom:8px;">Aktionen</div>
+        <div class="owner-category-grid" id="ownerPlayerToolsGrid">
+          <div class="owner-category-tile" id="ownerToolAuraHistory"><span class="icon">💎</span><span class="label">Aura-Verlauf</span></div>
+          <div class="owner-category-tile" id="ownerToolBans"><span class="icon">🚫</span><span class="label">Bans</span></div>
+          <div class="owner-category-tile" id="ownerToolModRole"><span class="icon">🛡️</span><span class="label">Mod-Rolle</span></div>
+          <div class="owner-category-tile" id="ownerToolBooster"><span class="icon">✨</span><span class="label">Booster</span></div>
+        </div>
+
+        <div class="owner-inline-panel" id="panelOwnerBans">
+          <div style="font-weight:800; margin-bottom:8px; color:#ef4444;">🚫 Bans</div>
+          <select id="ownerBanDurationSelect" class="input-field" style="margin-bottom:10px;">
+            <option value="1">1 Tag</option>
+            <option value="3">3 Tage</option>
+            <option value="7">7 Tage</option>
+            <option value="30">30 Tage</option>
+            <option value="forever">Für immer</option>
+          </select>
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <button class="btn btn-primary btn-small" id="ownerBanBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Sperren</button>
+            <button class="btn btn-ghost btn-small" id="ownerUnbanBtn" style="flex:1;">Entsperren</button>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary btn-small" id="ownerIpBanBtn" style="flex:1; background:#7f1d1d; border-color:#7f1d1d;">🌐 IP sperren</button>
+            <button class="btn btn-ghost btn-small" id="ownerIpUnbanBtn" style="flex:1;">IP entsperren</button>
+          </div>
+        </div>
+
+        <div class="owner-inline-panel" id="panelOwnerModRole">
+          <div style="font-weight:800; margin-bottom:8px; color:#facc15;">🛡️ Mod-Rolle</div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary btn-small" id="ownerMakeModBtn" style="flex:1; background:#facc15; color:#000; border-color:#facc15;">Zum Mod ernennen</button>
+            <button class="btn btn-ghost btn-small" id="ownerRemoveModBtn" style="flex:1;">Mod entfernen</button>
+          </div>
+        </div>
+
+        <div class="owner-inline-panel" id="panelOwnerBooster">
+          <div style="font-weight:800; margin-bottom:8px; color:#a855f7;">✨ Aura-Booster verleihen</div>
+          <button class="btn btn-primary btn-small" id="ownerGiveBoosterBtn" style="width:100%; background:#a855f7; border-color:#a855f7;">15 Min Aura-Booster geben</button>
+        </div>
+
+        <button class="btn btn-primary" id="ownerSaveBtn" style="margin-top:16px;">Änderungen speichern</button>
+      </div>
     </div>
 
     <!-- Owner-Werkzeug-Menüs (NEU): kompakte Overlays statt einer riesigen,
@@ -5046,6 +5052,16 @@
 
   <!-- Spieler-Ziel gewonnen (NEU): große Anzeige, die von selbst wieder
        verschwindet, statt nur eines kleinen Toasts. -->
+  <!-- Sauberes Fehler-/Hinweis-Popup (NEU): ersetzt die hässlichen
+       Browser-showErrorPopup()-Fenster im ganzen Programm. -->
+  <div class="overlay" id="overlayErrorPopup">
+    <div class="modal-card" style="max-width:340px;">
+      <div style="font-size:32px; margin-bottom:8px;">⚠️</div>
+      <p id="errorPopupText" style="margin-bottom:18px;"></p>
+      <button class="btn btn-primary" id="errorPopupOkBtn" style="width:100%;">OK</button>
+    </div>
+  </div>
+
   <div id="overlayPlayerGoalWon" style="display:none; position:fixed; inset:0; z-index:98600; background:rgba(10,10,16,.75); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); align-items:center; justify-content:center; text-align:center; flex-direction:column; padding:32px;">
     <div style="font-size:56px; margin-bottom:10px; animation: aura-pop-lightning-impact .5s cubic-bezier(.34,1.56,.64,1);">🎉</div>
     <div style="font-size:26px; font-weight:900; font-family:'Baloo 2',sans-serif; color:#fff; margin-bottom:6px;">Du hast die Aura gewonnen!</div>
@@ -5122,7 +5138,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.38";
+  const APP_VERSION = "3.39";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6191,7 +6207,7 @@
     if(!isOwner() || !firebaseInitialized || !currentUser) return;
     const text = $("announcementTextInput").value.trim();
     if(!text && !pendingAnnouncementImageDataUri){
-      return alert("Bitte Text und/oder ein Bild angeben.");
+      return showErrorPopup("Bitte Text und/oder ein Bild angeben.");
     }
     const days = parseInt($("announcementDurationSelect").value, 10) || 3;
     const targetUsernameRaw = $("announcementTargetUsernameInput").value.trim();
@@ -6203,7 +6219,7 @@
       const uname = normalizeUsername(targetUsernameRaw);
       const unameDoc = await getDocFreshOrCached(db().collection("usernames").doc(uname));
       if(!unameDoc.exists){
-        return alert(`Benutzername @${targetUsernameRaw} wurde nicht gefunden.`);
+        return showErrorPopup(`Benutzername @${targetUsernameRaw} wurde nicht gefunden.`);
       }
       targetUid = unameDoc.data().uid;
     }
@@ -6234,7 +6250,7 @@
       } else if(err && err.message){
         reason = err.message;
       }
-      alert("Ankündigung konnte nicht gesendet werden:\n" + reason);
+      showErrorPopup("Ankündigung konnte nicht gesendet werden:\n" + reason);
     }
   }
 
@@ -6335,7 +6351,7 @@
       $("pollOption4Input").value.trim()
     ].filter(o => o.length > 0);
     if(!question || (type === "options" && options.length < 2)){
-      return alert("Bitte eine Frage eingeben - bei festen Antworten mindestens 2 Optionen.");
+      return showErrorPopup("Bitte eine Frage eingeben - bei festen Antworten mindestens 2 Optionen.");
     }
     try{
       await db().collection("polls").add({
@@ -12247,6 +12263,16 @@
   $("socialTabAdd").addEventListener("click", () => switchSocialTab("add"));
   $("socialTabRequests").addEventListener("click", () => switchSocialTab("requests"));
 
+  // Sauberes Fehler-Popup (NEU): ersetzt window.showErrorPopup() - sieht wie der
+  // Rest der App aus statt wie ein hässliches Browser-Fenster. Wird wie
+  // showErrorPopup() aufgerufen ("return showErrorPopup(...)"), gibt aber sofort
+  // undefined zurück, statt auf ein Schließen zu warten - genau wie die
+  // aufrufenden Stellen es schon vorher erwartet haben.
+  function showErrorPopup(message){
+    $("errorPopupText").textContent = message;
+    $("overlayErrorPopup").classList.add("show");
+  }
+
   function showToast(msg){
     const t = $("toast");
     t.textContent = msg;
@@ -13493,7 +13519,7 @@
     if(!isOwner()) return;
     const pass = $("adminActionPasswordInput").value;
     if(!pass || pass.length < 4){
-      return alert("Bitte mindestens 4 Zeichen eingeben.");
+      return showErrorPopup("Bitte mindestens 4 Zeichen eingeben.");
     }
     try{
       await db().collection("adminSettings").doc("current").set({ actionPassword: pass }, { merge: true });
@@ -13921,8 +13947,12 @@
     const panel = $(panelId);
     const tile = $(tileId);
     const isOpen = panel.style.display === "block";
-    document.querySelectorAll("#ownerPanelRow .owner-inline-panel").forEach(p => p.style.display = "none");
-    document.querySelectorAll("#ownerPanelRow .owner-category-tile").forEach(t => t.classList.remove("active"));
+    // Jeder Bereich (Owner-Panel / Player-Panel) klappt unabhängig vom
+    // anderen zu - das Öffnen einer Spieler-Kachel schließt also nicht
+    // versehentlich ein offenes Owner-Werkzeug und umgekehrt.
+    const scope = tile.closest(".settings-row");
+    scope.querySelectorAll(".owner-inline-panel").forEach(p => p.style.display = "none");
+    scope.querySelectorAll(".owner-category-tile").forEach(t => t.classList.remove("active"));
     if(playerGoalOwnerAutoRefreshInterval){ clearInterval(playerGoalOwnerAutoRefreshInterval); playerGoalOwnerAutoRefreshInterval = null; }
     if(!isOpen){
       panel.style.display = "block";
@@ -13930,6 +13960,10 @@
       if(onOpen) onOpen();
     }
   }
+
+  $("ownerToolBroadcast").addEventListener("click", () => {
+    toggleOwnerPanel("panelOwnerBroadcast", "ownerToolBroadcast");
+  });
 
   $("ownerToolDevMode").addEventListener("click", () => {
     toggleOwnerPanel("panelOwnerDevMode", "ownerToolDevMode", () => {
@@ -14124,6 +14158,9 @@
   $("modGroupRenameBtn").addEventListener("click", modRenameGroup);
   $("modGroupDeleteBtn").addEventListener("click", modDeleteGroup);
 
+  $("errorPopupOkBtn").addEventListener("click", () => {
+    $("overlayErrorPopup").classList.remove("show");
+  });
   $("modSearchBtn").addEventListener("click", modSearchUser);
   wireUsernameAutocomplete($("modSearchInput"), $("modSearchSuggestions"), () => modSearchUser());
   $("modSaveBtn").addEventListener("click", modSaveChanges);
@@ -14308,6 +14345,7 @@
     populateThemeSelect($("appearanceThemeSelect"), unlocked);
 
     $("ownerPanelRow").style.display = isOwner() ? "flex" : "none";
+    $("playerPanelRow").style.display = isOwner() ? "flex" : "none";
     $("modPanelBtn").style.display = isMod() ? "block" : "none";
     $("ownerResetOwnPasswordBtn").style.display = isOwner() ? "block" : "none";
     $("ownerResetPasswordHint").style.display = isOwner() ? "block" : "none";
@@ -14871,7 +14909,7 @@
       renderSettings();
       renderProfile();
     }catch(err){
-      alert(err.message);
+      showErrorPopup(err.message);
     }
   });
   $("skipUsernameBtn").addEventListener("click", () => {
@@ -15234,13 +15272,13 @@
       // sondern die eingegebene E-Mail direkt verwendet.
       const rawEmail = $("authUsername").value.trim();
       if(!rawEmail || !rawEmail.includes("@")){
-        return alert("Bitte gib deine vollständige E-Mail-Adresse ein.");
+        return showErrorPopup("Bitte gib deine vollständige E-Mail-Adresse ein.");
       }
       emailToUse = rawEmail;
     } else {
       const uname = normalizeUsername($("authUsername").value);
       if(!isValidUsername(uname)){
-        return alert("Bitte gib deinen Benutzernamen ein.");
+        return showErrorPopup("Bitte gib deinen Benutzernamen ein.");
       }
       emailToUse = usernameToSyntheticEmail(uname);
     }
@@ -15252,7 +15290,7 @@
     firebase.auth().signOut().catch(() => {}).then(() => {
       return firebase.auth().signInWithEmailAndPassword(emailToUse, pass);
     }).then(() => showToast("Erfolgreich eingeloggt!"))
-      .catch((err) => alert(friendlyAuthError(err)));
+      .catch((err) => showErrorPopup(friendlyAuthError(err)));
   });
 
   $("registerBtn").addEventListener("click", async () => {
@@ -15260,7 +15298,7 @@
     const pass = $("authPassword").value;
     const uname = $("authUsername").value;
     if(!isValidUsername(normalizeUsername(uname))){
-      return alert("Bitte gib einen gültigen Benutzernamen ein (3-20 Zeichen: a-z, 0-9, _).");
+      return showErrorPopup("Bitte gib einen gültigen Benutzernamen ein (3-20 Zeichen: a-z, 0-9, _).");
     }
     // NEU: prüft anhand der Installations-ID, ob auf diesem Gerät schon
     // einmal ein Account registriert wurde - falls ja, wird die
@@ -15301,7 +15339,7 @@
     }
     if(blockedBy){
       const existingUsername = blockedBy.username;
-      alert(`Auf diesem Gerät wurde bereits ein Account registriert${existingUsername ? ` (@${existingUsername})` : ""}. Bitte logge dich stattdessen mit diesem Account ein.`);
+      showErrorPopup(`Auf diesem Gerät wurde bereits ein Account registriert${existingUsername ? ` (@${existingUsername})` : ""}. Bitte logge dich stattdessen mit diesem Account ein.`);
       return;
     }
     // WICHTIG (Bugfix): den Benutzernamen VORHER prüfen, bevor überhaupt
@@ -15313,7 +15351,7 @@
     try{
       const existingUnameDoc = await db().collection("usernames").doc(normalizedNewUname).get();
       if(existingUnameDoc.exists){
-        alert("Dieser Benutzername ist bereits vergeben. Bitte wähle einen anderen.");
+        showErrorPopup("Dieser Benutzername ist bereits vergeben. Bitte wähle einen anderen.");
         return;
       }
     }catch(err){
@@ -15353,12 +15391,12 @@
           logRegistrationForOwner(cred.user.uid, usernameToSyntheticEmail(uname), uname);
           processPendingReferral(cred.user.uid, uname, normalizeUsername(uname));
         }catch(err){
-          alert(friendlyAuthError(err));
+          showErrorPopup(friendlyAuthError(err));
         } finally {
           registrationInProgress = false;
         }
       })
-      .catch((err) => { alert(friendlyAuthError(err)); registrationInProgress = false; });
+      .catch((err) => { showErrorPopup(friendlyAuthError(err)); registrationInProgress = false; });
   });
 
   $("logoutBtn").addEventListener("click", () => {
@@ -15401,7 +15439,7 @@
     if(input === null) return; // abgebrochen
     const lower = normalizeUsername(input);
     if(!isValidUsername(lower)){
-      return alert("Bitte gib einen gültigen Benutzernamen ein (3-20 Zeichen: a-z, 0-9, _).");
+      return showErrorPopup("Bitte gib einen gültigen Benutzernamen ein (3-20 Zeichen: a-z, 0-9, _).");
     }
     if(lower === profile.usernameLower){
       return showToast("Das ist bereits dein Benutzername.");
@@ -15409,7 +15447,7 @@
     try{
       const existing = await db().collection("usernames").doc(lower).get();
       if(existing.exists && existing.data().uid !== currentUser.uid){
-        return alert("Dieser Benutzername ist bereits vergeben.");
+        return showErrorPopup("Dieser Benutzername ist bereits vergeben.");
       }
       const oldLower = profile.usernameLower;
       await db().collection("usernames").doc(lower).set({ uid: currentUser.uid, username: input.trim() });
@@ -15423,7 +15461,7 @@
       renderSettings();
       renderProfile();
     }catch(err){
-      alert(err.message);
+      showErrorPopup(err.message);
       console.error(err);
     }
   });
@@ -15438,7 +15476,7 @@
     const newPass = prompt("Neues Passwort (mindestens 6 Zeichen):");
     if(newPass === null) return;
     if(newPass.length < 6){
-      return alert("Das neue Passwort muss mindestens 6 Zeichen haben.");
+      return showErrorPopup("Das neue Passwort muss mindestens 6 Zeichen haben.");
     }
     try{
       const credential = firebase.auth.EmailAuthProvider.credential(
@@ -15448,7 +15486,7 @@
       await currentUser.updatePassword(newPass);
       showToast("✅ Passwort geändert!");
     }catch(err){
-      alert(friendlyAuthError(err));
+      showErrorPopup(friendlyAuthError(err));
       console.error("Passwort ändern Fehler:", err);
     }
   });
@@ -15480,7 +15518,7 @@
       showToast("Account gelöscht.");
       setTimeout(() => location.reload(), 800);
     }catch(err){
-      alert(friendlyAuthError(err));
+      showErrorPopup(friendlyAuthError(err));
       console.error("Account löschen Fehler:", err);
     }
   });
@@ -15501,21 +15539,21 @@
     const newPass = prompt("Neues Owner-Passwort (mindestens 6 Zeichen):");
     if(newPass === null) return;
     if(newPass.length < 6){
-      return alert("Das neue Passwort muss mindestens 6 Zeichen haben.");
+      return showErrorPopup("Das neue Passwort muss mindestens 6 Zeichen haben.");
     }
     const confirmPass = prompt("Neues Passwort zur Sicherheit nochmal eingeben:");
     if(confirmPass === null) return;
     if(newPass !== confirmPass){
-      return alert("Die beiden Eingaben stimmen nicht überein.");
+      return showErrorPopup("Die beiden Eingaben stimmen nicht überein.");
     }
     try{
       await currentUser.updatePassword(newPass);
       showToast("✅ Passwort erfolgreich zurückgesetzt! Bitte gut merken.");
     }catch(err){
       if(err.code === "auth/requires-recent-login"){
-        alert("Deine aktuelle Sitzung ist Firebase zu alt für diese Aktion direkt - ein Passwort-Reset ohne das alte Passwort zu kennen geht dann leider nur noch über die Firebase-Konsole direkt (Authentication → Nutzer → dein Account → Passwort setzen).");
+        showErrorPopup("Deine aktuelle Sitzung ist Firebase zu alt für diese Aktion direkt - ein Passwort-Reset ohne das alte Passwort zu kennen geht dann leider nur noch über die Firebase-Konsole direkt (Authentication → Nutzer → dein Account → Passwort setzen).");
       } else {
-        alert(friendlyAuthError(err));
+        showErrorPopup(friendlyAuthError(err));
       }
       console.error("Owner-Passwort zurücksetzen Fehler:", err);
     }
@@ -15590,7 +15628,7 @@
     }catch(e){}
 
     if(cloudWriteFailed && firebaseInitialized && currentUser){
-      alert("Achtung: Der Fortschritt wurde lokal zurückgesetzt, aber das Speichern in der Cloud ist fehlgeschlagen. Die App versucht es nach dem Neuladen erneut.");
+      showErrorPopup("Achtung: Der Fortschritt wurde lokal zurückgesetzt, aber das Speichern in der Cloud ist fehlgeschlagen. Die App versucht es nach dem Neuladen erneut.");
     }
 
     location.reload();

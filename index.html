@@ -1470,6 +1470,28 @@
   }
   .owner-tool-icon-btn:active{ transform:scale(.93); }
 
+  /* Owner-Panel-Neugestaltung (NEU): Kategorie-Kacheln statt reiner
+     Symbol-Buttons - nebeneinander wie bei der Rangliste, jede Kachel
+     klappt ihren Inhalt direkt darunter auf, statt ein Fenster zu öffnen. */
+  .owner-category-grid{
+    display:flex; flex-wrap:wrap; gap:10px; margin-bottom:4px;
+  }
+  .owner-category-tile{
+    flex:1 1 calc(33% - 8px); min-width:96px; display:flex; flex-direction:column; align-items:center; gap:4px;
+    background:var(--card-2); border:1.5px solid var(--border); border-radius:16px;
+    padding:12px 8px; cursor:pointer; transition:border-color .15s, background .15s;
+  }
+  .owner-category-tile .icon{ font-size:22px; }
+  .owner-category-tile .label{ font-size:11px; font-weight:700; text-align:center; line-height:1.25; }
+  .owner-category-tile.active{
+    border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--card-2));
+  }
+  .owner-inline-panel{
+    display:none; background:var(--card); border:1.5px solid var(--border); border-radius:16px;
+    padding:14px; margin-top:10px; margin-bottom:16px; text-align:left; position:relative;
+    animation: tanim-fade .2s ease-out;
+  }
+
   .banner-close-x{
     position:absolute; top:6px; right:8px; background:none; border:none;
     color:var(--text-dim); font-size:13px; font-weight:800; cursor:pointer;
@@ -3820,23 +3842,27 @@
       </div>
 
       <div class="d" style="margin-bottom:8px;">Mehr Werkzeuge</div>
-      <div id="ownerToolIconsRow" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
-        <button class="owner-tool-icon-btn" id="ownerToolDevMode" title="Entwicklermodus">🛠️</button>
-        <button class="owner-tool-icon-btn" id="ownerToolAnnouncement" title="Vollbild-Ankündigung">📣</button>
-        <button class="owner-tool-icon-btn" id="ownerToolSiteStop" title="Website Not-Stopp">🛑</button>
-        <button class="owner-tool-icon-btn" id="ownerToolUpdateNotice" title="Update-Benachrichtigung">🔁</button>
-        <button class="owner-tool-icon-btn" id="ownerToolPoll" title="Umfrage">📊</button>
-        <button class="owner-tool-icon-btn" id="ownerToolCodes" title="Einlöse-Codes">🎁</button>
-        <button class="owner-tool-icon-btn" id="ownerToolPlayerGoal" title="Spieler-Ziel">🎯</button>
+      <div class="owner-category-grid" id="ownerToolIconsRow">
+        <div class="owner-category-tile" id="ownerToolDevMode"><span class="icon">🛠️</span><span class="label">Entwicklermodus</span></div>
+        <div class="owner-category-tile" id="ownerToolAnnouncement"><span class="icon">📣</span><span class="label">Ankündigung</span></div>
+        <div class="owner-category-tile" id="ownerToolSiteStop"><span class="icon">🛑</span><span class="label">Website Not-Stopp</span></div>
+        <div class="owner-category-tile" id="ownerToolUpdateNotice"><span class="icon">🔁</span><span class="label">Update-Hinweis</span></div>
+        <div class="owner-category-tile" id="ownerToolPoll"><span class="icon">📊</span><span class="label">Umfrage</span></div>
+        <div class="owner-category-tile" id="ownerToolCodes"><span class="icon">🎁</span><span class="label">Einlöse-Codes</span></div>
+        <div class="owner-category-tile" id="ownerToolPlayerGoal"><span class="icon">🎯</span><span class="label">Spieler-Ziel</span></div>
       </div>
-    </div>
 
-    <!-- Owner-Werkzeug-Menüs (NEU): kompakte Overlays statt einer riesigen,
-         immer sichtbaren Liste - öffnen sich beim Antippen des jeweiligen
-         Symbols, schließen sich über das X. -->
-    <div class="overlay" id="overlayOwnerAnnouncement">
-      <div class="modal-card" style="max-width:360px; text-align:left;">
-        <button class="banner-close-x" id="ownerToolAnnouncementClose" style="position:absolute; top:10px; right:12px;">✕</button>
+      <!-- Kategorie-Inhalte (NEU): klappen direkt unter dem Kachel-Raster
+           auf, statt ein eigenes Fenster zu öffnen - erst wird nichts
+           ausgeführt, man sieht die Option, und erst der Button darin
+           löst die eigentliche Aktion aus. -->
+      <div class="owner-inline-panel" id="panelOwnerDevMode">
+        <div style="font-weight:800; margin-bottom:8px;">🛠️ Entwicklermodus</div>
+        <div class="d" id="devModeStatus" style="margin-bottom:10px;">Aktuell aus.</div>
+        <button class="btn btn-primary btn-small" id="devModeToggleBtn" style="width:100%;">Umschalten</button>
+      </div>
+
+      <div class="owner-inline-panel" id="panelOwnerAnnouncement">
         <div style="font-weight:800; margin-bottom:8px; color:#60a5fa;">📣 Vollbild-Ankündigung</div>
         <div class="d" id="announcementCurrentStatus" style="margin-bottom:8px;">Aktuell keine aktive Ankündigung.</div>
         <textarea id="announcementTextInput" class="input-field" rows="3" placeholder="Text der Ankündigung..." style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
@@ -3856,29 +3882,8 @@
         <button class="btn btn-primary btn-small" id="announcementSendBtn" style="width:100%; background:#60a5fa; border-color:#60a5fa;">Ankündigung senden</button>
         <button class="btn btn-ghost btn-small" id="announcementDeleteBtn" style="width:100%; margin-top:8px; border-color:#ef4444; color:#ef4444;">🗑️ Aktuelle Ankündigung löschen</button>
       </div>
-    </div>
 
-    <!-- Feedback-Warnung (NEU): eigenes Fenster mit Text UND Bild statt nur
-         eines einfachen Text-Prompts - die Person sieht beim nächsten
-         Öffnen ein Banner mit dem Text oben und dem Bild darunter. -->
-    <div class="overlay" id="overlayFeedbackWarn">
-      <div class="modal-card" style="max-width:360px; text-align:left;">
-        <button class="banner-close-x" id="feedbackWarnClose" style="position:absolute; top:10px; right:12px;">✕</button>
-        <div style="font-weight:800; margin-bottom:8px; color:#f97316;">❗ Warnung senden</div>
-        <div class="d" id="feedbackWarnTarget" style="margin-bottom:8px;"></div>
-        <textarea id="feedbackWarnTextInput" class="input-field" rows="3" style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
-        <input type="file" id="feedbackWarnImageInput" accept="image/*" style="margin-bottom:8px; width:100%; font-size:12px;">
-        <div id="feedbackWarnImagePreviewWrap" style="display:none; margin-bottom:8px;">
-          <img id="feedbackWarnImagePreview" style="max-width:100%; max-height:140px; border-radius:10px; display:block;">
-          <button class="btn btn-ghost btn-small" id="feedbackWarnImageRemoveBtn" style="margin-top:6px;">Bild entfernen</button>
-        </div>
-        <button class="btn btn-primary btn-small" id="feedbackWarnSendBtn" style="width:100%; background:#f97316; border-color:#f97316;">Warnung senden</button>
-      </div>
-    </div>
-
-    <div class="overlay" id="overlayOwnerSiteStop">
-      <div class="modal-card" style="max-width:360px; text-align:left;">
-        <button class="banner-close-x" id="ownerToolSiteStopClose" style="position:absolute; top:10px; right:12px;">✕</button>
+      <div class="owner-inline-panel" id="panelOwnerSiteStop">
         <div style="font-weight:800; margin-bottom:8px; color:#ef4444;">🛑 Website Not-Stopp</div>
         <div class="d" id="siteStopStatus" style="margin-bottom:8px;">Aktuell nicht gestoppt.</div>
         <select id="siteStopDurationSelect" class="input-field" style="margin-bottom:8px;">
@@ -3891,25 +3896,19 @@
         </select>
         <input type="text" id="siteStopReasonInput" class="input-field" placeholder="Grund (optional)" style="margin-bottom:8px;">
         <div style="display:flex; gap:8px;">
-          <button class="btn btn-primary btn-small" id="siteStopBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Stoppen</button>
+          <button class="btn btn-primary btn-small" id="siteStopBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Wirklich stoppen</button>
           <button class="btn btn-ghost btn-small" id="siteResumeBtn" style="flex:1;">Wieder freigeben</button>
         </div>
       </div>
-    </div>
 
-    <div class="overlay" id="overlayOwnerUpdateNotice">
-      <div class="modal-card" style="max-width:360px; text-align:left;">
-        <button class="banner-close-x" id="ownerToolUpdateNoticeClose" style="position:absolute; top:10px; right:12px;">✕</button>
+      <div class="owner-inline-panel" id="panelOwnerUpdateNotice">
         <div style="font-weight:800; margin-bottom:8px; color:#60a5fa;">🔄 Update-Benachrichtigung</div>
         <div class="d" style="margin-bottom:8px;">Trag hier die Versionsnummer ein, die du gerade hochgeladen hast - alle, die noch die alte Version offen haben, bekommen dann sofort den Update-Hinweis.</div>
         <input type="text" id="ownerNewVersionInput" class="input-field" placeholder="z.B. 2.35" style="margin-bottom:8px;">
         <button class="btn btn-primary btn-small" id="ownerSendUpdateNoticeBtn" style="width:100%;">Update-Nachricht senden</button>
       </div>
-    </div>
 
-    <div class="overlay" id="overlayOwnerPoll">
-      <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto;">
-        <button class="banner-close-x" id="ownerToolPollClose" style="position:absolute; top:10px; right:12px;">✕</button>
+      <div class="owner-inline-panel" id="panelOwnerPoll">
         <div style="font-weight:800; margin-bottom:8px;">📊 Umfrage senden</div>
         <input type="text" id="pollQuestionInput" class="input-field" placeholder="Frage..." style="margin-bottom:8px;">
         <select id="pollTypeSelect" class="input-field" style="margin-bottom:8px;">
@@ -3928,32 +3927,8 @@
           <div id="pollResultsList" style="max-height:220px; overflow-y:auto;"></div>
         </div>
       </div>
-    </div>
 
-    <!-- Aura-Verlauf (NEU): sauberes Popup mit mehr Details (genaue Zeit)
-         statt einer immer sichtbaren Liste im Bearbeitungsformular. -->
-    <div class="overlay" id="overlayOwnerAuraHistory">
-      <div class="modal-card" style="max-width:400px; text-align:left;">
-        <button class="banner-close-x" id="ownerAuraHistoryClose" style="position:absolute; top:10px; right:12px;">✕</button>
-        <div style="font-weight:800; margin-bottom:2px;">💎 Aura-Verlauf</div>
-        <div class="d" id="ownerAuraHistoryTarget" style="margin-bottom:10px;"></div>
-
-        <div style="display:flex; gap:8px; margin-bottom:8px;">
-          <button class="difficulty-btn active" id="auraHistoryViewDays" data-view="days" style="padding:6px 10px; font-size:12px;">Tage</button>
-          <button class="difficulty-btn" id="auraHistoryViewHours" data-view="hours" style="padding:6px 10px; font-size:12px;">Stunden</button>
-        </div>
-        <div style="overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:6px; border-radius:8px;">
-          <svg id="auraHistoryChart" style="height:150px; display:block;"></svg>
-        </div>
-        <div id="auraHistoryChartEmpty" class="empty-hint" style="display:none; margin-top:0; text-align:left;">Noch zu wenig Verlauf für ein Diagramm.</div>
-
-        <div id="ownerAuraHistoryList" style="max-height:35vh; overflow-y:auto; display:flex; flex-direction:column; gap:4px; margin-top:10px;"></div>
-      </div>
-    </div>
-
-    <div class="overlay" id="overlayOwnerCodes">
-      <div class="modal-card" style="max-width:360px; text-align:left;">
-        <button class="banner-close-x" id="ownerToolCodesClose" style="position:absolute; top:10px; right:12px;">✕</button>
+      <div class="owner-inline-panel" id="panelOwnerCodes">
         <div style="font-weight:800; margin-bottom:8px;">🎁 Einlöse-Codes</div>
         <button class="btn btn-ghost btn-small" id="ownerViewCodesListBtn" style="width:100%; margin-bottom:12px;">📋 Alle Codes ansehen</button>
         <input type="text" id="ownerCodeInput" class="input-field" placeholder="Neuer Code (z.B. MATHY500)" style="margin-bottom:8px; text-transform:uppercase;">
@@ -3982,35 +3957,8 @@
         </div>
         <button class="btn btn-primary btn-small" id="ownerSetCodeBtn" style="width:100%;">Code hinzufügen</button>
       </div>
-    </div>
 
-    <!-- Codes-Liste (NEU): eigenes, scrollbares Fenster statt einer riesigen
-         Liste direkt im Erstellen-Menü, die dort alles zugestellt hat. -->
-    <div class="overlay" id="overlayOwnerCodesList">
-      <div class="modal-card" style="max-width:380px; text-align:left; max-height:80vh; overflow-y:auto; position:relative;">
-        <button id="ownerCodesListClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
-        <div style="font-weight:800; margin-bottom:12px;">📋 Alle Codes</div>
-        <div class="d" id="ownerCodeStatus">Aktuell: keine Codes vorhanden.</div>
-      </div>
-    </div>
-
-    <!-- Einlöse-Verlauf (NEU): scrollbare Liste aller bisherigen
-         Code-Einlösungen (Einzel- und öffentliche Codes zusammen),
-         neueste zuerst. -->
-    <div class="overlay" id="overlayCodeHistory">
-      <div class="modal-card" style="max-width:340px; text-align:left; position:relative;">
-        <button id="codeHistoryClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
-        <div style="font-weight:800; margin-bottom:2px;">📜 Einlöse-Verlauf</div>
-        <div class="d" id="codeHistoryCodeLabel" style="margin-bottom:12px;"></div>
-        <div id="codeHistoryList" style="max-height:50vh; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
-      </div>
-    </div>
-
-    <!-- Spieler-Ziel (NEU): ein Ziel/Challenge, die für 10 Minuten allen
-         gerade online Spielern angezeigt wird. -->
-    <div class="overlay" id="overlayPlayerGoal">
-      <div class="modal-card" style="max-width:360px; text-align:left;">
-        <button class="banner-close-x" id="playerGoalClose" style="position:absolute; top:10px; right:12px;">✕</button>
+      <div class="owner-inline-panel" id="panelOwnerPlayerGoal">
         <div style="font-weight:800; margin-bottom:8px;">🎯 Spieler-Ziel</div>
         <div class="d" id="playerGoalStatus" style="margin-bottom:8px;">Aktuell kein aktives Ziel.</div>
 
@@ -4042,7 +3990,84 @@
         <div class="empty-hint" style="text-align:left; margin-top:0; margin-bottom:8px;">Läuft automatisch nach 10 Minuten ab. Wird das Ziel erreicht, bekommt jede Person, die gerade online/aktiv ist, die Belohnung automatisch gutgeschrieben.</div>
         <button class="btn btn-primary btn-small" id="playerGoalSendBtn" style="width:100%;">Ziel setzen</button>
       </div>
+
     </div>
+
+    <!-- Owner-Werkzeug-Menüs (NEU): kompakte Overlays statt einer riesigen,
+         immer sichtbaren Liste - öffnen sich beim Antippen des jeweiligen
+         Symbols, schließen sich über das X. -->
+
+
+    <!-- Feedback-Warnung (NEU): eigenes Fenster mit Text UND Bild statt nur
+         eines einfachen Text-Prompts - die Person sieht beim nächsten
+         Öffnen ein Banner mit dem Text oben und dem Bild darunter. -->
+    <div class="overlay" id="overlayFeedbackWarn">
+      <div class="modal-card" style="max-width:360px; text-align:left;">
+        <button class="banner-close-x" id="feedbackWarnClose" style="position:absolute; top:10px; right:12px;">✕</button>
+        <div style="font-weight:800; margin-bottom:8px; color:#f97316;">❗ Warnung senden</div>
+        <div class="d" id="feedbackWarnTarget" style="margin-bottom:8px;"></div>
+        <textarea id="feedbackWarnTextInput" class="input-field" rows="3" style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
+        <input type="file" id="feedbackWarnImageInput" accept="image/*" style="margin-bottom:8px; width:100%; font-size:12px;">
+        <div id="feedbackWarnImagePreviewWrap" style="display:none; margin-bottom:8px;">
+          <img id="feedbackWarnImagePreview" style="max-width:100%; max-height:140px; border-radius:10px; display:block;">
+          <button class="btn btn-ghost btn-small" id="feedbackWarnImageRemoveBtn" style="margin-top:6px;">Bild entfernen</button>
+        </div>
+        <button class="btn btn-primary btn-small" id="feedbackWarnSendBtn" style="width:100%; background:#f97316; border-color:#f97316;">Warnung senden</button>
+      </div>
+    </div>
+
+
+
+
+
+
+
+    <!-- Aura-Verlauf (NEU): sauberes Popup mit mehr Details (genaue Zeit)
+         statt einer immer sichtbaren Liste im Bearbeitungsformular. -->
+    <div class="overlay" id="overlayOwnerAuraHistory">
+      <div class="modal-card" style="max-width:400px; text-align:left;">
+        <button class="banner-close-x" id="ownerAuraHistoryClose" style="position:absolute; top:10px; right:12px;">✕</button>
+        <div style="font-weight:800; margin-bottom:2px;">💎 Aura-Verlauf</div>
+        <div class="d" id="ownerAuraHistoryTarget" style="margin-bottom:10px;"></div>
+
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <button class="difficulty-btn active" id="auraHistoryViewDays" data-view="days" style="padding:6px 10px; font-size:12px;">Tage</button>
+          <button class="difficulty-btn" id="auraHistoryViewHours" data-view="hours" style="padding:6px 10px; font-size:12px;">Stunden</button>
+        </div>
+        <div style="overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:6px; border-radius:8px;">
+          <svg id="auraHistoryChart" style="height:150px; display:block;"></svg>
+        </div>
+        <div id="auraHistoryChartEmpty" class="empty-hint" style="display:none; margin-top:0; text-align:left;">Noch zu wenig Verlauf für ein Diagramm.</div>
+
+        <div id="ownerAuraHistoryList" style="max-height:35vh; overflow-y:auto; display:flex; flex-direction:column; gap:4px; margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- Codes-Liste (NEU): eigenes, scrollbares Fenster statt einer riesigen
+         Liste direkt im Erstellen-Menü, die dort alles zugestellt hat. -->
+    <div class="overlay" id="overlayOwnerCodesList">
+      <div class="modal-card" style="max-width:380px; text-align:left; max-height:80vh; overflow-y:auto; position:relative;">
+        <button id="ownerCodesListClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+        <div style="font-weight:800; margin-bottom:12px;">📋 Alle Codes</div>
+        <div class="d" id="ownerCodeStatus">Aktuell: keine Codes vorhanden.</div>
+      </div>
+    </div>
+
+    <!-- Einlöse-Verlauf (NEU): scrollbare Liste aller bisherigen
+         Code-Einlösungen (Einzel- und öffentliche Codes zusammen),
+         neueste zuerst. -->
+    <div class="overlay" id="overlayCodeHistory">
+      <div class="modal-card" style="max-width:340px; text-align:left; position:relative;">
+        <button id="codeHistoryClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+        <div style="font-weight:800; margin-bottom:2px;">📜 Einlöse-Verlauf</div>
+        <div class="d" id="codeHistoryCodeLabel" style="margin-bottom:12px;"></div>
+        <div id="codeHistoryList" style="max-height:50vh; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
+      </div>
+    </div>
+
+    <!-- Spieler-Ziel (NEU): ein Ziel/Challenge, die für 10 Minuten allen
+         gerade online Spielern angezeigt wird. -->
+    
 
     <!-- "Beta"-Menü (NEU, vorher "Peter"): Beta-Einstellungen zum Ausprobieren -->
     <div class="overlay" id="overlayPeterMenu">
@@ -5060,7 +5085,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.36";
+  const APP_VERSION = "3.37";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -13839,37 +13864,56 @@
   $("ownerMakeModBtn").addEventListener("click", ownerMakeMod);
   $("ownerRemoveModBtn").addEventListener("click", ownerRemoveModOfTarget);
   $("ownerGiveBoosterBtn").addEventListener("click", ownerGiveBooster);
-  $("ownerToolDevMode").addEventListener("click", toggleDevMode);
+
+  // Owner-Panel-Kategorien (NEU): Klick auf eine Kachel klappt ihren
+  // Inhalt direkt darunter auf (nur eine gleichzeitig geöffnet) - es wird
+  // dabei NICHTS ausgeführt, das passiert erst über den Button IM Inhalt
+  // selbst. Nochmaliges Antippen der aktiven Kachel klappt sie wieder zu.
+  function toggleOwnerPanel(panelId, tileId, onOpen){
+    const panel = $(panelId);
+    const tile = $(tileId);
+    const isOpen = panel.style.display === "block";
+    document.querySelectorAll("#ownerPanelRow .owner-inline-panel").forEach(p => p.style.display = "none");
+    document.querySelectorAll("#ownerPanelRow .owner-category-tile").forEach(t => t.classList.remove("active"));
+    if(playerGoalOwnerAutoRefreshInterval){ clearInterval(playerGoalOwnerAutoRefreshInterval); playerGoalOwnerAutoRefreshInterval = null; }
+    if(!isOpen){
+      panel.style.display = "block";
+      tile.classList.add("active");
+      if(onOpen) onOpen();
+    }
+  }
+
+  $("ownerToolDevMode").addEventListener("click", () => {
+    toggleOwnerPanel("panelOwnerDevMode", "ownerToolDevMode", () => {
+      $("devModeStatus").textContent = profile.devModeEnabled ? "Aktuell an." : "Aktuell aus.";
+    });
+  });
+  $("devModeToggleBtn").addEventListener("click", () => {
+    toggleDevMode();
+    $("devModeStatus").textContent = profile.devModeEnabled ? "Aktuell an." : "Aktuell aus.";
+  });
+
   $("ownerToolAnnouncement").addEventListener("click", () => {
-    $("overlayOwnerAnnouncement").classList.add("show");
-    renderOwnerAnnouncementStatus();
+    toggleOwnerPanel("panelOwnerAnnouncement", "ownerToolAnnouncement", renderOwnerAnnouncementStatus);
   });
-  $("ownerToolAnnouncementClose").addEventListener("click", () => {
-    $("overlayOwnerAnnouncement").classList.remove("show");
-  });
+
   $("ownerToolSiteStop").addEventListener("click", () => {
-    $("overlayOwnerSiteStop").classList.add("show");
+    toggleOwnerPanel("panelOwnerSiteStop", "ownerToolSiteStop");
   });
-  $("ownerToolSiteStopClose").addEventListener("click", () => {
-    $("overlayOwnerSiteStop").classList.remove("show");
-  });
+
   $("ownerToolUpdateNotice").addEventListener("click", () => {
-    $("overlayOwnerUpdateNotice").classList.add("show");
+    toggleOwnerPanel("panelOwnerUpdateNotice", "ownerToolUpdateNotice");
   });
-  $("ownerToolUpdateNoticeClose").addEventListener("click", () => {
-    $("overlayOwnerUpdateNotice").classList.remove("show");
-  });
+
   $("ownerToolPoll").addEventListener("click", () => {
-    $("overlayOwnerPoll").classList.add("show");
-    renderPollResults();
+    toggleOwnerPanel("panelOwnerPoll", "ownerToolPoll", renderPollResults);
   });
-  $("ownerToolPollClose").addEventListener("click", () => {
-    $("overlayOwnerPoll").classList.remove("show");
-  });
+
   $("ownerToolCodes").addEventListener("click", () => {
-    $("overlayOwnerCodes").classList.add("show");
-    selectOwnerCodeReward(ownerSelectedCodeReward);
-    $("ownerCodePublicSwitch").classList.remove("on");
+    toggleOwnerPanel("panelOwnerCodes", "ownerToolCodes", () => {
+      selectOwnerCodeReward(ownerSelectedCodeReward);
+      $("ownerCodePublicSwitch").classList.remove("on");
+    });
   });
   $("ownerViewCodesListBtn").addEventListener("click", () => {
     $("overlayOwnerCodesList").classList.add("show");
@@ -13881,26 +13925,19 @@
   $("ownerCodePublicSwitch").addEventListener("click", () => {
     $("ownerCodePublicSwitch").classList.toggle("on");
   });
-  $("ownerToolCodesClose").addEventListener("click", () => {
-    $("overlayOwnerCodes").classList.remove("show");
-  });
 
   let playerGoalOwnerAutoRefreshInterval = null;
   $("ownerToolPlayerGoal").addEventListener("click", () => {
-    $("overlayPlayerGoal").classList.add("show");
-    renderOwnerPlayerGoalStatus();
-    refreshPlayerGoalOwnerLiveCount();
-    // Automatische Aktualisierung (NEU): läuft alle 10 Sekunden von
-    // selbst, solange das Fenster offen ist - kein manuelles Klicken
-    // auf "Aktualisieren" mehr nötig.
-    if(playerGoalOwnerAutoRefreshInterval) clearInterval(playerGoalOwnerAutoRefreshInterval);
-    playerGoalOwnerAutoRefreshInterval = setInterval(() => {
-      if(playerGoalOwnerModalMetric !== "invite") refreshPlayerGoalOwnerLiveCount();
-    }, 10000);
-  });
-  $("playerGoalClose").addEventListener("click", () => {
-    $("overlayPlayerGoal").classList.remove("show");
-    if(playerGoalOwnerAutoRefreshInterval){ clearInterval(playerGoalOwnerAutoRefreshInterval); playerGoalOwnerAutoRefreshInterval = null; }
+    toggleOwnerPanel("panelOwnerPlayerGoal", "ownerToolPlayerGoal", () => {
+      renderOwnerPlayerGoalStatus();
+      refreshPlayerGoalOwnerLiveCount();
+      // Automatische Aktualisierung (NEU): läuft alle 10 Sekunden von
+      // selbst, solange das Fenster offen ist - kein manuelles Klicken
+      // auf "Aktualisieren" mehr nötig.
+      playerGoalOwnerAutoRefreshInterval = setInterval(() => {
+        if(playerGoalOwnerModalMetric !== "invite") refreshPlayerGoalOwnerLiveCount();
+      }, 10000);
+    });
   });
   $("playerGoalRefreshBtn").addEventListener("click", refreshPlayerGoalOwnerLiveCount);
   $("playerGoalMetricOnline").addEventListener("click", () => {

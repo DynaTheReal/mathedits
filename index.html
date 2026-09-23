@@ -399,8 +399,11 @@
     --shadow: 0 20px 50px rgba(0,0,0,.5); --overlay-bg: rgba(43,16,48,.95);
     --rainbow-header: linear-gradient(90deg, #f97316, #ec4899, #a855f7);
   }
-  [data-theme="sunset"] body{
-    background: radial-gradient(ellipse at bottom, #5a1f4a 0%, #2b1030 70%) fixed;
+  [data-theme="sunset"]{
+    background-image:
+      radial-gradient(ellipse at bottom, #5a1f4a 0%, #2b1030 70%),
+      radial-gradient(circle at 50% -10%, var(--bg-soft), var(--bg) 55%);
+    background-attachment: fixed, scroll;
   }
   [data-theme="sunset"] .topbar, [data-theme="sunset"] .bottom-nav{
     box-shadow: 0 0 24px rgba(249,115,22,.25);
@@ -511,7 +514,7 @@
   /* Echtes Pixel-Raster (STARK VERSTÄRKT): viele kleine, deutlich sichtbare
      einzelne Pixel überall - nicht nur ein grobes Schachbrett im
      Hintergrund, sondern auch auf Karten, Buttons und der Kopf-/Fußzeile. */
-  [data-theme="blocks"] body{
+  [data-theme="blocks"]{
     background-color:#1b2a17;
     background-image:
       linear-gradient(45deg, rgba(0,0,0,.28) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.28) 75%),
@@ -569,19 +572,20 @@
   /* Echte Spinnweben (VERSTÄRKT): strahlende Linien + konzentrische Ringe
      aus JEDER der vier Ecken, statt nur einer - fest positioniert, damit
      die Bildschirmmitte trotzdem gut lesbar bleibt. */
-  [data-theme="webhero"] body{
+  [data-theme="webhero"]{
     background-image:
-      repeating-conic-gradient(from 0deg at 0% 0%, rgba(255,255,255,.1) 0deg 1.5deg, transparent 1.5deg 22.5deg),
-      repeating-radial-gradient(circle at 0% 0%, rgba(255,255,255,.09) 0 1.5px, transparent 1.5px 45px),
-      repeating-conic-gradient(from 0deg at 100% 0%, rgba(255,255,255,.1) 0deg 1.5deg, transparent 1.5deg 22.5deg),
-      repeating-radial-gradient(circle at 100% 0%, rgba(255,255,255,.09) 0 1.5px, transparent 1.5px 45px),
-      repeating-conic-gradient(from 0deg at 0% 100%, rgba(255,255,255,.1) 0deg 1.5deg, transparent 1.5deg 22.5deg),
-      repeating-radial-gradient(circle at 0% 100%, rgba(255,255,255,.09) 0 1.5px, transparent 1.5px 45px),
-      repeating-conic-gradient(from 0deg at 100% 100%, rgba(255,255,255,.1) 0deg 1.5deg, transparent 1.5deg 22.5deg),
-      repeating-radial-gradient(circle at 100% 100%, rgba(255,255,255,.09) 0 1.5px, transparent 1.5px 45px),
+      repeating-conic-gradient(from 0deg at 0% 0%, rgba(255,255,255,.14) 0deg 1.5deg, transparent 1.5deg 22.5deg),
+      repeating-radial-gradient(circle at 0% 0%, rgba(255,255,255,.12) 0 1.5px, transparent 1.5px 45px),
+      repeating-conic-gradient(from 0deg at 100% 0%, rgba(255,255,255,.14) 0deg 1.5deg, transparent 1.5deg 22.5deg),
+      repeating-radial-gradient(circle at 100% 0%, rgba(255,255,255,.12) 0 1.5px, transparent 1.5px 45px),
+      repeating-conic-gradient(from 0deg at 0% 100%, rgba(255,255,255,.14) 0deg 1.5deg, transparent 1.5deg 22.5deg),
+      repeating-radial-gradient(circle at 0% 100%, rgba(255,255,255,.12) 0 1.5px, transparent 1.5px 45px),
+      repeating-conic-gradient(from 0deg at 100% 100%, rgba(255,255,255,.14) 0deg 1.5deg, transparent 1.5deg 22.5deg),
+      repeating-radial-gradient(circle at 100% 100%, rgba(255,255,255,.12) 0 1.5px, transparent 1.5px 45px),
       repeating-linear-gradient(45deg, rgba(214,40,40,.04) 0 2px, transparent 2px 40px),
-      repeating-linear-gradient(-45deg, rgba(52,87,213,.04) 0 2px, transparent 2px 40px);
-    background-attachment: fixed;
+      repeating-linear-gradient(-45deg, rgba(52,87,213,.04) 0 2px, transparent 2px 40px),
+      radial-gradient(circle at 50% -10%, var(--bg-soft), var(--bg) 55%);
+    background-attachment: fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed, scroll;
   }
   [data-theme="webhero"] .topbar, [data-theme="webhero"] .bottom-nav{
     box-shadow: 0 0 24px rgba(214,40,40,.3);
@@ -600,11 +604,12 @@
   }
   /* Fernes Mondlicht (NEU): sanfter, kalter Lichtschein oben, dazu ein
      ganz feines "Fell"-Streifenmuster im Hintergrund. */
-  [data-theme="darkwolf"] body{
+  [data-theme="darkwolf"]{
     background-image:
       radial-gradient(ellipse 600px 400px at 85% -5%, rgba(123,143,166,.16), transparent 65%),
-      repeating-linear-gradient(115deg, rgba(255,255,255,.015) 0 2px, transparent 2px 7px);
-    background-attachment: fixed;
+      repeating-linear-gradient(115deg, rgba(255,255,255,.015) 0 2px, transparent 2px 7px),
+      radial-gradient(circle at 50% -10%, var(--bg-soft), var(--bg) 55%);
+    background-attachment: fixed, fixed, scroll;
   }
   [data-theme="darkwolf"] .topbar, [data-theme="darkwolf"] .bottom-nav{
     box-shadow: 0 0 18px rgba(123,143,166,.18);
@@ -626,11 +631,12 @@
   }
   /* Kristall-/Eissplitter-Muster (NEU): feine, facettierte Linien, wie
      Risse in einer Eisscholle. */
-  [data-theme="ice"] body{
+  [data-theme="ice"]{
     background-image:
       linear-gradient(120deg, rgba(56,189,248,.06) 0 1px, transparent 1px 90px),
       linear-gradient(60deg, rgba(56,189,248,.06) 0 1px, transparent 1px 90px),
-      linear-gradient(0deg, rgba(56,189,248,.05) 0 1px, transparent 1px 90px);
+      linear-gradient(0deg, rgba(56,189,248,.05) 0 1px, transparent 1px 90px),
+      radial-gradient(circle at 50% -10%, var(--bg-soft), var(--bg) 55%);
   }
   [data-theme="ice"] .card, [data-theme="ice"] .modal-card,
   [data-theme="ice"] .shop-item, [data-theme="ice"] .mission-card,
@@ -2206,6 +2212,16 @@
     -webkit-backdrop-filter: none;
   }
   .overlay.show{opacity:1; pointer-events:auto;}
+  /* Aufgabe nicht durchscheinen lassen (Bugfix): der normale Overlay-
+     Hintergrund blendet über .25s langsam ein - beim "Aufladen"-Motiv
+     (Ignite), das selbst länger braucht, konnte man dadurch kurz noch die
+     Aufgabe darunter erkennen. Für das Aura-Overlay blendet der
+     Hintergrund deshalb sofort komplett undurchsichtig ein, statt langsam
+     überzublenden - die Aufgabe ist dadurch von Anfang an zuverlässig
+     verdeckt.
+  */
+  #overlayAura{ transition:none; }
+  #overlayAura.show{ opacity:1; }
   /* Ranzoom-Effekt beim Öffnen (NEU): läuft jetzt automatisch bei JEDEM
      Menü/Fenster, das sich öffnet - keine eigene Einstellung mehr nötig. */
   .overlay.show .modal-card, .overlay.show .overlay-card{
@@ -3814,22 +3830,43 @@
         <div id="ownerModStatus" class="d" style="margin-bottom:8px;">Aktuell kein Mod.</div>
 
         <div class="d" style="margin-bottom:8px;">Aktionen</div>
-        <select id="ownerBanDurationSelect" class="input-field" style="margin-bottom:10px;">
-          <option value="1">1 Tag</option>
-          <option value="3">3 Tage</option>
-          <option value="7">7 Tage</option>
-          <option value="30">30 Tage</option>
-          <option value="forever">Für immer</option>
-        </select>
-        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
-          <button class="owner-tool-icon-btn" id="ownerToolAuraHistory" title="Aura-Verlauf">💎</button>
-          <button class="owner-tool-icon-btn" id="ownerBanBtn" title="Sperren" style="border-color:#ef4444; color:#ef4444;">🚫</button>
-          <button class="owner-tool-icon-btn" id="ownerUnbanBtn" title="Entsperren">✅</button>
-          <button class="owner-tool-icon-btn" id="ownerIpBanBtn" title="IP sperren" style="border-color:#7f1d1d; color:#f87171;">🌐</button>
-          <button class="owner-tool-icon-btn" id="ownerIpUnbanBtn" title="IP entsperren">🌍</button>
-          <button class="owner-tool-icon-btn" id="ownerMakeModBtn" title="Zum Mod ernennen" style="border-color:#facc15; color:#facc15;">🛡️</button>
-          <button class="owner-tool-icon-btn" id="ownerRemoveModBtn" title="Mod entfernen">🚷</button>
-          <button class="owner-tool-icon-btn" id="ownerGiveBoosterBtn" title="Aura-Booster geben" style="border-color:#a855f7; color:#a855f7;">✨</button>
+        <div class="owner-category-grid" id="ownerPlayerToolsGrid">
+          <div class="owner-category-tile" id="ownerToolAuraHistory"><span class="icon">💎</span><span class="label">Aura-Verlauf</span></div>
+          <div class="owner-category-tile" id="ownerToolBans"><span class="icon">🚫</span><span class="label">Bans</span></div>
+          <div class="owner-category-tile" id="ownerToolModRole"><span class="icon">🛡️</span><span class="label">Mod-Rolle</span></div>
+          <div class="owner-category-tile" id="ownerToolBooster"><span class="icon">✨</span><span class="label">Booster</span></div>
+        </div>
+
+        <div class="owner-inline-panel" id="panelOwnerBans">
+          <div style="font-weight:800; margin-bottom:8px; color:#ef4444;">🚫 Bans</div>
+          <select id="ownerBanDurationSelect" class="input-field" style="margin-bottom:10px;">
+            <option value="1">1 Tag</option>
+            <option value="3">3 Tage</option>
+            <option value="7">7 Tage</option>
+            <option value="30">30 Tage</option>
+            <option value="forever">Für immer</option>
+          </select>
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <button class="btn btn-primary btn-small" id="ownerBanBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Sperren</button>
+            <button class="btn btn-ghost btn-small" id="ownerUnbanBtn" style="flex:1;">Entsperren</button>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary btn-small" id="ownerIpBanBtn" style="flex:1; background:#7f1d1d; border-color:#7f1d1d;">🌐 IP sperren</button>
+            <button class="btn btn-ghost btn-small" id="ownerIpUnbanBtn" style="flex:1;">IP entsperren</button>
+          </div>
+        </div>
+
+        <div class="owner-inline-panel" id="panelOwnerModRole">
+          <div style="font-weight:800; margin-bottom:8px; color:#facc15;">🛡️ Mod-Rolle</div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary btn-small" id="ownerMakeModBtn" style="flex:1; background:#facc15; color:#000; border-color:#facc15;">Zum Mod ernennen</button>
+            <button class="btn btn-ghost btn-small" id="ownerRemoveModBtn" style="flex:1;">Mod entfernen</button>
+          </div>
+        </div>
+
+        <div class="owner-inline-panel" id="panelOwnerBooster">
+          <div style="font-weight:800; margin-bottom:8px; color:#a855f7;">✨ Aura-Booster verleihen</div>
+          <button class="btn btn-primary btn-small" id="ownerGiveBoosterBtn" style="width:100%; background:#a855f7; border-color:#a855f7;">15 Min Aura-Booster geben</button>
         </div>
 
         <button class="btn btn-primary" id="ownerSaveBtn" style="margin-top:16px;">Änderungen speichern</button>
@@ -5085,7 +5122,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.37";
+  const APP_VERSION = "3.38";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6270,6 +6307,7 @@
       }
       $("overlayAnnouncement").dataset.currentId = docId;
       $("overlayAnnouncement").style.display = "flex";
+      pauseLessonTimerForOwnerEvent();
       // WICHTIG: sobald sie angezeigt wird, sofort als gesehen speichern -
       // nicht erst wenn auf X gedrückt wird. Sonst würde sie erneut
       // erscheinen, falls die App geschlossen wird, bevor jemand explizit
@@ -6283,6 +6321,7 @@
 
   function dismissAnnouncement(){
     $("overlayAnnouncement").style.display = "none";
+    resumeLessonTimerAfterOwnerEvent();
   }
 
   async function sendPoll(){
@@ -13864,6 +13903,15 @@
   $("ownerMakeModBtn").addEventListener("click", ownerMakeMod);
   $("ownerRemoveModBtn").addEventListener("click", ownerRemoveModOfTarget);
   $("ownerGiveBoosterBtn").addEventListener("click", ownerGiveBooster);
+  $("ownerToolBans").addEventListener("click", () => {
+    toggleOwnerPanel("panelOwnerBans", "ownerToolBans");
+  });
+  $("ownerToolModRole").addEventListener("click", () => {
+    toggleOwnerPanel("panelOwnerModRole", "ownerToolModRole");
+  });
+  $("ownerToolBooster").addEventListener("click", () => {
+    toggleOwnerPanel("panelOwnerBooster", "ownerToolBooster");
+  });
 
   // Owner-Panel-Kategorien (NEU): Klick auf eine Kachel klappt ihren
   // Inhalt direkt darunter auf (nur eine gleichzeitig geöffnet) - es wird
@@ -15833,32 +15881,63 @@
     }
   }
 
-  function startTimer(){
-    questionStartedAt = performance.now();
+  let lessonTimeLimitMs = 8000;
+  function timerTick(){
+    if(!lesson || lesson.locked) return;
+    if(lessonTimerPaused) return; // pausiert - kein weiteres Herunterzählen, wartet auf resumeLessonTimerAfterOwnerEvent()
     const circle = $("timerCircle");
     const numEl = $("timerNum");
-    const timeLimitMs = lesson.tier.timeMs || 8000;
-    
-    circle.setAttribute("stroke-dasharray", TIMER_CIRCUMFERENCE);
-    cancelAnimationFrame(timerRAF);
-
-    function tick(){
-      if(!lesson || lesson.locked) return;
-      const elapsed = performance.now() - questionStartedAt;
-      const remaining = Math.max(0, timeLimitMs - elapsed);
-      const frac = remaining / timeLimitMs;
-      circle.setAttribute("stroke-dashoffset", TIMER_CIRCUMFERENCE * (1-frac));
-      numEl.textContent = Math.ceil(remaining/1000);
-      circle.style.stroke = frac < 0.25 ? "var(--danger)" : "var(--accent)";
-      if(remaining <= 0){
-        triggerAnswer(true);
-        return;
-      }
-      timerRAF = requestAnimationFrame(tick);
+    const elapsed = performance.now() - questionStartedAt;
+    const remaining = Math.max(0, lessonTimeLimitMs - elapsed);
+    const frac = remaining / lessonTimeLimitMs;
+    circle.setAttribute("stroke-dashoffset", TIMER_CIRCUMFERENCE * (1-frac));
+    numEl.textContent = Math.ceil(remaining/1000);
+    circle.style.stroke = frac < 0.25 ? "var(--danger)" : "var(--accent)";
+    if(remaining <= 0){
+      triggerAnswer(true);
+      return;
     }
-    tick();
+    timerRAF = requestAnimationFrame(timerTick);
+  }
+  function startTimer(){
+    questionStartedAt = performance.now();
+    lessonTimeLimitMs = lesson.tier.timeMs || 8000;
+    $("timerCircle").setAttribute("stroke-dasharray", TIMER_CIRCUMFERENCE);
+    cancelAnimationFrame(timerRAF);
+    timerTick();
   }
   function stopTimer(){ cancelAnimationFrame(timerRAF); }
+
+  // Timer-Pause bei Owner-Ereignissen (NEU): bekommt man während einer
+  // laufenden Lektion etwas vom Owner (Ankündigung, Booster-Geschenk,
+  // Broadcast, ...), würde die Aufgaben-Zeit im Hintergrund einfach
+  // weiterlaufen, während man den Bildschirm gar nicht sieht - man würde
+  // die Aufgabe dadurch unfair verlieren. Der Timer wird deshalb während
+  // solcher Ereignisse angehalten und danach exakt dort fortgesetzt, wo er
+  // stand (die pausierte Zeit wird nicht mitgezählt). "pauseCount" erlaubt
+  // mehrere gleichzeitig überlappende Ereignisse, ohne dass eines das
+  // andere vorzeitig beendet.
+  let lessonTimerPaused = false;
+  let lessonTimerPauseStartedAt = 0;
+  let lessonTimerPauseCount = 0;
+  function pauseLessonTimerForOwnerEvent(){
+    lessonTimerPauseCount++;
+    if(!lesson || lesson.locked || lessonTimerPaused) return;
+    lessonTimerPaused = true;
+    lessonTimerPauseStartedAt = performance.now();
+    cancelAnimationFrame(timerRAF);
+  }
+  function resumeLessonTimerAfterOwnerEvent(){
+    if(lessonTimerPauseCount > 0) lessonTimerPauseCount--;
+    if(lessonTimerPauseCount > 0) return; // andere Ereignisse laufen noch
+    if(!lessonTimerPaused) return;
+    lessonTimerPaused = false;
+    if(!lesson || lesson.locked) return;
+    const pausedMs = performance.now() - lessonTimerPauseStartedAt;
+    questionStartedAt += pausedMs; // verschiebt den Startpunkt um genau die pausierte Zeit nach vorn
+    cancelAnimationFrame(timerRAF);
+    timerTick(); // Schleife läuft ab genau dort weiter, wo sie stand
+  }
 
   // Live-Duelle brauchen einen eigenen Antwort-Pfad (Punktvergabe per
   // Firestore-Transaktion) - dieser Wrapper leitet an die richtige Funktion
@@ -16003,6 +16082,7 @@
     void xxl.offsetWidth; // Reflow, damit die Pop-In-Animation sicher neu startet
     $("auraBoosterSubtitle").textContent = `für ${minutes || 15} Minuten`;
     screen.style.display = "block";
+    pauseLessonTimerForOwnerEvent();
 
     auraBoosterAnimTimers.forEach(t => clearTimeout(t));
     auraBoosterAnimTimers = [];
@@ -16036,6 +16116,7 @@
     }, 4800));
     auraBoosterAnimTimers.push(setTimeout(() => {
       screen.style.display = "none";
+      resumeLessonTimerAfterOwnerEvent();
     }, 5200));
   }
 

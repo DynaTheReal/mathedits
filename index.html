@@ -3619,9 +3619,12 @@
     </div>
 
     <div style="padding:0 20px;">
-      <div style="display:flex; gap:8px; margin-bottom:16px;">
+      <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
         <button class="difficulty-btn active" id="modTabUsers" data-tab="users">👤 Registrierungen</button>
         <button class="difficulty-btn" id="modTabGroups" data-tab="groups">👥 Gruppen</button>
+        <button class="difficulty-btn" id="modTabBroadcast" data-tab="broadcast" style="display:none;">📢 Nachrichten</button>
+        <button class="difficulty-btn" id="modTabSiteStop" data-tab="sitestop" style="display:none;">🛑 Stopp</button>
+        <button class="difficulty-btn" id="modTabUserSearch" data-tab="usersearch" style="display:none;">🔍 Benutzer</button>
       </div>
 
       <div id="modTabContentUsers">
@@ -3632,6 +3635,50 @@
       <div id="modTabContentGroups" style="display:none;">
         <div id="modGroupsList"></div>
         <div class="empty-hint" id="modGroupsEmptyHint" style="display:none;">Noch keine Gruppen.</div>
+      </div>
+
+      <!-- Zusatz-Berechtigungen (NEU): nur sichtbar, wenn der Owner sie
+           freigeschaltet hat. -->
+      <div id="modTabContentBroadcast" style="display:none;">
+        <textarea id="modBroadcastInput" class="input-field" rows="3" placeholder="Nachricht an alle Nutzer weltweit..." style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
+        <button class="btn btn-primary btn-small" id="modSendBroadcastBtn" style="width:100%;">Senden</button>
+      </div>
+
+      <div id="modTabContentSiteStop" style="display:none;">
+        <div class="d" id="modSiteStopStatus" style="margin-bottom:8px;">Aktuell nicht gestoppt.</div>
+        <select id="modSiteStopDurationSelect" class="input-field" style="margin-bottom:8px;">
+          <option value="15">15 Minuten</option>
+          <option value="30">30 Minuten</option>
+          <option value="60">1 Stunde</option>
+          <option value="180">3 Stunden</option>
+          <option value="1440">1 Tag</option>
+          <option value="indefinite">Bis manuell entsperrt</option>
+        </select>
+        <input type="text" id="modSiteStopReasonInput" class="input-field" placeholder="Grund (optional)" style="margin-bottom:8px;">
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary btn-small" id="modSiteStopBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Stoppen</button>
+          <button class="btn btn-ghost btn-small" id="modSiteResumeBtn" style="flex:1;">Wieder freigeben</button>
+        </div>
+      </div>
+
+      <div id="modTabContentUserSearch" style="display:none;">
+        <div style="display:flex; gap:8px; margin-bottom:16px; position:relative;">
+          <input type="text" id="modSearchInput" class="input-field" placeholder="Benutzername" style="flex:1;" autocomplete="off">
+          <button class="btn btn-primary btn-small" id="modSearchBtn">Suchen</button>
+          <div id="modSearchSuggestions" style="display:none; position:absolute; top:100%; left:0; right:56px; margin-top:4px; background:var(--card); border:1.5px solid var(--border); border-radius:12px; box-shadow:var(--shadow); max-height:220px; overflow-y:auto; z-index:20;"></div>
+        </div>
+        <div id="modEditPanel" style="display:none;">
+          <div class="d" id="modTargetLabel" style="margin-bottom:10px; font-weight:700;"></div>
+          <div class="d" style="margin-bottom:4px;">Aura</div>
+          <input type="number" id="modAuraInput" class="input-field">
+          <div class="d" style="margin-bottom:4px; margin-top:10px;">Level</div>
+          <input type="number" id="modLevelInput" class="input-field">
+          <button class="btn btn-primary" id="modSaveBtn" style="margin-top:14px; width:100%;">Änderungen speichern</button>
+          <div style="background:rgba(168,85,247,.1); border:1.5px solid #a855f7; border-radius:12px; padding:10px; margin-top:14px;">
+            <div class="d" style="font-weight:800; margin-bottom:8px; color:#a855f7;">✨ Aura-Booster verleihen</div>
+            <button class="btn btn-primary btn-small" id="modGiveBoosterBtn" style="width:100%; background:#a855f7; border-color:#a855f7;">15 Min Aura-Booster geben</button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -3927,9 +3974,36 @@
 
         <div class="owner-inline-panel" id="panelOwnerModRole">
           <div style="font-weight:800; margin-bottom:8px; color:#facc15;">🛡️ Mod-Rolle</div>
-          <div style="display:flex; gap:8px;">
+          <div style="display:flex; gap:8px; margin-bottom:12px;">
             <button class="btn btn-primary btn-small" id="ownerMakeModBtn" style="flex:1; background:#facc15; color:#000; border-color:#facc15;">Zum Mod ernennen</button>
             <button class="btn btn-ghost btn-small" id="ownerRemoveModBtn" style="flex:1;">Mod entfernen</button>
+          </div>
+
+          <!-- Mod-Berechtigungen (NEU): Sperren + Gruppen sind Standard,
+               alles andere kann der Owner zusätzlich freischalten. -->
+          <div id="ownerModPermsBox" style="display:none; background:var(--card-2); border:1px solid var(--border); border-radius:12px; padding:10px;">
+            <div class="d" style="font-weight:800; margin-bottom:8px;">Berechtigungen</div>
+            <div class="settings-row" style="padding:4px 0;">
+              <div class="info"><div class="t" style="font-size:13px;">🚫 Sperren</div></div>
+              <div class="switch" id="modPermSwitchBan"><div class="knob"></div></div>
+            </div>
+            <div class="settings-row" style="padding:4px 0;">
+              <div class="info"><div class="t" style="font-size:13px;">👥 Gruppen verwalten</div></div>
+              <div class="switch" id="modPermSwitchGroups"><div class="knob"></div></div>
+            </div>
+            <div class="settings-row" style="padding:4px 0;">
+              <div class="info"><div class="t" style="font-size:13px;">📢 Nachricht an alle senden</div></div>
+              <div class="switch" id="modPermSwitchBroadcast"><div class="knob"></div></div>
+            </div>
+            <div class="settings-row" style="padding:4px 0;">
+              <div class="info"><div class="t" style="font-size:13px;">🛑 Website Not-Stopp</div></div>
+              <div class="switch" id="modPermSwitchSiteStop"><div class="knob"></div></div>
+            </div>
+            <div class="settings-row" style="padding:4px 0;">
+              <div class="info"><div class="t" style="font-size:13px;">🔍 Benutzer bearbeiten (Aura/Level/Booster)</div></div>
+              <div class="switch" id="modPermSwitchUserSearch"><div class="knob"></div></div>
+            </div>
+            <button class="btn btn-primary btn-small" id="ownerSaveModPermsBtn" style="width:100%; margin-top:8px;">Berechtigungen speichern</button>
           </div>
         </div>
 
@@ -5048,7 +5122,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.41";
+  const APP_VERSION = "3.42";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -13061,6 +13135,7 @@
         ? `Zuletzt bekannte IP: ${ownerEditingTargetIp}`
         : "Keine bekannte IP-Adresse für diese Person hinterlegt (noch nicht seit dem letzten Update eingeloggt).";
       $("ownerModStatus").textContent = data.isMod ? "🛡️ Ist aktuell Mod." : "Aktuell kein Mod.";
+      renderOwnerModPermsBox(data.isMod, data.modPermissions);
 
       // Owner-Info-Box (NEU): viele zusätzliche Angaben auf einen Blick -
       // erste/letzte Lektion, Gesamt-Nutzungszeit, und weitere Profilwerte.
@@ -13388,12 +13463,16 @@
   // Schild-Knopf in den Einstellungen, der zu einem eingeschränkten
   // Mod-Panel führt (jede Aktion dort braucht zusätzlich das separate
   // Admin-Aktions-Passwort, siehe unten).
+  const DEFAULT_MOD_PERMISSIONS = { ban: true, groups: true, broadcast: false, siteStop: false, userSearch: false };
+
   async function ownerMakeMod(){
     if(!ownerEditingUid || !isOwner()) return;
     try{
-      await db().collection("users").doc(ownerEditingUid).set({ isMod: true }, { merge: true });
+      await db().collection("users").doc(ownerEditingUid).set({ isMod: true, modPermissions: DEFAULT_MOD_PERMISSIONS }, { merge: true });
       $("ownerModStatus").textContent = "🛡️ Ist aktuell Mod.";
+      logModAction("Zum Mod ernannt", $("ownerTargetLabel").textContent);
       showToast("🛡️ Zum Mod ernannt.");
+      renderOwnerModPermsBox(true, DEFAULT_MOD_PERMISSIONS);
     }catch(err){
       showToast("Fehlgeschlagen.");
       console.error(err);
@@ -13404,9 +13483,49 @@
     try{
       await db().collection("users").doc(ownerEditingUid).set({ isMod: false }, { merge: true });
       $("ownerModStatus").textContent = "Aktuell kein Mod.";
+      logModAction("Mod-Rolle entfernt", $("ownerTargetLabel").textContent);
       showToast("Mod-Rolle entfernt.");
+      renderOwnerModPermsBox(false, null);
     }catch(err){
       showToast("Fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  // Mod-Berechtigungen (NEU): Sperren + Gruppen sind Standard, sobald
+  // jemand zum Mod ernannt wird - alles Weitere schaltet der Owner hier
+  // gezielt pro Mod frei/zu.
+  function renderOwnerModPermsBox(isCurrentlyMod, perms){
+    $("ownerModPermsBox").style.display = isCurrentlyMod ? "block" : "none";
+    if(!isCurrentlyMod) return;
+    const p = { ...DEFAULT_MOD_PERMISSIONS, ...(perms || {}) };
+    const map = {
+      modPermSwitchBan: p.ban,
+      modPermSwitchGroups: p.groups,
+      modPermSwitchBroadcast: p.broadcast,
+      modPermSwitchSiteStop: p.siteStop,
+      modPermSwitchUserSearch: p.userSearch
+    };
+    Object.entries(map).forEach(([id, on]) => {
+      $(id).classList.toggle("on", !!on);
+    });
+  }
+
+  async function ownerSaveModPerms(){
+    if(!ownerEditingUid || !isOwner()) return;
+    const perms = {
+      ban: $("modPermSwitchBan").classList.contains("on"),
+      groups: $("modPermSwitchGroups").classList.contains("on"),
+      broadcast: $("modPermSwitchBroadcast").classList.contains("on"),
+      siteStop: $("modPermSwitchSiteStop").classList.contains("on"),
+      userSearch: $("modPermSwitchUserSearch").classList.contains("on")
+    };
+    try{
+      await db().collection("users").doc(ownerEditingUid).set({ modPermissions: perms }, { merge: true });
+      logModAction("Berechtigungen geändert", $("ownerTargetLabel").textContent);
+      showToast("✅ Berechtigungen gespeichert.");
+    }catch(err){
+      showToast("Speichern fehlgeschlagen.");
       console.error(err);
     }
   }
@@ -13595,6 +13714,108 @@
     });
   }
 
+  // Nachricht an alle (NEU, nur mit Berechtigung "broadcast" sichtbar).
+  async function modSendBroadcast(){
+    const text = ($("modBroadcastInput").value || "").trim();
+    if(!text) return;
+    try{
+      await db().collection("broadcasts").add({
+        message: text, ownerUsername: profile.username, ownerTheme: profile.theme, createdAt: Date.now()
+      });
+      $("modBroadcastInput").value = "";
+      logModAction("Nachricht an alle gesendet", "");
+      showToast("📢 Gesendet.");
+    }catch(err){
+      showToast("Senden fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  // Website Not-Stopp (NEU, nur mit Berechtigung "siteStop" sichtbar).
+  async function renderModSiteStopStatus(){
+    try{
+      const doc = await db().collection("siteStatus").doc("current").get();
+      const data = doc.exists ? doc.data() : null;
+      $("modSiteStopStatus").textContent = (data && data.stopped)
+        ? `🛑 Aktuell gestoppt${data.reason ? " (" + data.reason + ")" : ""}.`
+        : "Aktuell nicht gestoppt.";
+    }catch(err){
+      console.error("Website-Status Fehler:", err);
+    }
+  }
+  async function modStopSite(){
+    const duration = $("modSiteStopDurationSelect").value;
+    const reason = $("modSiteStopReasonInput").value.trim();
+    const stoppedUntil = duration === "indefinite" ? null : (Date.now() + parseInt(duration, 10) * 60 * 1000);
+    try{
+      await db().collection("siteStatus").doc("current").set({ stopped: true, stoppedUntil, reason, stoppedAt: Date.now() });
+      logModAction("Website gestoppt", reason || "");
+      showToast("🛑 Website gestoppt.");
+      renderModSiteStopStatus();
+    }catch(err){
+      showToast("Stoppen fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+  async function modResumeSite(){
+    try{
+      await db().collection("siteStatus").doc("current").set({ stopped: false, stoppedUntil: null, reason: "" }, { merge: true });
+      logModAction("Website wieder freigegeben", "");
+      showToast("✅ Website wieder freigegeben.");
+      renderModSiteStopStatus();
+    }catch(err){
+      showToast("Freigeben fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
+  // Benutzer bearbeiten (NEU, nur mit Berechtigung "userSearch" sichtbar).
+  let modEditingUid = null;
+  async function modSearchUser(){
+    const uname = normalizeUsername($("modSearchInput").value);
+    if(!uname) return;
+    try{
+      const unameDoc = await db().collection("usernames").doc(uname).get();
+      if(!unameDoc.exists) return showErrorPopup("Benutzername nicht gefunden.");
+      modEditingUid = unameDoc.data().uid;
+      const userDoc = await db().collection("users").doc(modEditingUid).get();
+      const data = userDoc.exists ? userDoc.data() : {};
+      $("modTargetLabel").textContent = `@${uname}`;
+      $("modAuraInput").value = data.totalAura || 0;
+      $("modLevelInput").value = data.level || 1;
+      $("modEditPanel").style.display = "block";
+    }catch(err){
+      showErrorPopup("Suche fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+  async function modSaveChanges(){
+    if(!modEditingUid) return;
+    try{
+      await db().collection("users").doc(modEditingUid).set({
+        totalAura: parseInt($("modAuraInput").value, 10) || 0,
+        level: parseInt($("modLevelInput").value, 10) || 1
+      }, { merge: true });
+      logModAction("Aura/Level geändert", $("modTargetLabel").textContent);
+      showToast("✅ Änderungen gespeichert!");
+    }catch(err){
+      showToast("Speichern fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+  async function modGiveBooster(){
+    if(!modEditingUid) return;
+    try{
+      const newDoubleAuraUntil = Date.now() + 15 * 60 * 1000;
+      await db().collection("users").doc(modEditingUid).set({ inventory: { doubleAuraUntil: newDoubleAuraUntil } }, { merge: true });
+      logModAction("Aura-Booster (15 Min) verliehen", $("modTargetLabel").textContent);
+      showToast("✨ Aura-Booster verliehen!");
+    }catch(err){
+      showToast("Fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+
   $("ownerSearchBtn").addEventListener("click", ownerSearchUser);
   wireUsernameAutocomplete($("ownerSearchInput"), $("ownerSearchSuggestions"), () => ownerSearchUser());
   $("ownerSaveBtn").addEventListener("click", ownerSaveChanges);
@@ -13723,6 +13944,11 @@
     $("ownerCodePublicSwitch").classList.toggle("on");
   });
 
+  ["modPermSwitchBan", "modPermSwitchGroups", "modPermSwitchBroadcast", "modPermSwitchSiteStop", "modPermSwitchUserSearch"].forEach(id => {
+    $(id).addEventListener("click", () => $(id).classList.toggle("on"));
+  });
+  $("ownerSaveModPermsBtn").addEventListener("click", ownerSaveModPerms);
+
   let playerGoalOwnerAutoRefreshInterval = null;
   $("ownerToolPlayerGoal").addEventListener("click", () => {
     toggleOwnerPanel("panelOwnerPlayerGoal", "ownerToolPlayerGoal", () => {
@@ -13847,28 +14073,54 @@
     $("overlayReferralGift").style.display = "none";
   });
 
+  const MOD_TABS = [
+    { tab: "modTabUsers", content: "modTabContentUsers", perm: "ban" },
+    { tab: "modTabGroups", content: "modTabContentGroups", perm: "groups" },
+    { tab: "modTabBroadcast", content: "modTabContentBroadcast", perm: "broadcast" },
+    { tab: "modTabSiteStop", content: "modTabContentSiteStop", perm: "siteStop" },
+    { tab: "modTabUserSearch", content: "modTabContentUserSearch", perm: "userSearch" }
+  ];
+
+  function switchModTab(tabId){
+    MOD_TABS.forEach(t => {
+      $(t.tab).classList.toggle("active", t.tab === tabId);
+      $(t.content).style.display = t.tab === tabId ? "block" : "none";
+    });
+  }
+
+  // Berechtigungen anwenden (NEU): zeigt nur die Tabs, die der Owner für
+  // diesen Mod freigeschaltet hat - Sperren + Gruppen sind Standard.
+  function applyModPermissionsToPanel(){
+    const perms = { ...DEFAULT_MOD_PERMISSIONS, ...(profile.modPermissions || {}) };
+    MOD_TABS.forEach(t => {
+      $(t.tab).style.display = perms[t.perm] ? "" : "none";
+    });
+    const firstVisible = MOD_TABS.find(t => perms[t.perm]);
+    if(firstVisible) switchModTab(firstVisible.tab);
+    if(perms.ban) watchModRegistrations();
+    if(perms.groups) watchModGroups();
+    if(perms.siteStop) renderModSiteStopStatus();
+  }
+
   $("modPanelBtn").addEventListener("click", () => {
     showScreen("modpanel");
-    watchModRegistrations();
-    watchModGroups();
+    applyModPermissionsToPanel();
   });
   $("modPanelBack").addEventListener("click", () => {
     unwatchModPanelLists();
     showScreen("settings");
     renderSettings();
   });
-  $("modTabUsers").addEventListener("click", () => {
-    $("modTabUsers").classList.add("active");
-    $("modTabGroups").classList.remove("active");
-    $("modTabContentUsers").style.display = "block";
-    $("modTabContentGroups").style.display = "none";
+  MOD_TABS.forEach(t => {
+    $(t.tab).addEventListener("click", () => switchModTab(t.tab));
   });
-  $("modTabGroups").addEventListener("click", () => {
-    $("modTabGroups").classList.add("active");
-    $("modTabUsers").classList.remove("active");
-    $("modTabContentGroups").style.display = "block";
-    $("modTabContentUsers").style.display = "none";
-  });
+  $("modSendBroadcastBtn").addEventListener("click", modSendBroadcast);
+  $("modSiteStopBtn").addEventListener("click", modStopSite);
+  $("modSiteResumeBtn").addEventListener("click", modResumeSite);
+  $("modSearchBtn").addEventListener("click", modSearchUser);
+  wireUsernameAutocomplete($("modSearchInput"), $("modSearchSuggestions"), () => modSearchUser());
+  $("modSaveBtn").addEventListener("click", modSaveChanges);
+  $("modGiveBoosterBtn").addEventListener("click", modGiveBooster);
 
   $("errorPopupOkBtn").addEventListener("click", () => {
     $("overlayErrorPopup").classList.remove("show");

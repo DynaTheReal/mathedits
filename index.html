@@ -3615,120 +3615,26 @@
     </div>
     <div class="shop-header">
       <h2>🛡️ Mod-Panel</h2>
-      <div class="d" style="font-size:12px; opacity:.75;">Jede Aktion hier braucht das Admin-Aktions-Passwort des Owners.</div>
+      <div class="d" style="font-size:12px; opacity:.75;">Neue Registrierungen und Gruppen, mit Sperren-, Umbenennen- und Lösch-Aktionen direkt in der Liste.</div>
     </div>
 
     <div style="padding:0 20px;">
       <div style="display:flex; gap:8px; margin-bottom:16px;">
-        <button class="difficulty-btn active" id="modTabUsers" data-tab="users">👤 User</button>
+        <button class="difficulty-btn active" id="modTabUsers" data-tab="users">👤 Registrierungen</button>
         <button class="difficulty-btn" id="modTabGroups" data-tab="groups">👥 Gruppen</button>
       </div>
 
       <div id="modTabContentUsers">
-      <div class="d" style="margin-bottom:4px;">Benutzername suchen</div>
-      <div style="display:flex; gap:8px; margin-bottom:16px; position:relative;">
-        <input type="text" id="modSearchInput" class="input-field" placeholder="Benutzername" style="flex:1;" autocomplete="off">
-        <button class="btn btn-primary btn-small" id="modSearchBtn">Suchen</button>
-        <div id="modSearchSuggestions" style="display:none; position:absolute; top:100%; left:0; right:56px; margin-top:4px; background:var(--card); border:1.5px solid var(--border); border-radius:12px; box-shadow:var(--shadow); max-height:220px; overflow-y:auto; z-index:20;"></div>
+        <div id="modRegList"></div>
+        <div class="empty-hint" id="modRegEmptyHint" style="display:none;">Noch keine Registrierungen.</div>
       </div>
 
-      <div id="modEditPanel" style="display:none; margin-top:6px;">
-        <div class="d" id="modTargetLabel" style="margin-bottom:10px; font-weight:700;"></div>
-        <div class="d" style="margin-bottom:4px;">Aura</div>
-        <input type="number" id="modAuraInput" class="input-field">
-        <div class="d" style="margin-bottom:4px; margin-top:10px;">Level</div>
-        <input type="number" id="modLevelInput" class="input-field">
-        <div class="d" style="margin-bottom:4px; margin-top:10px;">Streak</div>
-        <input type="number" id="modStreakInput" class="input-field">
-        <button class="btn btn-primary" id="modSaveBtn" style="margin-top:14px; width:100%;">Änderungen speichern</button>
-
-        <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:12px; padding:10px; margin-top:16px;">
-          <div class="d" style="font-weight:800; margin-bottom:8px; color:#ef4444;">🚫 Konto sperren</div>
-          <div id="modBanStatus" class="d" style="margin-bottom:8px;">Aktuell nicht gesperrt.</div>
-          <select id="modBanDurationSelect" class="input-field" style="margin-bottom:8px;">
-            <option value="1">1 Tag</option>
-            <option value="7">7 Tage</option>
-            <option value="30">1 Monat</option>
-            <option value="forever">Für immer</option>
-          </select>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-primary btn-small" id="modBanBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Sperren</button>
-            <button class="btn btn-ghost btn-small" id="modUnbanBtn" style="flex:1;">Entsperren</button>
-          </div>
-        </div>
-
-        <div style="background:rgba(250,204,21,.1); border:1.5px solid #facc15; border-radius:12px; padding:10px; margin-top:14px;">
-          <div class="d" style="font-weight:800; margin-bottom:8px; color:#facc15;">🛡️ Mod-Rolle</div>
-          <div id="modModStatus" class="d" style="margin-bottom:8px;">Aktuell kein Mod.</div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-primary btn-small" id="modMakeModBtn" style="flex:1; background:#facc15; color:#000; border-color:#facc15;">Zum Mod ernennen</button>
-            <button class="btn btn-ghost btn-small" id="modRemoveOtherModBtn" style="flex:1;">Mod entfernen</button>
-          </div>
-        </div>
-
-        <div style="background:rgba(168,85,247,.1); border:1.5px solid #a855f7; border-radius:12px; padding:10px; margin-top:14px;">
-          <div class="d" style="font-weight:800; margin-bottom:8px; color:#a855f7;">✨ Aura-Booster verleihen</div>
-          <button class="btn btn-primary btn-small" id="modGiveBoosterBtn" style="width:100%; background:#a855f7; border-color:#a855f7;">15 Min Aura-Booster geben</button>
-        </div>
-      </div>
-      </div>
-
-      <!-- Gruppen-Verwaltung (NEU): einfacher Tab zum Umbenennen/Löschen
-           einer Gruppe. -->
       <div id="modTabContentGroups" style="display:none;">
-        <div class="d" style="margin-bottom:4px;">Gruppenname suchen</div>
-        <div style="display:flex; gap:8px; margin-bottom:16px;">
-          <input type="text" id="modGroupSearchInput" class="input-field" placeholder="Gruppenname" style="flex:1;">
-          <button class="btn btn-primary btn-small" id="modGroupSearchBtn">Suchen</button>
-        </div>
-        <div id="modGroupEditPanel" style="display:none;">
-          <div class="d" id="modGroupTargetLabel" style="margin-bottom:10px; font-weight:700;"></div>
-          <div class="d" style="margin-bottom:4px;">Neuer Name</div>
-          <input type="text" id="modGroupRenameInput" class="input-field" placeholder="Neuer Gruppenname" maxlength="40" style="margin-bottom:10px;">
-          <button class="btn btn-primary btn-small" id="modGroupRenameBtn" style="width:100%; margin-bottom:10px;">Umbenennen</button>
-          <button class="btn btn-ghost btn-small" id="modGroupDeleteBtn" style="width:100%; border-color:#ef4444; color:#ef4444;">🗑️ Gruppe löschen</button>
-        </div>
+        <div id="modGroupsList"></div>
+        <div class="empty-hint" id="modGroupsEmptyHint" style="display:none;">Noch keine Gruppen.</div>
       </div>
-
-      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-top:24px;">
-        <div style="font-weight:800; margin-bottom:8px;">📢 Nachricht an alle senden</div>
-        <input type="text" id="modBroadcastInput" class="input-field" placeholder="Deine Nachricht..." style="margin-bottom:8px;">
-        <button class="btn btn-primary btn-small" id="modSendBroadcastBtn" style="width:100%;">Senden</button>
-      </div>
-
-      <div style="background:rgba(239,68,68,.1); border:1.5px solid #ef4444; border-radius:14px; padding:12px; margin-top:16px;">
-        <div style="font-weight:800; margin-bottom:8px; color:#ef4444;">🛑 Website Not-Stopp</div>
-        <div class="d" id="modSiteStopStatus" style="margin-bottom:8px;">Aktuell nicht gestoppt.</div>
-        <select id="modSiteStopDurationSelect" class="input-field" style="margin-bottom:8px;">
-          <option value="15">15 Minuten</option>
-          <option value="30">30 Minuten</option>
-          <option value="60">1 Stunde</option>
-          <option value="180">3 Stunden</option>
-          <option value="1440">1 Tag</option>
-          <option value="indefinite">Bis manuell entsperrt</option>
-        </select>
-        <input type="text" id="modSiteStopReasonInput" class="input-field" placeholder="Grund (optional)" style="margin-bottom:8px;">
-        <div style="display:flex; gap:8px;">
-          <button class="btn btn-primary btn-small" id="modSiteStopBtn" style="flex:1; background:#ef4444; border-color:#ef4444;">Stoppen</button>
-          <button class="btn btn-ghost btn-small" id="modSiteResumeBtn" style="flex:1;">Wieder freigeben</button>
-        </div>
-      </div>
-
-      <button class="btn btn-ghost" id="modRemoveSelfBtn" style="width:100%; margin-top:24px; border-color:#ff4d6d; color:#ff4d6d;">🚪 Meine Mod-Rolle selbst entfernen</button>
     </div>
   </section>
-
-  <!-- Mod-Panel: Admin-Aktions-Passwort abfragen (NEU) -->
-  <div class="overlay" id="overlayModPasswordConfirm">
-    <div class="modal-card" style="max-width:320px;">
-      <div style="font-size:36px; margin-bottom:6px;">🔐</div>
-      <h2>Admin-Aktions-Passwort</h2>
-      <p>Für diese Aktion braucht es das Admin-Passwort des Owners.</p>
-      <input type="password" id="modPasswordConfirmInput" class="input-field" placeholder="Admin-Aktions-Passwort" style="margin-bottom:12px;">
-      <button class="btn btn-primary" id="modPasswordConfirmBtn">Bestätigen</button>
-      <button class="btn btn-ghost" id="modPasswordConfirmCancelBtn" style="margin-top:10px;">Abbrechen</button>
-    </div>
-  </div>
 
   <!-- Live-Umfrage (NEU): erscheint für alle live, 2 Minuten lang, kann
        aber auch vorher weggeklickt werden. -->
@@ -4156,14 +4062,6 @@
           <button class="aura-anim-choice" id="navAnimChoiceGlitch" data-style="glitch">👾 Glitch - flackert wild rein</button>
         </div>
       </div>
-    </div>
-
-
-    <div style="background:rgba(250,204,21,.1); border:1.5px solid #facc15; border-radius:14px; padding:12px; margin:0 20px 16px; display:none;" id="ownerAdminPassBox">
-      <div style="font-weight:800; margin-bottom:8px; color:#facc15;">🔐 Admin-Aktions-Passwort</div>
-      <div class="d" style="margin-bottom:8px; font-size:11.5px;">Dieses Passwort müssen Mods bei JEDER Aktion im Mod-Panel eingeben - getrennt von deinem eigenen Login-Passwort.</div>
-      <input type="password" id="adminActionPasswordInput" class="input-field" placeholder="Neues Admin-Aktions-Passwort" style="margin-bottom:8px;">
-      <button class="btn btn-primary btn-small" id="saveAdminActionPasswordBtn" style="width:100%;">Speichern</button>
     </div>
 
     <div class="settings-row" id="accessibilitySettingsRow" style="cursor:pointer;">
@@ -5138,7 +5036,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.39";
+  const APP_VERSION = "3.40";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -13515,106 +13413,6 @@
     }
   }
 
-  async function saveAdminActionPassword(){
-    if(!isOwner()) return;
-    const pass = $("adminActionPasswordInput").value;
-    if(!pass || pass.length < 4){
-      return showErrorPopup("Bitte mindestens 4 Zeichen eingeben.");
-    }
-    try{
-      await db().collection("adminSettings").doc("current").set({ actionPassword: pass }, { merge: true });
-      $("adminActionPasswordInput").value = "";
-      showToast("🔐 Admin-Aktions-Passwort gespeichert.");
-    }catch(err){
-      showToast("Speichern fehlgeschlagen.");
-      console.error(err);
-    }
-  }
-
-  /* ========================================================
-     MOD-PANEL (NEU): eingeschränkte Owner-Ansicht für ernannte Mods.
-     JEDE Aktion (Speichern, Sperren, Entsperren) verlangt zusätzlich das
-     separate Admin-Aktions-Passwort - getrennt vom eigenen Login des Mods
-     und vom Login-Passwort des Owners.
-  ======================================================== */
-  let modEditingUid = null;
-  let modEditingOriginalAura = 0;
-
-  function requestModPasswordConfirm(){
-    return new Promise((resolve) => {
-      $("modPasswordConfirmInput").value = "";
-      $("overlayModPasswordConfirm").classList.add("show");
-      function cleanup(){
-        $("overlayModPasswordConfirm").classList.remove("show");
-        $("modPasswordConfirmBtn").removeEventListener("click", onConfirm);
-        $("modPasswordConfirmCancelBtn").removeEventListener("click", onCancel);
-      }
-      async function onConfirm(){
-        const entered = $("modPasswordConfirmInput").value;
-        cleanup();
-        try{
-          const doc = await db().collection("adminSettings").doc("current").get();
-          const stored = doc.exists ? doc.data().actionPassword : null;
-          if(stored && entered === stored){
-            resolve(true);
-          } else {
-            showToast("❌ Falsches Admin-Passwort.");
-            resolve(false);
-          }
-        }catch(err){
-          showToast("Passwort konnte nicht geprüft werden.");
-          console.error(err);
-          resolve(false);
-        }
-      }
-      function onCancel(){ cleanup(); resolve(false); }
-      $("modPasswordConfirmBtn").addEventListener("click", onConfirm);
-      $("modPasswordConfirmCancelBtn").addEventListener("click", onCancel);
-    });
-  }
-
-  async function modSearchUser(){
-    if(!firebaseInitialized || !currentUser) return;
-    const uname = normalizeUsername($("modSearchInput").value);
-    if(!uname) return;
-    try{
-      let targetUid = null;
-      let data = null;
-      const unameDoc = await getDocFreshOrCached(db().collection("usernames").doc(uname));
-      if(unameDoc.exists){
-        targetUid = unameDoc.data().uid;
-        const userDoc = await getDocFreshOrCached(db().collection("users").doc(targetUid));
-        if(userDoc.exists) data = userDoc.data();
-      }
-      if(!data){
-        const fallbackSnap = await getDocFreshOrCached(db().collection("users").where("usernameLower", "==", uname));
-        if(!fallbackSnap.empty){
-          targetUid = fallbackSnap.docs[0].id;
-          data = fallbackSnap.docs[0].data();
-        }
-      }
-      if(!data){ showToast("Benutzername nicht gefunden."); return; }
-      modEditingUid = targetUid;
-      $("modTargetLabel").textContent = "@" + (data.username || uname);
-      $("modAuraInput").value = data.totalAura || 0;
-      modEditingOriginalAura = data.totalAura || 0;
-      $("modLevelInput").value = data.level || 0;
-      $("modStreakInput").value = data.streak || 0;
-      if(data.banned && (data.bannedUntil === null || data.bannedUntil > Date.now())){
-        $("modBanStatus").textContent = data.bannedUntil === null
-          ? "🚫 Aktuell für immer gesperrt."
-          : `🚫 Aktuell gesperrt bis ${new Date(data.bannedUntil).toLocaleString("de-DE")}.`;
-      } else {
-        $("modBanStatus").textContent = "Aktuell nicht gesperrt.";
-      }
-      $("modModStatus").textContent = data.isMod ? "🛡️ Ist aktuell Mod." : "Aktuell kein Mod.";
-      $("modEditPanel").style.display = "block";
-    }catch(err){
-      showToast("Suche fehlgeschlagen.");
-      console.error(err);
-    }
-  }
-
   // Mod-Aktionen-Protokoll (NEU): jede Aktion eines Mods wird hier
   // vermerkt, damit der Owner im eigenen Panel sieht, was Mods gemacht
   // haben.
@@ -13629,255 +13427,112 @@
     }).catch(err => console.error("Mod-Aktion protokollieren Fehler:", err));
   }
 
-  async function modSaveChanges(){
-    if(!modEditingUid) return;
-    const ok = await requestModPasswordConfirm();
-    if(!ok) return;
-    const newAura = parseInt($("modAuraInput").value, 10) || 0;
-    const parsedModLevel = parseInt($("modLevelInput").value, 10);
-    const newLevel = Math.max(0, isNaN(parsedModLevel) ? 0 : parsedModLevel);
-    const newStreak = Math.max(0, parseInt($("modStreakInput").value, 10) || 0);
-    try{
-      await db().collection("users").doc(modEditingUid).set({
-        totalAura: newAura, level: newLevel, levelProgress: 0, streak: newStreak,
-        // WICHTIG: dasselbe Prinzip wie beim Owner-Panel - ohne
-        // ownerLastEditAt konnte das Gerät der Zielperson diese
-        // Bearbeitung beim nächsten eigenen Sync unbemerkt wieder
-        // überschreiben (der genau gemeldete Bug: "offline Leuten kann
-        // ich den Aurastand nicht bearbeiten").
-        lastLocalSaveAt: Date.now(), ownerLastEditAt: Date.now()
-      }, { merge: true });
-      const modAuraDelta = newAura - modEditingOriginalAura;
-      if(modAuraDelta !== 0){
-        logAuraTransaction(modAuraDelta, "Mod-Bearbeitung", modEditingUid);
-      }
-      modEditingOriginalAura = newAura;
-      logModAction(`Aura/Level/Streak geändert (Aura ${modAuraDelta >= 0 ? "+" : ""}${modAuraDelta})`, $("modTargetLabel").textContent);
-      showToast("✅ Änderungen gespeichert!");
-    }catch(err){
-      showToast("Speichern fehlgeschlagen - Firestore-Regeln geändert?");
-      console.error(err);
-    }
+  // Mod-Panel (komplett überarbeitet): zwei Live-Listen statt Suche -
+  // neue Registrierungen (mit Sperren direkt in der Liste) und Gruppen
+  // (mit Umbenennen/Löschen direkt in der Liste). Kein Admin-Aktions-
+  // Passwort mehr nötig.
+  let modRegListUnsubscribe = null;
+  let modGroupsListUnsubscribe = null;
+
+  function unwatchModPanelLists(){
+    if(modRegListUnsubscribe){ modRegListUnsubscribe(); modRegListUnsubscribe = null; }
+    if(modGroupsListUnsubscribe){ modGroupsListUnsubscribe(); modGroupsListUnsubscribe = null; }
   }
 
-  async function modBanUser(){
-    if(!modEditingUid) return;
-    const ok = await requestModPasswordConfirm();
-    if(!ok) return;
-    const duration = $("modBanDurationSelect").value;
-    const bannedUntil = duration === "forever" ? null : (Date.now() + parseInt(duration, 10) * 24 * 60 * 60 * 1000);
-    try{
-      await db().collection("users").doc(modEditingUid).set({ banned: true, bannedUntil }, { merge: true });
-      $("modBanStatus").textContent = bannedUntil === null
-        ? "🚫 Aktuell für immer gesperrt."
-        : `🚫 Aktuell gesperrt bis ${new Date(bannedUntil).toLocaleString("de-DE")}.`;
-      logModAction(`Gesperrt (${duration === "forever" ? "für immer" : duration + " Tage"})`, $("modTargetLabel").textContent);
-      showToast("🚫 Konto gesperrt.");
-    }catch(err){
-      showToast("Sperren fehlgeschlagen.");
-      console.error(err);
-    }
+  function watchModRegistrations(){
+    if(modRegListUnsubscribe){ modRegListUnsubscribe(); modRegListUnsubscribe = null; }
+    if(!firebaseInitialized || !currentUser || !isMod()) return;
+    modRegListUnsubscribe = db().collection("registrationEvents")
+      .orderBy("createdAt", "desc")
+      .limit(50)
+      .onSnapshot((snap) => {
+        renderModRegList(snap.docs.map(d => d.data()));
+      }, (err) => console.error("Mod-Panel Registrierungen Fehler:", err));
   }
 
-  async function modUnbanUser(){
-    if(!modEditingUid) return;
-    const ok = await requestModPasswordConfirm();
-    if(!ok) return;
-    try{
-      await db().collection("users").doc(modEditingUid).set({ banned: false, bannedUntil: null }, { merge: true });
-      $("modBanStatus").textContent = "Aktuell nicht gesperrt.";
-      logModAction("Entsperrt", $("modTargetLabel").textContent);
-      showToast("✅ Konto entsperrt.");
-    }catch(err){
-      showToast("Entsperren fehlgeschlagen.");
-      console.error(err);
-    }
-  }
-
-  async function modMakeMod(){
-    if(!modEditingUid) return;
-    const ok = await requestModPasswordConfirm();
-    if(!ok) return;
-    try{
-      await db().collection("users").doc(modEditingUid).set({ isMod: true }, { merge: true });
-      $("modModStatus").textContent = "🛡️ Ist aktuell Mod.";
-      logModAction("Zum Mod ernannt", $("modTargetLabel").textContent);
-      showToast("🛡️ Zum Mod ernannt.");
-    }catch(err){
-      showToast("Fehlgeschlagen.");
-      console.error(err);
-    }
-  }
-
-  async function modRemoveOtherMod(){
-    if(!modEditingUid) return;
-    const ok = await requestModPasswordConfirm();
-    if(!ok) return;
-    try{
-      await db().collection("users").doc(modEditingUid).set({ isMod: false }, { merge: true });
-      $("modModStatus").textContent = "Aktuell kein Mod.";
-      logModAction("Mod-Rolle entfernt", $("modTargetLabel").textContent);
-      showToast("Mod-Rolle entfernt.");
-    }catch(err){
-      showToast("Fehlgeschlagen.");
-      console.error(err);
-    }
-  }
-
-  async function modGiveBooster(){
-    if(!modEditingUid) return;
-    const ok = await requestModPasswordConfirm();
-    if(!ok) return;
-    try{
-      const doc = await db().collection("users").doc(modEditingUid).get();
-      const inventory = (doc.exists && doc.data().inventory) ? doc.data().inventory : {};
-      // Stapeln (NEU): siehe claimChest() - vom aktuellen Ablauf (falls
-      // noch aktiv) aus weiterrechnen, statt zu überschreiben.
-      const baseTime = Math.max(inventory.doubleAuraUntil || 0, Date.now());
-      const newDoubleAuraUntil = baseTime + 15 * 60 * 1000;
-      await db().collection("users").doc(modEditingUid).set({
-        inventory: { ...inventory, doubleAuraUntil: newDoubleAuraUntil },
-        lastLocalSaveAt: Date.now()
-      }, { merge: true });
-      logModAction("Aura-Booster (15 Min) verliehen", $("modTargetLabel").textContent);
-      showToast("✨ Aura-Booster verliehen!");
-      if(currentUser && modEditingUid === currentUser.uid){
-        profile.inventory = profile.inventory || {};
-        profile.inventory.doubleAuraUntil = newDoubleAuraUntil;
-        lastWrittenProfileJSON = JSON.stringify(profile);
-        saveProfile();
-        playAuraBoosterAnimation(Math.round((newDoubleAuraUntil - Date.now()) / 60000));
-      }
-    }catch(err){
-      showToast("Fehlgeschlagen.");
-      console.error(err);
-    }
-  }
-
-  // Gruppen-Verwaltung (NEU): einfache Suche nach Gruppenname, dann
-  // Umbenennen oder Löschen.
-  let modEditingGroupId = null;
-  async function modSearchGroup(){
-    const name = ($("modGroupSearchInput").value || "").trim();
-    if(!name) return;
-    try{
-      const snap = await db().collection("groups").get();
-      const match = snap.docs.find(d => (d.data().name || "").toLowerCase() === name.toLowerCase());
-      if(!match){ showToast("Gruppe nicht gefunden."); $("modGroupEditPanel").style.display = "none"; return; }
-      modEditingGroupId = match.id;
-      $("modGroupTargetLabel").textContent = `👥 ${match.data().name} (${(match.data().members || []).length} Mitglieder)`;
-      $("modGroupRenameInput").value = match.data().name || "";
-      $("modGroupEditPanel").style.display = "block";
-    }catch(err){
-      showToast("Suche fehlgeschlagen.");
-      console.error(err);
-    }
-  }
-
-  async function modRenameGroup(){
-    if(!modEditingGroupId) return;
-    const ok = await requestModPasswordConfirm();
-    if(!ok) return;
-    const newName = ($("modGroupRenameInput").value || "").trim();
-    if(!newName) return showToast("Bitte einen Namen eingeben.");
-    const oldLabel = $("modGroupTargetLabel").textContent;
-    try{
-      await db().collection("groups").doc(modEditingGroupId).set({ name: newName }, { merge: true });
-      $("modGroupTargetLabel").textContent = `👥 ${newName}`;
-      logModAction(`Gruppe umbenannt zu "${newName}"`, oldLabel);
-      showToast("✅ Gruppe umbenannt.");
-    }catch(err){
-      showToast("Umbenennen fehlgeschlagen.");
-      console.error(err);
-    }
-  }
-
-  async function modDeleteGroup(){
-    if(!modEditingGroupId) return;
-    const ok = await requestModPasswordConfirm();
-    if(!ok) return;
-    if(!confirm("Diese Gruppe wirklich löschen? Das lässt sich nicht rückgängig machen.")) return;
-    const label = $("modGroupTargetLabel").textContent;
-    try{
-      await db().collection("groups").doc(modEditingGroupId).delete();
-      logModAction("Gruppe gelöscht", label);
-      showToast("🗑️ Gruppe gelöscht.");
-      $("modGroupEditPanel").style.display = "none";
-      $("modGroupSearchInput").value = "";
-      modEditingGroupId = null;
-    }catch(err){
-      showToast("Löschen fehlgeschlagen.");
-      console.error(err);
-    }
-  }
-
-
-  async function modSendBroadcast(){
-    const text = ($("modBroadcastInput").value || "").trim();
-    if(!text) return;
-    const ok = await requestModPasswordConfirm();
-    if(!ok) return;
-    try{
-      await db().collection("broadcasts").add({
-        message: text.slice(0, 500),
-        ownerUsername: profile.username || "?",
-        ownerFrame: profile.activeFrame || "none",
-        ownerTheme: profile.theme || "black",
-        createdAt: Date.now()
+  function renderModRegList(entries){
+    const listEl = $("modRegList");
+    $("modRegEmptyHint").style.display = entries.length === 0 ? "block" : "none";
+    listEl.innerHTML = entries.map(data => `
+      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:10px;">
+        <div style="font-weight:800; margin-bottom:2px;">@${data.username || "?"}</div>
+        <div style="font-size:11px; opacity:.65; margin-bottom:8px;">${data.email || "?"} · ${formatRelativeTime(data.createdAt)}</div>
+        <select class="input-field mod-reg-ban-duration" data-uid="${data.uid}" style="margin-bottom:8px; font-size:13px;">
+          <option value="1">1 Tag sperren</option>
+          <option value="7">7 Tage sperren</option>
+          <option value="30">1 Monat sperren</option>
+          <option value="forever">Für immer sperren</option>
+        </select>
+        <button class="btn btn-primary btn-small mod-reg-ban-btn" data-uid="${data.uid}" data-uname="${data.username || "?"}" style="width:100%; background:#ef4444; border-color:#ef4444;">🚫 Sperren</button>
+      </div>
+    `).join("");
+    listEl.querySelectorAll(".mod-reg-ban-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const uid = btn.dataset.uid;
+        const duration = listEl.querySelector(`.mod-reg-ban-duration[data-uid="${uid}"]`).value;
+        const bannedUntil = duration === "forever" ? null : (Date.now() + parseInt(duration, 10) * 24 * 60 * 60 * 1000);
+        try{
+          await db().collection("users").doc(uid).set({ banned: true, bannedUntil }, { merge: true });
+          logModAction(`Gesperrt (${duration === "forever" ? "für immer" : duration + " Tage"})`, `@${btn.dataset.uname}`);
+          showToast("🚫 Konto gesperrt.");
+        }catch(err){
+          showToast("Sperren fehlgeschlagen.");
+          console.error(err);
+        }
       });
-      $("modBroadcastInput").value = "";
-      showToast("📢 Broadcast an alle gesendet!");
-    }catch(err){
-      showToast("Broadcast konnte nicht gesendet werden.");
-      console.error(err);
-    }
+    });
   }
 
-  async function modStopSite(){
-    const ok = await requestModPasswordConfirm();
-    if(!ok) return;
-    const duration = $("modSiteStopDurationSelect").value;
-    const reason = $("modSiteStopReasonInput").value.trim();
-    const stoppedUntil = duration === "indefinite" ? null : (Date.now() + parseInt(duration, 10) * 60 * 1000);
-    try{
-      await db().collection("siteStatus").doc("current").set({
-        stopped: true, stoppedUntil, reason, stoppedAt: Date.now()
+  function watchModGroups(){
+    if(modGroupsListUnsubscribe){ modGroupsListUnsubscribe(); modGroupsListUnsubscribe = null; }
+    if(!firebaseInitialized || !currentUser || !isMod()) return;
+    modGroupsListUnsubscribe = db().collection("groups")
+      .onSnapshot((snap) => {
+        renderModGroupsList(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => console.error("Mod-Panel Gruppen Fehler:", err));
+  }
+
+  function renderModGroupsList(groups){
+    const listEl = $("modGroupsList");
+    $("modGroupsEmptyHint").style.display = groups.length === 0 ? "block" : "none";
+    listEl.innerHTML = groups.map(g => `
+      <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:10px;">
+        <div style="font-size:11px; opacity:.65; margin-bottom:6px;">${(g.members || []).length} Mitglieder</div>
+        <input type="text" class="input-field mod-group-rename-input" data-id="${g.id}" value="${(g.name || "").replace(/"/g, "&quot;")}" maxlength="40" style="margin-bottom:8px;">
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary btn-small mod-group-rename-btn" data-id="${g.id}" style="flex:1;">Umbenennen</button>
+          <button class="btn btn-ghost btn-small mod-group-delete-btn" data-id="${g.id}" data-name="${(g.name || "").replace(/"/g, "&quot;")}" style="flex:1; border-color:#ef4444; color:#ef4444;">🗑️ Löschen</button>
+        </div>
+      </div>
+    `).join("");
+    listEl.querySelectorAll(".mod-group-rename-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        const newName = listEl.querySelector(`.mod-group-rename-input[data-id="${id}"]`).value.trim();
+        if(!newName) return showErrorPopup("Bitte einen Namen eingeben.");
+        try{
+          await db().collection("groups").doc(id).set({ name: newName }, { merge: true });
+          logModAction(`Gruppe umbenannt zu "${newName}"`, "");
+          showToast("✅ Gruppe umbenannt.");
+        }catch(err){
+          showToast("Umbenennen fehlgeschlagen.");
+          console.error(err);
+        }
       });
-      showToast("🛑 Website gestoppt.");
-    }catch(err){
-      showToast("Stoppen fehlgeschlagen.");
-      console.error(err);
-    }
-  }
-
-  async function modResumeSite(){
-    const ok = await requestModPasswordConfirm();
-    if(!ok) return;
-    try{
-      await db().collection("siteStatus").doc("current").set({ stopped: false, stoppedUntil: null, reason: "" }, { merge: true });
-      showToast("✅ Website wieder freigegeben.");
-    }catch(err){
-      showToast("Freigeben fehlgeschlagen.");
-      console.error(err);
-    }
-  }
-
-  // Mod-Rolle selbst entfernen (NEU): braucht KEIN Admin-Passwort, da es
-  // nur die eigene Rolle betrifft und keine fremden Daten ändert.
-  async function modRemoveSelf(){
-    if(!currentUser) return;
-    if(!confirm("Deine Mod-Rolle wirklich selbst entfernen?")) return;
-    try{
-      await db().collection("users").doc(currentUser.uid).set({ isMod: false }, { merge: true });
-      profile.isMod = false;
-      saveProfile();
-      showToast("Mod-Rolle entfernt.");
-      showScreen("settings");
-      renderSettings();
-    }catch(err){
-      showToast("Fehlgeschlagen.");
-      console.error(err);
-    }
+    });
+    listEl.querySelectorAll(".mod-group-delete-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        if(!confirm(`Die Gruppe "${btn.dataset.name}" wirklich löschen? Das lässt sich nicht rückgängig machen.`)) return;
+        try{
+          await db().collection("groups").doc(btn.dataset.id).delete();
+          logModAction("Gruppe gelöscht", `"${btn.dataset.name}"`);
+          showToast("🗑️ Gruppe gelöscht.");
+        }catch(err){
+          showToast("Löschen fehlgeschlagen.");
+          console.error(err);
+        }
+      });
+    });
   }
 
   $("ownerSearchBtn").addEventListener("click", ownerSearchUser);
@@ -14131,14 +13786,14 @@
   $("referralGiftCloseBtn").addEventListener("click", () => {
     $("overlayReferralGift").style.display = "none";
   });
-  $("saveAdminActionPasswordBtn").addEventListener("click", saveAdminActionPassword);
 
   $("modPanelBtn").addEventListener("click", () => {
-    $("modEditPanel").style.display = "none";
-    $("modSearchInput").value = "";
     showScreen("modpanel");
+    watchModRegistrations();
+    watchModGroups();
   });
   $("modPanelBack").addEventListener("click", () => {
+    unwatchModPanelLists();
     showScreen("settings");
     renderSettings();
   });
@@ -14154,25 +13809,10 @@
     $("modTabContentGroups").style.display = "block";
     $("modTabContentUsers").style.display = "none";
   });
-  $("modGroupSearchBtn").addEventListener("click", modSearchGroup);
-  $("modGroupRenameBtn").addEventListener("click", modRenameGroup);
-  $("modGroupDeleteBtn").addEventListener("click", modDeleteGroup);
 
   $("errorPopupOkBtn").addEventListener("click", () => {
     $("overlayErrorPopup").classList.remove("show");
   });
-  $("modSearchBtn").addEventListener("click", modSearchUser);
-  wireUsernameAutocomplete($("modSearchInput"), $("modSearchSuggestions"), () => modSearchUser());
-  $("modSaveBtn").addEventListener("click", modSaveChanges);
-  $("modBanBtn").addEventListener("click", modBanUser);
-  $("modUnbanBtn").addEventListener("click", modUnbanUser);
-  $("modMakeModBtn").addEventListener("click", modMakeMod);
-  $("modRemoveOtherModBtn").addEventListener("click", modRemoveOtherMod);
-  $("modGiveBoosterBtn").addEventListener("click", modGiveBooster);
-  $("modSendBroadcastBtn").addEventListener("click", modSendBroadcast);
-  $("modSiteStopBtn").addEventListener("click", modStopSite);
-  $("modSiteResumeBtn").addEventListener("click", modResumeSite);
-  $("modRemoveSelfBtn").addEventListener("click", modRemoveSelf);
   $("ownerSendBroadcastBtn").addEventListener("click", () => {
     const input = $("ownerBroadcastInput");
     sendOwnerBroadcast(input.value);

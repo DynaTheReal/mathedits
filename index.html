@@ -3733,20 +3733,20 @@
       <div style="font-size:20px;">→</div>
     </div>
 
-    <div class="settings-row" id="replayTutorialRow" style="cursor:pointer;">
+    <div class="settings-row" id="appSettingsRow" style="cursor:pointer;">
       <div class="info">
-        <div class="t">❓ Einführung erneut zeigen</div>
-        <div class="d">Zeigt dir nochmal, wo die wichtigsten Funktionen sind.</div>
+        <div class="t">🎬 App</div>
+        <div class="d">Einführung, Intro-Animation, Layout, App installieren.</div>
       </div>
       <div style="font-size:20px;">→</div>
     </div>
 
-    <div class="settings-row">
+    <div class="settings-row" id="designSettingsRow" style="cursor:pointer;">
       <div class="info">
-        <div class="t">Design / Theme</div>
-        <div class="d">Wähle dein Aussehen der App.</div>
+        <div class="t">🎨 Design</div>
+        <div class="d">Theme, Long Edits, Aura-Animation.</div>
       </div>
-      <select class="select-input" id="themeSelect"></select>
+      <div style="font-size:20px;">→</div>
     </div>
 
     <div class="settings-row" id="ownerPanelRow" style="display:none; flex-direction:column; align-items:stretch; border:1.5px solid #ffd700; box-shadow:0 0 16px rgba(255,215,0,.25);">
@@ -4170,58 +4170,12 @@
       </div>
     </div>
 
-    <div class="settings-row" id="accessibilitySettingsRow" style="cursor:pointer;">
-      <div class="info">
-        <div class="t">♿ Barrierefreiheit</div>
-        <div class="d">Long Edits, Design und die Einführung.</div>
-      </div>
-      <div style="font-size:20px;">→</div>
-    </div>
-
-    <div class="settings-row" id="appearanceSettingsRow" style="cursor:pointer;">
-      <div class="info">
-        <div class="t">🎨 Aussehen</div>
-        <div class="d">Design und Layout beim App-Start.</div>
-      </div>
-      <div style="font-size:20px;">→</div>
-    </div>
-
-    <div class="settings-row">
-      <div class="info">
-        <div class="t">🎬 App-Intro</div>
-        <div class="d">Welche Animation beim Öffnen der App läuft.</div>
-      </div>
-      <select id="appIntroStyleSelect" class="input-field" style="width:auto; padding:8px 10px;">
-        <option value="math">Math</option>
-        <option value="simple">Simple</option>
-      </select>
-    </div>
-
-    <div class="settings-row">
-      <div class="info">
-        <div class="t">🎨 Layout</div>
-        <div class="d">Wie der Home-Bildschirm aussieht.</div>
-      </div>
-      <select id="layoutStyleSelect" class="input-field" style="width:auto; padding:8px 10px;">
-        <option value="simpel">Simpel</option>
-        <option value="clean">Clean</option>
-      </select>
-    </div>
-
     <div class="settings-row" id="peterMenuRow" style="cursor:pointer;">
       <div class="info">
         <div class="t">🧪 Beta</div>
         <div class="d">Beta-Einstellungen zum Ausprobieren.</div>
       </div>
       <div style="opacity:.5;">›</div>
-    </div>
-
-    <div class="settings-row" id="installAppRow" style="cursor:pointer; display:none;">
-      <div class="info">
-        <div class="t">📲 App installieren</div>
-        <div class="d">MathEdits wie eine App nutzen, ganz ohne Browser-Leiste.</div>
-      </div>
-      <div style="font-size:20px; opacity:.6;">›</div>
     </div>
 
     <div class="settings-row">
@@ -4287,9 +4241,6 @@
 
       <button class="btn btn-small" id="deleteAccountBtn" style="width:100%; background:#000; color:#ff4d6d; border:2px solid #ff4d6d;">☠️ Konto endgültig löschen</button>
       <div class="d" style="margin-top:8px; font-size:11px;">Löscht deinen Account komplett - Login, Benutzername und aller Fortschritt sind unwiderruflich weg. Das lässt sich NICHT rückgängig machen.</div>
-
-      <button class="btn btn-small" id="ownerResetOwnPasswordBtn" style="display:none; width:100%; margin-top:14px; background:#facc15; color:#000; border:none;">👑 Mein Passwort zurücksetzen (nur Owner)</button>
-      <div class="d" id="ownerResetPasswordHint" style="display:none; margin-top:8px; font-size:11px;">Setzt dein Owner-Passwort neu, OHNE das alte zu kennen - funktioniert nur, solange du gerade eingeloggt bist.</div>
     </div>
 
     <div class="settings-foot">MathEdits · Version <span id="settingsVersionText">2.26</span><br>Dein Fortschritt wird synchronisiert.</div>
@@ -4670,41 +4621,57 @@
        das jeweils erklärte UI-Element mit einem lila Rahmen hervor. -->
   <!-- Barrierefreiheit (NEU): Long Edits (vorher "Long Mode"), Design,
        und die Einführung an einem Ort. -->
-  <div class="overlay" id="overlayAccessibility">
+  <!-- App (NEU): Einführung, Intro-Animation, Layout und App installieren
+       zusammengefasst statt über mehrere verstreute Zeilen. -->
+  <div class="overlay" id="overlayAppSettings">
     <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
-      <button id="accessibilityClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
-      <div style="font-size:32px; margin-bottom:6px;">♿</div>
-      <h2 style="margin-bottom:14px;">Barrierefreiheit</h2>
+      <button id="appSettingsClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+      <div style="font-size:32px; margin-bottom:6px;">🎬</div>
+      <h2 style="margin-bottom:14px;">App</h2>
 
-      <div class="settings-row" style="padding:0 0 14px;">
+      <button class="btn btn-ghost btn-small" id="appSettingsTutorialBtn" style="width:100%; margin-bottom:16px;">❓ Einführung erneut zeigen</button>
+
+      <div class="d" style="font-weight:800; margin-bottom:6px;">App-Intro</div>
+      <div class="d" style="margin-bottom:8px;">Welche Animation beim Öffnen der App läuft.</div>
+      <select id="appIntroStyleSelect" class="input-field" style="width:100%; margin-bottom:16px;">
+        <option value="math">Math</option>
+        <option value="simple">Simple</option>
+      </select>
+
+      <div class="d" style="font-weight:800; margin-bottom:6px;">Layout</div>
+      <div class="d" style="margin-bottom:8px;">Wie der Home-Bildschirm aussieht.</div>
+      <select id="layoutStyleSelect" class="input-field" style="width:100%; margin-bottom:16px;">
+        <option value="simpel">Simpel</option>
+        <option value="clean">Clean</option>
+      </select>
+
+      <div class="settings-row" id="installAppRow" style="cursor:pointer; padding:10px 0 0; display:none;">
+        <div class="info">
+          <div class="t">📲 App installieren</div>
+          <div class="d">MathEdits wie eine App nutzen, ganz ohne Browser-Leiste.</div>
+        </div>
+        <div style="font-size:20px; opacity:.6;">›</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Design (NEU, ersetzt Barrierefreiheit + Aussehen): Theme, Long Edits
+       und Aura-Animations-Motiv an einem Ort. -->
+  <div class="overlay" id="overlayDesignSettings">
+    <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
+      <button id="designSettingsClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+      <div style="font-size:32px; margin-bottom:6px;">🎨</div>
+      <h2 style="margin-bottom:14px;">Design</h2>
+
+      <div class="d" style="font-weight:800; margin-bottom:6px;">Design / Theme</div>
+      <select class="select-input" id="themeSelect" style="width:100%; margin-bottom:16px;"></select>
+
+      <div class="settings-row" style="padding:0 0 16px;">
         <div class="info">
           <div class="t">Long Edits</div>
           <div class="d">Aura-Edits und Memes bleiben 4 Sekunden statt kurz sichtbar.</div>
         </div>
         <div class="switch" id="longModeSwitch"><div class="knob"></div></div>
-      </div>
-
-      <div class="d" style="font-weight:800; margin-bottom:6px;">Design / Theme</div>
-      <select class="select-input" id="accessibilityThemeSelect" style="width:100%; margin-bottom:14px;"></select>
-
-      <button class="btn btn-ghost btn-small" id="accessibilityTutorialBtn" style="width:100%;">❓ Einführung erneut zeigen</button>
-    </div>
-  </div>
-
-  <!-- Aussehen (NEU): Design und das Layout, mit dem die App startet. -->
-  <div class="overlay" id="overlayAppearance">
-    <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
-      <button id="appearanceClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
-      <div style="font-size:32px; margin-bottom:6px;">🎨</div>
-      <h2 style="margin-bottom:14px;">Aussehen</h2>
-
-      <div class="d" style="font-weight:800; margin-bottom:6px;">Design / Theme</div>
-      <select class="select-input" id="appearanceThemeSelect" style="width:100%; margin-bottom:16px;"></select>
-
-      <div class="d" style="font-weight:800; margin-bottom:8px;">Layout beim App-Start</div>
-      <div style="display:flex; gap:8px; margin-bottom:16px;">
-        <button class="aura-anim-choice" id="appearanceLayoutSimpel" data-layout="simpel" style="flex:1; text-align:center;">Simpel</button>
-        <button class="aura-anim-choice" id="appearanceLayoutClean" data-layout="clean" style="flex:1; text-align:center;">Clean</button>
       </div>
 
       <div class="d" style="font-weight:800; margin-bottom:6px;">Aura-Animation in Lektionen</div>
@@ -5154,7 +5121,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.44";
+  const APP_VERSION = "3.45";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -12778,8 +12745,6 @@
     }
   }
   $("themeSelect").addEventListener("change", handleThemeSelectChange);
-  $("accessibilityThemeSelect").addEventListener("change", handleThemeSelectChange);
-  $("appearanceThemeSelect").addEventListener("change", handleThemeSelectChange);
 
   /* ========================================================
      OWNER-BEREICH (NEU) - nur für OWNER_USERNAME sichtbar. Sucht einen
@@ -14432,18 +14397,12 @@
     // Update Theme Dropdown mit Schloss-Symbolen (NEU: datengetrieben aus
     // ALL_THEME_IDS statt fest einprogrammierter Optionen - sonst fehlen
     // neu hinzugefügte Designs hier automatisch, wie es zuvor passiert ist.
-    // Wiederverwendbar (NEU): befüllt auch die Kopien in "Barrierefreiheit"
-    // und "Aussehen", nicht nur das Haupt-Dropdown.
     const unlocked = profile.unlockedThemes || ["black"];
     populateThemeSelect($("themeSelect"), unlocked);
-    populateThemeSelect($("accessibilityThemeSelect"), unlocked);
-    populateThemeSelect($("appearanceThemeSelect"), unlocked);
 
     $("ownerPanelRow").style.display = isOwner() ? "flex" : "none";
     $("playerPanelRow").style.display = isOwner() ? "flex" : "none";
     $("modPanelBtn").style.display = isMod() ? "block" : "none";
-    $("ownerResetOwnPasswordBtn").style.display = isOwner() ? "block" : "none";
-    $("ownerResetPasswordHint").style.display = isOwner() ? "block" : "none";
     if(isOwner()){
       renderOwnerRegistrationNotifications();
       renderOwnerFeedback();
@@ -14550,47 +14509,28 @@
   $("tutorialSkipBtn").addEventListener("click", () => {
     endTutorial();
   });
-  $("replayTutorialRow").addEventListener("click", () => {
+  $("appSettingsRow").addEventListener("click", () => {
+    $("overlayAppSettings").classList.add("show");
+    $("appIntroStyleSelect").value = profile.appIntroStyle || "math";
+    $("layoutStyleSelect").value = profile.layoutStyle === "simpel" ? "simpel" : "clean";
+  });
+  $("appSettingsClose").addEventListener("click", () => {
+    $("overlayAppSettings").classList.remove("show");
+  });
+  $("appSettingsTutorialBtn").addEventListener("click", () => {
+    $("overlayAppSettings").classList.remove("show");
     startTutorial(null);
   });
 
-  $("accessibilitySettingsRow").addEventListener("click", () => {
-    $("overlayAccessibility").classList.add("show");
+  $("designSettingsRow").addEventListener("click", () => {
+    $("overlayDesignSettings").classList.add("show");
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
-    populateThemeSelect($("accessibilityThemeSelect"), profile.unlockedThemes || ["black"]);
-  });
-  $("accessibilityClose").addEventListener("click", () => {
-    $("overlayAccessibility").classList.remove("show");
-  });
-  $("accessibilityTutorialBtn").addEventListener("click", () => {
-    $("overlayAccessibility").classList.remove("show");
-    startTutorial(null);
-  });
-
-  $("appearanceSettingsRow").addEventListener("click", () => {
-    $("overlayAppearance").classList.add("show");
-    populateThemeSelect($("appearanceThemeSelect"), profile.unlockedThemes || ["black"]);
-    const currentLayout = profile.layoutStyle === "simpel" ? "simpel" : "clean";
-    $("appearanceLayoutSimpel").classList.toggle("active", currentLayout === "simpel");
-    $("appearanceLayoutClean").classList.toggle("active", currentLayout === "clean");
     const currentMotif = profile.auraOverlayMotif === "ignite" ? "ignite" : "classic";
     $("appearanceMotifClassic").classList.toggle("active", currentMotif === "classic");
     $("appearanceMotifIgnite").classList.toggle("active", currentMotif === "ignite");
   });
-  $("appearanceClose").addEventListener("click", () => {
-    $("overlayAppearance").classList.remove("show");
-  });
-  ["appearanceLayoutSimpel", "appearanceLayoutClean"].forEach(id => {
-    $(id).addEventListener("click", () => {
-      const layout = $(id).dataset.layout;
-      profile.layoutStyle = layout;
-      saveProfile();
-      applyTheme();
-      renderHome();
-      $("appearanceLayoutSimpel").classList.toggle("active", layout === "simpel");
-      $("appearanceLayoutClean").classList.toggle("active", layout === "clean");
-      showToast(`Layout auf "${layout === "simpel" ? "Simpel" : "Clean"}" gesetzt.`);
-    });
+  $("designSettingsClose").addEventListener("click", () => {
+    $("overlayDesignSettings").classList.remove("show");
   });
   ["appearanceMotifClassic", "appearanceMotifIgnite"].forEach(id => {
     $(id).addEventListener("click", () => {
@@ -15627,32 +15567,7 @@
   // Firebase mit "auth/requires-recent-login" ab - dafür gibt's clientseitig
   // keinen Umweg ohne das alte Passwort zu kennen, das müsste dann über die
   // Firebase-Konsole direkt gemacht werden.
-  $("ownerResetOwnPasswordBtn").addEventListener("click", async () => {
-    if(!isOwner() || !firebaseInitialized || !currentUser){
-      return showToast("Nur als Owner-Account verfügbar.");
-    }
-    const newPass = prompt("Neues Owner-Passwort (mindestens 6 Zeichen):");
-    if(newPass === null) return;
-    if(newPass.length < 6){
-      return showErrorPopup("Das neue Passwort muss mindestens 6 Zeichen haben.");
-    }
-    const confirmPass = prompt("Neues Passwort zur Sicherheit nochmal eingeben:");
-    if(confirmPass === null) return;
-    if(newPass !== confirmPass){
-      return showErrorPopup("Die beiden Eingaben stimmen nicht überein.");
-    }
-    try{
-      await currentUser.updatePassword(newPass);
-      showToast("✅ Passwort erfolgreich zurückgesetzt! Bitte gut merken.");
-    }catch(err){
-      if(err.code === "auth/requires-recent-login"){
-        showErrorPopup("Deine aktuelle Sitzung ist Firebase zu alt für diese Aktion direkt - ein Passwort-Reset ohne das alte Passwort zu kennen geht dann leider nur noch über die Firebase-Konsole direkt (Authentication → Nutzer → dein Account → Passwort setzen).");
-      } else {
-        showErrorPopup(friendlyAuthError(err));
-      }
-      console.error("Owner-Passwort zurücksetzen Fehler:", err);
-    }
-  });
+
 
   // App löschen (nur dieses Gerät): löscht NUR die lokalen Daten und meldet
   // ab. Die Cloud-Daten werden dabei absichtlich NICHT angerührt - ist man

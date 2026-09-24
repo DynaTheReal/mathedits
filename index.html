@@ -3625,6 +3625,7 @@
         <button class="difficulty-btn" id="modTabBroadcast" data-tab="broadcast" style="display:none;">📢 Nachrichten</button>
         <button class="difficulty-btn" id="modTabSiteStop" data-tab="sitestop" style="display:none;">🛑 Stopp</button>
         <button class="difficulty-btn" id="modTabUserSearch" data-tab="usersearch" style="display:none;">🔍 Benutzer</button>
+        <button class="difficulty-btn" id="modTabCodes" data-tab="codes" style="display:none;">🎁 Codes</button>
       </div>
 
       <div id="modTabContentUsers">
@@ -3678,7 +3679,19 @@
             <div class="d" style="font-weight:800; margin-bottom:8px; color:#a855f7;">✨ Aura-Booster verleihen</div>
             <button class="btn btn-primary btn-small" id="modGiveBoosterBtn" style="width:100%; background:#a855f7; border-color:#a855f7;">15 Min Aura-Booster geben</button>
           </div>
+          <div id="modModRoleBox" style="display:none; background:rgba(250,204,21,.1); border:1.5px solid #facc15; border-radius:12px; padding:10px; margin-top:14px;">
+            <div class="d" style="font-weight:800; margin-bottom:8px; color:#facc15;">🛡️ Mod-Rolle</div>
+            <div id="modTargetModStatus" class="d" style="margin-bottom:8px;">Aktuell kein Mod.</div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-primary btn-small" id="modMakeModBtn" style="flex:1; background:#facc15; color:#000; border-color:#facc15;">Zum Mod ernennen</button>
+              <button class="btn btn-ghost btn-small" id="modRemoveOtherModBtn" style="flex:1;">Mod entfernen</button>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div id="modTabContentCodes" style="display:none;">
+        <button class="btn btn-primary" id="modViewCodesListBtn" style="width:100%;">📋 Alle Codes ansehen</button>
       </div>
     </div>
   </section>
@@ -3988,6 +4001,10 @@
               <div class="switch" id="modPermSwitchBan"><div class="knob"></div></div>
             </div>
             <div class="settings-row" style="padding:4px 0;">
+              <div class="info"><div class="t" style="font-size:13px;">🌐 IP sperren</div></div>
+              <div class="switch" id="modPermSwitchIpBan"><div class="knob"></div></div>
+            </div>
+            <div class="settings-row" style="padding:4px 0;">
               <div class="info"><div class="t" style="font-size:13px;">👥 Gruppen verwalten</div></div>
               <div class="switch" id="modPermSwitchGroups"><div class="knob"></div></div>
             </div>
@@ -4002,6 +4019,14 @@
             <div class="settings-row" style="padding:4px 0;">
               <div class="info"><div class="t" style="font-size:13px;">🔍 Benutzer bearbeiten (Aura/Level/Booster)</div></div>
               <div class="switch" id="modPermSwitchUserSearch"><div class="knob"></div></div>
+            </div>
+            <div class="settings-row" style="padding:4px 0;">
+              <div class="info"><div class="t" style="font-size:13px;">🛡️ Mod-Rolle vergeben/entfernen</div></div>
+              <div class="switch" id="modPermSwitchModRole"><div class="knob"></div></div>
+            </div>
+            <div class="settings-row" style="padding:4px 0;">
+              <div class="info"><div class="t" style="font-size:13px;">🎁 Einlöse-Codes verwalten</div></div>
+              <div class="switch" id="modPermSwitchCodes"><div class="knob"></div></div>
             </div>
             <button class="btn btn-primary btn-small" id="ownerSaveModPermsBtn" style="width:100%; margin-top:8px;">Berechtigungen speichern</button>
           </div>
@@ -5122,7 +5147,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.42";
+  const APP_VERSION = "3.43";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6841,7 +6866,7 @@
   }
 
   async function renderOwnerCodeStatus(){
-    if(!isOwner() || !firebaseInitialized) return;
+    if(!(isOwner() || isMod()) || !firebaseInitialized) return;
     const statusEl = $("ownerCodeStatus");
     try{
       const snap = await db().collection("redeemCodes").get();
@@ -13463,7 +13488,7 @@
   // Schild-Knopf in den Einstellungen, der zu einem eingeschränkten
   // Mod-Panel führt (jede Aktion dort braucht zusätzlich das separate
   // Admin-Aktions-Passwort, siehe unten).
-  const DEFAULT_MOD_PERMISSIONS = { ban: true, groups: true, broadcast: false, siteStop: false, userSearch: false };
+  const DEFAULT_MOD_PERMISSIONS = { ban: true, ipBan: false, groups: true, broadcast: false, siteStop: false, userSearch: false, modRole: false, codes: false };
 
   async function ownerMakeMod(){
     if(!ownerEditingUid || !isOwner()) return;
@@ -13501,10 +13526,13 @@
     const p = { ...DEFAULT_MOD_PERMISSIONS, ...(perms || {}) };
     const map = {
       modPermSwitchBan: p.ban,
+      modPermSwitchIpBan: p.ipBan,
       modPermSwitchGroups: p.groups,
       modPermSwitchBroadcast: p.broadcast,
       modPermSwitchSiteStop: p.siteStop,
-      modPermSwitchUserSearch: p.userSearch
+      modPermSwitchUserSearch: p.userSearch,
+      modPermSwitchModRole: p.modRole,
+      modPermSwitchCodes: p.codes
     };
     Object.entries(map).forEach(([id, on]) => {
       $(id).classList.toggle("on", !!on);
@@ -13515,10 +13543,13 @@
     if(!ownerEditingUid || !isOwner()) return;
     const perms = {
       ban: $("modPermSwitchBan").classList.contains("on"),
+      ipBan: $("modPermSwitchIpBan").classList.contains("on"),
       groups: $("modPermSwitchGroups").classList.contains("on"),
       broadcast: $("modPermSwitchBroadcast").classList.contains("on"),
       siteStop: $("modPermSwitchSiteStop").classList.contains("on"),
-      userSearch: $("modPermSwitchUserSearch").classList.contains("on")
+      userSearch: $("modPermSwitchUserSearch").classList.contains("on"),
+      modRole: $("modPermSwitchModRole").classList.contains("on"),
+      codes: $("modPermSwitchCodes").classList.contains("on")
     };
     try{
       await db().collection("users").doc(ownerEditingUid).set({ modPermissions: perms }, { merge: true });
@@ -13612,6 +13643,7 @@
     const dismissed = new Set(profile.dismissedModRegistrationIds || []);
     const entries = allEntries.filter(e => !dismissed.has(e.id));
     const listEl = $("modRegList");
+    const perms = { ...DEFAULT_MOD_PERMISSIONS, ...(profile.modPermissions || {}) };
     $("modRegEmptyHint").style.display = entries.length === 0 ? "block" : "none";
     listEl.innerHTML = entries.map(data => `
       <div style="background:var(--card-2); border:1.5px solid var(--border); border-radius:14px; padding:12px; margin-bottom:10px; position:relative;">
@@ -13624,7 +13656,8 @@
           <option value="30">1 Monat sperren</option>
           <option value="forever">Für immer sperren</option>
         </select>
-        <button class="btn btn-primary btn-small mod-reg-ban-btn" data-uid="${data.uid}" data-uname="${data.username || "?"}" style="width:100%; background:#ef4444; border-color:#ef4444;">🚫 Sperren</button>
+        <button class="btn btn-primary btn-small mod-reg-ban-btn" data-uid="${data.uid}" data-uname="${data.username || "?"}" style="width:100%; ${perms.ipBan ? "margin-bottom:8px; " : ""}background:#ef4444; border-color:#ef4444;">🚫 Sperren</button>
+        ${perms.ipBan ? `<button class="btn btn-ghost btn-small mod-reg-ipban-btn" data-uid="${data.uid}" data-uname="${data.username || "?"}" style="width:100%; border-color:#7f1d1d; color:#f87171;">🌐 IP sperren</button>` : ""}
       </div>
     `).join("");
     listEl.querySelectorAll(".mod-reg-dismiss-btn").forEach(btn => {
@@ -13632,6 +13665,21 @@
         profile.dismissedModRegistrationIds = [...(profile.dismissedModRegistrationIds || []), btn.dataset.id];
         saveProfile();
         renderModRegList(allEntries);
+      });
+    });
+    listEl.querySelectorAll(".mod-reg-ipban-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        try{
+          const userDoc = await db().collection("users").doc(btn.dataset.uid).get();
+          const ip = userDoc.exists ? userDoc.data().lastKnownIp : null;
+          if(!ip) return showErrorPopup("Für diese Person ist keine IP-Adresse bekannt.");
+          await db().collection("bannedIps").doc(ip).set({ bannedAt: Date.now(), reason: `@${btn.dataset.uname}` });
+          logModAction("IP gesperrt", `@${btn.dataset.uname}`);
+          showToast("🌐 IP gesperrt.");
+        }catch(err){
+          showToast("IP-Sperren fehlgeschlagen.");
+          console.error(err);
+        }
       });
     });
     listEl.querySelectorAll(".mod-reg-ban-btn").forEach(btn => {
@@ -13784,6 +13832,11 @@
       $("modAuraInput").value = data.totalAura || 0;
       $("modLevelInput").value = data.level || 1;
       $("modEditPanel").style.display = "block";
+      const perms = { ...DEFAULT_MOD_PERMISSIONS, ...(profile.modPermissions || {}) };
+      $("modModRoleBox").style.display = perms.modRole ? "block" : "none";
+      if(perms.modRole){
+        $("modTargetModStatus").textContent = data.isMod ? "🛡️ Ist aktuell Mod." : "Aktuell kein Mod.";
+      }
     }catch(err){
       showErrorPopup("Suche fehlgeschlagen.");
       console.error(err);
@@ -13810,6 +13863,30 @@
       await db().collection("users").doc(modEditingUid).set({ inventory: { doubleAuraUntil: newDoubleAuraUntil } }, { merge: true });
       logModAction("Aura-Booster (15 Min) verliehen", $("modTargetLabel").textContent);
       showToast("✨ Aura-Booster verliehen!");
+    }catch(err){
+      showToast("Fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+  async function modMakeModOfTarget(){
+    if(!modEditingUid) return;
+    try{
+      await db().collection("users").doc(modEditingUid).set({ isMod: true, modPermissions: DEFAULT_MOD_PERMISSIONS }, { merge: true });
+      $("modTargetModStatus").textContent = "🛡️ Ist aktuell Mod.";
+      logModAction("Zum Mod ernannt", $("modTargetLabel").textContent);
+      showToast("🛡️ Zum Mod ernannt.");
+    }catch(err){
+      showToast("Fehlgeschlagen.");
+      console.error(err);
+    }
+  }
+  async function modRemoveModOfTarget(){
+    if(!modEditingUid) return;
+    try{
+      await db().collection("users").doc(modEditingUid).set({ isMod: false }, { merge: true });
+      $("modTargetModStatus").textContent = "Aktuell kein Mod.";
+      logModAction("Mod-Rolle entfernt", $("modTargetLabel").textContent);
+      showToast("Mod-Rolle entfernt.");
     }catch(err){
       showToast("Fehlgeschlagen.");
       console.error(err);
@@ -13944,7 +14021,7 @@
     $("ownerCodePublicSwitch").classList.toggle("on");
   });
 
-  ["modPermSwitchBan", "modPermSwitchGroups", "modPermSwitchBroadcast", "modPermSwitchSiteStop", "modPermSwitchUserSearch"].forEach(id => {
+  ["modPermSwitchBan", "modPermSwitchIpBan", "modPermSwitchGroups", "modPermSwitchBroadcast", "modPermSwitchSiteStop", "modPermSwitchUserSearch", "modPermSwitchModRole", "modPermSwitchCodes"].forEach(id => {
     $(id).addEventListener("click", () => $(id).classList.toggle("on"));
   });
   $("ownerSaveModPermsBtn").addEventListener("click", ownerSaveModPerms);
@@ -14078,7 +14155,8 @@
     { tab: "modTabGroups", content: "modTabContentGroups", perm: "groups" },
     { tab: "modTabBroadcast", content: "modTabContentBroadcast", perm: "broadcast" },
     { tab: "modTabSiteStop", content: "modTabContentSiteStop", perm: "siteStop" },
-    { tab: "modTabUserSearch", content: "modTabContentUserSearch", perm: "userSearch" }
+    { tab: "modTabUserSearch", content: "modTabContentUserSearch", perm: "userSearch" },
+    { tab: "modTabCodes", content: "modTabContentCodes", perm: "codes" }
   ];
 
   function switchModTab(tabId){
@@ -14090,24 +14168,59 @@
 
   // Berechtigungen anwenden (NEU): zeigt nur die Tabs, die der Owner für
   // diesen Mod freigeschaltet hat - Sperren + Gruppen sind Standard.
-  function applyModPermissionsToPanel(){
+  function applyModPermissionsToPanel(isInitialOpen){
     const perms = { ...DEFAULT_MOD_PERMISSIONS, ...(profile.modPermissions || {}) };
+    const activeBefore = MOD_TABS.find(t => $(t.tab).classList.contains("active"));
     MOD_TABS.forEach(t => {
       $(t.tab).style.display = perms[t.perm] ? "" : "none";
     });
-    const firstVisible = MOD_TABS.find(t => perms[t.perm]);
-    if(firstVisible) switchModTab(firstVisible.tab);
-    if(perms.ban) watchModRegistrations();
-    if(perms.groups) watchModGroups();
+    // War der gerade aktive Tab schon offen und ist er nach der Änderung
+    // immer noch erlaubt, bleibt er offen - eine Live-Aktualisierung soll
+    // nicht mitten in der Arbeit den Bildschirm wechseln. Nur wenn er
+    // gerade entzogen wurde (oder beim ersten Öffnen), springt die
+    // Ansicht auf den ersten noch erlaubten Tab.
+    const stillAllowed = activeBefore && perms[activeBefore.perm];
+    if(isInitialOpen || !stillAllowed){
+      const firstVisible = MOD_TABS.find(t => perms[t.perm]);
+      if(firstVisible) switchModTab(firstVisible.tab);
+    }
+    if(perms.ban) watchModRegistrations(); else if(modRegListUnsubscribe){ modRegListUnsubscribe(); modRegListUnsubscribe = null; }
+    if(perms.groups) watchModGroups(); else if(modGroupsListUnsubscribe){ modGroupsListUnsubscribe(); modGroupsListUnsubscribe = null; }
     if(perms.siteStop) renderModSiteStopStatus();
+  }
+
+  // Live-Aktualisierung der eigenen Berechtigungen (NEU): läuft, solange
+  // das Mod-Panel geöffnet ist - ändert der Owner währenddessen etwas,
+  // wird es sofort sichtbar, ohne dass das Panel neu geöffnet werden muss.
+  let modOwnPermsUnsubscribe = null;
+  function watchModOwnPermissions(){
+    if(modOwnPermsUnsubscribe){ modOwnPermsUnsubscribe(); modOwnPermsUnsubscribe = null; }
+    if(!firebaseInitialized || !currentUser) return;
+    modOwnPermsUnsubscribe = db().collection("users").doc(currentUser.uid)
+      .onSnapshot((doc) => {
+        if(!doc.exists) return;
+        const data = doc.data();
+        if(!data.isMod){
+          // Die Mod-Rolle wurde während des Öffnens entfernt - zurück in
+          // die Einstellungen, das Panel steht ihm nicht mehr zu.
+          unwatchModPanelLists();
+          showScreen("settings");
+          renderSettings();
+          return;
+        }
+        profile.modPermissions = data.modPermissions || DEFAULT_MOD_PERMISSIONS;
+        applyModPermissionsToPanel(false);
+      }, (err) => console.error("Mod-Berechtigungen live Fehler:", err));
   }
 
   $("modPanelBtn").addEventListener("click", () => {
     showScreen("modpanel");
-    applyModPermissionsToPanel();
+    applyModPermissionsToPanel(true);
+    watchModOwnPermissions();
   });
   $("modPanelBack").addEventListener("click", () => {
     unwatchModPanelLists();
+    if(modOwnPermsUnsubscribe){ modOwnPermsUnsubscribe(); modOwnPermsUnsubscribe = null; }
     showScreen("settings");
     renderSettings();
   });
@@ -14121,6 +14234,12 @@
   wireUsernameAutocomplete($("modSearchInput"), $("modSearchSuggestions"), () => modSearchUser());
   $("modSaveBtn").addEventListener("click", modSaveChanges);
   $("modGiveBoosterBtn").addEventListener("click", modGiveBooster);
+  $("modMakeModBtn").addEventListener("click", modMakeModOfTarget);
+  $("modRemoveOtherModBtn").addEventListener("click", modRemoveModOfTarget);
+  $("modViewCodesListBtn").addEventListener("click", () => {
+    $("overlayOwnerCodesList").classList.add("show");
+    renderOwnerCodeStatus();
+  });
 
   $("errorPopupOkBtn").addEventListener("click", () => {
     $("overlayErrorPopup").classList.remove("show");

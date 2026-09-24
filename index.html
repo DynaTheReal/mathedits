@@ -3733,10 +3733,10 @@
       <div style="font-size:20px;">→</div>
     </div>
 
-    <div class="settings-row" id="appSettingsRow" style="cursor:pointer;">
+    <div class="settings-row" id="replayTutorialRow" style="cursor:pointer;">
       <div class="info">
-        <div class="t">🎬 App</div>
-        <div class="d">Einführung, Intro-Animation, Layout, App installieren.</div>
+        <div class="t">❓ Einführung erneut zeigen</div>
+        <div class="d">Zeigt dir nochmal, wo die wichtigsten Funktionen sind.</div>
       </div>
       <div style="font-size:20px;">→</div>
     </div>
@@ -3744,9 +3744,25 @@
     <div class="settings-row" id="designSettingsRow" style="cursor:pointer;">
       <div class="info">
         <div class="t">🎨 Design</div>
-        <div class="d">Theme, Long Edits, Aura-Animation.</div>
+        <div class="d">Wähle dein Theme.</div>
       </div>
       <div style="font-size:20px;">→</div>
+    </div>
+
+    <div class="settings-row" id="layoutSettingsRow" style="cursor:pointer;">
+      <div class="info">
+        <div class="t">📐 Layout</div>
+        <div class="d">Home-Layout, Intro-Animation, Aura-Animation, Long Edits.</div>
+      </div>
+      <div style="font-size:20px;">→</div>
+    </div>
+
+    <div class="settings-row" id="installAppRow" style="cursor:pointer; display:none;">
+      <div class="info">
+        <div class="t">📲 App installieren</div>
+        <div class="d">MathEdits wie eine App nutzen, ganz ohne Browser-Leiste.</div>
+      </div>
+      <div style="font-size:20px; opacity:.6;">›</div>
     </div>
 
     <div class="settings-row" id="ownerPanelRow" style="display:none; flex-direction:column; align-items:stretch; border:1.5px solid #ffd700; box-shadow:0 0 16px rgba(255,215,0,.25);">
@@ -4126,46 +4142,17 @@
 
     <!-- "Beta"-Menü (NEU, vorher "Peter"): Beta-Einstellungen zum Ausprobieren -->
     <div class="overlay" id="overlayPeterMenu">
-      <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
+      <div class="modal-card" style="max-width:360px; text-align:left; position:relative;">
         <button id="peterMenuClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
         <div style="font-size:32px; margin-bottom:6px;">🧪</div>
         <h2 style="margin-bottom:14px;">Beta</h2>
-        <div class="d" style="font-weight:800; margin-bottom:10px;">Betaeinstellungen</div>
 
-        <div class="d" style="font-weight:800; margin-bottom:8px;">🎬 Lektion-Start-Animation</div>
-        <div class="d" style="margin-bottom:10px;">Übergang, wenn eine Lektion beginnt.</div>
-        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
-          <button class="aura-anim-choice active" id="lessonAnimChoiceOff" data-style="off">Aus</button>
-          <button class="aura-anim-choice" id="lessonAnimChoiceFade" data-style="fade">🌫️ Fade - blendet sanft ein</button>
-          <button class="aura-anim-choice" id="lessonAnimChoiceSlide" data-style="slide">⬆️ Slide - gleitet von unten rein</button>
-          <button class="aura-anim-choice" id="lessonAnimChoiceSlideleft" data-style="slideleft">⬅️ Slide-Links - gleitet von links rein</button>
-          <button class="aura-anim-choice" id="lessonAnimChoiceSlideright" data-style="slideright">➡️ Slide-Rechts - gleitet von rechts rein</button>
-          <button class="aura-anim-choice" id="lessonAnimChoiceZoom" data-style="zoom">🔍 Zoom - zoomt sanft rein</button>
-          <button class="aura-anim-choice" id="lessonAnimChoiceRotate" data-style="rotate">🔄 Rotate - dreht sich leicht rein</button>
-          <button class="aura-anim-choice" id="lessonAnimChoiceBlur" data-style="blur">💧 Blur - wird scharf</button>
-          <button class="aura-anim-choice" id="lessonAnimChoiceFlip" data-style="flip">🃏 Flip - dreht sich wie eine Karte</button>
-          <button class="aura-anim-choice" id="lessonAnimChoiceBounce" data-style="bounce">🏀 Bounce - hüpft beim Reinkommen</button>
-          <button class="aura-anim-choice" id="lessonAnimChoiceElastic" data-style="elastic">🎯 Elastic - federt mehrfach nach</button>
-          <button class="aura-anim-choice" id="lessonAnimChoiceCurtain" data-style="curtain">🎭 Curtain - zieht sich wie ein Vorhang auf</button>
-          <button class="aura-anim-choice" id="lessonAnimChoiceGlitch" data-style="glitch">👾 Glitch - flackert wild rein</button>
-        </div>
-
-        <div class="d" style="font-weight:800; margin-bottom:8px;">🔀 Bildschirmwechsel-Animation</div>
-        <div class="d" style="margin-bottom:10px;">Übergang bei JEDEM Wechsel zwischen Bildschirmen (Home, Shop, Rangliste, ...).</div>
-        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:0;">
-          <button class="aura-anim-choice active" id="navAnimChoiceOff" data-style="off">Aus</button>
-          <button class="aura-anim-choice" id="navAnimChoiceFade" data-style="fade">🌫️ Fade - blendet sanft ein</button>
-          <button class="aura-anim-choice" id="navAnimChoiceSlide" data-style="slide">⬆️ Slide - gleitet von unten rein</button>
-          <button class="aura-anim-choice" id="navAnimChoiceSlideleft" data-style="slideleft">⬅️ Slide-Links - gleitet von links rein</button>
-          <button class="aura-anim-choice" id="navAnimChoiceSlideright" data-style="slideright">➡️ Slide-Rechts - gleitet von rechts rein</button>
-          <button class="aura-anim-choice" id="navAnimChoiceZoom" data-style="zoom">🔍 Zoom - zoomt sanft rein</button>
-          <button class="aura-anim-choice" id="navAnimChoiceRotate" data-style="rotate">🔄 Rotate - dreht sich leicht rein</button>
-          <button class="aura-anim-choice" id="navAnimChoiceBlur" data-style="blur">💧 Blur - wird scharf</button>
-          <button class="aura-anim-choice" id="navAnimChoiceFlip" data-style="flip">🃏 Flip - dreht sich wie eine Karte</button>
-          <button class="aura-anim-choice" id="navAnimChoiceBounce" data-style="bounce">🏀 Bounce - hüpft beim Reinkommen</button>
-          <button class="aura-anim-choice" id="navAnimChoiceElastic" data-style="elastic">🎯 Elastic - federt mehrfach nach</button>
-          <button class="aura-anim-choice" id="navAnimChoiceCurtain" data-style="curtain">🎭 Curtain - zieht sich wie ein Vorhang auf</button>
-          <button class="aura-anim-choice" id="navAnimChoiceGlitch" data-style="glitch">👾 Glitch - flackert wild rein</button>
+        <div class="settings-row" style="padding:0;">
+          <div class="info">
+            <div class="t">🛍️ Neuer Shop</div>
+            <div class="d">Kategorien mit seitlich scrollenden Items statt der bisherigen Liste.</div>
+          </div>
+          <div class="switch" id="betaNewShopSwitch"><div class="knob"></div></div>
         </div>
       </div>
     </div>
@@ -4621,15 +4608,34 @@
        das jeweils erklärte UI-Element mit einem lila Rahmen hervor. -->
   <!-- Barrierefreiheit (NEU): Long Edits (vorher "Long Mode"), Design,
        und die Einführung an einem Ort. -->
-  <!-- App (NEU): Einführung, Intro-Animation, Layout und App installieren
-       zusammengefasst statt über mehrere verstreute Zeilen. -->
-  <div class="overlay" id="overlayAppSettings">
+  <!-- Design (NEU): nur noch das Theme - Layout-/Animations-Sachen liegen
+       jetzt in der eigenen "Layout"-Kategorie. -->
+  <div class="overlay" id="overlayDesignSettings">
     <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
-      <button id="appSettingsClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
-      <div style="font-size:32px; margin-bottom:6px;">🎬</div>
-      <h2 style="margin-bottom:14px;">App</h2>
+      <button id="designSettingsClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+      <div style="font-size:32px; margin-bottom:6px;">🎨</div>
+      <h2 style="margin-bottom:14px;">Design</h2>
 
-      <button class="btn btn-ghost btn-small" id="appSettingsTutorialBtn" style="width:100%; margin-bottom:16px;">❓ Einführung erneut zeigen</button>
+      <div class="d" style="font-weight:800; margin-bottom:6px;">Design / Theme</div>
+      <select class="select-input" id="themeSelect" style="width:100%;"></select>
+    </div>
+  </div>
+
+  <!-- Layout (NEU): alles, was mit Layout oder mit Animationen beim Öffnen
+       zu tun hat, an einem Ort - Home-Layout, Intro-Animation,
+       Aura-Animation in Lektionen, und Long Edits. -->
+  <div class="overlay" id="overlayLayoutSettings">
+    <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
+      <button id="layoutSettingsClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
+      <div style="font-size:32px; margin-bottom:6px;">📐</div>
+      <h2 style="margin-bottom:14px;">Layout</h2>
+
+      <div class="d" style="font-weight:800; margin-bottom:6px;">Home-Layout</div>
+      <div class="d" style="margin-bottom:8px;">Wie der Home-Bildschirm aussieht.</div>
+      <select id="layoutStyleSelect" class="input-field" style="width:100%; margin-bottom:16px;">
+        <option value="simpel">Simpel</option>
+        <option value="clean">Clean</option>
+      </select>
 
       <div class="d" style="font-weight:800; margin-bottom:6px;">App-Intro</div>
       <div class="d" style="margin-bottom:8px;">Welche Animation beim Öffnen der App läuft.</div>
@@ -4638,47 +4644,19 @@
         <option value="simple">Simple</option>
       </select>
 
-      <div class="d" style="font-weight:800; margin-bottom:6px;">Layout</div>
-      <div class="d" style="margin-bottom:8px;">Wie der Home-Bildschirm aussieht.</div>
-      <select id="layoutStyleSelect" class="input-field" style="width:100%; margin-bottom:16px;">
-        <option value="simpel">Simpel</option>
-        <option value="clean">Clean</option>
-      </select>
-
-      <div class="settings-row" id="installAppRow" style="cursor:pointer; padding:10px 0 0; display:none;">
-        <div class="info">
-          <div class="t">📲 App installieren</div>
-          <div class="d">MathEdits wie eine App nutzen, ganz ohne Browser-Leiste.</div>
-        </div>
-        <div style="font-size:20px; opacity:.6;">›</div>
+      <div class="d" style="font-weight:800; margin-bottom:6px;">Aura-Animation in Lektionen</div>
+      <div class="d" style="margin-bottom:8px;">Das große Bild nach jeder richtigen Antwort.</div>
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <button class="aura-anim-choice" id="appearanceMotifClassic" data-motif="classic" style="flex:1; text-align:center;">⚡ Klassisch</button>
+        <button class="aura-anim-choice" id="appearanceMotifIgnite" data-motif="ignite" style="flex:1; text-align:center;">🔥 Aufladend</button>
       </div>
-    </div>
-  </div>
 
-  <!-- Design (NEU, ersetzt Barrierefreiheit + Aussehen): Theme, Long Edits
-       und Aura-Animations-Motiv an einem Ort. -->
-  <div class="overlay" id="overlayDesignSettings">
-    <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
-      <button id="designSettingsClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
-      <div style="font-size:32px; margin-bottom:6px;">🎨</div>
-      <h2 style="margin-bottom:14px;">Design</h2>
-
-      <div class="d" style="font-weight:800; margin-bottom:6px;">Design / Theme</div>
-      <select class="select-input" id="themeSelect" style="width:100%; margin-bottom:16px;"></select>
-
-      <div class="settings-row" style="padding:0 0 16px;">
+      <div class="settings-row" style="padding:0;">
         <div class="info">
           <div class="t">Long Edits</div>
           <div class="d">Aura-Edits und Memes bleiben 4 Sekunden statt kurz sichtbar.</div>
         </div>
         <div class="switch" id="longModeSwitch"><div class="knob"></div></div>
-      </div>
-
-      <div class="d" style="font-weight:800; margin-bottom:6px;">Aura-Animation in Lektionen</div>
-      <div class="d" style="margin-bottom:8px;">Das große Bild nach jeder richtigen Antwort.</div>
-      <div style="display:flex; gap:8px;">
-        <button class="aura-anim-choice" id="appearanceMotifClassic" data-motif="classic" style="flex:1; text-align:center;">⚡ Klassisch</button>
-        <button class="aura-anim-choice" id="appearanceMotifIgnite" data-motif="ignite" style="flex:1; text-align:center;">🔥 Aufladend</button>
       </div>
     </div>
   </div>
@@ -5121,7 +5099,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.45";
+  const APP_VERSION = "3.46";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5362,8 +5340,9 @@
     lastKnownGoodAura: 0, // Absicherung gegen ungültige/verlorene Aura-Werte (siehe saveProfile)
     auraGainAnimationStyle: "off", // Beta-Einstellung: "off" | "soft" | "pulse" | "sparkle"
     auraOverlayMotif: "classic", // Aussehen-Einstellung: "classic" | "ignite"
-    lessonStartAnimStyle: "off", // Beta-Einstellung: "off" | "fade" | "slide" | "slideleft" | "slideright" | "zoom" | "rotate" | "blur" | "flip" | "bounce" | "elastic" | "curtain" | "glitch"
-    screenNavAnimStyle: "off", // Beta-Einstellung: siehe lessonStartAnimStyle
+    lessonStartAnimStyle: "fade", // fest auf Fade eingestellt (vorher wählbare Beta-Einstellung)
+    screenNavAnimStyle: "fade", // fest auf Fade eingestellt (vorher wählbare Beta-Einstellung)
+    betaNewShopEnabled: false, // Beta-Einstellung: neues, seitlich scrollendes Shop-Design
     lessonsCompleted: 0,
     theme: "black",
     unlockedThemes: ["black"], // Freigeschaltete Designs
@@ -12031,7 +12010,7 @@
     Object.values(screens).forEach(s => s.classList.remove("active"));
     screens[name].classList.add("active");
     // Bildschirmwechsel-Animation (NEU, Beta-Einstellung)
-    const navAnim = profile.screenNavAnimStyle;
+    const navAnim = "fade";
     if(navAnim && navAnim !== "off"){
       const el = screens[name];
       el.classList.remove("nav-anim-fade", "nav-anim-slide", "nav-anim-slideleft", "nav-anim-slideright", "nav-anim-zoom", "nav-anim-rotate", "nav-anim-blur", "nav-anim-flip", "nav-anim-bounce", "nav-anim-elastic", "nav-anim-curtain", "nav-anim-glitch");
@@ -14467,25 +14446,9 @@
     renderHome();
   });
 
-  const SIMPLE_ANIM_STYLES = ["off", "fade", "slide", "slideleft", "slideright", "zoom", "rotate", "blur", "flip", "bounce", "elastic", "curtain", "glitch"];
-  const LESSON_ANIM_BTN_IDS = { off: "lessonAnimChoiceOff", fade: "lessonAnimChoiceFade", slide: "lessonAnimChoiceSlide", slideleft: "lessonAnimChoiceSlideleft", slideright: "lessonAnimChoiceSlideright", zoom: "lessonAnimChoiceZoom", rotate: "lessonAnimChoiceRotate", blur: "lessonAnimChoiceBlur", flip: "lessonAnimChoiceFlip", bounce: "lessonAnimChoiceBounce", elastic: "lessonAnimChoiceElastic", curtain: "lessonAnimChoiceCurtain", glitch: "lessonAnimChoiceGlitch" };
-  const NAV_ANIM_BTN_IDS = { off: "navAnimChoiceOff", fade: "navAnimChoiceFade", slide: "navAnimChoiceSlide", slideleft: "navAnimChoiceSlideleft", slideright: "navAnimChoiceSlideright", zoom: "navAnimChoiceZoom", rotate: "navAnimChoiceRotate", blur: "navAnimChoiceBlur", flip: "navAnimChoiceFlip", bounce: "navAnimChoiceBounce", elastic: "navAnimChoiceElastic", curtain: "navAnimChoiceCurtain", glitch: "navAnimChoiceGlitch" };
-  function selectLessonAnimStyle(style){
-    profile.lessonStartAnimStyle = style;
-    saveProfile();
-    SIMPLE_ANIM_STYLES.forEach(s => $(LESSON_ANIM_BTN_IDS[s]).classList.toggle("active", s === style));
-  }
-  function selectNavAnimStyle(style){
-    profile.screenNavAnimStyle = style;
-    saveProfile();
-    SIMPLE_ANIM_STYLES.forEach(s => $(NAV_ANIM_BTN_IDS[s]).classList.toggle("active", s === style));
-  }
   $("peterMenuRow").addEventListener("click", () => {
     $("overlayPeterMenu").classList.add("show");
-    const currentLessonAnim = profile.lessonStartAnimStyle || "off";
-    SIMPLE_ANIM_STYLES.forEach(s => $(LESSON_ANIM_BTN_IDS[s]).classList.toggle("active", s === currentLessonAnim));
-    const currentNavAnim = profile.screenNavAnimStyle || "off";
-    SIMPLE_ANIM_STYLES.forEach(s => $(NAV_ANIM_BTN_IDS[s]).classList.toggle("active", s === currentNavAnim));
+    $("betaNewShopSwitch").classList.toggle("on", !!profile.betaNewShopEnabled);
     // Bugfix (doppeltes Scrollen): der Hintergrund-Bildschirm hat selbst
     // ein eigenes overflow-y:auto - ohne diese Sperre konnte man sowohl im
     // Menü ALS AUCH im Bildschirm dahinter gleichzeitig scrollen, was sich
@@ -14498,9 +14461,11 @@
     const activeScreen = document.querySelector(".screen.active");
     if(activeScreen) activeScreen.style.overflow = "";
   });
-  SIMPLE_ANIM_STYLES.forEach(s => {
-    $(LESSON_ANIM_BTN_IDS[s]).addEventListener("click", () => selectLessonAnimStyle(s));
-    $(NAV_ANIM_BTN_IDS[s]).addEventListener("click", () => selectNavAnimStyle(s));
+  $("betaNewShopSwitch").addEventListener("click", () => {
+    profile.betaNewShopEnabled = !profile.betaNewShopEnabled;
+    saveProfile();
+    $("betaNewShopSwitch").classList.toggle("on", !!profile.betaNewShopEnabled);
+    if($("screen-shop").classList.contains("active")) renderShop();
   });
 
   $("tutorialNextBtn").addEventListener("click", () => {
@@ -14509,28 +14474,28 @@
   $("tutorialSkipBtn").addEventListener("click", () => {
     endTutorial();
   });
-  $("appSettingsRow").addEventListener("click", () => {
-    $("overlayAppSettings").classList.add("show");
-    $("appIntroStyleSelect").value = profile.appIntroStyle || "math";
-    $("layoutStyleSelect").value = profile.layoutStyle === "simpel" ? "simpel" : "clean";
-  });
-  $("appSettingsClose").addEventListener("click", () => {
-    $("overlayAppSettings").classList.remove("show");
-  });
-  $("appSettingsTutorialBtn").addEventListener("click", () => {
-    $("overlayAppSettings").classList.remove("show");
+  $("replayTutorialRow").addEventListener("click", () => {
     startTutorial(null);
   });
 
   $("designSettingsRow").addEventListener("click", () => {
     $("overlayDesignSettings").classList.add("show");
+  });
+  $("designSettingsClose").addEventListener("click", () => {
+    $("overlayDesignSettings").classList.remove("show");
+  });
+
+  $("layoutSettingsRow").addEventListener("click", () => {
+    $("overlayLayoutSettings").classList.add("show");
+    $("layoutStyleSelect").value = profile.layoutStyle === "simpel" ? "simpel" : "clean";
+    $("appIntroStyleSelect").value = profile.appIntroStyle || "math";
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
     const currentMotif = profile.auraOverlayMotif === "ignite" ? "ignite" : "classic";
     $("appearanceMotifClassic").classList.toggle("active", currentMotif === "classic");
     $("appearanceMotifIgnite").classList.toggle("active", currentMotif === "ignite");
   });
-  $("designSettingsClose").addEventListener("click", () => {
-    $("overlayDesignSettings").classList.remove("show");
+  $("layoutSettingsClose").addEventListener("click", () => {
+    $("overlayLayoutSettings").classList.remove("show");
   });
   ["appearanceMotifClassic", "appearanceMotifIgnite"].forEach(id => {
     $(id).addEventListener("click", () => {
@@ -15849,8 +15814,8 @@
     updateComboCounter(lesson.streakThisLesson);
     markLessonInProgress();
     showScreen("lesson");
-    // Lektion-Start-Animation (NEU, Beta-Einstellung)
-    const lessonAnim = profile.lessonStartAnimStyle;
+    // Übergangs-Animation: fest auf Fade (vorher wählbare Beta-Einstellung)
+    const lessonAnim = "fade";
     if(lessonAnim && lessonAnim !== "off"){
       const el = $("screen-lesson");
       el.classList.remove("lesson-anim-fade", "lesson-anim-slide", "lesson-anim-slideleft", "lesson-anim-slideright", "lesson-anim-zoom", "lesson-anim-rotate", "lesson-anim-blur", "lesson-anim-flip", "lesson-anim-bounce", "lesson-anim-elastic", "lesson-anim-curtain", "lesson-anim-glitch");

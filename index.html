@@ -1047,6 +1047,40 @@
     cursor: not-allowed;
   }
 
+  /* Neues Shop-Design (NEU, Beta-Einstellung): jede Kategorie bekommt eine
+     Reihe, in der von links nach rechts gescrollt werden kann, statt einer
+     langen senkrechten Liste. Der Wrapper existiert immer im DOM (wird
+     einmalig um jede Kategorie gelegt), ist aber standardmäßig per
+     "display:contents" unsichtbar für das Layout - so bleibt die normale
+     Ansicht komplett unverändert, wenn die Beta-Einstellung aus ist, und es
+     ist kein Ein-/Auspacken der Elemente beim Umschalten nötig.
+  */
+  .shop-horizontal-row{ display: contents; }
+  #screen-shop.beta-shop-layout .shop-horizontal-row{
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 2px 10px;
+    margin-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  #screen-shop.beta-shop-layout .shop-horizontal-row::-webkit-scrollbar{ display:none; }
+  #screen-shop.beta-shop-layout .shop-item{
+    flex-direction: column;
+    align-items: flex-start;
+    width: 148px;
+    flex-shrink: 0;
+    margin-bottom: 0;
+  }
+  #screen-shop.beta-shop-layout .shop-item .item-icon{ margin-bottom: 8px; }
+  #screen-shop.beta-shop-layout .shop-item .item-info{ width: 100%; margin-bottom: 10px; }
+  #screen-shop.beta-shop-layout .shop-item .item-desc{
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  #screen-shop.beta-shop-layout .shop-item .buy-btn{ width: 100%; justify-content: center; }
+
   /* ---------- Item-Hintergrundmuster im Shop (NEU) ---------- */
   /* Dezent wiederholtes Symbol im Hintergrund jeder Item-Kachel (z.B.
      lauter kleine Herzen hinter "Leben", Icecubes hinter "Icecube") -
@@ -3744,15 +3778,7 @@
     <div class="settings-row" id="designSettingsRow" style="cursor:pointer;">
       <div class="info">
         <div class="t">🎨 Design</div>
-        <div class="d">Wähle dein Theme.</div>
-      </div>
-      <div style="font-size:20px;">→</div>
-    </div>
-
-    <div class="settings-row" id="layoutSettingsRow" style="cursor:pointer;">
-      <div class="info">
-        <div class="t">📐 Layout</div>
-        <div class="d">Home-Layout, Intro-Animation, Aura-Animation, Long Edits.</div>
+        <div class="d">Theme, Home-Layout, Intro-Animation, Aura-Animation, Long Edits.</div>
       </div>
       <div style="font-size:20px;">→</div>
     </div>
@@ -4610,6 +4636,8 @@
        und die Einführung an einem Ort. -->
   <!-- Design (NEU): nur noch das Theme - Layout-/Animations-Sachen liegen
        jetzt in der eigenen "Layout"-Kategorie. -->
+  <!-- Design (NEU, zusammengeführt): Theme, Home-Layout, Intro-Animation,
+       Aura-Animation und Long Edits an einem Ort. -->
   <div class="overlay" id="overlayDesignSettings">
     <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
       <button id="designSettingsClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
@@ -4617,18 +4645,7 @@
       <h2 style="margin-bottom:14px;">Design</h2>
 
       <div class="d" style="font-weight:800; margin-bottom:6px;">Design / Theme</div>
-      <select class="select-input" id="themeSelect" style="width:100%;"></select>
-    </div>
-  </div>
-
-  <!-- Layout (NEU): alles, was mit Layout oder mit Animationen beim Öffnen
-       zu tun hat, an einem Ort - Home-Layout, Intro-Animation,
-       Aura-Animation in Lektionen, und Long Edits. -->
-  <div class="overlay" id="overlayLayoutSettings">
-    <div class="modal-card" style="max-width:360px; text-align:left; max-height:85vh; overflow-y:auto; position:relative;">
-      <button id="layoutSettingsClose" style="position:absolute; top:10px; right:10px; width:32px; height:32px; border-radius:50%; background:var(--card-2); border:1.5px solid var(--border); color:var(--text); font-size:16px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:5;">✕</button>
-      <div style="font-size:32px; margin-bottom:6px;">📐</div>
-      <h2 style="margin-bottom:14px;">Layout</h2>
+      <select class="select-input" id="themeSelect" style="width:100%; margin-bottom:16px;"></select>
 
       <div class="d" style="font-weight:800; margin-bottom:6px;">Home-Layout</div>
       <div class="d" style="margin-bottom:8px;">Wie der Home-Bildschirm aussieht.</div>
@@ -5099,7 +5116,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.46";
+  const APP_VERSION = "3.47";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -12324,7 +12341,37 @@
     });
   }
 
+  // Neues Shop-Design (NEU, Beta-Einstellung): packt einmalig jede
+  // Kategorie in einen Wrapper, der (per CSS) je nach Einstellung entweder
+  // unsichtbar ist (normale Ansicht) oder zur seitlich scrollbaren Reihe
+  // wird. Läuft nur EINMAL - ein bereits vorhandener Wrapper wird nicht
+  // nochmal angefasst.
+  let shopHorizontalWrappersBuilt = false;
+  function buildShopHorizontalWrappers(){
+    if(shopHorizontalWrappersBuilt) return;
+    shopHorizontalWrappersBuilt = true;
+    const shop = $("screen-shop");
+    const children = [...shop.children];
+    let currentRow = null;
+    children.forEach(el => {
+      if(el.classList.contains("shop-section-title")){
+        currentRow = null;
+      } else if(el.classList.contains("shop-item")){
+        if(!currentRow){
+          currentRow = document.createElement("div");
+          currentRow.className = "shop-horizontal-row";
+          shop.insertBefore(currentRow, el);
+        }
+        currentRow.appendChild(el);
+      } else {
+        currentRow = null;
+      }
+    });
+  }
+
   function renderShop(){
+    buildShopHorizontalWrappers();
+    $("screen-shop").classList.toggle("beta-shop-layout", !!profile.betaNewShopEnabled);
     $("shopAuraVal").textContent = profile.totalAura;
     renderReferralUI($("referralLinkRow"), $("referralLinkInput"), $("referralLoggedOutMsg"));
 
@@ -14480,13 +14527,6 @@
 
   $("designSettingsRow").addEventListener("click", () => {
     $("overlayDesignSettings").classList.add("show");
-  });
-  $("designSettingsClose").addEventListener("click", () => {
-    $("overlayDesignSettings").classList.remove("show");
-  });
-
-  $("layoutSettingsRow").addEventListener("click", () => {
-    $("overlayLayoutSettings").classList.add("show");
     $("layoutStyleSelect").value = profile.layoutStyle === "simpel" ? "simpel" : "clean";
     $("appIntroStyleSelect").value = profile.appIntroStyle || "math";
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
@@ -14494,8 +14534,8 @@
     $("appearanceMotifClassic").classList.toggle("active", currentMotif === "classic");
     $("appearanceMotifIgnite").classList.toggle("active", currentMotif === "ignite");
   });
-  $("layoutSettingsClose").addEventListener("click", () => {
-    $("overlayLayoutSettings").classList.remove("show");
+  $("designSettingsClose").addEventListener("click", () => {
+    $("overlayDesignSettings").classList.remove("show");
   });
   ["appearanceMotifClassic", "appearanceMotifIgnite"].forEach(id => {
     $(id).addEventListener("click", () => {

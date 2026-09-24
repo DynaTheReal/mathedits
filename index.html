@@ -3725,7 +3725,20 @@
       </div>
 
       <div id="modTabContentCodes" style="display:none;">
-        <button class="btn btn-primary" id="modViewCodesListBtn" style="width:100%;">📋 Alle Codes ansehen</button>
+        <div class="d" id="modCodeLimitStatus" style="margin-bottom:10px;"></div>
+        <div id="modCodeCreateForm">
+          <input type="text" id="modCodeInput" class="input-field" placeholder="Neuer Code (z.B. MATHY50)" style="margin-bottom:8px; text-transform:uppercase;">
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <button class="btn btn-ghost btn-small mod-code-reward-btn" id="modCodeRewardAuraBtn" data-reward="aura" style="flex:1; background:var(--accent); color:#000; border-color:var(--accent);">Aura</button>
+            <button class="btn btn-ghost btn-small mod-code-reward-btn" id="modCodeRewardLifeBtn" data-reward="life" style="flex:1;">Leben</button>
+            <button class="btn btn-ghost btn-small mod-code-reward-btn" id="modCodeRewardChestBtn" data-reward="chest" style="flex:1;">Truhe</button>
+          </div>
+          <input type="number" id="modCodeAuraAmountInput" class="input-field" placeholder="Aura-Betrag (max. 100)" min="1" max="100" style="margin-bottom:8px;">
+          <input type="number" id="modCodeLifeAmountInput" class="input-field" placeholder="Anzahl Leben (max. 5)" min="1" max="5" value="1" style="margin-bottom:8px; display:none;">
+          <div class="d" id="modCodeChestNote" style="margin-bottom:8px; display:none;">Truhe: immer Standard-Truhe.</div>
+          <button class="btn btn-primary" id="modSetCodeBtn" style="width:100%;">Code hinzufügen</button>
+        </div>
+        <button class="btn btn-ghost" id="modViewCodesListBtn" style="width:100%; margin-top:10px;">📋 Alle Codes ansehen</button>
       </div>
     </div>
   </section>
@@ -5116,7 +5129,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.47";
+  const APP_VERSION = "3.48";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -13711,6 +13724,74 @@
     });
   }
 
+  // Codes durch Mods (NEU, eingeschränkt): nur 1 Code pro Tag, und nur
+  // begrenzte Belohnungen (max. 100 Aura, max. 5 Leben, immer nur die
+  // Standard-Truhe) - deutlich schwächer als das, was der Owner setzen
+  // kann.
+  const MOD_CODE_MAX_AURA = 100;
+  const MOD_CODE_MAX_LIFE = 5;
+  let modSelectedCodeReward = "aura";
+
+  function selectModCodeReward(type){
+    modSelectedCodeReward = type;
+    ["Aura", "Life", "Chest"].forEach(t => {
+      const isActive = t.toLowerCase() === type;
+      $("modCodeReward" + t + "Btn").style.cssText = isActive ? "flex:1; background:var(--accent); color:#000; border-color:var(--accent);" : "flex:1;";
+    });
+    $("modCodeAuraAmountInput").style.display = type === "aura" ? "block" : "none";
+    $("modCodeLifeAmountInput").style.display = type === "life" ? "block" : "none";
+    $("modCodeChestNote").style.display = type === "chest" ? "block" : "none";
+  }
+
+  function renderModCodeLimitStatus(){
+    const lastCreated = profile.lastModCodeCreatedAt || 0;
+    const alreadyToday = lastCreated && dateStr(new Date(lastCreated)) === todayStr();
+    $("modCodeLimitStatus").textContent = alreadyToday
+      ? "Du hast heute schon einen Code erstellt - morgen wieder."
+      : "Du kannst heute noch einen Code erstellen (max. 100 Aura, max. 5 Leben, Standard-Truhe).";
+    $("modCodeCreateForm").style.display = alreadyToday ? "none" : "block";
+  }
+
+  async function modSetRedeemCode(){
+    if(!isMod() || !firebaseInitialized || !currentUser) return;
+    const lastCreated = profile.lastModCodeCreatedAt || 0;
+    if(lastCreated && dateStr(new Date(lastCreated)) === todayStr()){
+      return showErrorPopup("Du hast heute schon einen Code erstellt - bitte morgen wieder versuchen.");
+    }
+    const code = $("modCodeInput").value.trim().toUpperCase();
+    if(!code) return showErrorPopup("Bitte einen Code eingeben.");
+    const data = {
+      code, rewardType: modSelectedCodeReward, active: true,
+      setByUid: currentUser.uid, createdAt: Date.now(),
+      isPublic: false, redeemedByUids: [], createdByMod: true
+    };
+    if(modSelectedCodeReward === "aura"){
+      const amount = parseInt($("modCodeAuraAmountInput").value, 10);
+      if(!amount || amount <= 0) return showErrorPopup("Bitte einen gültigen Aura-Betrag eingeben.");
+      if(amount > MOD_CODE_MAX_AURA) return showErrorPopup(`Als Mod darfst du maximal ${MOD_CODE_MAX_AURA} Aura pro Code vergeben.`);
+      data.auraAmount = amount;
+    }
+    if(modSelectedCodeReward === "life"){
+      const amount = parseInt($("modCodeLifeAmountInput").value, 10) || 1;
+      if(amount <= 0) return showErrorPopup("Bitte eine gültige Anzahl Leben eingeben.");
+      if(amount > MOD_CODE_MAX_LIFE) return showErrorPopup(`Als Mod darfst du maximal ${MOD_CODE_MAX_LIFE} Leben pro Code vergeben.`);
+      data.lifeAmount = amount;
+    }
+    if(modSelectedCodeReward === "chest") data.chestTier = "standard";
+    try{
+      await db().collection("redeemCodes").add(data);
+      profile.lastModCodeCreatedAt = Date.now();
+      saveProfile();
+      $("modCodeInput").value = "";
+      logModAction(`Code erstellt (${modSelectedCodeReward})`, `"${code}"`);
+      showToast(`🎁 Code "${code}" hinzugefügt!`);
+      renderModCodeLimitStatus();
+    }catch(err){
+      showErrorPopup("Code konnte nicht gesetzt werden.");
+      console.error("Mod-Code setzen Fehler:", err);
+    }
+  }
+
   function watchModGroups(){
     if(modGroupsListUnsubscribe){ modGroupsListUnsubscribe(); modGroupsListUnsubscribe = null; }
     if(!firebaseInitialized || !currentUser || !isMod()) return;
@@ -14179,6 +14260,7 @@
       $(t.tab).classList.toggle("active", t.tab === tabId);
       $(t.content).style.display = t.tab === tabId ? "block" : "none";
     });
+    if(tabId === "modTabCodes") renderModCodeLimitStatus();
   }
 
   // Berechtigungen anwenden (NEU): zeigt nur die Tabs, die der Owner für
@@ -14251,6 +14333,10 @@
   $("modGiveBoosterBtn").addEventListener("click", modGiveBooster);
   $("modMakeModBtn").addEventListener("click", modMakeModOfTarget);
   $("modRemoveOtherModBtn").addEventListener("click", modRemoveModOfTarget);
+  ["modCodeRewardAuraBtn", "modCodeRewardLifeBtn", "modCodeRewardChestBtn"].forEach(id => {
+    $(id).addEventListener("click", () => selectModCodeReward($(id).dataset.reward));
+  });
+  $("modSetCodeBtn").addEventListener("click", modSetRedeemCode);
   $("modViewCodesListBtn").addEventListener("click", () => {
     $("overlayOwnerCodesList").classList.add("show");
     renderOwnerCodeStatus();

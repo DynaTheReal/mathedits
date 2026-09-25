@@ -1058,11 +1058,11 @@
   .shop-horizontal-row{ display: contents; }
   #screen-shop.beta-shop-layout .shop-horizontal-row{
     display: flex;
-    gap: 10px;
+    gap: 14px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 2px 2px 10px;
-    margin-bottom: 4px;
+    padding: 4px 4px 14px;
+    margin-bottom: 6px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
@@ -1070,16 +1070,29 @@
   #screen-shop.beta-shop-layout .shop-item{
     flex-direction: column;
     align-items: flex-start;
-    width: 148px;
+    width: 208px;
     flex-shrink: 0;
     margin-bottom: 0;
+    padding: 18px;
   }
-  #screen-shop.beta-shop-layout .shop-item .item-icon{ margin-bottom: 8px; }
-  #screen-shop.beta-shop-layout .shop-item .item-info{ width: 100%; margin-bottom: 10px; }
+  /* Icons und Texte im neuen Shop deutlich größer - vorher wirkte alles
+     zu klein gegenüber der restlichen App. */
+  #screen-shop.beta-shop-layout .shop-item .item-icon{
+    margin-bottom: 12px;
+    width: 84px;
+    height: 84px;
+    font-size: 52px;
+    border-radius: 18px;
+  }
+  #screen-shop.beta-shop-layout .shop-item .item-info{ width: 100%; margin-bottom: 14px; }
+  #screen-shop.beta-shop-layout .shop-item .item-title{ font-size: 17px; margin-bottom: 4px; }
   #screen-shop.beta-shop-layout .shop-item .item-desc{
+    font-size: 13.5px;
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
   }
-  #screen-shop.beta-shop-layout .shop-item .buy-btn{ width: 100%; justify-content: center; }
+  #screen-shop.beta-shop-layout .shop-item .buy-btn{ width: 100%; justify-content: center; font-size: 15px; padding: 12px 14px; }
+  #screen-shop.beta-shop-layout .theme-preview .item-icon{ width: 84px; height: 84px; }
+  #screen-shop.beta-shop-layout .shop-cat-btn{ font-size: 18px !important; padding: 18px 28px !important; }
 
   /* ---------- Item-Hintergrundmuster im Shop (NEU) ---------- */
   /* Dezent wiederholtes Symbol im Hintergrund jeder Item-Kachel (z.B.
@@ -2158,6 +2171,56 @@
   .key.wide{grid-column:span 1;}
   .key.func{color:var(--text) !important; opacity:.8; font-size:16px;}
   .submit-btn{margin-top:8px;}
+
+  /* Neue Lektionen (NEU, Beta-Einstellung): cleaner Look mit demselben
+     lila Glow wie beim Login/Registrieren-Fenster. */
+  #screen-lesson.beta-clean-lessons .question-card{
+    border-radius:26px; padding:24px 20px;
+    background:radial-gradient(circle at 30% 15%, rgba(168,85,247,.2), var(--card) 65%);
+    border:1.5px solid rgba(168,85,247,.5);
+    box-shadow:0 0 0 1px rgba(168,85,247,.12), 0 0 34px rgba(168,85,247,.28), 0 0 60px rgba(168,85,247,.12);
+  }
+  #screen-lesson.beta-clean-lessons .answer-display{
+    background:rgba(168,85,247,.08); border:1.5px solid rgba(168,85,247,.35);
+    border-radius:16px; padding:8px 12px; margin:4px 0;
+  }
+  #screen-lesson.beta-clean-lessons .answer-display.wrong{ border-color:rgba(239,68,68,.5); background:rgba(239,68,68,.08); }
+  #screen-lesson.beta-clean-lessons .answer-display.right{ border-color:rgba(74,222,128,.5); background:rgba(74,222,128,.08); }
+  #screen-lesson.beta-clean-lessons .numpad{ gap:10px; }
+  #screen-lesson.beta-clean-lessons .key{
+    border-radius:18px; padding:16px 0;
+    background:rgba(168,85,247,.07);
+    border:1.5px solid rgba(168,85,247,.28);
+    box-shadow:0 2px 10px rgba(168,85,247,.1);
+    transition: transform .1s ease, background .12s ease, border-color .12s ease;
+  }
+  #screen-lesson.beta-clean-lessons .key:active{
+    background:rgba(168,85,247,.22); border-color:rgba(168,85,247,.6); transform:scale(.93);
+  }
+  #screen-lesson.beta-clean-lessons .key.func{ background:rgba(168,85,247,.03); border-color:rgba(168,85,247,.18); }
+  #screen-lesson.beta-clean-lessons .submit-btn{
+    box-shadow:0 0 24px rgba(168,85,247,.35);
+  }
+
+  /* Lektions-Hintergrundbild (NEU, Beta-Einstellung, braucht "Neue
+     Lektionen" aktiv): dezent statt volles Bild - abgedunkelt zu den
+     Rändern hin (Vignette), damit Text/Zahlen weiterhin gut lesbar
+     bleiben. Das Bild selbst wird per CSS-Variable gesetzt, die beim Laden
+     der App einmal befüllt wird. */
+  #screen-lesson.beta-lesson-bg{ position:relative; }
+  #screen-lesson.beta-lesson-bg::before{
+    content:""; position:absolute; inset:0;
+    background-image:var(--lesson-bg-image, none);
+    background-size:cover; background-position:center;
+    opacity:.4; filter:blur(.5px) saturate(1.1);
+    z-index:0; pointer-events:none;
+  }
+  #screen-lesson.beta-lesson-bg::after{
+    content:""; position:absolute; inset:0;
+    background:radial-gradient(ellipse at 50% 42%, transparent 18%, rgba(0,0,0,.55) 78%, rgba(0,0,0,.82) 100%);
+    z-index:0; pointer-events:none;
+  }
+  #screen-lesson.beta-lesson-bg > *{ position:relative; z-index:1; }
 
   /* ---------- locked screen ---------- */
   .locked-wrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px;}
@@ -3834,6 +3897,7 @@
         <div class="owner-category-tile" id="ownerToolPoll"><span class="icon">📊</span><span class="label">Umfrage</span></div>
         <div class="owner-category-tile" id="ownerToolCodes"><span class="icon">🎁</span><span class="label">Einlöse-Codes</span></div>
         <div class="owner-category-tile" id="ownerToolPlayerGoal"><span class="icon">🎯</span><span class="label">Spieler-Ziel</span></div>
+        <div class="owner-category-tile" id="ownerToolLessonBg"><span class="icon">🖼️</span><span class="label">Lektions-Hintergrund</span></div>
       </div>
 
       <!-- Kategorie-Inhalte (NEU): klappen direkt unter dem Kachel-Raster
@@ -3979,6 +4043,16 @@
 
         <div class="empty-hint" style="text-align:left; margin-top:0; margin-bottom:8px;">Läuft automatisch nach 10 Minuten ab. Wird das Ziel erreicht, bekommt jede Person, die gerade online/aktiv ist, die Belohnung automatisch gutgeschrieben.</div>
         <button class="btn btn-primary btn-small" id="playerGoalSendBtn" style="width:100%;">Ziel setzen</button>
+      </div>
+
+      <div class="owner-inline-panel" id="panelOwnerLessonBg">
+        <div style="font-weight:800; margin-bottom:8px;">🖼️ Lektions-Hintergrund</div>
+        <div class="d" style="margin-bottom:10px;">Ein Bild, das alle mit der Beta-Einstellung "Lektions-Hintergrund" dezent (abgedunkelt, mit Vignette) hinter ihren Lektionen sehen.</div>
+        <div id="ownerLessonBgCurrentStatus" class="d" style="margin-bottom:10px;">Aktuell kein Hintergrundbild gesetzt.</div>
+        <img id="ownerLessonBgPreview" style="display:none; max-width:100%; max-height:160px; border-radius:12px; margin-bottom:10px; display:block;">
+        <input type="file" id="ownerLessonBgInput" accept="image/*" style="margin-bottom:10px; width:100%; font-size:12px;">
+        <button class="btn btn-primary btn-small" id="ownerLessonBgSaveBtn" style="width:100%; margin-bottom:8px;">Bild speichern</button>
+        <button class="btn btn-ghost btn-small" id="ownerLessonBgRemoveBtn" style="width:100%; border-color:#ef4444; color:#ef4444;">🗑️ Hintergrundbild entfernen</button>
       </div>
 
     </div>
@@ -4192,6 +4266,22 @@
             <div class="d">Kategorien mit seitlich scrollenden Items statt der bisherigen Liste.</div>
           </div>
           <div class="switch" id="betaNewShopSwitch"><div class="knob"></div></div>
+        </div>
+
+        <div class="settings-row" style="padding:12px 0 0;">
+          <div class="info">
+            <div class="t">✨ Neue Lektionen</div>
+            <div class="d">Cleaneres Design in Lektionen (Tastatur, Frage, Antwortfeld) mit lila Glow.</div>
+          </div>
+          <div class="switch" id="betaCleanLessonsSwitch"><div class="knob"></div></div>
+        </div>
+
+        <div class="settings-row" style="padding:12px 0 0;">
+          <div class="info">
+            <div class="t">🖼️ Lektions-Hintergrund</div>
+            <div class="d" id="betaLessonBgDesc">Dezentes Hintergrundbild in Lektionen (braucht "Neue Lektionen").</div>
+          </div>
+          <div class="switch" id="betaLessonBgSwitch"><div class="knob"></div></div>
         </div>
       </div>
     </div>
@@ -5129,7 +5219,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.48";
+  const APP_VERSION = "3.50";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5373,6 +5463,8 @@
     lessonStartAnimStyle: "fade", // fest auf Fade eingestellt (vorher wählbare Beta-Einstellung)
     screenNavAnimStyle: "fade", // fest auf Fade eingestellt (vorher wählbare Beta-Einstellung)
     betaNewShopEnabled: false, // Beta-Einstellung: neues, seitlich scrollendes Shop-Design
+    betaCleanLessons: false, // Beta-Einstellung: cleaneres Lektions-Design mit lila Glow
+    betaLessonBackground: false, // Beta-Einstellung: dezentes Hintergrundbild in Lektionen (braucht betaCleanLessons)
     lessonsCompleted: 0,
     theme: "black",
     unlockedThemes: ["black"], // Freigeschaltete Designs
@@ -6162,6 +6254,82 @@
      jede Person sieht sie genau einmal, solange sie noch aktiv ist.
   ======================================================== */
   let pendingAnnouncementImageDataUri = null;
+  let pendingLessonBgDataUri = null;
+
+  // Lektions-Hintergrund verwalten (NEU): der Owner lädt EIN globales Bild
+  // hoch, das direkt in Firestore gespeichert wird (wie beim Ankündigungs-
+  // bild) - kein eigenes Storage-System nötig.
+  async function renderOwnerLessonBgStatus(){
+    if(!isOwner() || !firebaseInitialized) return;
+    try{
+      const doc = await db().collection("appConfig").doc("lessonBackground").get();
+      const data = doc.exists ? doc.data() : null;
+      if(data && data.imageDataUri){
+        $("ownerLessonBgCurrentStatus").textContent = "✅ Ein Hintergrundbild ist aktuell gesetzt.";
+        $("ownerLessonBgPreview").src = data.imageDataUri;
+        $("ownerLessonBgPreview").style.display = "block";
+      } else {
+        $("ownerLessonBgCurrentStatus").textContent = "Aktuell kein Hintergrundbild gesetzt.";
+        $("ownerLessonBgPreview").style.display = "none";
+      }
+    }catch(err){
+      console.error("Lektions-Hintergrund Status Fehler:", err);
+    }
+  }
+
+  async function saveOwnerLessonBg(){
+    if(!isOwner() || !firebaseInitialized || !pendingLessonBgDataUri){
+      return showErrorPopup("Bitte zuerst ein Bild auswählen.");
+    }
+    try{
+      await db().collection("appConfig").doc("lessonBackground").set({
+        imageDataUri: pendingLessonBgDataUri, setAt: Date.now()
+      });
+      pendingLessonBgDataUri = null;
+      $("ownerLessonBgInput").value = "";
+      showToast("🖼️ Hintergrundbild gespeichert!");
+      renderOwnerLessonBgStatus();
+      fetchLessonBackgroundImage(); // eigenes Gerät sofort aktualisieren
+    }catch(err){
+      showErrorPopup("Speichern fehlgeschlagen.");
+      console.error("Lektions-Hintergrund speichern Fehler:", err);
+    }
+  }
+
+  async function removeOwnerLessonBg(){
+    if(!isOwner() || !firebaseInitialized) return;
+    if(!(await showConfirmPopup("Hintergrundbild wirklich entfernen?"))) return;
+    try{
+      await db().collection("appConfig").doc("lessonBackground").delete();
+      showToast("🗑️ Hintergrundbild entfernt.");
+      renderOwnerLessonBgStatus();
+    }catch(err){
+      showErrorPopup("Entfernen fehlgeschlagen.");
+      console.error("Lektions-Hintergrund entfernen Fehler:", err);
+    }
+  }
+
+  // Lädt das Hintergrundbild einmal (mit einfachem In-Memory-Cache) und
+  // setzt es als CSS-Variable, damit die "Lektions-Hintergrund"-Beta-
+  // Einstellung sofort etwas anzuzeigen hat, statt bei jeder Lektion neu
+  // aus Firestore zu laden.
+  let lessonBgFetchedOnce = false;
+  async function fetchLessonBackgroundImage(){
+    if(!firebaseInitialized) return;
+    try{
+      const doc = await db().collection("appConfig").doc("lessonBackground").get();
+      const data = doc.exists ? doc.data() : null;
+      if(data && data.imageDataUri){
+        document.documentElement.style.setProperty("--lesson-bg-image", `url(${data.imageDataUri})`);
+      } else {
+        document.documentElement.style.setProperty("--lesson-bg-image", "none");
+      }
+      lessonBgFetchedOnce = true;
+    }catch(err){
+      console.error("Lektions-Hintergrund laden Fehler:", err);
+    }
+  }
+
   let pendingFeedbackWarnImageDataUri = null;
   let feedbackWarnTargetUid = null;
   let feedbackWarnTargetName = null;
@@ -12039,6 +12207,12 @@
     }
     Object.values(screens).forEach(s => s.classList.remove("active"));
     screens[name].classList.add("active");
+
+    // Neue Lektionen / Lektions-Hintergrund (NEU, Beta-Einstellungen)
+    if(name === "lesson"){
+      screens.lesson.classList.toggle("beta-clean-lessons", !!profile.betaCleanLessons);
+      screens.lesson.classList.toggle("beta-lesson-bg", !!(profile.betaCleanLessons && profile.betaLessonBackground));
+    }
     // Bildschirmwechsel-Animation (NEU, Beta-Einstellung)
     const navAnim = "fade";
     if(navAnim && navAnim !== "off"){
@@ -14135,6 +14309,23 @@
       }, 10000);
     });
   });
+  $("ownerToolLessonBg").addEventListener("click", () => {
+    toggleOwnerPanel("panelOwnerLessonBg", "ownerToolLessonBg", renderOwnerLessonBgStatus);
+  });
+  $("ownerLessonBgInput").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      pendingLessonBgDataUri = await compressImageFile(file);
+      $("ownerLessonBgPreview").src = pendingLessonBgDataUri;
+      $("ownerLessonBgPreview").style.display = "block";
+    }catch(err){
+      showToast("Bild konnte nicht geladen werden.");
+      console.error(err);
+    }
+  });
+  $("ownerLessonBgSaveBtn").addEventListener("click", saveOwnerLessonBg);
+  $("ownerLessonBgRemoveBtn").addEventListener("click", removeOwnerLessonBg);
   $("playerGoalRefreshBtn").addEventListener("click", refreshPlayerGoalOwnerLiveCount);
   $("playerGoalMetricOnline").addEventListener("click", () => {
     playerGoalOwnerModalMetric = "online";
@@ -14582,6 +14773,8 @@
   $("peterMenuRow").addEventListener("click", () => {
     $("overlayPeterMenu").classList.add("show");
     $("betaNewShopSwitch").classList.toggle("on", !!profile.betaNewShopEnabled);
+    $("betaCleanLessonsSwitch").classList.toggle("on", !!profile.betaCleanLessons);
+    $("betaLessonBgSwitch").classList.toggle("on", !!profile.betaLessonBackground);
     // Bugfix (doppeltes Scrollen): der Hintergrund-Bildschirm hat selbst
     // ein eigenes overflow-y:auto - ohne diese Sperre konnte man sowohl im
     // Menü ALS AUCH im Bildschirm dahinter gleichzeitig scrollen, was sich
@@ -14599,6 +14792,24 @@
     saveProfile();
     $("betaNewShopSwitch").classList.toggle("on", !!profile.betaNewShopEnabled);
     if($("screen-shop").classList.contains("active")) renderShop();
+  });
+  $("betaCleanLessonsSwitch").addEventListener("click", () => {
+    profile.betaCleanLessons = !profile.betaCleanLessons;
+    // Abhängigkeit (NEU): "Lektions-Hintergrund" braucht "Neue Lektionen" -
+    // wird Letzteres ausgeschaltet, geht der Hintergrund automatisch mit aus.
+    if(!profile.betaCleanLessons) profile.betaLessonBackground = false;
+    saveProfile();
+    $("betaCleanLessonsSwitch").classList.toggle("on", !!profile.betaCleanLessons);
+    $("betaLessonBgSwitch").classList.toggle("on", !!profile.betaLessonBackground);
+  });
+  $("betaLessonBgSwitch").addEventListener("click", () => {
+    if(!profile.betaCleanLessons){
+      showToast('Braucht erst "Neue Lektionen" aktiviert.');
+      return;
+    }
+    profile.betaLessonBackground = !profile.betaLessonBackground;
+    saveProfile();
+    $("betaLessonBgSwitch").classList.toggle("on", !!profile.betaLessonBackground);
   });
 
   $("tutorialNextBtn").addEventListener("click", () => {
@@ -15251,6 +15462,7 @@
             watchOwnerRegistrationNotifications();
             watchOwnerFeedbackNotifications();
             watchOwnerModActionNotifications();
+            fetchLessonBackgroundImage();
             watchFriendRequests();
             watchLiveBroadcast();
             watchAuraDonations();

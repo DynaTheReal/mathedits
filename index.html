@@ -1070,20 +1070,20 @@
   #screen-shop.beta-shop-layout .shop-item{
     flex-direction: column;
     align-items: flex-start;
-    width: 208px;
-    min-height: 320px;
+    width: 250px;
+    min-height: 380px;
     flex-shrink: 0;
     margin-bottom: 0;
-    padding: 20px 18px;
+    padding: 24px 20px;
   }
   /* Icons und Texte im neuen Shop deutlich größer - vorher wirkte alles
      zu klein gegenüber der restlichen App. */
   #screen-shop.beta-shop-layout .shop-item .item-icon{
-    margin-bottom: 12px;
-    width: 84px;
-    height: 84px;
-    font-size: 52px;
-    border-radius: 18px;
+    margin-bottom: 14px;
+    width: 96px;
+    height: 96px;
+    font-size: 58px;
+    border-radius: 20px;
   }
   #screen-shop.beta-shop-layout .shop-item .item-info{ width: 100%; margin-bottom: 14px; }
   #screen-shop.beta-shop-layout .shop-item .item-title{ font-size: 17px; margin-bottom: 4px; }
@@ -1092,7 +1092,7 @@
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
   }
   #screen-shop.beta-shop-layout .shop-item .buy-btn{ width: 100%; justify-content: center; font-size: 15px; padding: 12px 14px; }
-  #screen-shop.beta-shop-layout .theme-preview .item-icon{ width: 84px; height: 84px; }
+  #screen-shop.beta-shop-layout .theme-preview .item-icon{ width: 96px; height: 96px; }
   #screen-shop.beta-shop-layout .shop-cat-btn{ font-size: 18px !important; padding: 18px 28px !important; }
 
   /* ---------- Item-Hintergrundmuster im Shop (NEU) ---------- */
@@ -2211,6 +2211,7 @@
   #screen-lesson.beta-lesson-bg{ position:relative; }
   #lessonBgLayer{
     position:absolute; inset:0;
+    background-image:url('692F8E06-4F8E-4FF4-B378-4BC49B4FA140.png');
     background-size:cover; background-position:center;
     opacity:.4; filter:blur(.5px) saturate(1.1);
     z-index:0; pointer-events:none; display:none;
@@ -3899,7 +3900,6 @@
         <div class="owner-category-tile" id="ownerToolPoll"><span class="icon">📊</span><span class="label">Umfrage</span></div>
         <div class="owner-category-tile" id="ownerToolCodes"><span class="icon">🎁</span><span class="label">Einlöse-Codes</span></div>
         <div class="owner-category-tile" id="ownerToolPlayerGoal"><span class="icon">🎯</span><span class="label">Spieler-Ziel</span></div>
-        <div class="owner-category-tile" id="ownerToolLessonBg"><span class="icon">🖼️</span><span class="label">Lektions-Hintergrund</span></div>
       </div>
 
       <!-- Kategorie-Inhalte (NEU): klappen direkt unter dem Kachel-Raster
@@ -4045,16 +4045,6 @@
 
         <div class="empty-hint" style="text-align:left; margin-top:0; margin-bottom:8px;">Läuft automatisch nach 10 Minuten ab. Wird das Ziel erreicht, bekommt jede Person, die gerade online/aktiv ist, die Belohnung automatisch gutgeschrieben.</div>
         <button class="btn btn-primary btn-small" id="playerGoalSendBtn" style="width:100%;">Ziel setzen</button>
-      </div>
-
-      <div class="owner-inline-panel" id="panelOwnerLessonBg">
-        <div style="font-weight:800; margin-bottom:8px;">🖼️ Lektions-Hintergrund</div>
-        <div class="d" style="margin-bottom:10px;">Ein Bild, das alle mit der Beta-Einstellung "Lektions-Hintergrund" dezent (abgedunkelt, mit Vignette) hinter ihren Lektionen sehen.</div>
-        <div id="ownerLessonBgCurrentStatus" class="d" style="margin-bottom:10px;">Aktuell kein Hintergrundbild gesetzt.</div>
-        <img id="ownerLessonBgPreview" style="display:none; max-width:100%; max-height:160px; border-radius:12px; margin-bottom:10px; display:block;">
-        <input type="file" id="ownerLessonBgInput" accept="image/*" style="margin-bottom:10px; width:100%; font-size:12px;">
-        <button class="btn btn-primary btn-small" id="ownerLessonBgSaveBtn" style="width:100%; margin-bottom:8px;">Bild speichern</button>
-        <button class="btn btn-ghost btn-small" id="ownerLessonBgRemoveBtn" style="width:100%; border-color:#ef4444; color:#ef4444;">🗑️ Hintergrundbild entfernen</button>
       </div>
 
     </div>
@@ -5223,7 +5213,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.51";
+  const APP_VERSION = "3.52";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6258,82 +6248,6 @@
      jede Person sieht sie genau einmal, solange sie noch aktiv ist.
   ======================================================== */
   let pendingAnnouncementImageDataUri = null;
-  let pendingLessonBgDataUri = null;
-
-  // Lektions-Hintergrund verwalten (NEU): der Owner lädt EIN globales Bild
-  // hoch, das direkt in Firestore gespeichert wird (wie beim Ankündigungs-
-  // bild) - kein eigenes Storage-System nötig.
-  async function renderOwnerLessonBgStatus(){
-    if(!isOwner() || !firebaseInitialized) return;
-    try{
-      const doc = await db().collection("appConfig").doc("lessonBackground").get();
-      const data = doc.exists ? doc.data() : null;
-      if(data && data.imageDataUri){
-        $("ownerLessonBgCurrentStatus").textContent = "✅ Ein Hintergrundbild ist aktuell gesetzt.";
-        $("ownerLessonBgPreview").src = data.imageDataUri;
-        $("ownerLessonBgPreview").style.display = "block";
-      } else {
-        $("ownerLessonBgCurrentStatus").textContent = "Aktuell kein Hintergrundbild gesetzt.";
-        $("ownerLessonBgPreview").style.display = "none";
-      }
-    }catch(err){
-      console.error("Lektions-Hintergrund Status Fehler:", err);
-    }
-  }
-
-  async function saveOwnerLessonBg(){
-    if(!isOwner() || !firebaseInitialized || !pendingLessonBgDataUri){
-      return showErrorPopup("Bitte zuerst ein Bild auswählen.");
-    }
-    try{
-      await db().collection("appConfig").doc("lessonBackground").set({
-        imageDataUri: pendingLessonBgDataUri, setAt: Date.now()
-      });
-      pendingLessonBgDataUri = null;
-      $("ownerLessonBgInput").value = "";
-      showToast("🖼️ Hintergrundbild gespeichert!");
-      renderOwnerLessonBgStatus();
-      fetchLessonBackgroundImage(); // eigenes Gerät sofort aktualisieren
-    }catch(err){
-      showErrorPopup("Speichern fehlgeschlagen.");
-      console.error("Lektions-Hintergrund speichern Fehler:", err);
-    }
-  }
-
-  async function removeOwnerLessonBg(){
-    if(!isOwner() || !firebaseInitialized) return;
-    if(!(await showConfirmPopup("Hintergrundbild wirklich entfernen?"))) return;
-    try{
-      await db().collection("appConfig").doc("lessonBackground").delete();
-      showToast("🗑️ Hintergrundbild entfernt.");
-      renderOwnerLessonBgStatus();
-    }catch(err){
-      showErrorPopup("Entfernen fehlgeschlagen.");
-      console.error("Lektions-Hintergrund entfernen Fehler:", err);
-    }
-  }
-
-  // Lädt das Hintergrundbild einmal (mit einfachem In-Memory-Cache) und
-  // setzt es als CSS-Variable, damit die "Lektions-Hintergrund"-Beta-
-  // Einstellung sofort etwas anzuzeigen hat, statt bei jeder Lektion neu
-  // aus Firestore zu laden.
-  let lessonBgFetchedOnce = false;
-  async function fetchLessonBackgroundImage(){
-    if(!firebaseInitialized) return;
-    try{
-      const doc = await db().collection("appConfig").doc("lessonBackground").get();
-      const data = doc.exists ? doc.data() : null;
-      if(data && data.imageDataUri){
-        $("lessonBgLayer").style.backgroundImage = `url(${data.imageDataUri})`;
-      } else {
-        $("lessonBgLayer").style.backgroundImage = "none";
-      }
-      lessonBgFetchedOnce = true;
-    }catch(err){
-      console.error("Lektions-Hintergrund laden Fehler:", err);
-    }
-  }
-
   let pendingFeedbackWarnImageDataUri = null;
   let feedbackWarnTargetUid = null;
   let feedbackWarnTargetName = null;
@@ -14313,23 +14227,6 @@
       }, 10000);
     });
   });
-  $("ownerToolLessonBg").addEventListener("click", () => {
-    toggleOwnerPanel("panelOwnerLessonBg", "ownerToolLessonBg", renderOwnerLessonBgStatus);
-  });
-  $("ownerLessonBgInput").addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if(!file) return;
-    try{
-      pendingLessonBgDataUri = await compressImageFile(file);
-      $("ownerLessonBgPreview").src = pendingLessonBgDataUri;
-      $("ownerLessonBgPreview").style.display = "block";
-    }catch(err){
-      showToast("Bild konnte nicht geladen werden.");
-      console.error(err);
-    }
-  });
-  $("ownerLessonBgSaveBtn").addEventListener("click", saveOwnerLessonBg);
-  $("ownerLessonBgRemoveBtn").addEventListener("click", removeOwnerLessonBg);
   $("playerGoalRefreshBtn").addEventListener("click", refreshPlayerGoalOwnerLiveCount);
   $("playerGoalMetricOnline").addEventListener("click", () => {
     playerGoalOwnerModalMetric = "online";
@@ -15466,7 +15363,6 @@
             watchOwnerRegistrationNotifications();
             watchOwnerFeedbackNotifications();
             watchOwnerModActionNotifications();
-            fetchLessonBackgroundImage();
             watchFriendRequests();
             watchLiveBroadcast();
             watchAuraDonations();

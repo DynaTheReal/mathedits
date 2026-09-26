@@ -1058,9 +1058,10 @@
   .shop-horizontal-row{ display: contents; }
   #screen-shop.beta-shop-layout .shop-horizontal-row{
     display: flex;
+    align-items: flex-start;
     gap: 14px;
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible;
     padding: 4px 4px 14px;
     margin-bottom: 6px;
     -webkit-overflow-scrolling: touch;
@@ -2224,6 +2225,18 @@
   }
   #screen-lesson.beta-lesson-bg #lessonBgVignette{ display:block; }
   #screen-lesson.beta-lesson-bg > *:not(#lessonBgLayer):not(#lessonBgVignette){ position:relative; z-index:1; }
+
+  /* Bild über der Tastatur (NEU, zweite Beta-Einstellung): statt eines
+     abgedunkelten Vollbild-Hintergrunds ein cleaner, kompakter Bild-Streifen
+     direkt über der Tastatur - keine Vignette, kein Verdunkeln, einfach nur
+     das Bild selbst in einer sauberen Box. */
+  #lessonBgLayerKeyboard{
+    display:none; width:100%; height:110px; margin-bottom:10px;
+    background-image:url('692F8E06-4F8E-4FF4-B378-4BC49B4FA140.png');
+    background-size:cover; background-position:center;
+    border-radius:18px; border:1.5px solid var(--border);
+  }
+  #screen-lesson.beta-lesson-bg-keyboard #lessonBgLayerKeyboard{ display:block; }
 
   /* ---------- locked screen ---------- */
   .locked-wrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px;}
@@ -4275,6 +4288,14 @@
           </div>
           <div class="switch" id="betaLessonBgSwitch"><div class="knob"></div></div>
         </div>
+
+        <div class="settings-row" style="padding:12px 0 0;">
+          <div class="info">
+            <div class="t">🖼️ Bild über Tastatur</div>
+            <div class="d" id="betaLessonBgKeyboardDesc">Cleanes Bild direkt über der Tastatur statt Vollbild-Hintergrund (braucht "Neue Lektionen").</div>
+          </div>
+          <div class="switch" id="betaLessonBgKeyboardSwitch"><div class="knob"></div></div>
+        </div>
       </div>
     </div>
 
@@ -4400,6 +4421,7 @@
 
     <div class="answer-display empty" id="answerDisplay">Tippe deine Antwort</div>
 
+    <div id="lessonBgLayerKeyboard" class="has-bg-image"></div>
     <div class="numpad" id="numpad">
       <div class="key" data-k="1">1</div>
       <div class="key" data-k="2">2</div>
@@ -5213,7 +5235,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.52";
+  const APP_VERSION = "3.53";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5459,6 +5481,7 @@
     betaNewShopEnabled: false, // Beta-Einstellung: neues, seitlich scrollendes Shop-Design
     betaCleanLessons: false, // Beta-Einstellung: cleaneres Lektions-Design mit lila Glow
     betaLessonBackground: false, // Beta-Einstellung: dezentes Hintergrundbild in Lektionen (braucht betaCleanLessons)
+    betaLessonBackgroundKeyboard: false, // Beta-Einstellung: cleanes Bild ueber der Tastatur statt Vollbild (braucht betaCleanLessons)
     lessonsCompleted: 0,
     theme: "black",
     unlockedThemes: ["black"], // Freigeschaltete Designs
@@ -12130,6 +12153,7 @@
     if(name === "lesson"){
       screens.lesson.classList.toggle("beta-clean-lessons", !!profile.betaCleanLessons);
       screens.lesson.classList.toggle("beta-lesson-bg", !!(profile.betaCleanLessons && profile.betaLessonBackground));
+      screens.lesson.classList.toggle("beta-lesson-bg-keyboard", !!(profile.betaCleanLessons && profile.betaLessonBackgroundKeyboard));
     }
     // Bildschirmwechsel-Animation (NEU, Beta-Einstellung)
     const navAnim = "fade";
@@ -14676,6 +14700,7 @@
     $("betaNewShopSwitch").classList.toggle("on", !!profile.betaNewShopEnabled);
     $("betaCleanLessonsSwitch").classList.toggle("on", !!profile.betaCleanLessons);
     $("betaLessonBgSwitch").classList.toggle("on", !!profile.betaLessonBackground);
+    $("betaLessonBgKeyboardSwitch").classList.toggle("on", !!profile.betaLessonBackgroundKeyboard);
     // Bugfix (doppeltes Scrollen): der Hintergrund-Bildschirm hat selbst
     // ein eigenes overflow-y:auto - ohne diese Sperre konnte man sowohl im
     // Menü ALS AUCH im Bildschirm dahinter gleichzeitig scrollen, was sich
@@ -14696,12 +14721,17 @@
   });
   $("betaCleanLessonsSwitch").addEventListener("click", () => {
     profile.betaCleanLessons = !profile.betaCleanLessons;
-    // Abhängigkeit (NEU): "Lektions-Hintergrund" braucht "Neue Lektionen" -
-    // wird Letzteres ausgeschaltet, geht der Hintergrund automatisch mit aus.
-    if(!profile.betaCleanLessons) profile.betaLessonBackground = false;
+    // Abhängigkeit (NEU): beide Hintergrund-Varianten brauchen "Neue
+    // Lektionen" - wird Letzteres ausgeschaltet, gehen beide automatisch
+    // mit aus.
+    if(!profile.betaCleanLessons){
+      profile.betaLessonBackground = false;
+      profile.betaLessonBackgroundKeyboard = false;
+    }
     saveProfile();
     $("betaCleanLessonsSwitch").classList.toggle("on", !!profile.betaCleanLessons);
     $("betaLessonBgSwitch").classList.toggle("on", !!profile.betaLessonBackground);
+    $("betaLessonBgKeyboardSwitch").classList.toggle("on", !!profile.betaLessonBackgroundKeyboard);
   });
   $("betaLessonBgSwitch").addEventListener("click", () => {
     if(!profile.betaCleanLessons){
@@ -14709,7 +14739,23 @@
       return;
     }
     profile.betaLessonBackground = !profile.betaLessonBackground;
+    // Gegenseitiger Ausschluss (NEU): die beiden Hintergrund-Varianten
+    // widersprechen sich optisch (Vollbild-Vignette vs. cleaner Streifen
+    // über der Tastatur) - nur eine kann gleichzeitig an sein.
+    if(profile.betaLessonBackground) profile.betaLessonBackgroundKeyboard = false;
     saveProfile();
+    $("betaLessonBgSwitch").classList.toggle("on", !!profile.betaLessonBackground);
+    $("betaLessonBgKeyboardSwitch").classList.toggle("on", !!profile.betaLessonBackgroundKeyboard);
+  });
+  $("betaLessonBgKeyboardSwitch").addEventListener("click", () => {
+    if(!profile.betaCleanLessons){
+      showToast('Braucht erst "Neue Lektionen" aktiviert.');
+      return;
+    }
+    profile.betaLessonBackgroundKeyboard = !profile.betaLessonBackgroundKeyboard;
+    if(profile.betaLessonBackgroundKeyboard) profile.betaLessonBackground = false;
+    saveProfile();
+    $("betaLessonBgKeyboardSwitch").classList.toggle("on", !!profile.betaLessonBackgroundKeyboard);
     $("betaLessonBgSwitch").classList.toggle("on", !!profile.betaLessonBackground);
   });
 

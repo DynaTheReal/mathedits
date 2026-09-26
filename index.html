@@ -1071,9 +1071,10 @@
     flex-direction: column;
     align-items: flex-start;
     width: 208px;
+    min-height: 320px;
     flex-shrink: 0;
     margin-bottom: 0;
-    padding: 18px;
+    padding: 20px 18px;
   }
   /* Icons und Texte im neuen Shop deutlich größer - vorher wirkte alles
      zu klein gegenüber der restlichen App. */
@@ -2208,19 +2209,20 @@
      bleiben. Das Bild selbst wird per CSS-Variable gesetzt, die beim Laden
      der App einmal befüllt wird. */
   #screen-lesson.beta-lesson-bg{ position:relative; }
-  #screen-lesson.beta-lesson-bg::before{
-    content:""; position:absolute; inset:0;
-    background-image:var(--lesson-bg-image, none);
+  #lessonBgLayer{
+    position:absolute; inset:0;
     background-size:cover; background-position:center;
     opacity:.4; filter:blur(.5px) saturate(1.1);
-    z-index:0; pointer-events:none;
+    z-index:0; pointer-events:none; display:none;
   }
-  #screen-lesson.beta-lesson-bg::after{
-    content:""; position:absolute; inset:0;
+  #screen-lesson.beta-lesson-bg #lessonBgLayer{ display:block; }
+  #lessonBgVignette{
+    position:absolute; inset:0;
     background:radial-gradient(ellipse at 50% 42%, transparent 18%, rgba(0,0,0,.55) 78%, rgba(0,0,0,.82) 100%);
-    z-index:0; pointer-events:none;
+    z-index:0; pointer-events:none; display:none;
   }
-  #screen-lesson.beta-lesson-bg > *{ position:relative; z-index:1; }
+  #screen-lesson.beta-lesson-bg #lessonBgVignette{ display:block; }
+  #screen-lesson.beta-lesson-bg > *:not(#lessonBgLayer):not(#lessonBgVignette){ position:relative; z-index:1; }
 
   /* ---------- locked screen ---------- */
   .locked-wrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px;}
@@ -4380,6 +4382,8 @@
 
   <!-- ============ LESSON ============ -->
   <section class="screen" id="screen-lesson">
+    <div id="lessonBgLayer" class="has-bg-image"></div>
+    <div id="lessonBgVignette"></div>
     <div class="lesson-top">
       <div class="exit-x" id="exitLesson">✕</div>
       <div class="progress-track-wrap">
@@ -5219,7 +5223,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.50";
+  const APP_VERSION = "3.51";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6320,9 +6324,9 @@
       const doc = await db().collection("appConfig").doc("lessonBackground").get();
       const data = doc.exists ? doc.data() : null;
       if(data && data.imageDataUri){
-        document.documentElement.style.setProperty("--lesson-bg-image", `url(${data.imageDataUri})`);
+        $("lessonBgLayer").style.backgroundImage = `url(${data.imageDataUri})`;
       } else {
-        document.documentElement.style.setProperty("--lesson-bg-image", "none");
+        $("lessonBgLayer").style.backgroundImage = "none";
       }
       lessonBgFetchedOnce = true;
     }catch(err){

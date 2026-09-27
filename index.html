@@ -2403,6 +2403,24 @@
     100%{ opacity:0; transform:translate(var(--nx), var(--ny)) scale(.2); }
   }
 
+  /* Partikel-Explosion beim Prüfen-Button (NEU, Beta-Einstellung): kleine,
+     cleane Partikel, die kurz auseinanderstieben und dann sanft nach oben
+     wegschweben - bevor das jeweils aktive Aura-Motiv (klassisch/aufladend)
+     normal weiterläuft. */
+  #buttonParticlesWrap{
+    position:fixed; inset:0; z-index:98700; pointer-events:none;
+  }
+  .btn-particle{
+    position:absolute; width:6px; height:6px; border-radius:50%;
+    background:var(--accent); box-shadow:0 0 6px 1px var(--accent);
+    animation: btn-particle-rise .9s cubic-bezier(.2,.7,.3,1) forwards;
+  }
+  @keyframes btn-particle-rise{
+    0%{ opacity:1; transform:translate(0,0) scale(1); }
+    28%{ opacity:1; transform:translate(var(--bx), var(--by)) scale(.85); }
+    100%{ opacity:0; transform:translate(calc(var(--bx) * .6), calc(var(--by) - 90px)) scale(.3); }
+  }
+
   /* ============================================================
      VIER NEUE, LÄNGERE AURA-OVERLAY-MOTIVE (NEU) - behalten die
      bekannten Blitz-/Totenkopf-Icons bei, inszenieren sie aber jeweils
@@ -4296,6 +4314,14 @@
           </div>
           <div class="switch" id="betaLessonBgKeyboardSwitch"><div class="knob"></div></div>
         </div>
+
+        <div class="settings-row" style="padding:12px 0 0;">
+          <div class="info">
+            <div class="t">✨ Partikel-Explosion</div>
+            <div class="d">Beim Prüfen-Button explodieren kleine Partikel und schweben nach oben, bevor die normale Aura-Animation abgespielt wird.</div>
+          </div>
+          <div class="switch" id="betaButtonParticlesSwitch"><div class="knob"></div></div>
+        </div>
       </div>
     </div>
 
@@ -5168,6 +5194,8 @@
     <div id="playerGoalWonAmount" style="font-size:20px; font-weight:800; color:#a855f7;">+100 Aura</div>
   </div>
 
+  <div id="buttonParticlesWrap"></div>
+
   <div class="overlay" id="overlayAura">
     <div class="overlay-card" style="position:relative;">
       <div class="aura-particles" id="auraParticles"></div>
@@ -5238,7 +5266,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.54";
+  const APP_VERSION = "3.55";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5485,6 +5513,7 @@
     betaCleanLessons: false, // Beta-Einstellung: cleaneres Lektions-Design mit lila Glow
     betaLessonBackground: false, // Beta-Einstellung: dezentes Hintergrundbild in Lektionen (braucht betaCleanLessons)
     betaLessonBackgroundKeyboard: false, // Beta-Einstellung: cleanes Bild ueber der Tastatur statt Vollbild (braucht betaCleanLessons)
+    betaButtonParticles: false, // Beta-Einstellung: Partikel-Explosion beim Pruefen-Button vor der Aura-Animation
     lessonsCompleted: 0,
     theme: "black",
     unlockedThemes: ["black"], // Freigeschaltete Designs
@@ -14764,6 +14793,7 @@
     $("betaCleanLessonsSwitch").classList.toggle("on", !!profile.betaCleanLessons);
     $("betaLessonBgSwitch").classList.toggle("on", !!profile.betaLessonBackground);
     $("betaLessonBgKeyboardSwitch").classList.toggle("on", !!profile.betaLessonBackgroundKeyboard);
+    $("betaButtonParticlesSwitch").classList.toggle("on", !!profile.betaButtonParticles);
     // Bugfix (doppeltes Scrollen): der Hintergrund-Bildschirm hat selbst
     // ein eigenes overflow-y:auto - ohne diese Sperre konnte man sowohl im
     // Menü ALS AUCH im Bildschirm dahinter gleichzeitig scrollen, was sich
@@ -14820,6 +14850,11 @@
     saveProfile();
     $("betaLessonBgKeyboardSwitch").classList.toggle("on", !!profile.betaLessonBackgroundKeyboard);
     $("betaLessonBgSwitch").classList.toggle("on", !!profile.betaLessonBackground);
+  });
+  $("betaButtonParticlesSwitch").addEventListener("click", () => {
+    profile.betaButtonParticles = !profile.betaButtonParticles;
+    saveProfile();
+    $("betaButtonParticlesSwitch").classList.toggle("on", !!profile.betaButtonParticles);
   });
 
   $("tutorialNextBtn").addEventListener("click", () => {
@@ -16617,8 +16652,24 @@
         lesson.aura += currentEditAura; 
         if(currentEditAura > 0){
           const showMs = profile.longMode ? 4000 : 1250;
-          delay = 150 + showMs + 100;
-          setTimeout(() => showAuraOverlay(true, currentEditAura, showMs), 150);
+          // Bugfix ("Aufgabe wechselt mitten in der Aufladen-Animation,
+          // Timer läuft schon während man noch im Overlay ist"): die
+          // Verzögerung bis zur nächsten Frage muss die tatsächliche
+          // Mindestdauer des gerade aktiven Aura-Motivs berücksichtigen -
+          // showAuraOverlay() zeigt das Overlay intern mindestens
+          // AURA_MOTIF_MIN_MS lang, unabhängig von showMs. Vorher wurde
+          // hier nur mit showMs gerechnet, was beim "Aufladen"-Motiv
+          // (2000ms) kürzer war als die echte Anzeigedauer.
+          const activeMotif = profile.auraOverlayMotif === "ignite" ? "ignite" : "classic";
+          const actualOverlayMs = Math.max(showMs, AURA_MOTIF_MIN_MS[activeMotif] || 0);
+          // Partikel-Explosion (NEU, Beta-Einstellung): spielt VOR dem
+          // eigentlichen Aura-Motiv - die Verzögerung bis zur nächsten
+          // Frage wird um genau diesen Vorlauf verlängert, damit auch
+          // hier nichts mitten in der Animation abgeschnitten wird.
+          const particleLeadMs = profile.betaButtonParticles ? 350 : 0;
+          if(profile.betaButtonParticles) spawnButtonParticles();
+          delay = 150 + particleLeadMs + actualOverlayMs + 100;
+          setTimeout(() => showAuraOverlay(true, currentEditAura, showMs), 150 + particleLeadMs);
         } else {
           delay = 450; // 0 Aura bei dieser Reihe - kein Overlay, kurze Pause
         }
@@ -16626,8 +16677,12 @@
         lesson.aura += currentNormalAura; 
         if(currentNormalAura > 0){
           const showMs = profile.longMode ? 3000 : 1000;
-          delay = 150 + showMs + 100;
-          setTimeout(() => showAuraOverlay(false, currentNormalAura, showMs), 150);
+          const activeMotif = profile.auraOverlayMotif === "ignite" ? "ignite" : "classic";
+          const actualOverlayMs = Math.max(showMs, AURA_MOTIF_MIN_MS[activeMotif] || 0);
+          const particleLeadMs = profile.betaButtonParticles ? 350 : 0;
+          if(profile.betaButtonParticles) spawnButtonParticles();
+          delay = 150 + particleLeadMs + actualOverlayMs + 100;
+          setTimeout(() => showAuraOverlay(false, currentNormalAura, showMs), 150 + particleLeadMs);
         } else {
           delay = 450;
         }
@@ -16956,6 +17011,32 @@
   // Standardanzeige - die tatsächliche Anzeigedauer ist deshalb IMMER
   // mindestens so lang wie die Animation selbst braucht.
   const AURA_MOTIF_MIN_MS = { lightning: 1300, spin: 1100, ignite: 2000 };
+
+  // Partikel-Explosion beim Prüfen-Button (NEU, Beta-Einstellung): kleine,
+  // cleane Partikel starten an der Button-Position, stieben kurz
+  // auseinander und schweben dann sanft nach oben weg.
+  const BUTTON_PARTICLE_MS = 900;
+  function spawnButtonParticles(){
+    const btn = $("submitBtn");
+    if(!btn) return;
+    const rect = btn.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const wrap = $("buttonParticlesWrap");
+    for(let i = 0; i < 16; i++){
+      const p = document.createElement("span");
+      p.className = "btn-particle";
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 18 + Math.random() * 34;
+      p.style.setProperty("--bx", (Math.cos(angle) * dist).toFixed(1) + "px");
+      p.style.setProperty("--by", (Math.sin(angle) * dist).toFixed(1) + "px");
+      p.style.left = cx + "px";
+      p.style.top = cy + "px";
+      p.style.animationDelay = (Math.random() * .08) + "s";
+      wrap.appendChild(p);
+      setTimeout(() => p.remove(), BUTTON_PARTICLE_MS + 150);
+    }
+  }
 
   function showAuraOverlay(isAuraEdit, amount, showMs){
     // Wählbar im Aussehen-Menü (nicht mehr zufällig 50/50): klassische

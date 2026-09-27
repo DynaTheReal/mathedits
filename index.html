@@ -4642,6 +4642,9 @@
       <div class="levels-heading" style="text-align:left;">Diese Woche</div>
       <div class="week-grid" id="friendProfileWeekGrid"></div>
 
+      <div class="levels-heading" style="text-align:left;">📊 Lektionen (letzte Woche)</div>
+      <div id="friendProfileWeekChart" style="margin-bottom:4px;"></div>
+
       <button class="btn btn-primary" id="friendProfileAddBtn" style="margin-top:18px; display:none;">➕ Freund hinzufügen</button>
       <button class="btn btn-primary" id="friendProfileMessageBtn" style="margin-top:10px; display:none;">💬 Nachrichten</button>
       <button class="btn btn-primary" id="friendProfileDonateBtn" style="margin-top:10px; display:none;">🎁 Aura spenden</button>
@@ -5235,7 +5238,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.53";
+  const APP_VERSION = "3.54";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5495,6 +5498,7 @@
     streak: 0,
     lastStreakDate: null,
     streakDates: [],
+    dailyLessonCounts: {}, // Owner-Info/Profil-Diagramm: { "2026-09-27": 3, ... } - wie viele Lektionen pro Tag
     icecubeProtectedDates: [], // welche Streak-Tage per Icecube gerettet wurden (fürs blaue Symbol im Verlauf)
     username: null,
     usernameLower: null,
@@ -9237,6 +9241,54 @@
   // Baut das HTML für die 7-Tage-Wochenübersicht (Mo-So) aus einer Liste von
   // "YYYY-MM-DD"-Daten - wird sowohl für den eigenen Streak-Verlauf als auch
   // für die Wochenansicht im Profil anderer Nutzer verwendet.
+  // Lektionen pro Tag zählen (NEU): für das Diagramm im Profil. Alte
+  // Einträge (älter als 14 Tage) werden beim Speichern automatisch
+  // aufgeräumt, damit das Profil nicht unbegrenzt wächst.
+  function recordDailyLessonCount(){
+    const today = todayStr();
+    const counts = profile.dailyLessonCounts || {};
+    counts[today] = (counts[today] || 0) + 1;
+    const cutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
+    Object.keys(counts).forEach(ds => {
+      const t = new Date(ds + "T00:00:00").getTime();
+      if(!isNaN(t) && t < cutoff) delete counts[ds];
+    });
+    profile.dailyLessonCounts = counts;
+  }
+
+  // Diagramm der letzten 7 Tage (NEU): Balken proportional zur Anzahl
+  // Lektionen an diesem Tag, im selben Stil wie das Streak-Wochenraster.
+  function buildWeekLessonChartHtml(dailyLessonCounts){
+    const labels = ["Mo","Di","Mi","Do","Fr","Sa","So"];
+    const monday = startOfWeekMonday(new Date());
+    const todayVal = todayStr();
+    const counts = dailyLessonCounts || {};
+    const values = [];
+    for(let i=0;i<7;i++){
+      const d = new Date(monday);
+      d.setDate(monday.getDate()+i);
+      values.push(counts[dateStr(d)] || 0);
+    }
+    const maxVal = Math.max(1, ...values);
+    let html = `<div style="display:flex; align-items:flex-end; gap:6px; height:90px;">`;
+    for(let i=0;i<7;i++){
+      const d = new Date(monday);
+      d.setDate(monday.getDate()+i);
+      const ds = dateStr(d);
+      const isToday = ds === todayVal;
+      const v = values[i];
+      const barHeightPct = Math.max(4, Math.round((v / maxVal) * 100));
+      html += `
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end;">
+          <div style="font-size:10px; opacity:.7; min-height:12px;">${v > 0 ? v : ""}</div>
+          <div style="width:100%; max-width:26px; height:${barHeightPct}%; border-radius:6px 6px 3px 3px; background:${v > 0 ? "var(--accent)" : "var(--card-2)"}; ${isToday ? "box-shadow:0 0 0 2px var(--accent);" : ""}"></div>
+          <div class="d" style="font-size:10.5px;${isToday ? " font-weight:800; opacity:1;" : ""}">${labels[i]}</div>
+        </div>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
   function buildWeekGridHtml(dates, protectedDates){
     const labels = ["Mo","Di","Mi","Do","Fr","Sa","So"];
     const monday = startOfWeekMonday(new Date());
@@ -9335,6 +9387,7 @@
       : `${Math.floor(timeTodayMin / 60)}h ${timeTodayMin % 60}min`;
 
     $("friendProfileWeekGrid").innerHTML = buildWeekGridHtml(u.streakDates || [], u.icecubeProtectedDates || []);
+    $("friendProfileWeekChart").innerHTML = buildWeekLessonChartHtml(u.dailyLessonCounts || {});
 
     // "Freund hinzufügen"-Button: nur bei fremden Profilen mit bekanntem
     // Benutzernamen zeigen, und nur solange man ihnen noch nicht folgt.
@@ -10804,6 +10857,15 @@
 
     const streakSet = new Set([...(localP.streakDates || []), ...(cloudP.streakDates || [])]);
     merged.streakDates = Array.from(streakSet).sort().slice(-60);
+    // Lektionen-pro-Tag-Diagramm (NEU): pro Tag den höheren Wert beider
+    // Seiten übernehmen, damit bei mehreren Geräten nichts verloren geht.
+    const localCounts = localP.dailyLessonCounts || {};
+    const cloudCounts = cloudP.dailyLessonCounts || {};
+    const mergedCounts = {};
+    new Set([...Object.keys(localCounts), ...Object.keys(cloudCounts)]).forEach(ds => {
+      mergedCounts[ds] = Math.max(localCounts[ds] || 0, cloudCounts[ds] || 0);
+    });
+    merged.dailyLessonCounts = mergedCounts;
 
     const protectedSet = new Set([...(localP.icecubeProtectedDates || []), ...(cloudP.icecubeProtectedDates || [])]);
     merged.icecubeProtectedDates = Array.from(protectedSet).sort().slice(-60);
@@ -11978,6 +12040,7 @@
     const correctCount = lesson.correct;
     profile.lastLessonAt = Date.now();
     if(!profile.firstLessonAt) profile.firstLessonAt = profile.lastLessonAt;
+    recordDailyLessonCount();
     clearLessonInProgress();
     profile.totalAura += lesson.aura;
     logAuraTransaction(lesson.aura, "Duell-Lektion");
@@ -16700,6 +16763,7 @@
     }
     profile.lastLessonAt = Date.now();
     if(!profile.firstLessonAt) profile.firstLessonAt = profile.lastLessonAt;
+    recordDailyLessonCount();
     clearLessonInProgress();
     saveProfile();
     let title, sub, emoji;

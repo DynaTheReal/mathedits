@@ -2403,22 +2403,74 @@
     100%{ opacity:0; transform:translate(var(--nx), var(--ny)) scale(.2); }
   }
 
-  /* Partikel-Explosion beim Prüfen-Button (NEU, Beta-Einstellung): kleine,
-     cleane Partikel, die kurz auseinanderstieben und dann sanft nach oben
-     wegschweben - bevor das jeweils aktive Aura-Motiv (klassisch/aufladend)
-     normal weiterläuft. */
+  /* Partikel-Explosion beim Prüfen-Button (Beta-Einstellung, hochwertige
+     Version): viele winzige Partikel explodieren in einer sauberen
+     Kreisform nach außen (starkes Ease-Out wie ein echter Knall), driften
+     kurz leicht spiralförmig nach, und werden dann wie von einem Sog
+     beschleunigt zu EINEM Punkt gezogen - genau dort, wo danach das
+     Aura-Icon erscheint. Dazu eine feine Druckwelle am Button und ein
+     kurzes Aufleuchten am Zielpunkt. */
   #buttonParticlesWrap{
-    position:fixed; inset:0; z-index:98700; pointer-events:none;
+    position:fixed; inset:0; z-index:98700; pointer-events:none; overflow:hidden;
   }
   .btn-particle{
-    position:absolute; width:6px; height:6px; border-radius:50%;
-    background:var(--accent); box-shadow:0 0 6px 1px var(--accent);
-    animation: btn-particle-rise .9s cubic-bezier(.2,.7,.3,1) forwards;
+    position:absolute; left:0; top:0;
+    width:var(--s); height:var(--s);
+    margin-left:calc(var(--s) / -2); margin-top:calc(var(--s) / -2);
+    border-radius:50%;
+    background:var(--c);
+    box-shadow:0 0 calc(var(--s) * 1.6) calc(var(--s) * .4) var(--c);
+    opacity:0;
+    will-change:transform, opacity;
+    animation: btn-particle-cycle var(--d) linear forwards;
+    animation-delay: var(--delay);
   }
-  @keyframes btn-particle-rise{
-    0%{ opacity:1; transform:translate(0,0) scale(1); }
-    28%{ opacity:1; transform:translate(var(--bx), var(--by)) scale(.85); }
-    100%{ opacity:0; transform:translate(calc(var(--bx) * .6), calc(var(--by) - 90px)) scale(.3); }
+  @keyframes btn-particle-cycle{
+    0%{
+      opacity:0; transform:translate(0,0) scale(.3);
+      animation-timing-function:cubic-bezier(.08,.82,.17,1);
+    }
+    6%{ opacity:1; }
+    40%{
+      opacity:1; transform:translate(var(--bx), var(--by)) scale(1);
+      animation-timing-function:cubic-bezier(.4,0,.6,1);
+    }
+    52%{
+      opacity:1; transform:translate(calc(var(--bx) + var(--dx)), calc(var(--by) + var(--dy))) scale(.95);
+      animation-timing-function:cubic-bezier(.6,0,.9,.4);
+    }
+    92%{ opacity:.95; }
+    100%{
+      opacity:0; transform:translate(var(--tx), var(--ty)) scale(.25);
+    }
+  }
+  .btn-particle-ring{
+    position:absolute; left:0; top:0; width:14px; height:14px;
+    margin-left:-7px; margin-top:-7px; border-radius:50%;
+    border:1.5px solid color-mix(in srgb, var(--accent) 70%, white);
+    box-shadow:0 0 12px color-mix(in srgb, var(--accent) 60%, transparent);
+    opacity:0;
+    animation: btn-particle-ring .5s cubic-bezier(.1,.7,.2,1) forwards;
+  }
+  @keyframes btn-particle-ring{
+    0%{ opacity:.9; transform:scale(.4); }
+    100%{ opacity:0; transform:scale(9); }
+  }
+  .btn-particle-flare{
+    position:absolute; left:0; top:0; width:70px; height:70px;
+    margin-left:-35px; margin-top:-35px; border-radius:50%;
+    background:radial-gradient(circle, #fff 0%, color-mix(in srgb, var(--accent) 80%, white) 25%, color-mix(in srgb, var(--accent) 40%, transparent) 55%, transparent 72%);
+    opacity:0;
+    animation: btn-particle-flare .42s ease-out forwards;
+    animation-delay: var(--delay);
+  }
+  @keyframes btn-particle-flare{
+    0%{ opacity:0; transform:scale(.2); }
+    45%{ opacity:1; transform:scale(1.15); }
+    100%{ opacity:0; transform:scale(1.6); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .btn-particle, .btn-particle-ring, .btn-particle-flare{ display:none; }
   }
 
   /* ============================================================
@@ -5266,7 +5318,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.55";
+  const APP_VERSION = "3.56";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -16666,10 +16718,13 @@
           // eigentlichen Aura-Motiv - die Verzögerung bis zur nächsten
           // Frage wird um genau diesen Vorlauf verlängert, damit auch
           // hier nichts mitten in der Animation abgeschnitten wird.
-          const particleLeadMs = profile.betaButtonParticles ? 350 : 0;
+          const particleLeadMs = profile.betaButtonParticles ? BUTTON_PARTICLE_LEAD_MS : 0;
           if(profile.betaButtonParticles) spawnButtonParticles();
-          delay = 150 + particleLeadMs + actualOverlayMs + 100;
-          setTimeout(() => showAuraOverlay(true, currentEditAura, showMs), 150 + particleLeadMs);
+          // Mit Partikeln startet das Overlay exakt, wenn der letzte Partikel
+          // am Zielpunkt ankommt (Partikel starten sofort beim Drücken).
+          const overlayStartMs = profile.betaButtonParticles ? particleLeadMs : 150;
+          delay = overlayStartMs + actualOverlayMs + 100;
+          setTimeout(() => showAuraOverlay(true, currentEditAura, showMs), overlayStartMs);
         } else {
           delay = 450; // 0 Aura bei dieser Reihe - kein Overlay, kurze Pause
         }
@@ -16679,10 +16734,11 @@
           const showMs = profile.longMode ? 3000 : 1000;
           const activeMotif = profile.auraOverlayMotif === "ignite" ? "ignite" : "classic";
           const actualOverlayMs = Math.max(showMs, AURA_MOTIF_MIN_MS[activeMotif] || 0);
-          const particleLeadMs = profile.betaButtonParticles ? 350 : 0;
+          const particleLeadMs = profile.betaButtonParticles ? BUTTON_PARTICLE_LEAD_MS : 0;
           if(profile.betaButtonParticles) spawnButtonParticles();
-          delay = 150 + particleLeadMs + actualOverlayMs + 100;
-          setTimeout(() => showAuraOverlay(false, currentNormalAura, showMs), 150 + particleLeadMs);
+          const overlayStartMs = profile.betaButtonParticles ? particleLeadMs : 150;
+          delay = overlayStartMs + actualOverlayMs + 100;
+          setTimeout(() => showAuraOverlay(false, currentNormalAura, showMs), overlayStartMs);
         } else {
           delay = 450;
         }
@@ -17015,27 +17071,96 @@
   // Partikel-Explosion beim Prüfen-Button (NEU, Beta-Einstellung): kleine,
   // cleane Partikel starten an der Button-Position, stieben kurz
   // auseinander und schweben dann sanft nach oben weg.
-  const BUTTON_PARTICLE_MS = 900;
+  // Gesamtdauer der Partikel-Sequenz bis alle am Zielpunkt angekommen sind -
+  // genau nach dieser Zeit startet die eigentliche Aura-Animation.
+  const BUTTON_PARTICLE_COUNT = 64;
+  const BUTTON_PARTICLE_BASE_MS = 820;   // Dauer eines Partikels (Explosion + Drift + Sog)
+  const BUTTON_PARTICLE_JITTER_MS = 60;  // leichte Unterschiede, damit es organisch wirkt
+  const BUTTON_PARTICLE_MAX_DELAY_MS = 40;
+  const BUTTON_PARTICLE_LEAD_MS = BUTTON_PARTICLE_BASE_MS + BUTTON_PARTICLE_JITTER_MS + BUTTON_PARTICLE_MAX_DELAY_MS;
+
+  // Zielpunkt = Stelle, an der gleich das Aura-Icon auftaucht (Overlay ist
+  // zwar unsichtbar, hat aber schon sein Layout). Fallback: Bildschirmmitte.
+  function getAuraTargetPoint(){
+    const fig = $("auraEmoji");
+    if(fig){
+      const r = fig.getBoundingClientRect();
+      if(r.width > 0 && r.height > 0) return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    }
+    return { x: window.innerWidth / 2, y: window.innerHeight * 0.42 };
+  }
+
   function spawnButtonParticles(){
     const btn = $("submitBtn");
-    if(!btn) return;
+    const wrap = $("buttonParticlesWrap");
+    if(!btn || !wrap) return;
     const rect = btn.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    const wrap = $("buttonParticlesWrap");
-    for(let i = 0; i < 16; i++){
+    const target = getAuraTargetPoint();
+    const tx = target.x - cx;
+    const ty = target.y - cy;
+    const colors = [
+      "var(--accent)",
+      "color-mix(in srgb, var(--accent) 55%, white)",
+      "#ffffff",
+      "color-mix(in srgb, var(--accent) 80%, #ffffff)"
+    ];
+
+    // Feine Druckwelle direkt am Button
+    const ring = document.createElement("span");
+    ring.className = "btn-particle-ring";
+    ring.style.left = cx + "px";
+    ring.style.top = cy + "px";
+    wrap.appendChild(ring);
+    setTimeout(() => ring.remove(), 600);
+
+    const frag = document.createDocumentFragment();
+    for(let i = 0; i < BUTTON_PARTICLE_COUNT; i++){
       const p = document.createElement("span");
       p.className = "btn-particle";
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 18 + Math.random() * 34;
-      p.style.setProperty("--bx", (Math.cos(angle) * dist).toFixed(1) + "px");
-      p.style.setProperty("--by", (Math.sin(angle) * dist).toFixed(1) + "px");
+      // Saubere Kreisform: gleichmäßig verteilte Winkel + minimaler Zufall,
+      // zwei "Schichten" (innen/außen) für Tiefe.
+      const angle = (i / BUTTON_PARTICLE_COUNT) * Math.PI * 2 + (Math.random() - .5) * 0.18;
+      const layer = i % 2 === 0 ? 1 : 0.62;
+      const dist = (70 + Math.random() * 55) * layer;
+      const bx = Math.cos(angle) * dist;
+      const by = Math.sin(angle) * dist * 0.85; // leicht elliptisch, wirkt eleganter
+      // Kurzer tangentialer Nachdrift -> feiner Spiral-Effekt vor dem Sog
+      const swirl = 10 + Math.random() * 8;
+      const dx = -Math.sin(angle) * swirl;
+      const dy = Math.cos(angle) * swirl;
+      const size = 1.6 + Math.random() * 2.6;
+      const duration = BUTTON_PARTICLE_BASE_MS + Math.random() * BUTTON_PARTICLE_JITTER_MS;
+      const delay = Math.random() * BUTTON_PARTICLE_MAX_DELAY_MS;
       p.style.left = cx + "px";
       p.style.top = cy + "px";
-      p.style.animationDelay = (Math.random() * .08) + "s";
-      wrap.appendChild(p);
-      setTimeout(() => p.remove(), BUTTON_PARTICLE_MS + 150);
+      p.style.setProperty("--bx", bx.toFixed(1) + "px");
+      p.style.setProperty("--by", by.toFixed(1) + "px");
+      p.style.setProperty("--dx", dx.toFixed(1) + "px");
+      p.style.setProperty("--dy", dy.toFixed(1) + "px");
+      p.style.setProperty("--tx", tx.toFixed(1) + "px");
+      p.style.setProperty("--ty", ty.toFixed(1) + "px");
+      p.style.setProperty("--s", size.toFixed(2) + "px");
+      p.style.setProperty("--c", colors[i % colors.length]);
+      p.style.setProperty("--d", duration.toFixed(0) + "ms");
+      p.style.setProperty("--delay", delay.toFixed(0) + "ms");
+      frag.appendChild(p);
     }
+    wrap.appendChild(frag);
+
+    // Kurzes Aufleuchten genau dort, wo alle Partikel ankommen - kurz bevor
+    // die Aura-Animation übernimmt.
+    const flare = document.createElement("span");
+    flare.className = "btn-particle-flare";
+    flare.style.left = target.x + "px";
+    flare.style.top = target.y + "px";
+    flare.style.setProperty("--delay", (BUTTON_PARTICLE_LEAD_MS - 260) + "ms");
+    wrap.appendChild(flare);
+
+    setTimeout(() => {
+      wrap.querySelectorAll(".btn-particle, .btn-particle-flare").forEach(el => el.remove());
+    }, BUTTON_PARTICLE_LEAD_MS + 500);
   }
 
   function showAuraOverlay(isAuraEdit, amount, showMs){

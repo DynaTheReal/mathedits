@@ -17,6 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <!-- Firebase SDKs (Compat Version) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -2444,6 +2445,169 @@
       opacity:0; transform:translate(var(--tx), var(--ty)) scale(.25);
     }
   }
+
+  /* ============================================================
+     NOVA-LAYOUT (NEU): drittes Home-Layout neben Simpel/Clean.
+     Alles ist per body.layout-nova bzw. .nova-home gescoped, damit die
+     anderen Layouts und Bildschirme unverändert bleiben.
+     ============================================================ */
+  .layout-nova-only{ display:none !important; }
+  body.layout-nova .layout-nova-only{ display:block !important; }
+  body.layout-nova #screen-home > .topbar,
+  body.layout-nova #screen-home .layout-normal-only,
+  body.layout-nova #screen-home .layout-beta-only{ display:none !important; }
+  body.layout-nova #screen-home{
+    padding:0 0 calc(env(safe-area-inset-bottom,0px) + 230px);
+    background:
+      radial-gradient(130% 42% at 50% -6%, rgba(124,58,237,.55), transparent 62%),
+      radial-gradient(60% 30% at 100% 55%, rgba(124,58,237,.12), transparent 70%),
+      #07060b;
+  }
+  .nova-home{
+    --nv-card:#15141b; --nv-card-hi:#1c1a24; --nv-line:rgba(255,255,255,.07);
+    --nv-text:#f5f3fa; --nv-muted:#8e8a9c; --nv-accent:#8b5cf6; --nv-accent-2:#b79cff;
+    --nv-accent-soft:rgba(139,92,246,.16); --nv-gold:#f5c451; --nv-glass:rgba(28,26,36,.8);
+    position:relative; padding:0 18px; color:var(--nv-text);
+    font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  }
+  .nova-home p, .nova-home h2, .nova-home h3, .nova-home h4, .nova-home b, .nova-home span, .nova-home div, .nova-home button{ color:inherit; }
+  .nova-home p, .nova-home h2, .nova-home h3, .nova-home h4{ margin:0; }
+  .nova-home button{ font:inherit; background:none; border:0; cursor:pointer; padding:0; }
+  .nova-home svg{ fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+  .nova-home .nv-stars{position:absolute;inset:0;pointer-events:none;opacity:.55;background-image:
+    radial-gradient(1px 1px at 12% 4%,#fff,transparent),radial-gradient(1px 1px at 38% 9%,#fffa,transparent),
+    radial-gradient(1.4px 1.4px at 64% 3%,#fff,transparent),radial-gradient(1px 1px at 82% 11%,#fff9,transparent),
+    radial-gradient(1px 1px at 23% 16%,#fff7,transparent),radial-gradient(1px 1px at 91% 2%,#fff,transparent)}
+  .nv-topbar{position:sticky;top:0;z-index:15;margin:0 -18px;padding:calc(env(safe-area-inset-top,0px) + 10px) 18px 14px;
+    display:flex;justify-content:center;background:linear-gradient(to bottom, rgba(7,6,11,.92) 55%, rgba(7,6,11,0));}
+  .nv-tools{display:flex;gap:6px;padding:6px;border-radius:999px;background:var(--nv-glass);border:1px solid rgba(255,255,255,.09);
+    backdrop-filter:blur(22px) saturate(1.4);-webkit-backdrop-filter:blur(22px) saturate(1.4);
+    box-shadow:0 12px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);}
+  .nova-home .nv-tools button{position:relative;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:21px;
+    background:rgba(255,255,255,.05);transition:transform .15s,background .15s;}
+  .nova-home .nv-tools button:active{transform:scale(.9);background:rgba(255,255,255,.12)}
+  .nv-dot{display:none;position:absolute;top:4px;right:4px;width:10px;height:10px;border-radius:50%;background:#22c55e;
+    box-shadow:0 0 6px 1px rgba(34,197,94,.7);border:1.5px solid #15141b;}
+  .nv-top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px}
+  .nova-home .nv-user{display:flex;align-items:center;gap:12px;min-width:0;text-align:left}
+  .nv-avatar{width:52px;height:52px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-weight:800;font-size:20px;color:#fff;
+    background:linear-gradient(145deg,#7c3aed,#3b1d7a);box-shadow:0 0 0 2px rgba(255,255,255,.12),0 8px 24px rgba(124,58,237,.4)}
+  .nova-home .nv-greet{font-size:13px;color:var(--nv-muted)}
+  .nv-name{font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nv-top-right{display:flex;align-items:center;gap:8px}
+  .nova-home .nv-pill{display:flex;align-items:center;gap:6px;height:44px;padding:0 14px 0 10px;border-radius:999px;
+    background:rgba(255,255,255,.06);border:1px solid var(--nv-line);font-weight:700;font-size:15px}
+  .nv-pill .emo{font-size:20px}
+  .nova-home .nv-round{position:relative;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;
+    background:rgba(255,255,255,.06);border:1px solid var(--nv-line)}
+  .nv-round svg{width:20px;height:20px}
+  .nova-home .nv-card{background:var(--nv-card);border-radius:28px;border:1px solid var(--nv-line);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  .nv-card.glow{position:relative}
+  .nv-card.glow::before{content:"";position:absolute;top:-1px;left:22%;right:22%;height:1px;background:linear-gradient(90deg,transparent,rgba(183,156,255,.9),transparent)}
+  .nova-home .nv-level{display:flex;align-items:center;gap:16px;padding:16px 18px;margin-top:22px;width:100%;text-align:left}
+  .nv-ring{--p:0;width:64px;height:64px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;
+    background:conic-gradient(var(--nv-gold) calc(var(--p)*1%), rgba(255,255,255,.08) 0)}
+  .nv-ring > div{width:54px;height:54px;border-radius:50%;background:var(--nv-card-hi);display:grid;place-items:center;font-size:26px}
+  .nv-level h2{font-size:21px;font-weight:700}
+  .nova-home .nv-level p{font-size:14px;color:var(--nv-muted);margin-top:3px}
+  .nova-home .nv-level p b{color:var(--nv-text);font-weight:600}
+  .nv-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  .nova-home .nv-stat{padding:18px 18px 16px;text-align:left}
+  .nv-stat-head{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px}
+  .nv-stat-head .emo{font-size:22px}
+  .nv-stat-num{font-size:44px;font-weight:700;letter-spacing:-.03em;margin-top:18px;line-height:1}
+  .nova-home .nv-stat-num small{font-size:16px;font-weight:600;color:var(--nv-muted);letter-spacing:0;margin-left:4px}
+  .nv-streak{padding:20px 18px;margin-top:12px}
+  .nv-row{display:flex;align-items:center;justify-content:space-between}
+  .nv-card-title{font-size:18px;font-weight:700}
+  .nova-home .nv-sub{font-size:13px;color:var(--nv-muted);margin-top:2px}
+  .nova-home .nv-go{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:rgba(255,255,255,.07);color:var(--nv-accent-2)}
+  .nv-go svg{width:18px;height:18px}
+  .nv-week{display:grid;grid-template-columns:repeat(7,1fr);margin-top:20px;text-align:center}
+  .nova-home .nv-week span{font-size:13px;font-weight:700;color:var(--nv-muted)}
+  .nova-home .nv-week .is-done{color:var(--nv-text)}
+  .nv-day{margin:12px auto 0;width:34px;height:34px;position:relative;display:grid;place-items:center}
+  .nv-day::before,.nv-day::after{content:"";position:absolute;inset:3px;border-radius:9px;background:#26242e}
+  .nv-day::after{transform:rotate(45deg)}
+  .nv-day.done::before,.nv-day.done::after{background:var(--nv-accent)}
+  .nv-day.ice::before,.nv-day.ice::after{background:#3b82f6}
+  .nv-day.today::before,.nv-day.today::after{background:linear-gradient(135deg,#f59e0b,#ef4444)}
+  .nv-day i{position:relative;z-index:1;font-style:normal;font-size:14px;line-height:1}
+  .nova-home .nv-day.done i{color:#fff;font-weight:800}
+  .nv-section-head{display:flex;align-items:baseline;justify-content:space-between;margin:28px 2px 14px}
+  .nv-section-head h3{font-size:20px;font-weight:700}
+  .nova-home .nv-link{font-size:14px;font-weight:600;color:var(--nv-accent-2)}
+  .nv-bar{height:8px;border-radius:999px;background:#25232d;overflow:hidden}
+  .nv-bar > div{height:100%;border-radius:999px;min-width:8px;background:linear-gradient(90deg,#7c3aed,#c4b0ff);box-shadow:0 0 12px rgba(167,139,250,.6)}
+  .nv-scroll{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -18px;padding:2px 18px 4px;scrollbar-width:none}
+  .nv-scroll::-webkit-scrollbar{display:none}
+  .nova-home .nv-mission{flex:0 0 72%;scroll-snap-align:start;padding:16px 16px 18px;text-align:left}
+  .nv-mission .nv-row{align-items:flex-start}
+  .nv-chest{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:21px;background:rgba(255,255,255,.06)}
+  .nv-tag{font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px}
+  .nova-home .nv-t-std{background:rgba(148,163,184,.15);color:#cbd5e1}
+  .nova-home .nv-t-epic{background:var(--nv-accent-soft);color:var(--nv-accent-2)}
+  .nova-home .nv-t-leg{background:rgba(245,196,81,.14);color:var(--nv-gold)}
+  .nova-home .nv-t-done{background:rgba(34,197,94,.15);color:#4ade80}
+  .nv-mission h4{font-size:16px;font-weight:700;margin-top:14px}
+  .nova-home .nv-mission .nv-sub{margin-bottom:12px}
+  .nv-worlds{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .nova-home .nv-world{padding:16px 10px 14px;text-align:center;border-radius:22px}
+  .nova-home .nv-world.selected{border-color:rgba(139,92,246,.8);box-shadow:0 0 18px rgba(139,92,246,.35)}
+  .nova-home .nv-world.locked{opacity:.5}
+  .nv-world .w-ico{width:50px;height:50px;margin:0 auto;border-radius:50%;display:grid;place-items:center;font-size:23px;background:var(--nv-card-hi);border:1.5px solid rgba(139,92,246,.55)}
+  .nv-world b{display:block;font-size:13px;font-weight:700;margin-top:10px;line-height:1.25}
+  .nova-home .nv-world small{display:block;font-size:12px;color:var(--nv-muted);margin-top:3px}
+  .nova-home .nv-world.more{display:grid;place-items:center;color:var(--nv-accent-2);font-weight:700;font-size:13px}
+
+  /* Weitermachen-Karte: schwebt über der Leiste, nur auf Home sichtbar */
+  #novaDock{ display:none; }
+  body.layout-nova.nova-home-active #novaDock{
+    display:flex; position:fixed; left:0; right:0; z-index:91; justify-content:center;
+    bottom:calc(env(safe-area-inset-bottom,0px) + 92px); padding:0 14px; pointer-events:none;
+    font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  }
+  #novaDock .nv-continue{
+    pointer-events:auto; width:100%; max-width:372px; padding:12px 12px 14px 14px; border-radius:26px; text-align:left;
+    background:rgba(28,26,36,.8); border:1px solid rgba(139,92,246,.35); color:#f5f3fa; cursor:pointer; font:inherit;
+    backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+    box-shadow:0 14px 34px rgba(0,0,0,.5),0 0 30px rgba(139,92,246,.18); transition:transform .15s;
+  }
+  #novaDock .nv-continue:active{transform:scale(.98)}
+  #novaDock .c-row{display:flex;align-items:center;gap:12px}
+  #novaDock .topic-ico{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:22px;font-weight:800;background:rgba(139,92,246,.16);color:#b79cff;flex-shrink:0}
+  #novaDock .c-txt{flex:1;min-width:0}
+  #novaDock .c-txt small{display:block;font-size:12px;color:#8e8a9c}
+  #novaDock .c-txt b{display:block;font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#f5f3fa}
+  #novaDock .c-play{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:#8b5cf6;color:#fff;box-shadow:0 6px 18px rgba(139,92,246,.55)}
+  #novaDock .c-play svg{width:19px;height:19px;fill:currentColor;stroke:none}
+  #novaDock .c-prog{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:12px;color:#cfcbd9;font-weight:600}
+  #novaDock .c-prog .nv-bar{flex:1;height:6px}
+
+  /* Echte App-Navigation im Nova-Stil: schwebende Pille mit Icons.
+     Es ist weiterhin DIESELBE Leiste - alle Klicks, Badges und die aktive
+     Anzeige funktionieren also automatisch weiter. */
+  .nav-item .nova-ico{ display:none; }
+  body.layout-nova .bottom-nav{
+    width:auto; max-width:none; height:auto; left:50%; transform:translateX(-50%);
+    bottom:calc(env(safe-area-inset-bottom,0px) + 16px); padding:7px; gap:6px;
+    border-radius:999px; border:1px solid rgba(255,255,255,.09);
+    background:rgba(28,26,36,.8); backdrop-filter:blur(22px) saturate(1.4); -webkit-backdrop-filter:blur(22px) saturate(1.4);
+    box-shadow:0 18px 40px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  body.layout-nova .nav-item{
+    flex:0 0 auto; width:52px; height:52px; border-radius:50%; opacity:1; gap:0; position:relative;
+    background:rgba(255,255,255,.05); color:#a9a5b6; transition:background .2s,color .2s,transform .2s;
+  }
+  body.layout-nova .nav-item .label,
+  body.layout-nova .nav-item .icon{ display:none; }
+  body.layout-nova .nav-item .icon-wrap{ position:static; }
+  body.layout-nova .nav-item .nova-ico{ display:block; width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+  body.layout-nova .nav-item.active{ background:#8b5cf6; color:#fff; box-shadow:0 6px 20px rgba(139,92,246,.6); transform:translateY(-2px); }
+  body.layout-nova .nav-item:active{ transform:scale(.92); }
+  body.layout-nova .nav-item .nav-badge{ position:absolute; top:-2px; right:-2px; }
+  @media (max-width:360px){ body.layout-nova .nav-item, .nova-home .nv-tools button{ width:44px; height:44px; } }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -3145,6 +3309,61 @@
 
   <!-- ============ HOME ============ -->
   <section class="screen active" id="screen-home">
+    <!-- NOVA-LAYOUT (NEU) -->
+    <div class="nova-home layout-nova-only" id="novaHome">
+      <div class="nv-stars" aria-hidden="true"></div>
+      <div class="nv-topbar">
+        <nav class="nv-tools" aria-label="Schnellzugriff">
+          <button id="nvChat" aria-label="Nachrichten">💬<span class="nv-dot" id="nvChatDot"></span></button>
+          <button id="nvDuel" aria-label="Duell-Lobby">⚔️</button>
+          <button id="nvGlobal" aria-label="EarthLive">🌐</button>
+          <button id="nvTheme" aria-label="Design wechseln">🌙</button>
+          <button id="nvSettings" aria-label="Einstellungen">⚙️<span class="nv-dot" id="nvSettingsDot"></span></button>
+        </nav>
+      </div>
+
+      <header class="nv-top">
+        <button class="nv-user" id="nvUser" aria-label="Profil öffnen">
+          <div class="nv-avatar" id="nvAvatar" aria-hidden="true">?</div>
+          <div style="min-width:0">
+            <p class="nv-greet" id="nvGreet">Hey!</p>
+            <p class="nv-name" id="nvName">Gast</p>
+          </div>
+        </button>
+        <div class="nv-top-right">
+          <button class="nv-pill" id="nvAuraPill" title="Aura"><span class="emo">💀</span><span id="nvAura">0</span></button>
+          <button class="nv-round" id="nvBell" aria-label="Freundschaftsanfragen">
+            <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <span class="nv-dot" id="nvBellDot"></span>
+          </button>
+        </div>
+      </header>
+
+      <button class="nv-card glow nv-level" id="nvLevelCard">
+        <div class="nv-ring" id="nvRing"><div>⭐</div></div>
+        <div><h2 id="nvLevelTitle">Level 1</h2><p><b id="nvLevelPct">0 %</b> bis <span id="nvLevelNext">Level 2</span></p></div>
+      </button>
+
+      <div class="nv-stats">
+        <div class="nv-card nv-stat"><div class="nv-stat-head"><span class="emo">❤️</span>Leben</div><div class="nv-stat-num"><span id="nvLives">5</span><small id="nvLivesMax">/ 5</small></div></div>
+        <button class="nv-card nv-stat" id="nvStreakStat"><div class="nv-stat-head"><span class="emo">🔥</span>Streak</div><div class="nv-stat-num"><span id="nvStreak">0</span><small id="nvStreakUnit">Tage</small></div></button>
+      </div>
+
+      <section class="nv-card glow nv-streak">
+        <div class="nv-row">
+          <div><p class="nv-card-title">Deine Woche</p><p class="nv-sub" id="nvWeekSub">Heute noch eine Lektion</p></div>
+          <button class="nv-go" id="nvStreakGo" aria-label="Streak öffnen"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></button>
+        </div>
+        <div class="nv-week" id="nvWeek"></div>
+      </section>
+
+      <div class="nv-section-head"><h3>Missionen</h3><button class="nv-link" id="nvMissionsAll">Alle anzeigen</button></div>
+      <div class="nv-scroll" id="nvMissions"></div>
+
+      <div class="nv-section-head"><h3>Lernwelt</h3><button class="nv-link" id="nvWorldsAll">Level entdecken</button></div>
+      <div class="nv-worlds" id="nvWorlds"></div>
+    </div>
+
     <div class="topbar">
       <div class="brand"><span class="dot"></span>MathEdits</div>
       <div class="topbar-actions">
@@ -4555,24 +4774,41 @@
   </section>
 
   <!-- ============ BOTTOM NAVIGATION BAR ============ -->
+  <!-- NOVA-LAYOUT: Weitermachen-Karte über der Leiste -->
+  <div id="novaDock">
+    <button class="nv-continue" id="nvContinue" aria-label="Lektion starten">
+      <div class="c-row">
+        <div class="topic-ico" id="nvContIcon">✖️</div>
+        <div class="c-txt"><small id="nvContMeta">Weitermachen</small><b id="nvContTitle">Kleines Einmaleins</b></div>
+        <span class="c-play"><svg viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></span>
+      </div>
+      <div class="c-prog"><div class="nv-bar"><div id="nvContBar" style="width:0%"></div></div><span id="nvContNum">0 / 3</span></div>
+    </button>
+  </div>
+
   <nav class="bottom-nav" id="bottomNav">
     <button class="nav-item active" id="navHome">
+      <svg class="nova-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
       <span class="icon">🏠</span>
       <span class="label">Home</span>
     </button>
     <button class="nav-item" id="navShop">
+      <svg class="nova-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 11.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H6"/></svg>
       <span class="icon">🛒</span>
       <span class="label">Shop</span>
     </button>
     <button class="nav-item" id="navLeaderboard">
+      <svg class="nova-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>
       <span class="icon">🏆</span>
       <span class="label">Rangliste</span>
     </button>
     <button class="nav-item" id="navTrends">
+      <svg class="nova-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
       <span class="icon">📈</span>
       <span class="label">Trends</span>
     </button>
     <button class="nav-item" id="navMissions">
+      <svg class="nova-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
       <span class="icon-wrap">
         <span class="icon">🎯</span>
         <span class="nav-badge" id="missionsBadge" style="display:none;">1</span>
@@ -4580,6 +4816,7 @@
       <span class="label">Missionen</span>
     </button>
     <button class="nav-item" id="navProfile">
+      <svg class="nova-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
       <span class="icon-wrap">
         <span class="icon">👤</span>
         <span class="nav-badge" id="profileNavBadge" style="display:none;">1</span>
@@ -4876,6 +5113,7 @@
       <select id="layoutStyleSelect" class="input-field" style="width:100%; margin-bottom:16px;">
         <option value="simpel">Simpel</option>
         <option value="clean">Clean</option>
+        <option value="nova">Nova</option>
       </select>
 
       <div class="d" style="font-weight:800; margin-bottom:6px;">App-Intro</div>
@@ -5347,7 +5585,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.58";
+  const APP_VERSION = "3.59";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -12459,6 +12697,7 @@
     }
     Object.values(screens).forEach(s => s.classList.remove("active"));
     screens[name].classList.add("active");
+    document.body.classList.toggle("nova-home-active", name === "home");
 
     // Neue Lektionen / Lektions-Hintergrund (NEU, Beta-Einstellungen)
     if(name === "lesson"){
@@ -13139,6 +13378,7 @@
   ======================================================== */
   function applyTheme(){
     document.body.classList.toggle("layout-beta", profile.layoutStyle === "clean");
+    document.body.classList.toggle("layout-nova", profile.layoutStyle === "nova");
     // Absicherung: falls ein Konto noch auf das entfernte Custom-Theme
     // eingestellt war, sauber auf Black zurückfallen statt unstyled zu bleiben.
     if(profile.theme === "custom"){
@@ -14939,7 +15179,7 @@
   function renderSettings(){
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
     $("appIntroStyleSelect").value = profile.appIntroStyle === "simple" ? "simple" : "math";
-    $("layoutStyleSelect").value = profile.layoutStyle === "simpel" ? "simpel" : "clean";
+    $("layoutStyleSelect").value = ["simpel","clean","nova"].includes(profile.layoutStyle) ? profile.layoutStyle : "clean";
     updateNotificationAndInstallUI();
     const displayName = profile.username
       ? "@" + profile.username + (isSuperUser() ? " ⭐" : "")
@@ -15025,7 +15265,7 @@
   });
 
   $("layoutStyleSelect").addEventListener("change", (e) => {
-    profile.layoutStyle = e.target.value === "simpel" ? "simpel" : "clean";
+    profile.layoutStyle = ["simpel","clean","nova"].includes(e.target.value) ? e.target.value : "clean";
     saveProfile();
     applyTheme();
     renderHome();
@@ -15113,7 +15353,7 @@
 
   $("designSettingsRow").addEventListener("click", () => {
     $("overlayDesignSettings").classList.add("show");
-    $("layoutStyleSelect").value = profile.layoutStyle === "simpel" ? "simpel" : "clean";
+    $("layoutStyleSelect").value = ["simpel","clean","nova"].includes(profile.layoutStyle) ? profile.layoutStyle : "clean";
     $("appIntroStyleSelect").value = profile.appIntroStyle || "math";
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
     const currentMotif = profile.auraOverlayMotif === "ignite" ? "ignite" : "classic";
@@ -16266,6 +16506,7 @@
     $("startBtn").disabled = false;
     renderTierCarousel();
     renderHomeBetaExtras();
+    renderNovaHome();
   }
 
   function renderTierCarousel(){
@@ -16379,6 +16620,156 @@
     e.preventDefault();
     document.getElementById("betaLernweltRow").scrollIntoView({ behavior: "smooth", block: "center" });
   });
+
+
+  /* ========================================================
+     NOVA-LAYOUT (NEU): füllt den Nova-Home-Bildschirm mit denselben
+     echten Daten wie die anderen Layouts. Alle Buttons lösen die
+     bestehenden Funktionen/Buttons der App aus, statt eigene Kopien.
+  ======================================================== */
+  var novaWorldsExpanded = false; // var statt let: renderHome() kann schon beim Start vor dieser Zeile laufen
+  function renderNovaHome(){
+    if(!$("novaHome")) return;
+    try{ renderNovaHomeInner(); }catch(err){ console.error("Nova-Layout Fehler:", err); }
+  }
+  function renderNovaHomeInner(){
+    const h = new Date().getHours();
+    $("nvGreet").textContent = h < 11 ? "Guten Morgen" : h < 18 ? "Bereit für die nächste Runde?" : "Guten Abend";
+    const uname = profile.username || "Gast";
+    $("nvName").textContent = uname;
+    $("nvAvatar").textContent = uname.charAt(0).toUpperCase();
+    $("nvAura").textContent = profile.totalAura || 0;
+    $("nvTheme").textContent = ($("themeToggle") && $("themeToggle").textContent.trim()) || "🌙";
+
+    // Level-Ring
+    const pct = Math.round(((profile.levelProgress || 0) / LESSONS_PER_LEVEL) * 100);
+    $("nvRing").style.setProperty("--p", pct);
+    $("nvLevelTitle").textContent = `Level ${profile.level}`;
+    $("nvLevelPct").textContent = `${pct} %`;
+    $("nvLevelNext").textContent = `Level ${profile.level + 1}`;
+
+    // Leben & Streak
+    $("nvLives").textContent = profile.lives;
+    $("nvLivesMax").textContent = `/ ${MAX_LIVES}`;
+    const streak = profile.streak || 0;
+    $("nvStreak").textContent = streak;
+    $("nvStreakUnit").textContent = streak === 1 ? "Tag" : "Tage";
+
+    // Wochenübersicht (echte Streak-Tage, Icecube-Tage, heute)
+    const labels = ["Mo","Di","Mi","Do","Fr","Sa","So"];
+    const longNames = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+    const monday = startOfWeekMonday(new Date());
+    const today = todayStr();
+    const done = new Set(profile.streakDates || []);
+    const prot = new Set(profile.icecubeProtectedDates || []);
+    let todayIdx = 0;
+    $("nvWeek").innerHTML = labels.map((lbl, i) => {
+      const d = new Date(monday); d.setDate(monday.getDate() + i);
+      const ds = dateStr(d);
+      if(ds === today) todayIdx = i;
+      let cls = "", inner = "";
+      if(prot.has(ds)){ cls = "ice"; inner = "🧊"; }
+      else if(done.has(ds)){ cls = "done"; inner = "✓"; }
+      else if(ds === today){ cls = "today"; inner = "🔥"; }
+      return `<div><span class="${cls === "done" || cls === "ice" ? "is-done" : ""}">${lbl}</span><div class="nv-day ${cls}"><i>${inner}</i></div></div>`;
+    }).join("");
+    $("nvWeekSub").textContent = done.has(today)
+      ? "Heute schon gelernt – Streak gesichert 🔥"
+      : `Heute noch eine Lektion, dann ist ${longNames[todayIdx]} gesichert`;
+
+    // Missionen (echte Tagesmissionen)
+    const tagCycle = [["nv-t-std","Standard","📦"],["nv-t-epic","Episch","💜"],["nv-t-leg","Legendär","👑"]];
+    $("nvMissions").innerHTML = activeMissionDefs().map((m, i) => {
+      const progress = Math.min(missionProgressValue(m), m.target);
+      const complete = progress >= m.target;
+      const [tagCls, tagName, chest] = tagCycle[i % tagCycle.length];
+      return `<button class="nv-card nv-mission" data-mission="1">
+        <div class="nv-row"><div class="nv-chest">${complete ? "✅" : chest}</div><span class="nv-tag ${complete ? "nv-t-done" : tagCls}">${complete ? "Fertig" : tagName}</span></div>
+        <h4>${m.label}</h4><p class="nv-sub">${progress} von ${m.target} geschafft</p>
+        <div class="nv-bar"><div style="width:${(progress / m.target) * 100}%"></div></div>
+      </button>`;
+    }).join("");
+    $("nvMissions").querySelectorAll("[data-mission]").forEach(el => {
+      el.addEventListener("click", () => { showScreen("missions"); renderMissions(); });
+    });
+
+    // Lernwelt (echte Stufen, auswählbar)
+    const activeIdx = tierIndexForLevel(profile.level);
+    const displayIdx = selectedTierIndex !== null ? selectedTierIndex : activeIdx;
+    const list = novaWorldsExpanded ? TIERS : TIERS.slice(0, 5);
+    let worldsHtml = list.map((tier, i) => {
+      const locked = !isTierSelectable(i, activeIdx);
+      return `<button class="nv-card nv-world${i === displayIdx ? " selected" : ""}${locked ? " locked" : ""}" data-tier="${i}">
+        <div class="w-ico">${locked ? "🔒" : tier.icon}</div><b>${tier.name}</b><small>Lv. ${tier.from}</small></button>`;
+    }).join("");
+    if(TIERS.length > 5) worldsHtml += `<button class="nv-card nv-world more" id="nvWorldsMore">${novaWorldsExpanded ? "Weniger" : "Alle Themen"}</button>`;
+    $("nvWorlds").innerHTML = worldsHtml;
+    $("nvWorlds").querySelectorAll("[data-tier]").forEach(el => {
+      el.addEventListener("click", () => {
+        const i = parseInt(el.dataset.tier, 10);
+        if(!isTierSelectable(i, activeIdx)){ showToast(`Freigeschaltet ab Level ${TIERS[i].from}`); return; }
+        selectedTierIndex = i;
+        $("tierLabel").textContent = TIERS[i].name;
+        renderTierCarousel();
+        renderHomeBetaExtras();
+        renderNovaHome();
+        showToast(`"${TIERS[i].name}" ausgewählt.`);
+      });
+    });
+    const more = $("nvWorldsMore");
+    if(more) more.addEventListener("click", () => { novaWorldsExpanded = !novaWorldsExpanded; renderNovaHome(); });
+
+    // Weitermachen-Karte
+    const t = TIERS[displayIdx];
+    $("nvContIcon").textContent = t.icon;
+    $("nvContTitle").textContent = t.name;
+    $("nvContMeta").textContent = `Weitermachen · Level ${profile.level} · +${t.normalAura || 10} 💀`;
+    $("nvContBar").style.width = pct + "%";
+    $("nvContNum").textContent = `${profile.levelProgress || 0} / ${LESSONS_PER_LEVEL}`;
+    $("nvContinue").setAttribute("aria-label", `Lektion starten: ${t.name}`);
+
+    syncNovaDots();
+  }
+
+  // Punkte (Chat ungelesen, Owner-Benachrichtigung, Freundschaftsanfragen)
+  // spiegeln die bestehenden Anzeigen der App.
+  function syncNovaDots(){
+    const vis = id => { const el = $(id); return !!el && el.style.display !== "none" && el.style.display !== ""; };
+    if($("nvChatDot")) $("nvChatDot").style.display = vis("chatUnreadDot") ? "block" : "none";
+    if($("nvSettingsDot")) $("nvSettingsDot").style.display = vis("ownerNotifyDot") ? "block" : "none";
+    if($("nvBellDot")) $("nvBellDot").style.display = (typeof pendingFriendRequestCount !== "undefined" && pendingFriendRequestCount > 0) ? "block" : "none";
+  }
+  ["chatUnreadDot", "ownerNotifyDot", "profileNavBadge", "friendRequestsTabBadge"].forEach(id => {
+    const el = $(id);
+    if(el && window.MutationObserver) new MutationObserver(syncNovaDots).observe(el, { attributes:true, attributeFilter:["style"] });
+  });
+
+  $("nvChat").addEventListener("click", () => $("homeChatBtn").click());
+  $("nvDuel").addEventListener("click", () => $("duelLobbyBtn").click());
+  $("nvGlobal").addEventListener("click", () => $("earthLiveBtn").click());
+  $("nvSettings").addEventListener("click", () => $("settingsBtn").click());
+  $("nvTheme").addEventListener("click", () => {
+    $("themeToggle").click();
+    $("nvTheme").textContent = $("themeToggle").textContent.trim() || "🌙";
+  });
+  $("nvUser").addEventListener("click", () => $("navProfile").click());
+  $("nvAuraPill").addEventListener("click", () => $("navShop").click());
+  $("nvBell").addEventListener("click", () => {
+    $("navProfile").click();
+    if(typeof switchSocialTab === "function") switchSocialTab("requests");
+  });
+  $("nvLevelCard").addEventListener("click", () => {
+    $("nvWorlds").scrollIntoView({ behavior:"smooth", block:"center" });
+  });
+  $("nvStreakStat").addEventListener("click", () => $("betaStreakCard").click());
+  $("nvStreakGo").addEventListener("click", () => $("betaStreakCard").click());
+  $("nvMissionsAll").addEventListener("click", () => { showScreen("missions"); renderMissions(); });
+  $("nvWorldsAll").addEventListener("click", () => {
+    novaWorldsExpanded = true;
+    renderNovaHome();
+    $("nvWorlds").scrollIntoView({ behavior:"smooth", block:"center" });
+  });
+  $("nvContinue").addEventListener("click", () => $("startBtn").click());
 
   $("backHomeFromLocked").addEventListener("click", () => {
     clearInterval(lockedInterval);

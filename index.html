@@ -2444,6 +2444,15 @@
       opacity:0; transform:translate(var(--tx), var(--ty)) scale(.25);
     }
   }
+  .week-nav-btn{
+    width:34px; height:34px; flex-shrink:0; border-radius:50%;
+    background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
+    font-size:20px; font-weight:800; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; padding:0 0 2px;
+    transition:transform .1s ease, opacity .15s ease;
+  }
+  .week-nav-btn:active{ transform:scale(.9); }
+  .week-nav-btn:disabled{ opacity:.3; cursor:default; }
   .btn-particle-ring{
     position:absolute; left:0; top:0; width:14px; height:14px;
     margin-left:-7px; margin-top:-7px; border-radius:50%;
@@ -4720,8 +4729,12 @@
       <div class="levels-heading" style="text-align:left;">Diese Woche</div>
       <div class="week-grid" id="friendProfileWeekGrid"></div>
 
-      <div class="levels-heading" style="text-align:left;">📊 Lektionen (letzte Woche)</div>
-      <div id="friendProfileWeekChart" style="margin-bottom:4px;"></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+        <button id="friendProfileWeekPrev" class="week-nav-btn" aria-label="Vorherige Woche">‹</button>
+        <div class="levels-heading" id="friendProfileWeekChartLabel" style="text-align:center; flex:1; margin:0;">📊 Lektionen · Diese Woche</div>
+        <button id="friendProfileWeekNext" class="week-nav-btn" aria-label="Nächste Woche">›</button>
+      </div>
+      <div id="friendProfileWeekChart" style="margin:10px 0 4px;"></div>
 
       <button class="btn btn-primary" id="friendProfileAddBtn" style="margin-top:18px; display:none;">➕ Freund hinzufügen</button>
       <button class="btn btn-primary" id="friendProfileMessageBtn" style="margin-top:10px; display:none;">💬 Nachrichten</button>
@@ -5318,7 +5331,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.56";
+  const APP_VERSION = "3.57";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -9026,8 +9039,17 @@
     if(!u.lastStreakDate) return 0;
     const today = todayStr();
     const yesterday = yesterdayStr();
-    if(u.lastStreakDate !== today && u.lastStreakDate !== yesterday) return 0;
-    return u.streak;
+    if(u.lastStreakDate === today || u.lastStreakDate === yesterday) return u.streak;
+    // Bugfix ("Streak weg obwohl Icecube"): verpasste Tage, die die Person
+    // mit ihren vorhandenen Icecubes abdecken kann, brechen den Streak
+    // NICHT - ihr eigenes Gerät setzt die Icecubes erst beim nächsten
+    // Öffnen ein, bis dahin muss die Anzeige das schon berücksichtigen.
+    const lastDate = new Date(u.lastStreakDate + "T00:00:00");
+    const now = new Date(); now.setHours(0,0,0,0);
+    const missedDays = Math.round((now - lastDate) / (24*60*60*1000)) - 1;
+    const icecubes = (u.inventory && u.inventory.icecube) || 0;
+    if(missedDays > 0 && missedDays <= icecubes) return u.streak;
+    return 0;
   }
 
   // WICHTIG (Bugfix): "streakCheckPending" verhindert, dass IRGENDEIN
@@ -9079,6 +9101,10 @@
         if(profile.streak > 0) profile.lastBrokenStreak = profile.streak;
         profile.streak = 0;
       }
+      // Bugfix: Verbrauch/Bruch SOFORT speichern - vorher blieb der Einsatz
+      // nur im Speicher und ein kurz danach eintreffender Cloud-Stand konnte
+      // den verbrauchten Icecube wiederherstellen.
+      saveProfile();
     }
   }
 
@@ -9329,7 +9355,7 @@
     const today = todayStr();
     const counts = profile.dailyLessonCounts || {};
     counts[today] = (counts[today] || 0) + 1;
-    const cutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
+    const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000; // ~13 Wochen zum Zurückblättern
     Object.keys(counts).forEach(ds => {
       const t = new Date(ds + "T00:00:00").getTime();
       if(!isNaN(t) && t < cutoff) delete counts[ds];
@@ -9339,9 +9365,10 @@
 
   // Diagramm der letzten 7 Tage (NEU): Balken proportional zur Anzahl
   // Lektionen an diesem Tag, im selben Stil wie das Streak-Wochenraster.
-  function buildWeekLessonChartHtml(dailyLessonCounts){
+  function buildWeekLessonChartHtml(dailyLessonCounts, weekOffset){
     const labels = ["Mo","Di","Mi","Do","Fr","Sa","So"];
     const monday = startOfWeekMonday(new Date());
+    monday.setDate(monday.getDate() + 7 * (weekOffset || 0));
     const todayVal = todayStr();
     const counts = dailyLessonCounts || {};
     const values = [];
@@ -9368,6 +9395,29 @@
     }
     html += `</div>`;
     return html;
+  }
+
+  // Wochen-Navigation im Profil-Diagramm (NEU): mit den Pfeilen links/rechts
+  // durch vergangene Wochen blättern (nicht in die Zukunft).
+  let friendProfileChartCounts = {};
+  let friendProfileChartWeekOffset = 0;
+  const WEEK_CHART_MAX_BACK = 12;
+  function renderFriendProfileWeekChart(){
+    const off = friendProfileChartWeekOffset;
+    $("friendProfileWeekChart").innerHTML = buildWeekLessonChartHtml(friendProfileChartCounts, off);
+    let label;
+    if(off === 0) label = "Diese Woche";
+    else if(off === -1) label = "Letzte Woche";
+    else {
+      const mon = startOfWeekMonday(new Date());
+      mon.setDate(mon.getDate() + 7 * off);
+      const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+      const f = d => `${d.getDate()}.${d.getMonth() + 1}.`;
+      label = `${f(mon)} – ${f(sun)}`;
+    }
+    $("friendProfileWeekChartLabel").textContent = "📊 Lektionen · " + label;
+    $("friendProfileWeekNext").disabled = off >= 0;
+    $("friendProfileWeekPrev").disabled = off <= -WEEK_CHART_MAX_BACK;
   }
 
   function buildWeekGridHtml(dates, protectedDates){
@@ -9406,10 +9456,14 @@
     if(diffMin < 1) return "Gerade eben";
     if(diffMin < 60) return `vor ${diffMin} Min.`;
     const diffH = Math.floor(diffMin / 60);
-    if(diffH < 24) return `vor ${diffH} Std.`;
-    const diffD = Math.floor(diffH / 24);
-    if(diffD === 1) return "Gestern";
-    return `vor ${diffD} Tagen`;
+    // Bugfix: "Gestern" nur für den echten Kalendertag gestern - vorher
+    // stand dort "Gestern" für alles zwischen 24 und 48 Stunden, also oft
+    // eigentlich vorgestern.
+    const then = new Date(ts);
+    const dayDiff = Math.round((new Date(new Date().toDateString()) - new Date(then.toDateString())) / 86400000);
+    if(dayDiff === 0) return diffH < 1 ? `vor ${diffMin} Min.` : `vor ${diffH} Std.`;
+    if(dayDiff === 1) return "Gestern";
+    return `vor ${dayDiff} Tagen`;
   }
 
   // Öffnet die Profilansicht eines anderen Nutzers: Level, Aura, Streak,
@@ -9468,7 +9522,9 @@
       : `${Math.floor(timeTodayMin / 60)}h ${timeTodayMin % 60}min`;
 
     $("friendProfileWeekGrid").innerHTML = buildWeekGridHtml(u.streakDates || [], u.icecubeProtectedDates || []);
-    $("friendProfileWeekChart").innerHTML = buildWeekLessonChartHtml(u.dailyLessonCounts || {});
+    friendProfileChartCounts = u.dailyLessonCounts || {};
+    friendProfileChartWeekOffset = 0;
+    renderFriendProfileWeekChart();
 
     // "Freund hinzufügen"-Button: nur bei fremden Profilen mit bekanntem
     // Benutzernamen zeigen, und nur solange man ihnen noch nicht folgt.
@@ -10965,8 +11021,17 @@
     // (gemeldeter Bug: "Icecube wird beim Einlösen nicht abgezogen").
     // "doubleAuraUntil" bleibt korrekt bei Math.max, da das ein Ablauf-
     // Zeitstempel ist, der durch Stapeln nur wachsen oder gleich bleiben darf.
+    // Bugfix ("unendlich Icecubes"): gewinnt die Seite, die einen
+    // Icecube-Einsatz noch NICHT kennt, wäre der verbrauchte Icecube wieder
+    // da - während der gerettete Tag (in icecubeProtectedDates) trotzdem
+    // erhalten bleibt. So konnte ein Icecube beliebig oft retten. Deshalb:
+    // jeder geschützte Tag, den die gewinnende Seite nicht kennt, wird vom
+    // Bestand abgezogen.
+    const winnerProtected = new Set((localNewer ? localP.icecubeProtectedDates : cloudP.icecubeProtectedDates) || []);
+    const unknownUsedIcecubes = merged.icecubeProtectedDates.filter(ds => !winnerProtected.has(ds)).length;
+    const winnerIcecubes = localNewer ? (li.icecube || 0) : (ci.icecube || 0);
     merged.inventory = {
-      icecube: localNewer ? (li.icecube || 0) : (ci.icecube || 0),
+      icecube: Math.max(0, Math.min(2, winnerIcecubes - unknownUsedIcecubes)),
       doubleAuraUntil: Math.max(li.doubleAuraUntil || 0, ci.doubleAuraUntil || 0)
     };
 
@@ -14602,6 +14667,16 @@
     renderOwnerCodeStatus();
   });
 
+  $("friendProfileWeekPrev").addEventListener("click", () => {
+    if(friendProfileChartWeekOffset <= -WEEK_CHART_MAX_BACK) return;
+    friendProfileChartWeekOffset--;
+    renderFriendProfileWeekChart();
+  });
+  $("friendProfileWeekNext").addEventListener("click", () => {
+    if(friendProfileChartWeekOffset >= 0) return;
+    friendProfileChartWeekOffset++;
+    renderFriendProfileWeekChart();
+  });
   $("errorPopupOkBtn").addEventListener("click", () => {
     $("overlayErrorPopup").classList.remove("show");
   });

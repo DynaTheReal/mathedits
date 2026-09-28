@@ -2804,7 +2804,9 @@
   .nsx-hero{ display:flex; align-items:center; gap:18px; padding:18px; }
   .nsx-ring{ --p:0; --c:#8b5cf6; width:84px; height:84px; border-radius:50%; flex-shrink:0; display:grid; place-items:center;
     background:conic-gradient(var(--c) calc(var(--p)*1%), rgba(255,255,255,.08) 0); }
-  .nsx-ring > div{ width:70px; height:70px; border-radius:50%; background:var(--nv-card-hi); display:grid; place-items:center; text-align:center; }
+  /* Bugfix: vorher display:grid - die zwei Zeilen (Zahl + kleiner Text)
+     landeten dadurch am OBEREN Rand statt mittig im Kreis. */
+  .nsx-ring > div{ width:70px; height:70px; border-radius:50%; background:var(--nv-card-hi); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
   .nsx-ring b{ display:block; font-size:22px; font-weight:800; letter-spacing:-.02em; line-height:1; }
   .nova-screen .nsx-ring small{ display:block; font-size:10.5px; color:var(--nv-muted); font-weight:600; margin-top:3px; }
   .nsx-hero-txt{ flex:1; min-width:0; }
@@ -2868,6 +2870,131 @@
   .ob-nv-stats div{ height:22px; border-radius:8px; background:#15141b; border:1px solid rgba(255,255,255,.08); }
   .ob-nv-card{ width:100%; flex:1; border-radius:9px; background:#15141b; border:1px solid rgba(139,92,246,.35); }
   .ob-nv-nav{ height:10px; width:74%; border-radius:999px; background:rgba(139,92,246,.55); box-shadow:0 0 10px rgba(139,92,246,.6); }
+
+
+  /* ============================================================
+     NOVA: Einstellungen, Rangliste & Profil (NEU) - optisch komplett
+     neu, technisch dieselben Buttons/Listen (alles funktioniert weiter).
+     ============================================================ */
+  body.layout-nova #screen-leaderboard,
+  body.layout-nova #screen-profile,
+  body.layout-nova #screen-settings{
+    padding-bottom:calc(env(safe-area-inset-bottom,0px) + 120px);
+    font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+  }
+  body.layout-nova #screen-leaderboard > .topbar,
+  body.layout-nova #screen-profile > .topbar{ display:none; }
+  .nova-title{ padding-top:calc(env(safe-area-inset-top,0px) + 8px); margin:4px 2px 6px; }
+  .nova-title h1{ margin:0; font-size:30px; font-weight:800; letter-spacing:-.03em; line-height:1; color:#f5f3fa; }
+
+  /* ---------- Rangliste ---------- */
+  body.layout-nova #screen-leaderboard .shop-header{ text-align:left; margin:0 2px 16px; }
+  body.layout-nova #screen-leaderboard .shop-header h2{ display:none; }
+  body.layout-nova #lbSubtitle{ font-size:13px !important; opacity:1 !important; color:#8e8a9c; font-weight:600; }
+  body.layout-nova .lb-tabs,
+  body.layout-nova .social-tabs{
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:999px; padding:5px; gap:4px;
+  }
+  body.layout-nova .lb-tab,
+  body.layout-nova .social-tab{ border-radius:999px; padding:10px 4px; font-size:13px; opacity:.65; transition:background .2s, opacity .2s, box-shadow .2s; }
+  body.layout-nova .lb-tab.active,
+  body.layout-nova .social-tab.active{
+    background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:#fff !important; opacity:1;
+    box-shadow:0 6px 18px -4px rgba(139,92,246,.65);
+  }
+  body.layout-nova .lb-sort-btn{
+    border-radius:999px !important; height:40px; padding:0 14px !important; font-size:13px !important;
+    background:rgba(255,255,255,.04) !important; border:1px solid rgba(255,255,255,.08) !important;
+  }
+  body.layout-nova .lb-sort-btn.active{ background:rgba(139,92,246,.2) !important; border-color:rgba(139,92,246,.6) !important; color:#e4dbff !important; }
+  body.layout-nova #leaderboardList{ margin-top:12px; }
+  body.layout-nova .lb-row{ padding:12px 14px; gap:12px; margin-bottom:9px; border-radius:20px; }
+  body.layout-nova .lb-rank{ font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:800; width:30px; color:#8e8a9c; opacity:1; }
+  body.layout-nova .lb-avatar{ width:40px; height:40px; background:#1c1a24; box-shadow:0 0 0 2px rgba(139,92,246,.35); }
+  body.layout-nova .lb-name{ font-size:15px; }
+  body.layout-nova .lb-aura{ color:#c4b0ff; font-size:14px; }
+  /* Top 3 mit Medaillen statt #1/#2/#3 */
+  body.layout-nova #leaderboardList > .lb-row:nth-child(-n+3) .lb-rank{ font-size:0; }
+  body.layout-nova #leaderboardList > .lb-row:nth-child(-n+3) .lb-rank::before{ font-size:24px; }
+  body.layout-nova #leaderboardList > .lb-row:nth-child(1) .lb-rank::before{ content:"🥇"; }
+  body.layout-nova #leaderboardList > .lb-row:nth-child(2) .lb-rank::before{ content:"🥈"; }
+  body.layout-nova #leaderboardList > .lb-row:nth-child(3) .lb-rank::before{ content:"🥉"; }
+  body.layout-nova #leaderboardList > .lb-row:nth-child(1){
+    padding:16px 14px; border-color:rgba(245,196,81,.45);
+    background:linear-gradient(135deg, rgba(245,196,81,.13), #15141b 60%);
+    box-shadow:0 0 24px rgba(245,196,81,.12), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  body.layout-nova #leaderboardList > .lb-row:nth-child(1) .lb-avatar{ width:48px; height:48px; box-shadow:0 0 0 2px rgba(245,196,81,.8), 0 0 16px rgba(245,196,81,.35); }
+  body.layout-nova #leaderboardList > .lb-row:nth-child(2){ border-color:rgba(203,213,225,.3); background:linear-gradient(135deg, rgba(203,213,225,.08), #15141b 60%); }
+  body.layout-nova #leaderboardList > .lb-row:nth-child(3){ border-color:rgba(217,142,90,.32); background:linear-gradient(135deg, rgba(217,142,90,.09), #15141b 60%); }
+  body.layout-nova #leaderboardList > .lb-row.me{ border-color:rgba(139,92,246,.7); box-shadow:0 0 0 1px rgba(139,92,246,.5) inset, 0 0 18px rgba(139,92,246,.2); }
+
+  /* ---------- Profil ---------- */
+  body.layout-nova #profileHeaderCard{
+    position:relative; margin:10px 0 14px; padding:26px 18px 20px; border-radius:28px;
+    background:radial-gradient(120% 70% at 50% 0%, rgba(139,92,246,.30), transparent 70%), #15141b;
+    border:1px solid rgba(255,255,255,.08); box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  body.layout-nova #profileHeaderCard::before{ content:""; position:absolute; top:-1px; left:22%; right:22%; height:1px; background:linear-gradient(90deg,transparent,rgba(183,156,255,.95),transparent); }
+  body.layout-nova .avatar-wrap{
+    width:96px; height:96px; border:0; background:#1c1a24;
+    box-shadow:0 0 0 3px #8b5cf6, 0 0 0 7px rgba(139,92,246,.18), 0 10px 30px rgba(139,92,246,.45);
+  }
+  body.layout-nova #profileUsernameDisplay{ font-size:24px; font-weight:800; margin:6px 0 2px; }
+  body.layout-nova #profileHeaderCard .shop-aura-badge{ margin-top:8px; background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.1); }
+  body.layout-nova #screen-profile .stats-row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+  body.layout-nova #screen-profile .stat-pill{ padding:16px 12px; align-items:flex-start; border-radius:22px; }
+  body.layout-nova #screen-profile .stat-pill .val{ font-size:28px; font-weight:800; letter-spacing:-.02em; line-height:1; }
+  body.layout-nova #screen-profile .stat-pill .lbl{ font-size:12px; font-weight:600; opacity:1; color:#8e8a9c; margin-top:6px; }
+  body.layout-nova #viewOwnStatsBtn,
+  body.layout-nova #openMessagesBtn{
+    display:inline-flex; width:calc(50% - 5px); height:48px; margin-bottom:16px !important; vertical-align:top; border-radius:18px;
+  }
+  body.layout-nova #viewOwnStatsBtn{ margin-right:6px; }
+  /* Kürzere Tab-Beschriftungen */
+  body.layout-nova #socialTabAdd,
+  body.layout-nova #socialTabRequests{ font-size:0; }
+  body.layout-nova #socialTabAdd::after{ content:"Hinzufügen"; font-size:13px; }
+  body.layout-nova #socialTabRequests::after{ content:"Anfragen"; font-size:13px; }
+  body.layout-nova #socialTabRequests .nav-badge{ font-size:10px; }
+  body.layout-nova .friend-row{
+    background:#15141b; border:1px solid rgba(255,255,255,.07); border-radius:18px; padding:12px 14px; margin-bottom:9px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  body.layout-nova .friend-row .name{ font-size:14.5px; }
+  body.layout-nova .add-friend-row .input-field{ margin-bottom:0; }
+
+  /* ---------- Einstellungen ---------- */
+  body.layout-nova #screen-settings > .topbar{
+    position:sticky; top:0; z-index:12; margin:0 -20px 12px; padding:calc(env(safe-area-inset-top,0px) + 10px) 20px 12px;
+    background:linear-gradient(to bottom, rgba(7,6,11,.95) 60%, rgba(7,6,11,0));
+  }
+  body.layout-nova #screen-settings .settings-title{ font-size:26px; font-weight:800; letter-spacing:-.02em; margin-left:12px; flex:1; }
+  body.layout-nova #screen-settings > .topbar .exit-x{
+    width:42px; height:42px; display:grid; place-items:center; font-size:17px;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.09); border-radius:50%;
+  }
+  /* Navigations-Zeilen: nur der Titel + runder Pfeil, keine langen Texte */
+  body.layout-nova #screen-settings > .settings-row[style*="cursor:pointer"]{ padding:14px 14px 14px 18px; margin-top:8px; border-radius:20px; }
+  body.layout-nova #screen-settings > .settings-row[style*="cursor:pointer"] .d{ display:none; }
+  body.layout-nova #screen-settings > .settings-row[style*="cursor:pointer"] .t{ font-size:15.5px; margin:0; }
+  body.layout-nova #screen-settings > .settings-row[style*="cursor:pointer"] > div:last-child:not(.info){
+    width:34px; height:34px; border-radius:50%; display:grid; place-items:center; flex-shrink:0;
+    background:rgba(255,255,255,.06); font-size:0 !important; opacity:1 !important;
+  }
+  body.layout-nova #screen-settings > .settings-row[style*="cursor:pointer"] > div:last-child:not(.info)::after{
+    content:""; width:8px; height:8px; border-top:2px solid #b79cff; border-right:2px solid #b79cff; transform:translateX(-2px) rotate(45deg);
+  }
+  body.layout-nova #screen-settings > .settings-row[style*="cursor:pointer"]:active{ transform:scale(.985); }
+  body.layout-nova #screen-settings .settings-row .d{ color:#8e8a9c; opacity:1; }
+  body.layout-nova #ownerPanelRow,
+  body.layout-nova #playerPanelRow{ border-radius:24px !important; }
+  /* Profil-Karte oben in den Einstellungen */
+  .nsx-me{ display:flex; align-items:center; gap:14px; width:100%; padding:16px; margin-bottom:6px; text-align:left; }
+  .nsx-me .av{ width:54px; height:54px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; font-weight:800; font-size:21px; color:#fff;
+    background:linear-gradient(145deg,#7c3aed,#3b1d7a); box-shadow:0 0 0 2px rgba(255,255,255,.12),0 8px 24px rgba(124,58,237,.4); }
+  .nsx-me b{ display:block; font-size:18px; font-weight:800; }
+  .nova-screen .nsx-me span{ display:block; font-size:13px; color:#8e8a9c; margin-top:3px; font-weight:600; }
 
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
@@ -4061,6 +4188,7 @@
 
   <!-- ============ PROFIL (NEU) ============ -->
   <section class="screen" id="screen-profile">
+    <div class="nova-title layout-nova-only"><h1>Profil</h1></div>
     <div class="topbar">
       <div class="brand"><span class="dot"></span>MathEdits</div>
       <div class="topbar-actions">
@@ -4150,6 +4278,7 @@
       </div>
     </div>
 
+    <div class="nova-title layout-nova-only"><h1>Rangliste</h1></div>
     <div class="shop-header">
       <h2>🏆 Rangliste</h2>
       <div style="font-size:12px; opacity:.75;" id="lbSubtitle">Nur du und Freunde, die sich gegenseitig folgen</div>
@@ -4410,6 +4539,13 @@
         <div class="exit-x" id="feedbackBtn" title="Feedback geben" style="font-family:'Baloo 2',sans-serif; font-weight:900;">!</div>
         <div class="exit-x" id="redeemCodeBtn" title="Code einlösen" style="font-family:'Baloo 2',sans-serif; font-weight:900;">C</div>
       </div>
+    </div>
+
+    <div class="nova-screen layout-nova-only" style="padding-top:0;">
+      <button class="nsx-card nsx-me" id="nsxSettingsMe">
+        <div class="av" id="nsxMeAv">?</div>
+        <div style="min-width:0;"><b id="nsxMeName">Gast</b><span id="nsxMeSub">Level 1 · 0 💀</span></div>
+      </button>
     </div>
 
     <div class="settings-row" id="supportSettingsRow" style="cursor:pointer;">
@@ -5857,7 +5993,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.61";
+  const APP_VERSION = "3.62";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -15485,6 +15621,7 @@
   $("ownerToolStreakHistory").addEventListener("click", () => {
     toggleOwnerPanel("panelOwnerStreakHistory", "ownerToolStreakHistory", renderOwnerStreakHistory);
   });
+  $("nsxSettingsMe").addEventListener("click", () => $("navProfile").click());
   $("errorPopupOkBtn").addEventListener("click", () => {
     $("overlayErrorPopup").classList.remove("show");
   });
@@ -15627,7 +15764,15 @@
   /* ========================================================
      SETTINGS & FIREBASE USER UI
   ======================================================== */
+  function renderNovaSettingsMe(){
+    if(!$("nsxSettingsMe")) return;
+    const uname = profile.username || "Gast";
+    $("nsxMeAv").textContent = uname.charAt(0).toUpperCase();
+    $("nsxMeName").textContent = uname;
+    $("nsxMeSub").textContent = `Level ${profile.level} · ${profile.totalAura || 0} 💀 · 🔥 ${profile.streak || 0}`;
+  }
   function renderSettings(){
+    renderNovaSettingsMe();
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
     $("appIntroStyleSelect").value = profile.appIntroStyle === "simple" ? "simple" : "math";
     $("layoutStyleSelect").value = ["simpel","clean","nova"].includes(profile.layoutStyle) ? profile.layoutStyle : "clean";

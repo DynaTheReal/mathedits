@@ -4166,6 +4166,7 @@
           <div class="owner-category-tile" id="ownerToolBans"><span class="icon">🚫</span><span class="label">Bans</span></div>
           <div class="owner-category-tile" id="ownerToolModRole"><span class="icon">🛡️</span><span class="label">Mod-Rolle</span></div>
           <div class="owner-category-tile" id="ownerToolBooster"><span class="icon">✨</span><span class="label">Booster</span></div>
+          <div class="owner-category-tile" id="ownerToolStreakHistory"><span class="icon">🔥</span><span class="label">Streak-Verlauf</span></div>
         </div>
 
         <div class="owner-inline-panel" id="panelOwnerStats">
@@ -4251,6 +4252,12 @@
             </div>
             <button class="btn btn-primary btn-small" id="ownerSaveModPermsBtn" style="width:100%; margin-top:8px;">Berechtigungen speichern</button>
           </div>
+        </div>
+
+        <div class="owner-inline-panel" id="panelOwnerStreakHistory">
+          <div style="font-weight:800; margin-bottom:4px;">🔥 Streak-Verlauf</div>
+          <div class="d" style="margin-bottom:10px; font-size:11.5px;">Wann der Streak am jeweiligen Tag gemacht wurde (erste Lektion) und wie lange die Person an dem Tag in der App war.</div>
+          <div id="ownerStreakHistoryList" style="max-height:340px; overflow-y:auto;"></div>
         </div>
 
         <div class="owner-inline-panel" id="panelOwnerBooster">
@@ -4726,8 +4733,12 @@
         🕐 Zuletzt gelernt: <b id="friendProfileLastActive">-</b>
       </div>
 
-      <div class="levels-heading" style="text-align:left;">Diese Woche</div>
-      <div class="week-grid" id="friendProfileWeekGrid"></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+        <button id="friendStreakWeekPrev" class="week-nav-btn" aria-label="Vorherige Woche">‹</button>
+        <div class="levels-heading" id="friendStreakWeekLabel" style="text-align:center; flex:1; margin:0;">🔥 Streak · Diese Woche</div>
+        <button id="friendStreakWeekNext" class="week-nav-btn" aria-label="Nächste Woche">›</button>
+      </div>
+      <div class="week-grid" id="friendProfileWeekGrid" style="margin-top:10px;"></div>
 
       <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
         <button id="friendProfileWeekPrev" class="week-nav-btn" aria-label="Vorherige Woche">‹</button>
@@ -5280,7 +5291,12 @@
         <h2 id="modalStreakTitle">0 Tage Streak</h2>
         <p>Mach jeden Tag eine Lektion, um deinen Streak zu behalten.</p>
       </div>
-      <div class="week-grid" id="weekGrid"></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px;">
+        <button id="ownStreakWeekPrev" class="week-nav-btn" aria-label="Vorherige Woche">‹</button>
+        <div class="levels-heading" id="ownStreakWeekLabel" style="text-align:center; flex:1; margin:0;">Diese Woche</div>
+        <button id="ownStreakWeekNext" class="week-nav-btn" aria-label="Nächste Woche">›</button>
+      </div>
+      <div class="week-grid" id="weekGrid" style="margin-top:10px;"></div>
       <button class="btn btn-ghost" id="closeStreakModal" style="margin-top:20px;">Schließen</button>
     </div>
   </div>
@@ -5331,7 +5347,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.57";
+  const APP_VERSION = "3.58";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -5593,6 +5609,8 @@
     lastStreakDate: null,
     streakDates: [],
     dailyLessonCounts: {}, // Owner-Info/Profil-Diagramm: { "2026-09-27": 3, ... } - wie viele Lektionen pro Tag
+    dailyStreakTimes: {}, // Owner-Streak-Verlauf: { "2026-09-27": <Zeitstempel der ersten Lektion des Tages> }
+    dailyActiveMs: {}, // Owner-Streak-Verlauf: { "2026-09-27": <ms in der App an diesem Tag> }
     icecubeProtectedDates: [], // welche Streak-Tage per Icecube gerettet wurden (fürs blaue Symbol im Verlauf)
     username: null,
     usernameLower: null,
@@ -5745,7 +5763,7 @@
       // ausführliche Erklärung weiter unten). "lifetimeActiveMs" zählt aus
       // demselben Grund jede 10 Sekunden mit hoch und wird deshalb genauso
       // ausgenommen.
-      const { lastActiveAt, lastLocalSaveAt, todayActiveMs: _todayActiveMsExcluded, lifetimeActiveMs: _lifetimeActiveMsExcluded, ...meaningful } = profile;
+      const { lastActiveAt, lastLocalSaveAt, todayActiveMs: _todayActiveMsExcluded, lifetimeActiveMs: _lifetimeActiveMsExcluded, dailyActiveMs: _dailyActiveMsExcluded, ...meaningful } = profile;
       const meaningfulJSON = JSON.stringify(meaningful);
       if(meaningfulJSON !== lastMeaningfulProfileJSON){
         lastMeaningfulProfileJSON = meaningfulJSON;
@@ -5765,7 +5783,7 @@
         // Synchronisierung, deshalb hier ausgenommen (wird aber trotzdem
         // ganz normal MIT gespeichert, sobald aus einem ANDEREN Grund
         // ohnehin geschrieben wird).
-        const { todayActiveMs, lifetimeActiveMs, ...cloudRelevant } = profile;
+        const { todayActiveMs, lifetimeActiveMs, dailyActiveMs, ...cloudRelevant } = profile;
         const cloudRelevantJSON = JSON.stringify(cloudRelevant);
         if(cloudRelevantJSON === lastWrittenProfileJSON) return; // unverändert (bis auf Nutzungszeit) - kein erneuter Schreibvorgang nötig
         lastWrittenProfileJSON = cloudRelevantJSON;
@@ -5867,6 +5885,9 @@
       }
       profile.todayActiveMs = (profile.todayActiveMs || 0) + 10000;
       profile.lifetimeActiveMs = (profile.lifetimeActiveMs || 0) + 10000;
+      // Nutzungszeit pro Tag (NEU) - für den Owner-Streak-Verlauf.
+      if(!profile.dailyActiveMs) profile.dailyActiveMs = {};
+      profile.dailyActiveMs[today] = (profile.dailyActiveMs[today] || 0) + 10000;
       saveProfile();
     }
   }, 10000);
@@ -9355,12 +9376,22 @@
     const today = todayStr();
     const counts = profile.dailyLessonCounts || {};
     counts[today] = (counts[today] || 0) + 1;
+    // Uhrzeit, zu der der Streak an diesem Tag gemacht wurde (erste Lektion)
+    const streakTimes = profile.dailyStreakTimes || {};
+    if(!streakTimes[today]) streakTimes[today] = Date.now();
+    profile.dailyStreakTimes = streakTimes;
     const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000; // ~13 Wochen zum Zurückblättern
     Object.keys(counts).forEach(ds => {
       const t = new Date(ds + "T00:00:00").getTime();
       if(!isNaN(t) && t < cutoff) delete counts[ds];
     });
     profile.dailyLessonCounts = counts;
+    [profile.dailyStreakTimes, profile.dailyActiveMs].forEach(map => {
+      Object.keys(map || {}).forEach(ds => {
+        const t = new Date(ds + "T00:00:00").getTime();
+        if(!isNaN(t) && t < cutoff) delete map[ds];
+      });
+    });
   }
 
   // Diagramm der letzten 7 Tage (NEU): Balken proportional zur Anzahl
@@ -9405,24 +9436,53 @@
   function renderFriendProfileWeekChart(){
     const off = friendProfileChartWeekOffset;
     $("friendProfileWeekChart").innerHTML = buildWeekLessonChartHtml(friendProfileChartCounts, off);
-    let label;
-    if(off === 0) label = "Diese Woche";
-    else if(off === -1) label = "Letzte Woche";
-    else {
-      const mon = startOfWeekMonday(new Date());
-      mon.setDate(mon.getDate() + 7 * off);
-      const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
-      const f = d => `${d.getDate()}.${d.getMonth() + 1}.`;
-      label = `${f(mon)} – ${f(sun)}`;
-    }
-    $("friendProfileWeekChartLabel").textContent = "📊 Lektionen · " + label;
+    $("friendProfileWeekChartLabel").textContent = "📊 Lektionen · " + weekOffsetLabel(off);
     $("friendProfileWeekNext").disabled = off >= 0;
     $("friendProfileWeekPrev").disabled = off <= -WEEK_CHART_MAX_BACK;
   }
 
-  function buildWeekGridHtml(dates, protectedDates){
+  // Owner-Streak-Verlauf (NEU): pro Streak-Tag die Uhrzeit (ohne Sekunden),
+  // zu der der Streak gemacht wurde, und die Nutzungszeit an dem Tag.
+  let ownerEditingUserData = null;
+  function renderOwnerStreakHistory(){
+    const listEl = $("ownerStreakHistoryList");
+    const u = ownerEditingUserData || {};
+    const days = Array.from(new Set([...(u.streakDates || []), ...(u.icecubeProtectedDates || [])])).sort().reverse();
+    if(days.length === 0){
+      listEl.innerHTML = "<div class='empty-hint' style='margin:0; text-align:left;'>Noch keine Streak-Tage.</div>";
+      return;
+    }
+    const wd = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+    const prot = new Set(u.icecubeProtectedDates || []);
+    const times = u.dailyStreakTimes || {};
+    const active = u.dailyActiveMs || {};
+    const fmtMs = ms => {
+      if(!ms) return null;
+      const min = Math.round(ms / 60000);
+      if(min < 60) return `${min} Min`;
+      return `${Math.floor(min / 60)} Std ${min % 60} Min`;
+    };
+    listEl.innerHTML = days.map(ds => {
+      const d = new Date(ds + "T00:00:00");
+      const dayLabel = `${wd[d.getDay()]}, ${d.getDate()}.${d.getMonth() + 1}.`;
+      let when;
+      if(prot.has(ds)) when = "🧊 durch Icecube gerettet";
+      else if(times[ds]){
+        const t = new Date(times[ds]);
+        when = `🔥 um ${String(t.getHours()).padStart(2,"0")}:${String(t.getMinutes()).padStart(2,"0")} Uhr`;
+      } else when = "🔥 Uhrzeit nicht erfasst";
+      const act = fmtMs(active[ds]);
+      return `<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px;">
+        <div><b>${dayLabel}</b><br><span style="opacity:.8;">${when}</span></div>
+        <div style="text-align:right; flex-shrink:0; opacity:.85;">⏱️ ${act || "–"}</div>
+      </div>`;
+    }).join("");
+  }
+
+  function buildWeekGridHtml(dates, protectedDates, weekOffset){
     const labels = ["Mo","Di","Mi","Do","Fr","Sa","So"];
     const monday = startOfWeekMonday(new Date());
+    monday.setDate(monday.getDate() + 7 * (weekOffset || 0));
     const todayVal = todayStr();
     let html = "";
     for(let i=0;i<7;i++){
@@ -9441,10 +9501,37 @@
     return html;
   }
 
-  function renderStreakWeek(){
-    const grid = $("weekGrid");
+  // Streak-Wochen blättern (NEU): Pfeile links/rechts, im Profil und im
+  // eigenen Streak-Fenster. streakDates reicht ~60 Tage zurück.
+  const STREAK_WEEK_MAX_BACK = 8;
+  const streakWeekNav = {
+    own:    { offset:0, dates:[], prot:[], grid:"weekGrid",              label:"ownStreakWeekLabel",    prev:"ownStreakWeekPrev",    next:"ownStreakWeekNext",    prefix:"" },
+    friend: { offset:0, dates:[], prot:[], grid:"friendProfileWeekGrid", label:"friendStreakWeekLabel", prev:"friendStreakWeekPrev", next:"friendStreakWeekNext", prefix:"🔥 Streak · " }
+  };
+  function weekOffsetLabel(off){
+    if(off === 0) return "Diese Woche";
+    if(off === -1) return "Letzte Woche";
+    const mon = startOfWeekMonday(new Date());
+    mon.setDate(mon.getDate() + 7 * off);
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    const f = d => `${d.getDate()}.${d.getMonth() + 1}.`;
+    return `${f(mon)} – ${f(sun)}`;
+  }
+  function renderStreakWeekNav(key){
+    const st = streakWeekNav[key];
+    const grid = $(st.grid);
     if(!grid) return;
-    grid.innerHTML = buildWeekGridHtml(profile.streakDates || [], profile.icecubeProtectedDates || []);
+    grid.innerHTML = buildWeekGridHtml(st.dates, st.prot, st.offset);
+    $(st.label).textContent = st.prefix + weekOffsetLabel(st.offset);
+    $(st.next).disabled = st.offset >= 0;
+    $(st.prev).disabled = st.offset <= -STREAK_WEEK_MAX_BACK;
+  }
+  function renderStreakWeek(){
+    const st = streakWeekNav.own;
+    st.offset = 0;
+    st.dates = profile.streakDates || [];
+    st.prot = profile.icecubeProtectedDates || [];
+    renderStreakWeekNav("own");
   }
 
   // Formatiert einen Zeitstempel relativ ("Gerade eben", "vor 3 Std.", "Gestern"...)
@@ -9521,7 +9608,8 @@
       ? `${timeTodayMin} Min`
       : `${Math.floor(timeTodayMin / 60)}h ${timeTodayMin % 60}min`;
 
-    $("friendProfileWeekGrid").innerHTML = buildWeekGridHtml(u.streakDates || [], u.icecubeProtectedDates || []);
+    Object.assign(streakWeekNav.friend, { offset:0, dates: u.streakDates || [], prot: u.icecubeProtectedDates || [] });
+    renderStreakWeekNav("friend");
     friendProfileChartCounts = u.dailyLessonCounts || {};
     friendProfileChartWeekOffset = 0;
     renderFriendProfileWeekChart();
@@ -11003,6 +11091,20 @@
       mergedCounts[ds] = Math.max(localCounts[ds] || 0, cloudCounts[ds] || 0);
     });
     merged.dailyLessonCounts = mergedCounts;
+    // Streak-Uhrzeit: pro Tag den FRÜHEREN Zeitpunkt; Nutzungszeit: den höheren.
+    const lst = localP.dailyStreakTimes || {}, cst = cloudP.dailyStreakTimes || {};
+    const mergedTimes = {};
+    new Set([...Object.keys(lst), ...Object.keys(cst)]).forEach(ds => {
+      const a = lst[ds], b = cst[ds];
+      mergedTimes[ds] = (a && b) ? Math.min(a, b) : (a || b);
+    });
+    merged.dailyStreakTimes = mergedTimes;
+    const lam = localP.dailyActiveMs || {}, cam = cloudP.dailyActiveMs || {};
+    const mergedActive = {};
+    new Set([...Object.keys(lam), ...Object.keys(cam)]).forEach(ds => {
+      mergedActive[ds] = Math.max(lam[ds] || 0, cam[ds] || 0);
+    });
+    merged.dailyActiveMs = mergedActive;
 
     const protectedSet = new Set([...(localP.icecubeProtectedDates || []), ...(cloudP.icecubeProtectedDates || [])]);
     merged.icecubeProtectedDates = Array.from(protectedSet).sort().slice(-60);
@@ -13490,6 +13592,7 @@
       ownerEditingUid = targetUid;
       ownerEditingOldUsernameLower = normalizeUsername(data.username || uname);
       ownerEditingTargetIp = data.lastKnownIp || null;
+      ownerEditingUserData = data;
       $("ownerTargetLabel").textContent = "@" + (data.username || uname);
       $("ownerAuraInput").value = data.totalAura || 0;
       ownerEditingOriginalAura = data.totalAura || 0;
@@ -14676,6 +14779,20 @@
     if(friendProfileChartWeekOffset >= 0) return;
     friendProfileChartWeekOffset++;
     renderFriendProfileWeekChart();
+  });
+  ["own", "friend"].forEach(key => {
+    const st = streakWeekNav[key];
+    $(st.prev).addEventListener("click", () => {
+      if(st.offset <= -STREAK_WEEK_MAX_BACK) return;
+      st.offset--; renderStreakWeekNav(key);
+    });
+    $(st.next).addEventListener("click", () => {
+      if(st.offset >= 0) return;
+      st.offset++; renderStreakWeekNav(key);
+    });
+  });
+  $("ownerToolStreakHistory").addEventListener("click", () => {
+    toggleOwnerPanel("panelOwnerStreakHistory", "ownerToolStreakHistory", renderOwnerStreakHistory);
   });
   $("errorPopupOkBtn").addEventListener("click", () => {
     $("overlayErrorPopup").classList.remove("show");

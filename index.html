@@ -2778,8 +2778,8 @@
      Die normalen Inhalte werden im Nova-Layout ausgeblendet, die
      Nova-Ansicht nutzt dieselben Daten und Funktionen.
      ============================================================ */
-  body.layout-nova #screen-missions > :not(#novaMissions),
-  body.layout-nova #screen-trends > :not(#novaTrends){ display:none !important; }
+  body.layout-nova #screen-missions > :not(#novaMissions):not(.tm-switch),
+  body.layout-nova #screen-trends > :not(#novaTrends):not(.tm-switch){ display:none !important; }
   body.layout-nova #screen-missions,
   body.layout-nova #screen-trends{ padding-bottom:calc(env(safe-area-inset-bottom,0px) + 120px); }
   .nova-screen{
@@ -3064,6 +3064,84 @@
     #screen-result.rs-play .rs-in, #screen-result.rs-play .rs-emoji{ animation:none; }
     .rs-ring-fg{ transition:none; }
   }
+
+
+  /* ===================== BETA-LEKTIONEN START (CSS) =====================
+     Neuer "Lektionen"-Tab mit Themen, Tutorial und Pfad. Alles in diesem
+     Block (und den anderen BETA-LEKTIONEN-Blöcken) kann zum Entfernen
+     einfach gelöscht werden. */
+  .beta-lessons-only{ display:none !important; }
+  body.beta-lessons-tab .beta-lessons-only{ display:flex !important; }
+  body.beta-lessons-tab #navTrends{ display:none !important; }
+  body.beta-lessons-tab #navLessons{ display:flex !important; }
+  /* Umschalter Missionen / Trends (ein gemeinsamer Tab) */
+  .tm-switch{ gap:4px; padding:5px; margin:4px 0 14px; border-radius:999px; background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--border); }
+  .tm-switch button{ flex:1; height:40px; border:0; border-radius:999px; background:none; color:var(--text); font:inherit; font-weight:800; font-size:14px; opacity:.6; cursor:pointer; }
+  .tm-switch button.on{ opacity:1; background:var(--accent); color:var(--accent-text); box-shadow:0 6px 16px -6px color-mix(in srgb, var(--accent) 80%, transparent); }
+  body.layout-nova .tm-switch{ margin:calc(env(safe-area-inset-top,0px) + 8px) 0 6px; }
+  body.layout-nova .tm-switch button.on{ background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:#fff; }
+
+  #screen-lessons{ padding-bottom:calc(env(safe-area-inset-bottom,0px) + 120px); }
+  .lx-head{ margin:calc(env(safe-area-inset-top,0px) + 6px) 2px 16px; }
+  .lx-head h1{ margin:0; font-size:30px; font-weight:800; letter-spacing:-.03em; line-height:1.05; }
+  .lx-head p{ margin:6px 0 0; font-size:13px; font-weight:600; opacity:.6; }
+  .lx-topics{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .lx-topic{ position:relative; text-align:left; padding:16px; border-radius:24px; cursor:pointer; color:var(--text); font:inherit;
+    background:var(--card); border:1px solid var(--border); box-shadow:inset 0 1px 0 rgba(255,255,255,.05); transition:transform .15s; }
+  .lx-topic:active{ transform:scale(.97); }
+  .lx-topic .ic{ width:52px; height:52px; border-radius:18px; display:grid; place-items:center; font-size:26px; margin-bottom:12px;
+    background:color-mix(in srgb, var(--lx-c) 20%, transparent); border:1.5px solid color-mix(in srgb, var(--lx-c) 55%, transparent); }
+  .lx-topic b{ display:block; font-size:15.5px; font-weight:800; line-height:1.2; }
+  .lx-topic small{ display:block; font-size:12px; font-weight:600; opacity:.6; margin-top:4px; }
+  .lx-topic .bar{ height:6px; border-radius:999px; background:color-mix(in srgb, var(--text) 10%, transparent); margin-top:12px; overflow:hidden; }
+  .lx-topic .bar > div{ height:100%; border-radius:999px; background:var(--lx-c); min-width:0; }
+  .lx-topic .crown{ position:absolute; top:12px; right:12px; font-size:20px; }
+
+  .lx-path-head{ display:flex; align-items:center; gap:12px; margin:calc(env(safe-area-inset-top,0px) + 6px) 0 8px; }
+  .lx-round{ width:42px; height:42px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; font-size:17px; cursor:pointer; color:var(--text);
+    background:color-mix(in srgb, var(--text) 7%, transparent); border:1px solid var(--border); font-weight:800; }
+  .lx-path-head .t{ flex:1; min-width:0; }
+  .lx-path-head .t b{ display:block; font-size:21px; font-weight:800; line-height:1.1; }
+  .lx-path-head .t small{ display:block; font-size:12.5px; font-weight:600; opacity:.6; margin-top:3px; }
+  .lx-path{ position:relative; display:flex; flex-direction:column; align-items:center; padding:16px 0 30px; }
+  .lx-section{ width:100%; margin:14px 0 6px; padding:10px 14px; border-radius:16px; font-weight:800; font-size:13px; text-align:center;
+    background:color-mix(in srgb, var(--lx-c) 14%, transparent); border:1px solid color-mix(in srgb, var(--lx-c) 40%, transparent); }
+  .lx-node{ position:relative; width:74px; height:74px; margin:9px 0; border-radius:50%; border:0; cursor:pointer; font:inherit;
+    display:grid; place-items:center; font-size:24px; font-weight:800; color:#fff; transform:translateX(var(--x,0));
+    background:var(--lx-c); box-shadow:0 7px 0 color-mix(in srgb, var(--lx-c) 55%, #000), 0 12px 24px -8px color-mix(in srgb, var(--lx-c) 70%, transparent);
+    transition:transform .12s; }
+  .lx-node:active{ transform:translateX(var(--x,0)) translateY(4px); box-shadow:0 3px 0 color-mix(in srgb, var(--lx-c) 55%, #000); }
+  .lx-node.locked{ background:color-mix(in srgb, var(--text) 14%, var(--card)); color:color-mix(in srgb, var(--text) 45%, transparent);
+    box-shadow:0 7px 0 color-mix(in srgb, var(--text) 8%, #000); }
+  .lx-node.current{ animation:lx-pulse 1.6s ease-in-out infinite; }
+  @keyframes lx-pulse{ 0%,100%{ outline:0 solid transparent; } 50%{ outline:8px solid color-mix(in srgb, var(--lx-c) 25%, transparent); } }
+  .lx-node .stars{ position:absolute; bottom:-20px; left:50%; transform:translateX(-50%); font-size:11px; letter-spacing:1px; white-space:nowrap; color:#fbbf24; }
+  .lx-node .start{ position:absolute; top:-30px; left:50%; transform:translateX(-50%); padding:4px 10px; border-radius:10px; font-size:11px; font-weight:800;
+    letter-spacing:.05em; background:var(--card); color:var(--lx-c); border:1.5px solid var(--lx-c); white-space:nowrap; }
+  .lx-node.chest{ width:84px; height:84px; font-size:38px; background:linear-gradient(145deg,#f59e0b,#b45309); box-shadow:0 7px 0 #7c3a06, 0 0 26px rgba(245,158,11,.45); }
+  .lx-node.chest.locked{ background:color-mix(in srgb, var(--text) 14%, var(--card)); box-shadow:0 7px 0 color-mix(in srgb, var(--text) 8%, #000); filter:grayscale(1); opacity:.6; }
+  .lx-node.chest.ready{ animation:lx-wiggle 1.4s ease-in-out infinite; }
+  @keyframes lx-wiggle{ 0%,100%{ transform:translateX(var(--x,0)) rotate(0); } 20%{ transform:translateX(var(--x,0)) rotate(-8deg); } 40%{ transform:translateX(var(--x,0)) rotate(8deg); } 60%{ transform:translateX(var(--x,0)) rotate(0); } }
+  .lx-node.chest.claimed{ background:color-mix(in srgb, #f59e0b 25%, var(--card)); box-shadow:0 7px 0 color-mix(in srgb, #f59e0b 20%, #000); font-size:30px; }
+
+  /* Tutorial */
+  .lx-tut{ text-align:center; }
+  .lx-tut-visual{ height:150px; margin:4px 0 14px; border-radius:20px; display:grid; place-items:center; font-size:58px;
+    background:color-mix(in srgb, var(--lx-c, var(--accent)) 12%, transparent); border:1px solid color-mix(in srgb, var(--lx-c, var(--accent)) 35%, transparent); overflow:hidden; }
+  .lx-tut-visual svg{ width:100%; height:100%; }
+  .lx-tut h2{ margin:0 0 8px; }
+  .lx-tut p{ margin:0; font-size:14.5px; line-height:1.5; }
+  .lx-tut .ex{ margin-top:12px; padding:10px 12px; border-radius:14px; font-weight:800; font-size:15px; background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .lx-dots{ display:flex; justify-content:center; gap:6px; margin:16px 0 14px; }
+  .lx-dots span{ width:7px; height:7px; border-radius:999px; background:color-mix(in srgb, var(--text) 20%, transparent); transition:width .25s, background .25s; }
+  .lx-dots span.on{ width:22px; background:var(--lx-c, var(--accent)); }
+  .lx-tut-btns{ display:flex; gap:10px; }
+  .lx-tut-btns .btn{ flex:1; }
+  .lx-tut-step{ animation:lx-step-in .35s cubic-bezier(.2,.9,.25,1.05) both; }
+  @keyframes lx-step-in{ from{ opacity:0; transform:translateX(16px); } to{ opacity:1; transform:none; } }
+  #qText{ white-space:pre-line; }
+  #screen-lesson.lx-topic-lesson #qText{ font-size:clamp(20px, 6.2vw, 30px); line-height:1.35; }
+  /* ===================== BETA-LEKTIONEN ENDE (CSS) ===================== */
 
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
@@ -4373,7 +4451,11 @@
   </section>
 
   <!-- ============ MISSIONEN (NEU) ============ -->
+  <!-- BETA-LEKTIONEN: Lektionen-Bildschirm -->
+  <section class="screen" id="screen-lessons"><div id="lxRoot"></div></section>
+
   <section class="screen" id="screen-missions">
+    <div class="tm-switch beta-lessons-only"><button id="tmSwitchMissions1" class="on">🎯 Missionen</button><button id="tmSwitchTrends1">📈 Trends</button></div>
     <div class="nova-screen layout-nova-only" id="novaMissions"></div>
     <div class="topbar">
       <div class="brand"><span class="dot"></span>MathEdits</div>
@@ -4394,6 +4476,7 @@
 
   <!-- ============ TRENDS (NEU) ============ -->
   <section class="screen" id="screen-trends">
+    <div class="tm-switch beta-lessons-only"><button id="tmSwitchMissions2">🎯 Missionen</button><button id="tmSwitchTrends2" class="on">📈 Trends</button></div>
     <div class="nova-screen layout-nova-only" id="novaTrends"></div>
     <div class="topbar">
       <div class="brand"><span class="dot"></span>MathEdits</div>
@@ -5077,6 +5160,15 @@
           </div>
           <div class="switch" id="betaButtonParticlesSwitch"><div class="knob"></div></div>
         </div>
+
+        <!-- BETA-LEKTIONEN: Schalter -->
+        <div class="settings-row" style="padding:12px 0 0;">
+          <div class="info">
+            <div class="t">📚 Lektionen-Tab</div>
+            <div class="d">Neuer Tab mit Themen wie Lineare Funktionen, Tutorial und Lernpfad. Missionen & Trends werden dafür zu einem Tab.</div>
+          </div>
+          <div class="switch" id="betaLessonsTabSwitch"><div class="knob"></div></div>
+        </div>
       </div>
     </div>
 
@@ -5291,6 +5383,12 @@
         <span class="nav-badge" id="missionsBadge" style="display:none;">1</span>
       </span>
       <span class="label">Missionen</span>
+    </button>
+    <!-- BETA-LEKTIONEN: Lektionen-Tab -->
+    <button class="nav-item" id="navLessons" style="display:none;">
+      <svg class="nova-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19.5A2 2 0 0 0 6 21.5h13"/><path d="M9 7h6"/></svg>
+      <span class="icon-wrap"><span class="icon">📚</span></span>
+      <span class="label">Lektionen</span>
     </button>
     <button class="nav-item" id="navProfile">
       <svg class="nova-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
@@ -5966,6 +6064,29 @@
 
   <!-- Spieler-Ziel gewonnen (NEU): große Anzeige, die von selbst wieder
        verschwindet, statt nur eines kleinen Toasts. -->
+  <!-- BETA-LEKTIONEN: Tutorial-Frage & Tutorial -->
+  <div class="overlay" id="overlayLxStart">
+    <div class="modal-card" id="lxStartCard" style="max-width:340px; text-align:center;">
+      <button id="lxStartClose" class="inbox-x" aria-label="Schließen">✕</button>
+      <div style="font-size:44px; margin-bottom:6px;">📖</div>
+      <h2 id="lxStartTitle" style="margin:0 0 6px;">Thema</h2>
+      <p style="margin:0 0 18px;">Willst du dir zuerst das Tutorial zu diesem Kapitel anschauen?</p>
+      <button class="btn btn-primary" id="lxStartTutorialBtn" style="width:100%; margin-bottom:10px;">📖 Tutorial ansehen</button>
+      <button class="btn btn-ghost" id="lxStartSkipBtn" style="width:100%;">Direkt zum Pfad</button>
+    </div>
+  </div>
+  <div class="overlay" id="overlayLxTutorial">
+    <div class="modal-card lx-tut" id="lxTutCard" style="max-width:360px;">
+      <button id="lxTutClose" class="inbox-x" aria-label="Tutorial überspringen">✕</button>
+      <div id="lxTutBody"></div>
+      <div class="lx-dots" id="lxTutDots"></div>
+      <div class="lx-tut-btns">
+        <button class="btn btn-ghost" id="lxTutPrev">Zurück</button>
+        <button class="btn btn-primary" id="lxTutNext">Weiter</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Posteingang (NEU, Nova-Glocke) -->
   <div class="overlay" id="overlayInbox">
     <div class="modal-card inbox-card" style="max-width:380px; text-align:left;">
@@ -6083,7 +6204,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.64";
+  const APP_VERSION = "3.65";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6330,7 +6451,9 @@
     betaCleanLessons: false, // Beta-Einstellung: cleaneres Lektions-Design mit lila Glow
     betaLessonBackground: false, // Beta-Einstellung: dezentes Hintergrundbild in Lektionen (braucht betaCleanLessons)
     betaLessonBackgroundKeyboard: false, // Beta-Einstellung: cleanes Bild ueber der Tastatur statt Vollbild (braucht betaCleanLessons)
-    betaButtonParticles: false, // Beta-Einstellung: Partikel-Explosion beim Pruefen-Button vor der Aura-Animation
+    betaButtonParticles: false,
+    betaLessonsTab: false, // BETA-LEKTIONEN: neuer Lektionen-Tab
+    lessonTopics: {}, // BETA-LEKTIONEN: { linfun: { done, stars:{n:1-3}, tutorialSeen, chests:{10:{...}} } } // Beta-Einstellung: Partikel-Explosion beim Pruefen-Button vor der Aura-Animation
     lessonsCompleted: 0,
     theme: "black",
     unlockedThemes: ["black"], // Freigeschaltete Designs
@@ -10654,6 +10777,7 @@
   // Liefert die Truhen-Referenz für eine Mission ODER ein Achievement, je nach
   // Quelle - so nutzen beide dieselbe Tap/Upgrade/Abholen-Logik.
   function getChestRef(sourceType, sourceId){
+    if(sourceType === "topic") return lxChestRef(sourceId); // BETA-LEKTIONEN
     if(sourceType === "mission"){
       ensureDailyMissions();
       return profile.dailyMissions.chests[sourceId];
@@ -10689,7 +10813,9 @@
     if(!chest) return;
     activeChestSource = { type: sourceType, id: sourceId };
     let title = "Truhe";
-    if(sourceType === "mission"){
+    if(sourceType === "topic"){ // BETA-LEKTIONEN
+      title = lxChestTitle(sourceId);
+    } else if(sourceType === "mission"){
       const def = ALL_MISSION_DEFS.find(m => m.id === sourceId);
       title = def ? def.label : title;
     } else if(sourceType === "achievement"){
@@ -11251,6 +11377,7 @@
   }
 
   function closeChestModal(){
+    setTimeout(() => { if(screens.lessons && screens.lessons.classList.contains("active") && typeof renderLessonsScreen === "function") renderLessonsScreen(); }, 0); // BETA-LEKTIONEN
     $("overlayChest").classList.remove("show");
     activeChestSource = null;
     renderMissions();
@@ -13338,9 +13465,10 @@
     lesson: $("screen-lesson"), result: $("screen-result"), settings: $("screen-settings"),
     profile: $("screen-profile"), leaderboard: $("screen-leaderboard"), missions: $("screen-missions"),
     trends: $("screen-trends"), duellobby: $("screen-duellobby"), duelresults: $("screen-duelresults"),
-    modpanel: $("screen-modpanel")
+    modpanel: $("screen-modpanel"),
+    lessons: $("screen-lessons") // BETA-LEKTIONEN
   };
-  const NAV_SCREENS = ["home", "shop", "leaderboard", "missions", "profile", "trends"];
+  const NAV_SCREENS = ["home", "shop", "leaderboard", "missions", "profile", "trends", "lessons"]; // "lessons" = BETA-LEKTIONEN
 
   // Flugmodus-/Offline-Erkennung (NEU): verhindert, dass jemand offline zu
   // Sachen wie dem Shop oder Aura spenden navigiert, wo sich der lokale
@@ -13379,6 +13507,7 @@
     screens[name].classList.add("active");
     document.body.classList.toggle("nova-home-active", name === "home");
     if(name === "result" && typeof animateResultScreen === "function") animateResultScreen();
+    if(name === "lesson") screens.lesson.classList.toggle("lx-topic-lesson", !!(lesson && lesson.topicId)); // BETA-LEKTIONEN
 
     // Neue Lektionen / Lektions-Hintergrund (NEU, Beta-Einstellungen)
     if(name === "lesson"){
@@ -13419,6 +13548,7 @@
       $("navTrends").classList.toggle("active", name === "trends");
       $("navMissions").classList.toggle("active", name === "missions");
       $("navProfile").classList.toggle("active", name === "profile");
+      if(typeof lxApplyNav === "function") lxApplyNav(name); // BETA-LEKTIONEN
     } else {
       nav.style.display = "none";
     }
@@ -14060,6 +14190,7 @@
   function applyTheme(){
     document.body.classList.toggle("layout-beta", profile.layoutStyle === "clean");
     document.body.classList.toggle("layout-nova", profile.layoutStyle === "nova");
+    if(typeof lxApplyBeta === "function") lxApplyBeta(); // BETA-LEKTIONEN
     // Absicherung: falls ein Konto noch auf das entfernte Custom-Theme
     // eingestellt war, sauber auf Black zurückfallen statt unstyled zu bleiben.
     if(profile.theme === "custom"){
@@ -15971,6 +16102,7 @@
     $("betaLessonBgSwitch").classList.toggle("on", !!profile.betaLessonBackground);
     $("betaLessonBgKeyboardSwitch").classList.toggle("on", !!profile.betaLessonBackgroundKeyboard);
     $("betaButtonParticlesSwitch").classList.toggle("on", !!profile.betaButtonParticles);
+    $("betaLessonsTabSwitch").classList.toggle("on", !!profile.betaLessonsTab); // BETA-LEKTIONEN
     // Bugfix (doppeltes Scrollen): der Hintergrund-Bildschirm hat selbst
     // ein eigenes overflow-y:auto - ohne diese Sperre konnte man sowohl im
     // Menü ALS AUCH im Bildschirm dahinter gleichzeitig scrollen, was sich
@@ -17506,6 +17638,8 @@
     Object.entries(profile.redeemedCodeChests || {}).forEach(([id, c]) => add(c, "redeemcode", id, "🎁", "Einlöse-Code"));
     const inviteLbl = { rank2a:"Invite Platz 2", rank2b:"Invite Platz 2", rank3:"Invite Platz 3" };
     ["rank2a","rank2b","rank3"].forEach(k => add((profile.inviteChests || {})[k], "invite", k, "🏆", inviteLbl[k]));
+    // BETA-LEKTIONEN: Truhen aus dem Lernpfad
+    Object.entries(profile.lessonTopics || {}).forEach(([tid, st]) => Object.entries((st && st.chests) || {}).forEach(([n, c]) => add(c, "topic", `${tid}:${n}`, "📚", "Lernpfad · " + n + " Lektionen")));
     return out;
   }
   function inboxReadyChestCount(){ return collectReadyChests().length; }
@@ -17629,6 +17763,359 @@
     countUp($("resCorrect"), 0, correct, v => `${v}/${total}`, 520);
     countUp($("resAura"), 0, aura, v => `+${v}`, 600);
   }
+
+
+  /* ===================== BETA-LEKTIONEN START (JS) =====================
+     Neuer "Lektionen"-Tab (Beta-Einstellung). Zum Entfernen: alle
+     BETA-LEKTIONEN-Blöcke löschen. */
+  const LX_LESSONS_PER_TOPIC = 30;
+  const LX_CHEST_AT = { 10: "rare", 20: "epic", 30: "legendary" };
+  const LX_SECTIONS = ["Einstieg", "Fortgeschritten", "Profi"];
+  const LX_TOPICS = [
+    { id: "linfun",   name: "Lineare Funktionen", icon: "📈", color: "#8b5cf6", sub: "f(x) = mx + b" },
+    { id: "algebra",  name: "Algebra",            icon: "🧮", color: "#22c55e", sub: "Gleichungen lösen" },
+    { id: "percent",  name: "Prozentrechnung",    icon: "💯", color: "#f59e0b", sub: "Prozent, Grundwert" },
+    { id: "geometry", name: "Geometrie",          icon: "📐", color: "#38bdf8", sub: "Fläche, Umfang, Volumen" }
+  ];
+  let lxCurrentTopic = null;     // null = Themen-Übersicht, sonst Themen-ID (Pfad)
+  var lxLastFinishedTopic = null; // nach der Lektion zurück zum Pfad statt Home
+
+  function lxState(topicId){
+    if(!profile.lessonTopics) profile.lessonTopics = {};
+    if(!profile.lessonTopics[topicId]) profile.lessonTopics[topicId] = { done: 0, stars: {}, tutorialSeen: false, chests: {} };
+    const st = profile.lessonTopics[topicId];
+    if(!st.stars) st.stars = {};
+    if(!st.chests) st.chests = {};
+    return st;
+  }
+  function lxTopic(id){ return LX_TOPICS.find(t => t.id === id); }
+
+  /* ---------- Aufgaben-Generatoren (alle Antworten sind ganze Zahlen) ---------- */
+  const M = "−"; // echtes Minuszeichen für die Anzeige
+  const lxNum = n => n < 0 ? M + Math.abs(n) : String(n);
+  function lxLin(m, b){
+    let s = m === 1 ? "x" : m === -1 ? M + "x" : lxNum(m) + "x";
+    if(b > 0) s += " + " + b; else if(b < 0) s += " " + M + " " + Math.abs(b);
+    return s;
+  }
+  function lxNz(min, max){ let v = 0; while(v === 0) v = randInt(min, max); return v; }
+  const LX_GEN = {
+    linfun(level){
+      const types = level === 1 ? ["fval","m","b"] : level === 2 ? ["fval","m","b","zero"] : ["fval","zero","slope","slope"];
+      const t = types[randInt(0, types.length - 1)];
+      const m = level === 1 ? randInt(1, 5) : lxNz(-6, 6);
+      const b = level === 1 ? randInt(0, 9) : randInt(-9, 9);
+      if(t === "fval"){ const x = level === 1 ? randInt(0, 6) : randInt(-5, 6); return { text: `f(x) = ${lxLin(m, b)}\nf(${lxNum(x)}) = ?`, answer: m * x + b }; }
+      if(t === "m") return { text: `f(x) = ${lxLin(m, b)}\nSteigung m = ?`, answer: m };
+      if(t === "b") return { text: `f(x) = ${lxLin(m, b)}\ny-Achsenabschnitt b = ?`, answer: b };
+      if(t === "zero"){ const x0 = randInt(-6, 6); const bb = -m * x0; return { text: `f(x) = ${lxLin(m, bb)}\nNullstelle x = ?`, answer: x0 }; }
+      const x1 = randInt(-4, 4), dx = randInt(1, 4), y1 = randInt(-6, 6);
+      return { text: `Gerade durch P(${lxNum(x1)} | ${lxNum(y1)}) und Q(${lxNum(x1 + dx)} | ${lxNum(y1 + m * dx)})\nSteigung m = ?`, answer: m };
+    },
+    algebra(level){
+      const x = level === 3 ? lxNz(-9, 12) : randInt(1, 12);
+      const a = randInt(2, 9), b = randInt(1, 15);
+      const r = randInt(0, 1);
+      if(level === 1){
+        if(r === 0) return { text: `x + ${b} = ${x + b}\nx = ?`, answer: x };
+        return { text: `${a} · x = ${a * x}\nx = ?`, answer: x };
+      }
+      if(level === 2){
+        if(r === 0) return { text: `${a}x + ${b} = ${a * x + b}\nx = ?`, answer: x };
+        return { text: `${a}x ${M} ${b} = ${lxNum(a * x - b)}\nx = ?`, answer: x };
+      }
+      if(r === 0) return { text: `${a} · (x + ${b}) = ${lxNum(a * (x + b))}\nx = ?`, answer: x };
+      const c = randInt(1, a - 1 || 1), d = randInt(1, 20);
+      // a·x + b = c·x + d  ->  d = (a-c)x + b
+      return { text: `${a}x + ${b} = ${c === 1 ? "" : c}x + ${lxNum((a - c) * x + b)}\nx = ?`, answer: x };
+    },
+    percent(level){
+      if(level === 1){
+        const p = [10, 25, 50][randInt(0, 2)];
+        const g = (p === 25 ? 4 : p === 50 ? 2 : 10) * randInt(2, 20);
+        return { text: `${p} % von ${g} = ?`, answer: g * p / 100 };
+      }
+      if(level === 2){
+        const p = [5, 15, 20, 30, 40, 75][randInt(0, 5)];
+        const g = 20 * randInt(1, 15);
+        return { text: `${p} % von ${g} = ?`, answer: g * p / 100 };
+      }
+      if(randInt(0, 1) === 0){
+        const p = [10, 20, 25, 50][randInt(0, 3)], g = (100 / p) * randInt(2, 20);
+        return { text: `${p} % sind ${g * p / 100}.\nGrundwert (100 %) = ?`, answer: g };
+      }
+      let g, p;
+      do { g = [20, 25, 50, 200][randInt(0, 3)]; p = [10, 20, 40, 50, 60][randInt(0, 4)]; } while((g * p) % 100 !== 0);
+      return { text: `${g * p / 100} von ${g}\nsind wie viel Prozent?`, answer: p };
+    },
+    geometry(level){
+      const a = randInt(2, 12), b = randInt(2, 12);
+      const r = randInt(0, 1);
+      if(level === 1){
+        if(r === 0) return { text: `Rechteck: a = ${a} cm, b = ${b} cm\nFläche = ? cm²`, answer: a * b };
+        return { text: `Quadrat: a = ${a} cm\nFläche = ? cm²`, answer: a * a };
+      }
+      if(level === 2){
+        if(r === 0) return { text: `Rechteck: a = ${a} cm, b = ${b} cm\nUmfang = ? cm`, answer: 2 * (a + b) };
+        const g = 2 * randInt(2, 10), h = randInt(2, 12);
+        return { text: `Dreieck: g = ${g} cm, h = ${h} cm\nFläche = ? cm²`, answer: g * h / 2 };
+      }
+      const pick = randInt(0, 2);
+      if(pick === 0) return { text: `Rechteck: Fläche = ${a * b} cm², a = ${a} cm\nb = ? cm`, answer: b };
+      if(pick === 1){ const s = randInt(2, 9); return { text: `Würfel: a = ${s} cm\nVolumen = ? cm³`, answer: s * s * s }; }
+      const c = randInt(2, 6);
+      return { text: `Quader: ${a} cm · ${b} cm · ${c} cm\nVolumen = ? cm³`, answer: a * b * c };
+    }
+  };
+  function lxLevelFor(lessonNo){ return lessonNo <= 10 ? 1 : lessonNo <= 20 ? 2 : 3; }
+
+  function lxStartLesson(topicId, lessonNo){
+    const topic = lxTopic(topicId);
+    const level = lxLevelFor(lessonNo);
+    const questions = [];
+    let guard = 0;
+    while(questions.length < QUESTIONS_PER_LESSON && guard++ < 200){
+      const q = LX_GEN[topicId](level);
+      if(!Number.isInteger(q.answer)) continue;
+      if(questions.length && questions[questions.length - 1].text === q.text) continue;
+      questions.push(q);
+    }
+    lesson = {
+      tier: { id: "topic_" + topicId, name: `${topic.icon} ${topic.name} · ${lessonNo}`, icon: topic.icon, timeMs: level === 1 ? 20000 : 25000, normalAura: 2 + level, editAura: 4 + level * 2 },
+      isMainProgression: false, noLifeLoss: true, questions, index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false,
+      topicId, topicLessonNo: lessonNo
+    };
+    lesson.startedAt = performance.now();
+    lesson.streakThisLesson = profile.comboCount || 0;
+    updateComboCounter(lesson.streakThisLesson);
+    markLessonInProgress();
+    showScreen("lesson");
+    renderQuestion();
+  }
+
+  // Wird von finishLesson() aufgerufen
+  function lxOnLessonFinished(passed){
+    if(!lesson || !lesson.topicId) return;
+    lxLastFinishedTopic = lesson.topicId;
+    if(!passed) return;
+    const st = lxState(lesson.topicId);
+    const n = lesson.topicLessonNo;
+    const stars = lesson.correct >= QUESTIONS_PER_LESSON ? 3 : lesson.correct >= 8 ? 2 : 1;
+    st.stars[n] = Math.max(st.stars[n] || 0, stars);
+    if(n === st.done + 1){
+      st.done = n;
+      if(LX_CHEST_AT[n] && !st.chests[n]){
+        st.chests[n] = { tier: LX_CHEST_AT[n], attemptsUsed: 0, claimed: false };
+        setTimeout(() => showToast(`🎁 Neue Truhe im Pfad freigeschaltet!`), 900);
+      }
+      if(n === LX_LESSONS_PER_TOPIC) setTimeout(() => showToast(`👑 ${lxTopic(lesson.topicId) ? lxTopic(lesson.topicId).name : ""} gemeistert!`), 1800);
+    }
+    saveProfile();
+  }
+
+  /* ---------- Truhen im Pfad (nutzen das bestehende Truhen-System) ---------- */
+  function lxChestRef(sourceId){
+    const [topicId, n] = String(sourceId).split(":");
+    return (profile.lessonTopics && profile.lessonTopics[topicId] && profile.lessonTopics[topicId].chests[n]) || null;
+  }
+  function lxChestTitle(sourceId){
+    const [topicId, n] = String(sourceId).split(":");
+    const t = lxTopic(topicId);
+    return `${t ? t.icon + " " + t.name : "Lektionen"} · ${n} Lektionen`;
+  }
+
+  /* ---------- Übersicht & Pfad ---------- */
+  function renderLessonsScreen(){
+    const root = $("lxRoot");
+    if(!root) return;
+    if(!lxCurrentTopic){
+      root.innerHTML = `
+        <div class="lx-head"><h1>Lektionen</h1><p>Such dir ein Thema aus</p></div>
+        <div class="lx-topics">${LX_TOPICS.map(t => {
+          const st = lxState(t.id);
+          const pct = Math.round(st.done / LX_LESSONS_PER_TOPIC * 100);
+          return `<button class="lx-topic" data-topic="${t.id}" style="--lx-c:${t.color}">
+            ${st.done >= LX_LESSONS_PER_TOPIC ? '<span class="crown">👑</span>' : ""}
+            <div class="ic">${t.icon}</div><b>${t.name}</b><small>${st.done}/${LX_LESSONS_PER_TOPIC} · ${t.sub}</small>
+            <div class="bar"><div style="width:${pct}%"></div></div></button>`;
+        }).join("")}</div>`;
+      root.querySelectorAll("[data-topic]").forEach(b => b.addEventListener("click", () => lxOpenTopic(b.dataset.topic)));
+      return;
+    }
+    const t = lxTopic(lxCurrentTopic);
+    const st = lxState(t.id);
+    const xs = [0, 46, 70, 46, 0, -46, -70, -46];
+    let html = "";
+    for(let n = 1; n <= LX_LESSONS_PER_TOPIC; n++){
+      if((n - 1) % 10 === 0) html += `<div class="lx-section">${LX_SECTIONS[(n - 1) / 10]} · Lektion ${n}–${n + 9}</div>`;
+      const x = xs[(n - 1) % xs.length];
+      const done = n <= st.done, current = n === st.done + 1;
+      const stars = st.stars[n] || 0;
+      html += `<button class="lx-node${done ? " done" : current ? " current" : " locked"}" data-lesson="${n}" style="--x:${x}px">
+        ${current ? '<span class="start">START</span>' : ""}${done ? "✓" : current ? n : "🔒"}
+        ${done ? `<span class="stars">${"★".repeat(stars)}${"☆".repeat(3 - stars)}</span>` : ""}</button>`;
+      if(LX_CHEST_AT[n]){
+        const chest = st.chests[n];
+        const cls = !chest ? "locked" : chest.claimed ? "claimed" : "ready";
+        html += `<button class="lx-node chest ${cls}" data-chest="${n}" style="--x:0px">${chest && chest.claimed ? "✅" : "🎁"}</button>`;
+      }
+    }
+    root.innerHTML = `
+      <div class="lx-path-head" style="--lx-c:${t.color}">
+        <button class="lx-round" id="lxBack" aria-label="Zurück">‹</button>
+        <div class="t"><b>${t.icon} ${t.name}</b><small>${st.done}/${LX_LESSONS_PER_TOPIC} Lektionen</small></div>
+        <button class="lx-round" id="lxTutBtn" aria-label="Tutorial">📖</button>
+      </div>
+      <div class="lx-path" style="--lx-c:${t.color}">${html}</div>`;
+    $("lxBack").addEventListener("click", () => { lxCurrentTopic = null; renderLessonsScreen(); });
+    $("lxTutBtn").addEventListener("click", () => lxOpenTutorial(t.id));
+    root.querySelectorAll("[data-lesson]").forEach(b => b.addEventListener("click", () => {
+      const n = parseInt(b.dataset.lesson, 10);
+      if(n > st.done + 1){ showToast("🔒 Schließe erst die Lektion davor ab."); return; }
+      lxStartLesson(t.id, n);
+    }));
+    root.querySelectorAll("[data-chest]").forEach(b => b.addEventListener("click", () => {
+      const n = parseInt(b.dataset.chest, 10);
+      const chest = st.chests[n];
+      if(!chest){ showToast(`🎁 Erreichbar nach Lektion ${n}`); return; }
+      if(chest.claimed){ showToast("✅ Schon abgeholt"); return; }
+      openChestModal("topic", `${t.id}:${n}`);
+    }));
+    const cur = root.querySelector(".lx-node.current");
+    if(cur && cur.scrollIntoView) setTimeout(() => cur.scrollIntoView({ block: "center", behavior: "smooth" }), 60);
+  }
+
+  function lxOpenTopic(topicId){
+    const t = lxTopic(topicId);
+    $("lxStartTitle").textContent = `${t.icon} ${t.name}`;
+    $("lxStartCard").style.setProperty("--lx-c", t.color);
+    $("overlayLxStart").dataset.topic = topicId;
+    $("overlayLxStart").classList.add("show");
+  }
+
+  /* ---------- Tutorial in Schritten ---------- */
+  const LX_GRAPH = (m, b, color) => {
+    // kleines Koordinatensystem mit Gerade y = m·x + b (Bereich -5..5)
+    const X = v => 100 + v * 16, Y = v => 75 - v * 12;
+    const x1 = -5, x2 = 5;
+    return `<svg viewBox="0 0 200 150" aria-hidden="true">
+      <g stroke="currentColor" opacity=".15">${[-4,-3,-2,-1,1,2,3,4].map(i => `<line x1="${X(i)}" y1="0" x2="${X(i)}" y2="150"/><line x1="0" y1="${Y(i)}" x2="200" y2="${Y(i)}"/>`).join("")}</g>
+      <line x1="0" y1="75" x2="200" y2="75" stroke="currentColor" opacity=".55" stroke-width="1.5"/>
+      <line x1="100" y1="0" x2="100" y2="150" stroke="currentColor" opacity=".55" stroke-width="1.5"/>
+      <line x1="${X(x1)}" y1="${Y(m * x1 + b)}" x2="${X(x2)}" y2="${Y(m * x2 + b)}" stroke="${color}" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="100" cy="${Y(b)}" r="5" fill="${color}"/>
+    </svg>`;
+  };
+  const LX_TUTORIALS = {
+    linfun: [
+      { v: () => LX_GRAPH(1, 1, "#8b5cf6"), t: "Was ist eine lineare Funktion?", p: "Eine lineare Funktion ist eine gerade Linie. Man schreibt sie als f(x) = m·x + b.", ex: "f(x) = 2x + 1" },
+      { v: () => LX_GRAPH(2, 0, "#8b5cf6"), t: "m ist die Steigung", p: "m sagt, wie steil die Gerade ist: Gehst du 1 nach rechts, geht es m nach oben (oder unten, wenn m negativ ist).", ex: "f(x) = 3x − 2  →  m = 3" },
+      { v: () => LX_GRAPH(1, 3, "#8b5cf6"), t: "b ist der y-Achsenabschnitt", p: "b ist die Stelle, an der die Gerade die y-Achse schneidet (der Punkt).", ex: "f(x) = 3x − 2  →  b = −2" },
+      { v: () => "🧮", t: "Funktionswert berechnen", p: "Setze die Zahl für x ein und rechne aus.", ex: "f(x) = 2x + 1,  f(3) = 2·3 + 1 = 7" },
+      { v: () => "🎯", t: "Nullstelle", p: "Die Nullstelle ist das x, bei dem f(x) = 0 ist. Tipp: Die −-Taste für negative Zahlen findest du unten rechts.", ex: "f(x) = 2x − 6  →  x = 3" }
+    ],
+    algebra: [
+      { v: () => "⚖️", t: "Gleichung = Waage", p: "Beide Seiten sind gleich schwer. Was du links machst, musst du auch rechts machen.", ex: "x + 4 = 10" },
+      { v: () => "➖", t: "Plus weg mit Minus", p: "Steht + 4 bei x, rechne auf beiden Seiten − 4.", ex: "x + 4 = 10  →  x = 6" },
+      { v: () => "➗", t: "Mal weg mit Geteilt", p: "Steht 3·x da, teile beide Seiten durch 3.", ex: "3x = 12  →  x = 4" },
+      { v: () => "🧩", t: "Schritt für Schritt", p: "Erst + und − wegrechnen, dann durch die Zahl vor x teilen.", ex: "2x + 3 = 11  →  2x = 8  →  x = 4" }
+    ],
+    percent: [
+      { v: () => "💯", t: "Prozent = von Hundert", p: "1 % ist ein Hundertstel. 50 % ist die Hälfte, 25 % ein Viertel, 10 % ein Zehntel.", ex: "50 % von 80 = 40" },
+      { v: () => "🧮", t: "Prozentwert berechnen", p: "Grundwert durch 100 teilen, dann mal Prozentsatz.", ex: "20 % von 150 = 150 : 100 · 20 = 30" },
+      { v: () => "🔁", t: "Grundwert finden", p: "Weißt du, wie viel ein Teil ist, rechne zurück auf 100 %.", ex: "10 % sind 7  →  100 % sind 70" },
+      { v: () => "📊", t: "Prozentsatz finden", p: "Teil durch Ganzes, dann mal 100.", ex: "15 von 60  →  15 : 60 · 100 = 25 %" }
+    ],
+    geometry: [
+      { v: () => "▭", t: "Fläche vom Rechteck", p: "Länge mal Breite. Das Ergebnis hat die Einheit cm².", ex: "a = 5, b = 3  →  15 cm²" },
+      { v: () => "🔲", t: "Umfang", p: "Einmal außen herum: alle Seiten zusammenzählen.", ex: "Rechteck 5 und 3  →  2·(5 + 3) = 16 cm" },
+      { v: () => "🔺", t: "Fläche vom Dreieck", p: "Grundseite mal Höhe, dann durch 2.", ex: "g = 6, h = 4  →  12 cm²" },
+      { v: () => "🧊", t: "Volumen", p: "Wie viel in einen Körper passt: Länge · Breite · Höhe (Einheit cm³).", ex: "Würfel a = 3  →  27 cm³" }
+    ]
+  };
+  let lxTutState = { topic: null, step: 0 };
+  function lxOpenTutorial(topicId){
+    lxTutState = { topic: topicId, step: 0 };
+    $("lxTutCard").style.setProperty("--lx-c", lxTopic(topicId).color);
+    lxRenderTutorial();
+    $("overlayLxTutorial").classList.add("show");
+  }
+  function lxRenderTutorial(){
+    const steps = LX_TUTORIALS[lxTutState.topic];
+    const s = steps[lxTutState.step];
+    const last = lxTutState.step === steps.length - 1;
+    $("lxTutBody").innerHTML = `<div class="lx-tut-step">
+      <div class="lx-tut-visual">${s.v()}</div>
+      <h2>${s.t}</h2><p>${s.p}</p>${s.ex ? `<div class="ex">${s.ex}</div>` : ""}</div>`;
+    $("lxTutDots").innerHTML = steps.map((_, i) => `<span class="${i === lxTutState.step ? "on" : ""}"></span>`).join("");
+    $("lxTutPrev").style.visibility = lxTutState.step === 0 ? "hidden" : "visible";
+    $("lxTutNext").textContent = last ? "Los geht's 🚀" : "Weiter";
+  }
+  function lxFinishTutorial(){
+    const st = lxState(lxTutState.topic);
+    st.tutorialSeen = true;
+    saveProfile();
+    $("overlayLxTutorial").classList.remove("show");
+    lxCurrentTopic = lxTutState.topic;
+    if(!screens.lessons.classList.contains("active")) showScreen("lessons");
+    renderLessonsScreen();
+  }
+
+  /* ---------- Leiste & Beta-Schalter ---------- */
+  function lxApplyBeta(){
+    const on = !!(profile && profile.betaLessonsTab);
+    document.body.classList.toggle("beta-lessons-tab", on);
+    const lbl = $("navMissions") && $("navMissions").querySelector(".label");
+    if(lbl) lbl.textContent = on ? "Aufgaben" : "Missionen";
+    try{
+      if(!on && screens.lessons && screens.lessons.classList.contains("active")){ showScreen("home"); renderHome(); }
+    }catch(e){ /* beim App-Start evtl. noch nicht bereit */ }
+  }
+  function lxApplyNav(name){
+    if(!profile.betaLessonsTab) return;
+    $("navMissions").classList.toggle("active", name === "missions" || name === "trends");
+    $("navLessons").classList.toggle("active", name === "lessons");
+    $("navTrends").classList.remove("active");
+    $("tmSwitchMissions1").classList.toggle("on", name === "missions");
+    $("tmSwitchTrends1").classList.toggle("on", name === "trends");
+    $("tmSwitchMissions2").classList.toggle("on", name === "missions");
+    $("tmSwitchTrends2").classList.toggle("on", name === "trends");
+  }
+
+  $("navLessons").addEventListener("click", () => {
+    showScreen("lessons");
+    renderLessonsScreen();
+  });
+  ["tmSwitchMissions1","tmSwitchMissions2"].forEach(id => $(id).addEventListener("click", () => { showScreen("missions"); renderMissions(); }));
+  ["tmSwitchTrends1","tmSwitchTrends2"].forEach(id => $(id).addEventListener("click", () => { showScreen("trends"); renderTrends(); }));
+  $("betaLessonsTabSwitch").addEventListener("click", () => {
+    profile.betaLessonsTab = !profile.betaLessonsTab;
+    saveProfile();
+    $("betaLessonsTabSwitch").classList.toggle("on", !!profile.betaLessonsTab);
+    lxApplyBeta();
+    showToast(profile.betaLessonsTab ? "📚 Lektionen-Tab ist jetzt in der Leiste!" : "Lektionen-Tab ausgeblendet.");
+  });
+  $("lxStartTutorialBtn").addEventListener("click", () => {
+    const id = $("overlayLxStart").dataset.topic;
+    $("overlayLxStart").classList.remove("show");
+    lxOpenTutorial(id);
+  });
+  $("lxStartSkipBtn").addEventListener("click", () => {
+    const id = $("overlayLxStart").dataset.topic;
+    $("overlayLxStart").classList.remove("show");
+    lxCurrentTopic = id;
+    renderLessonsScreen();
+  });
+  $("lxStartClose").addEventListener("click", () => $("overlayLxStart").classList.remove("show"));
+  $("lxTutPrev").addEventListener("click", () => { if(lxTutState.step > 0){ lxTutState.step--; lxRenderTutorial(); } });
+  $("lxTutNext").addEventListener("click", () => {
+    const steps = LX_TUTORIALS[lxTutState.topic];
+    if(lxTutState.step < steps.length - 1){ lxTutState.step++; lxRenderTutorial(); }
+    else lxFinishTutorial();
+  });
+  $("lxTutClose").addEventListener("click", () => lxFinishTutorial());
+  lxApplyBeta();
+  /* ===================== BETA-LEKTIONEN ENDE (JS) ===================== */
 
   $("backHomeFromLocked").addEventListener("click", () => {
     clearInterval(lockedInterval);
@@ -18356,6 +18843,7 @@
     let title, sub, emoji;
     lastLessonGainedProgress = false;
     let perfectBonus = 0;
+    if(typeof lxOnLessonFinished === "function") lxOnLessonFinished(passed); // BETA-LEKTIONEN
     if(passed){
       const pick = COMPLETE_LINES[randInt(0, COMPLETE_LINES.length-1)];
       title = pick.title; sub = pick.sub; emoji = pick.emoji;
@@ -18520,6 +19008,12 @@
   }
 
   $("resultContinue").addEventListener("click", () => {
+    // BETA-LEKTIONEN: nach einer Themen-Lektion zurück zum Lernpfad
+    if(typeof lxLastFinishedTopic !== "undefined" && lxLastFinishedTopic){
+      lxCurrentTopic = lxLastFinishedTopic; lxLastFinishedTopic = null;
+      showScreen("lessons"); renderLessonsScreen();
+      return;
+    }
     if(lastLessonGainedProgress){
       flyLevelPoint(() => goHomeWithTransition());
     } else {

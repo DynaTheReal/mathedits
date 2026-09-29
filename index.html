@@ -3066,9 +3066,9 @@
   }
 
 
-  /* ===================== BETA-LEKTIONEN START (CSS) =====================
+  /* ===================== LEKTIONEN-SYSTEM START (CSS) =====================
      Neuer "Lektionen"-Tab mit Themen, Tutorial und Pfad. Alles in diesem
-     Block (und den anderen BETA-LEKTIONEN-Blöcken) kann zum Entfernen
+     Block (und den anderen LEKTIONEN-SYSTEM-Blöcken) kann zum Entfernen
      einfach gelöscht werden. */
   .beta-lessons-only{ display:none !important; }
   body.beta-lessons-tab .beta-lessons-only{ display:flex !important; }
@@ -3141,7 +3141,20 @@
   @keyframes lx-step-in{ from{ opacity:0; transform:translateX(16px); } to{ opacity:1; transform:none; } }
   #qText{ white-space:pre-line; }
   #screen-lesson.lx-topic-lesson #qText{ font-size:clamp(20px, 6.2vw, 30px); line-height:1.35; }
-  /* ===================== BETA-LEKTIONEN ENDE (CSS) ===================== */
+  /* ===================== LEKTIONEN-SYSTEM ENDE (CSS) ===================== */
+
+
+  /* ===== LEKTIONEN-SYSTEM: Grafiken & Auswahl-Antworten ===== */
+  .q-visual{ width:100%; max-width:300px; height:clamp(96px, 20vh, 140px); margin:6px auto 8px; color:var(--text); }
+  .q-visual svg{ width:100%; height:100%; overflow:visible; }
+  .lx-choices{ grid-template-columns:1fr 1fr; gap:10px; margin-top:auto; }
+  .lx-choice{ min-height:62px; padding:12px 10px; border-radius:18px; font:inherit; font-weight:800; font-size:15px; line-height:1.25; cursor:pointer;
+    color:var(--text); background:var(--card); border:1.5px solid var(--border); box-shadow:0 4px 0 color-mix(in srgb, var(--text) 8%, transparent);
+    transition:transform .1s, background .2s, border-color .2s; }
+  .lx-choice:active{ transform:translateY(2px); }
+  .lx-choice.right{ background:color-mix(in srgb, var(--success) 22%, var(--card)); border-color:var(--success); }
+  .lx-choice.wrong{ background:color-mix(in srgb, var(--danger) 20%, var(--card)); border-color:var(--danger); }
+  .lx-choice:disabled{ cursor:default; }
 
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
@@ -4451,7 +4464,7 @@
   </section>
 
   <!-- ============ MISSIONEN (NEU) ============ -->
-  <!-- BETA-LEKTIONEN: Lektionen-Bildschirm -->
+  <!-- LEKTIONEN-SYSTEM: Lektionen-Bildschirm -->
   <section class="screen" id="screen-lessons"><div id="lxRoot"></div></section>
 
   <section class="screen" id="screen-missions">
@@ -5161,14 +5174,6 @@
           <div class="switch" id="betaButtonParticlesSwitch"><div class="knob"></div></div>
         </div>
 
-        <!-- BETA-LEKTIONEN: Schalter -->
-        <div class="settings-row" style="padding:12px 0 0;">
-          <div class="info">
-            <div class="t">📚 Lektionen-Tab</div>
-            <div class="d">Neuer Tab mit Themen wie Lineare Funktionen, Tutorial und Lernpfad. Missionen & Trends werden dafür zu einem Tab.</div>
-          </div>
-          <div class="switch" id="betaLessonsTabSwitch"><div class="knob"></div></div>
-        </div>
       </div>
     </div>
 
@@ -5289,12 +5294,14 @@
 
     <div class="question-card">
       <div class="q-tier" id="qTier">Level 1</div>
+      <div class="q-visual" id="qVisual" style="display:none;"></div>
       <div class="q-text" id="qText">7 × 8</div>
     </div>
 
     <div class="answer-display empty" id="answerDisplay">Tippe deine Antwort</div>
 
     <div id="lessonBgLayerKeyboard" class="has-bg-image"></div>
+    <div class="lx-choices" id="lxChoices" style="display:none;"></div>
     <div class="numpad" id="numpad">
       <div class="key" data-k="1">1</div>
       <div class="key" data-k="2">2</div>
@@ -5384,7 +5391,7 @@
       </span>
       <span class="label">Missionen</span>
     </button>
-    <!-- BETA-LEKTIONEN: Lektionen-Tab -->
+    <!-- LEKTIONEN-SYSTEM: Lektionen-Tab -->
     <button class="nav-item" id="navLessons" style="display:none;">
       <svg class="nova-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19.5A2 2 0 0 0 6 21.5h13"/><path d="M9 7h6"/></svg>
       <span class="icon-wrap"><span class="icon">📚</span></span>
@@ -6064,7 +6071,7 @@
 
   <!-- Spieler-Ziel gewonnen (NEU): große Anzeige, die von selbst wieder
        verschwindet, statt nur eines kleinen Toasts. -->
-  <!-- BETA-LEKTIONEN: Tutorial-Frage & Tutorial -->
+  <!-- LEKTIONEN-SYSTEM: Tutorial-Frage & Tutorial -->
   <div class="overlay" id="overlayLxStart">
     <div class="modal-card" id="lxStartCard" style="max-width:340px; text-align:center;">
       <button id="lxStartClose" class="inbox-x" aria-label="Schließen">✕</button>
@@ -6204,7 +6211,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.65";
+  const APP_VERSION = "3.66";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6452,8 +6459,7 @@
     betaLessonBackground: false, // Beta-Einstellung: dezentes Hintergrundbild in Lektionen (braucht betaCleanLessons)
     betaLessonBackgroundKeyboard: false, // Beta-Einstellung: cleanes Bild ueber der Tastatur statt Vollbild (braucht betaCleanLessons)
     betaButtonParticles: false,
-    betaLessonsTab: false, // BETA-LEKTIONEN: neuer Lektionen-Tab
-    lessonTopics: {}, // BETA-LEKTIONEN: { linfun: { done, stars:{n:1-3}, tutorialSeen, chests:{10:{...}} } } // Beta-Einstellung: Partikel-Explosion beim Pruefen-Button vor der Aura-Animation
+    lessonTopics: {}, // LEKTIONEN-SYSTEM: { linfun: { done, stars:{n:1-3}, tutorialSeen, chests:{10:{...}} } } // Beta-Einstellung: Partikel-Explosion beim Pruefen-Button vor der Aura-Animation
     lessonsCompleted: 0,
     theme: "black",
     unlockedThemes: ["black"], // Freigeschaltete Designs
@@ -6730,11 +6736,18 @@
 
   /* AUTOMATISCHER SYNC ALLE 10 SEKUNDEN - aktualisiert dabei auch die
      "zuletzt aktiv"-Zeit für den Online-Punkt bei Freunden. */
-  const ONLINE_THRESHOLD_MS = 30 * 1000; // 30 Sekunden (passt besser zum 10-Sekunden-Heartbeat)
+  // Bugfix (Lesevorgänge): lastActiveAt wird nur noch 1x pro Minute
+  // aktualisiert statt alle 10 s - jede Änderung am Nutzer-Dokument löst bei
+  // allen Freunden, die es live beobachten, einen Lesevorgang aus.
+  const ONLINE_THRESHOLD_MS = 150 * 1000; // 2,5 Min (passt zum 60-Sekunden-Online-Update)
+  const LAST_ACTIVE_UPDATE_MS = 60 * 1000;
   let currentFriendProfileUid = null; // für das periodische Online-Punkt-Update im offenen Freundes-Profil
   setInterval(() => {
     if(firebaseInitialized && currentUser && cloudSyncReady){
-      profile.lastActiveAt = Date.now();
+      if(document.hidden) return; // im Hintergrund weder Zeit zählen noch schreiben
+      if(!profile.lastActiveAt || Date.now() - profile.lastActiveAt >= LAST_ACTIVE_UPDATE_MS - 1000){
+        profile.lastActiveAt = Date.now();
+      }
       // Tägliche Nutzungszeit (NEU): zählt in 10-Sekunden-Schritten mit,
       // solange die App offen/aktiv ist - setzt sich an einem neuen Tag
       // automatisch zurück.
@@ -6758,7 +6771,7 @@
   // (Etwas seltener als vorher, da ein Rangliste-Refresh bis zu 50
   // Lesevorgänge auf einmal macht - siehe Kontingent-Bugfixes oben.)
   setInterval(() => {
-    if(!firebaseInitialized || !currentUser) return;
+    if(!firebaseInitialized || !currentUser || document.hidden) return;
     if(screens.leaderboard && screens.leaderboard.classList.contains("active")){
       renderLeaderboard();
     }
@@ -6768,14 +6781,14 @@
     if($("overlayFriendProfile") && $("overlayFriendProfile").classList.contains("show") && currentFriendProfileUid){
       fetchUserDoc(currentFriendProfileUid).then(u => { if(u) renderFriendProfileCard(u, false); });
     }
-  }, 30000);
+  }, 60000); // war 30 s
 
   // Regelmäßig auf eine neue Vollbild-Ankündigung prüfen (NEU) - vorher
   // wurde nur beim Einloggen/Wiederöffnen geprüft. Wer die App einfach
   // offen lässt (auch der Owner selbst nach dem Senden), hätte eine neue
   // Ankündigung sonst nie zu Gesicht bekommen, ohne die App neu zu starten.
   setInterval(() => {
-    if(firebaseInitialized && currentUser && cloudSyncReady){
+    if(firebaseInitialized && currentUser && cloudSyncReady && !document.hidden){
       checkForAnnouncement();
     }
   }, 60000);
@@ -6788,7 +6801,7 @@
   // Lesevorgänge) verbraucht. Jetzt alle 60 Sekunden - immer noch zeitnah
   // genug für einen Update-Hinweis, aber 12x weniger Kontingent-Verbrauch.
   setInterval(() => {
-    if(firebaseInitialized && currentUser && cloudSyncReady){
+    if(firebaseInitialized && currentUser && cloudSyncReady && !document.hidden){
       checkForNewerVersion();
     }
   }, 60000);
@@ -6796,7 +6809,7 @@
   // Live-Erkennung neu online gegangener Freunde: deutlich seltener als
   // vorher (siehe Kontingent-Bugfix oben bei checkForNewlyOnlineFriends).
   setInterval(() => {
-    if(firebaseInitialized && currentUser && cloudSyncReady){
+    if(firebaseInitialized && currentUser && cloudSyncReady && !document.hidden){
       checkForNewlyOnlineFriends();
     }
   }, 90000);
@@ -6812,6 +6825,7 @@
   }
 
   let earthLiveAllUsers = [];
+  let earthLiveLastFetchAt = 0;
   let earthLiveActiveTab = "all";
 
   async function openEarthLive(){
@@ -6828,8 +6842,12 @@
       return;
     }
     try{
-      const snap = await db().collection("users").get();
-      earthLiveAllUsers = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => u.username);
+      // Bugfix (Lesevorgänge): liest ALLE Nutzer - darum höchstens alle 2 Min neu.
+      if(!earthLiveLastFetchAt || Date.now() - earthLiveLastFetchAt > 120000){
+        const snap = await db().collection("users").get();
+        earthLiveAllUsers = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => u.username);
+        earthLiveLastFetchAt = Date.now();
+      }
       const online = earthLiveAllUsers.filter(u => isOnline(u)).length;
       $("earthLiveOnlineNum").textContent = online;
       $("earthLiveTotalNum").textContent = earthLiveAllUsers.length;
@@ -7728,8 +7746,13 @@
 
   // Gemeinsamer Zähl-Helfer (NEU): liest die komplette users-Sammlung
   // einmalig (wie bei EarthLive) und zählt je nach gewählter Metrik.
+  // KRITISCHER BUGFIX (2,4 Mio. Lesevorgänge an einem Tag): vorher wurde
+  // hier die KOMPLETTE users-Sammlung gelesen - und das bei einem aktiven
+  // Spieler-Ziel auf JEDEM offenen Gerät alle 15 Sekunden (150 Nutzer x
+  // 15 online x 240 Prüfungen/Std = ~540.000 Lesevorgänge pro Stunde).
+  // Jetzt werden nur Nutzer gelesen, die gerade wirklich online sind.
   async function fetchLiveCount(metric){
-    const snap = await db().collection("users").get();
+    const snap = await db().collection("users").where("lastActiveAt", ">", Date.now() - ONLINE_THRESHOLD_MS).get();
     const users = snap.docs.map(d => d.data());
     if(metric === "inLesson"){
       return users.filter(u => isInLesson(u)).length;
@@ -7841,6 +7864,18 @@
   }
 
   async function checkPlayerGoalProgress(goalId, data){
+    // Bugfix: nach Ablauf lief die Prüfung weiter, solange die App offen war.
+    if(!data.expiresAt || data.expiresAt < Date.now()){
+      if(playerGoalCheckInterval){ clearInterval(playerGoalCheckInterval); playerGoalCheckInterval = null; }
+      $("playerGoalWidget").style.display = "none";
+      return;
+    }
+    if(document.hidden) return; // App im Hintergrund: keine Abfragen
+    // Schon abgeholt: nicht mehr weiter abfragen
+    if((profile.claimedPlayerGoalIds || []).includes(goalId)){
+      if(playerGoalCheckInterval){ clearInterval(playerGoalCheckInterval); playerGoalCheckInterval = null; }
+      return;
+    }
     try{
       const current = await fetchLiveCount(data.metric);
       const pct = Math.min(100, Math.round((current / data.targetCount) * 100));
@@ -7867,9 +7902,11 @@
   // Live-Beobachtung (NEU): sobald der Owner ein Ziel setzt, sehen alle
   // gerade geöffneten Apps es fast sofort, ohne selbst aktiv nachfragen zu
   // müssen.
+  let playerGoalUnsub = null;
   function watchPlayerGoal(){
     if(!firebaseInitialized || !currentUser) return;
-    db().collection("playerGoal").doc("current").onSnapshot((doc) => {
+    if(playerGoalUnsub){ playerGoalUnsub(); playerGoalUnsub = null; } // nie doppelt beobachten
+    playerGoalUnsub = db().collection("playerGoal").doc("current").onSnapshot((doc) => {
       if(playerGoalCountdownInterval){ clearInterval(playerGoalCountdownInterval); playerGoalCountdownInterval = null; }
       if(playerGoalCheckInterval){ clearInterval(playerGoalCheckInterval); playerGoalCheckInterval = null; }
       if(!doc.exists || !doc.data().expiresAt || doc.data().expiresAt < Date.now()){
@@ -7893,7 +7930,7 @@
       // sobald jemand wirklich erfolgreich einlädt.
       if(data.targetCount && data.metric !== "invite"){
         checkPlayerGoalProgress(goalId, data);
-        playerGoalCheckInterval = setInterval(() => checkPlayerGoalProgress(goalId, data), 15000);
+        playerGoalCheckInterval = setInterval(() => checkPlayerGoalProgress(goalId, data), 60000); // war 15 s
       }
     }, (err) => console.error("Spieler-Ziel beobachten Fehler:", err));
   }
@@ -10777,7 +10814,7 @@
   // Liefert die Truhen-Referenz für eine Mission ODER ein Achievement, je nach
   // Quelle - so nutzen beide dieselbe Tap/Upgrade/Abholen-Logik.
   function getChestRef(sourceType, sourceId){
-    if(sourceType === "topic") return lxChestRef(sourceId); // BETA-LEKTIONEN
+    if(sourceType === "topic") return lxChestRef(sourceId); // LEKTIONEN-SYSTEM
     if(sourceType === "mission"){
       ensureDailyMissions();
       return profile.dailyMissions.chests[sourceId];
@@ -10813,7 +10850,7 @@
     if(!chest) return;
     activeChestSource = { type: sourceType, id: sourceId };
     let title = "Truhe";
-    if(sourceType === "topic"){ // BETA-LEKTIONEN
+    if(sourceType === "topic"){ // LEKTIONEN-SYSTEM
       title = lxChestTitle(sourceId);
     } else if(sourceType === "mission"){
       const def = ALL_MISSION_DEFS.find(m => m.id === sourceId);
@@ -11377,7 +11414,7 @@
   }
 
   function closeChestModal(){
-    setTimeout(() => { if(screens.lessons && screens.lessons.classList.contains("active") && typeof renderLessonsScreen === "function") renderLessonsScreen(); }, 0); // BETA-LEKTIONEN
+    setTimeout(() => { if(screens.lessons && screens.lessons.classList.contains("active") && typeof renderLessonsScreen === "function") renderLessonsScreen(); }, 0); // LEKTIONEN-SYSTEM
     $("overlayChest").classList.remove("show");
     activeChestSource = null;
     renderMissions();
@@ -13466,9 +13503,9 @@
     profile: $("screen-profile"), leaderboard: $("screen-leaderboard"), missions: $("screen-missions"),
     trends: $("screen-trends"), duellobby: $("screen-duellobby"), duelresults: $("screen-duelresults"),
     modpanel: $("screen-modpanel"),
-    lessons: $("screen-lessons") // BETA-LEKTIONEN
+    lessons: $("screen-lessons") // LEKTIONEN-SYSTEM
   };
-  const NAV_SCREENS = ["home", "shop", "leaderboard", "missions", "profile", "trends", "lessons"]; // "lessons" = BETA-LEKTIONEN
+  const NAV_SCREENS = ["home", "shop", "leaderboard", "missions", "profile", "trends", "lessons"]; // "lessons" = LEKTIONEN-SYSTEM
 
   // Flugmodus-/Offline-Erkennung (NEU): verhindert, dass jemand offline zu
   // Sachen wie dem Shop oder Aura spenden navigiert, wo sich der lokale
@@ -13507,7 +13544,7 @@
     screens[name].classList.add("active");
     document.body.classList.toggle("nova-home-active", name === "home");
     if(name === "result" && typeof animateResultScreen === "function") animateResultScreen();
-    if(name === "lesson") screens.lesson.classList.toggle("lx-topic-lesson", !!(lesson && lesson.topicId)); // BETA-LEKTIONEN
+    if(name === "lesson") screens.lesson.classList.toggle("lx-topic-lesson", !!(lesson && lesson.topicId)); // LEKTIONEN-SYSTEM
 
     // Neue Lektionen / Lektions-Hintergrund (NEU, Beta-Einstellungen)
     if(name === "lesson"){
@@ -13548,7 +13585,7 @@
       $("navTrends").classList.toggle("active", name === "trends");
       $("navMissions").classList.toggle("active", name === "missions");
       $("navProfile").classList.toggle("active", name === "profile");
-      if(typeof lxApplyNav === "function") lxApplyNav(name); // BETA-LEKTIONEN
+      if(typeof lxApplyNav === "function") lxApplyNav(name); // LEKTIONEN-SYSTEM
     } else {
       nav.style.display = "none";
     }
@@ -14190,7 +14227,7 @@
   function applyTheme(){
     document.body.classList.toggle("layout-beta", profile.layoutStyle === "clean");
     document.body.classList.toggle("layout-nova", profile.layoutStyle === "nova");
-    if(typeof lxApplyBeta === "function") lxApplyBeta(); // BETA-LEKTIONEN
+    if(typeof lxApplyBeta === "function") lxApplyBeta(); // LEKTIONEN-SYSTEM
     // Absicherung: falls ein Konto noch auf das entfernte Custom-Theme
     // eingestellt war, sauber auf Black zurückfallen statt unstyled zu bleiben.
     if(profile.theme === "custom"){
@@ -15613,9 +15650,11 @@
       // Automatische Aktualisierung (NEU): läuft alle 10 Sekunden von
       // selbst, solange das Fenster offen ist - kein manuelles Klicken
       // auf "Aktualisieren" mehr nötig.
+      if(playerGoalOwnerAutoRefreshInterval) clearInterval(playerGoalOwnerAutoRefreshInterval);
       playerGoalOwnerAutoRefreshInterval = setInterval(() => {
+        if(document.hidden) return;
         if(playerGoalOwnerModalMetric !== "invite") refreshPlayerGoalOwnerLiveCount();
-      }, 10000);
+      }, 30000); // war 10 s
     });
   });
   $("playerGoalRefreshBtn").addEventListener("click", refreshPlayerGoalOwnerLiveCount);
@@ -16102,7 +16141,6 @@
     $("betaLessonBgSwitch").classList.toggle("on", !!profile.betaLessonBackground);
     $("betaLessonBgKeyboardSwitch").classList.toggle("on", !!profile.betaLessonBackgroundKeyboard);
     $("betaButtonParticlesSwitch").classList.toggle("on", !!profile.betaButtonParticles);
-    $("betaLessonsTabSwitch").classList.toggle("on", !!profile.betaLessonsTab); // BETA-LEKTIONEN
     // Bugfix (doppeltes Scrollen): der Hintergrund-Bildschirm hat selbst
     // ein eigenes overflow-y:auto - ohne diese Sperre konnte man sowohl im
     // Menü ALS AUCH im Bildschirm dahinter gleichzeitig scrollen, was sich
@@ -17638,7 +17676,7 @@
     Object.entries(profile.redeemedCodeChests || {}).forEach(([id, c]) => add(c, "redeemcode", id, "🎁", "Einlöse-Code"));
     const inviteLbl = { rank2a:"Invite Platz 2", rank2b:"Invite Platz 2", rank3:"Invite Platz 3" };
     ["rank2a","rank2b","rank3"].forEach(k => add((profile.inviteChests || {})[k], "invite", k, "🏆", inviteLbl[k]));
-    // BETA-LEKTIONEN: Truhen aus dem Lernpfad
+    // LEKTIONEN-SYSTEM: Truhen aus dem Lernpfad
     Object.entries(profile.lessonTopics || {}).forEach(([tid, st]) => Object.entries((st && st.chests) || {}).forEach(([n, c]) => add(c, "topic", `${tid}:${n}`, "📚", "Lernpfad · " + n + " Lektionen")));
     return out;
   }
@@ -17765,9 +17803,9 @@
   }
 
 
-  /* ===================== BETA-LEKTIONEN START (JS) =====================
+  /* ===================== LEKTIONEN-SYSTEM START (JS) =====================
      Neuer "Lektionen"-Tab (Beta-Einstellung). Zum Entfernen: alle
-     BETA-LEKTIONEN-Blöcke löschen. */
+     LEKTIONEN-SYSTEM-Blöcke löschen. */
   const LX_LESSONS_PER_TOPIC = 30;
   const LX_CHEST_AT = { 10: "rare", 20: "epic", 30: "legendary" };
   const LX_SECTIONS = ["Einstieg", "Fortgeschritten", "Profi"];
@@ -17875,7 +17913,7 @@
     const questions = [];
     let guard = 0;
     while(questions.length < QUESTIONS_PER_LESSON && guard++ < 200){
-      const q = LX_GEN[topicId](level);
+      const q = (Math.random() < 0.4 && LX_GEN_VISUAL[topicId]) ? LX_GEN_VISUAL[topicId](level) : LX_GEN[topicId](level);
       if(!Number.isInteger(q.answer)) continue;
       if(questions.length && questions[questions.length - 1].text === q.text) continue;
       questions.push(q);
@@ -17987,6 +18025,15 @@
 
   function lxOpenTopic(topicId){
     const t = lxTopic(topicId);
+    const st = lxState(topicId);
+    // Nur beim ersten Mal fragen: hat man schon eine Lektion gemacht oder
+    // das Tutorial gesehen, geht es direkt in den Pfad (📖 oben rechts
+    // öffnet das Tutorial jederzeit).
+    if(st.done > 0 || st.tutorialSeen){
+      lxCurrentTopic = topicId;
+      renderLessonsScreen();
+      return;
+    }
     $("lxStartTitle").textContent = `${t.icon} ${t.name}`;
     $("lxStartCard").style.setProperty("--lx-c", t.color);
     $("overlayLxStart").dataset.topic = topicId;
@@ -18063,7 +18110,7 @@
 
   /* ---------- Leiste & Beta-Schalter ---------- */
   function lxApplyBeta(){
-    const on = !!(profile && profile.betaLessonsTab);
+    const on = true; // Lektionen-System ist jetzt offiziell (keine Beta-Einstellung mehr)
     document.body.classList.toggle("beta-lessons-tab", on);
     const lbl = $("navMissions") && $("navMissions").querySelector(".label");
     if(lbl) lbl.textContent = on ? "Aufgaben" : "Missionen";
@@ -18072,7 +18119,6 @@
     }catch(e){ /* beim App-Start evtl. noch nicht bereit */ }
   }
   function lxApplyNav(name){
-    if(!profile.betaLessonsTab) return;
     $("navMissions").classList.toggle("active", name === "missions" || name === "trends");
     $("navLessons").classList.toggle("active", name === "lessons");
     $("navTrends").classList.remove("active");
@@ -18088,13 +18134,6 @@
   });
   ["tmSwitchMissions1","tmSwitchMissions2"].forEach(id => $(id).addEventListener("click", () => { showScreen("missions"); renderMissions(); }));
   ["tmSwitchTrends1","tmSwitchTrends2"].forEach(id => $(id).addEventListener("click", () => { showScreen("trends"); renderTrends(); }));
-  $("betaLessonsTabSwitch").addEventListener("click", () => {
-    profile.betaLessonsTab = !profile.betaLessonsTab;
-    saveProfile();
-    $("betaLessonsTabSwitch").classList.toggle("on", !!profile.betaLessonsTab);
-    lxApplyBeta();
-    showToast(profile.betaLessonsTab ? "📚 Lektionen-Tab ist jetzt in der Leiste!" : "Lektionen-Tab ausgeblendet.");
-  });
   $("lxStartTutorialBtn").addEventListener("click", () => {
     const id = $("overlayLxStart").dataset.topic;
     $("overlayLxStart").classList.remove("show");
@@ -18115,7 +18154,155 @@
   });
   $("lxTutClose").addEventListener("click", () => lxFinishTutorial());
   lxApplyBeta();
-  /* ===================== BETA-LEKTIONEN ENDE (JS) ===================== */
+  /* ===================== LEKTIONEN-SYSTEM ENDE (JS) ===================== */
+
+
+  /* ===== LEKTIONEN-SYSTEM: Grafiken & andere Eingabearten =====
+     Aufgaben können jetzt eine Grafik (q.svg) und/oder Auswahl-Antworten
+     (q.choices, Lösung = Index) haben. Bei Auswahl-Antworten wird statt der
+     Zahlen-Tastatur ein Raster mit Antwort-Knöpfen angezeigt. */
+  const LXS = { acc: "fill:var(--accent)", accS: "stroke:var(--accent)", txt: "fill:currentColor", line: "stroke:currentColor" };
+  function lxSvg(inner, w = 220, h = 130){ return `<svg viewBox="0 0 ${w} ${h}" aria-hidden="true">${inner}</svg>`; }
+  function lxLabel(x, y, t, anchor = "middle"){ return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="14" font-weight="800" style="${LXS.txt}">${t}</text>`; }
+  function lxShuffleChoices(correct, wrongs){
+    const all = [correct, ...wrongs.filter((w, i, a) => w !== correct && a.indexOf(w) === i)].slice(0, 4);
+    for(let i = all.length - 1; i > 0; i--){ const j = randInt(0, i); [all[i], all[j]] = [all[j], all[i]]; }
+    return { choices: all, answer: all.indexOf(correct), answerLabel: correct };
+  }
+  // --- Grafik-Bausteine ---
+  function lxRectSvg(a, b, la, lb){
+    const s = Math.min(130 / a, 90 / b), w = a * s, h = b * s, x = (220 - w) / 2 - 14, y = (120 - h) / 2 + 4; // Platz rechts für die Beschriftung
+    return lxSvg(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" style="${LXS.acc};fill-opacity:.22;${LXS.accS};stroke-width:3"/>
+      ${lxLabel(x + w / 2, y - 6, la)}${lxLabel(x + w + 8, y + h / 2 + 5, lb, "start")}`);
+  }
+  function lxTriangleSvg(g, h, lg, lh){
+    const s = Math.min(160 / g, 88 / h), W = g * s, H = h * s, x0 = (220 - W) / 2, yb = 118, apexX = x0 + W * 0.35;
+    return lxSvg(`<polygon points="${x0},${yb} ${x0 + W},${yb} ${apexX},${yb - H}" style="${LXS.acc};fill-opacity:.22;${LXS.accS};stroke-width:3;stroke-linejoin:round"/>
+      <line x1="${apexX}" y1="${yb - H}" x2="${apexX}" y2="${yb}" style="${LXS.line};stroke-width:2;stroke-dasharray:5 4;opacity:.7"/>
+      ${lxLabel(x0 + W / 2 + 14, yb - 4, lg)}${lxLabel(apexX + 8, yb - H / 2, lh, "start")}`);
+  }
+  function lxCuboidSvg(a, b, c, la, lb, lc){
+    const k = Math.min(90 / (a + b * 0.5), 70 / (c + b * 0.5)), W = a * k, D = b * k * 0.5, H = c * k;
+    const x = (220 - W - D) / 2, y = 12 + D;
+    const f = `style="${LXS.acc};fill-opacity:.2;${LXS.accS};stroke-width:2.5;stroke-linejoin:round"`;
+    return lxSvg(`<polygon ${f} points="${x},${y} ${x + W},${y} ${x + W},${y + H} ${x},${y + H}"/>
+      <polygon ${f} points="${x},${y} ${x + D},${y - D} ${x + W + D},${y - D} ${x + W},${y}"/>
+      <polygon ${f} points="${x + W},${y} ${x + W + D},${y - D} ${x + W + D},${y + H - D} ${x + W},${y + H}"/>
+      ${lxLabel(x + W / 2, y + H + 16, la)}${lxLabel(x + W + D / 2 + 10, y + H - D / 2 + 4, lb, "start")}${lxLabel(x - 6, y + H / 2 + 5, lc, "end")}`);
+  }
+  function lxGraphSvg(m, b){
+    const X = v => 110 + v * 13, Y = v => 65 - v * 11;
+    let grid = "";
+    for(let i = -8; i <= 8; i++) grid += `<line x1="${X(i)}" y1="0" x2="${X(i)}" y2="130" style="${LXS.line};opacity:.1"/>`;
+    for(let i = -5; i <= 5; i++) grid += `<line x1="0" y1="${Y(i)}" x2="220" y2="${Y(i)}" style="${LXS.line};opacity:.1"/>`;
+    const pts = [];
+    for(let x = -8; x <= 8; x++){ const y = m * x + b; if(y >= -5 && y <= 5) pts.push([x, y]); }
+    const [p1, p2] = [pts[0], pts[pts.length - 1]];
+    const dots = pts.map(([x, y]) => `<circle cx="${X(x)}" cy="${Y(y)}" r="2.6" style="${LXS.acc}"/>`).join("");
+    return lxSvg(`${grid}<line x1="0" y1="${Y(0)}" x2="220" y2="${Y(0)}" style="${LXS.line};opacity:.6;stroke-width:1.5"/>
+      <line x1="${X(0)}" y1="0" x2="${X(0)}" y2="130" style="${LXS.line};opacity:.6;stroke-width:1.5"/>
+      ${p1 && p2 ? `<line x1="${X(p1[0])}" y1="${Y(p1[1])}" x2="${X(p2[0])}" y2="${Y(p2[1])}" style="${LXS.accS};stroke-width:3.5;stroke-linecap:round"/>` : ""}${dots}
+      ${lxLabel(X(8) - 4, Y(0) - 5, "x", "end")}${lxLabel(X(0) + 6, 13, "y", "start")}`);
+  }
+  function lxGridSvg(n){
+    let cells = "";
+    for(let i = 0; i < 100; i++){
+      const r = Math.floor(i / 10), c = i % 10;
+      cells += `<rect x="${60 + c * 10}" y="${14 + r * 10}" width="9" height="9" rx="1.5" style="${i < n ? LXS.acc : LXS.txt + ";opacity:.13"}"/>`;
+    }
+    return lxSvg(cells);
+  }
+  function lxPieSvg(pct){
+    const a = pct / 100 * Math.PI * 2, cx = 110, cy = 65, r = 52;
+    const x = cx + r * Math.sin(a), y = cy - r * Math.cos(a);
+    const slice = pct >= 100 ? `<circle cx="${cx}" cy="${cy}" r="${r}" style="${LXS.acc}"/>` :
+      `<path d="M${cx},${cy} L${cx},${cy - r} A${r},${r} 0 ${pct > 50 ? 1 : 0},1 ${x},${y} Z" style="${LXS.acc}"/>`;
+    return lxSvg(`<circle cx="${cx}" cy="${cy}" r="${r}" style="${LXS.txt};opacity:.13"/>${slice}`);
+  }
+  function lxBalanceSvg(left, right){
+    return lxSvg(`<line x1="110" y1="30" x2="110" y2="118" style="${LXS.line};stroke-width:3;opacity:.6"/>
+      <polygon points="92,122 128,122 110,108" style="${LXS.txt};opacity:.5"/>
+      <line x1="30" y1="30" x2="190" y2="30" style="${LXS.line};stroke-width:3;opacity:.7"/>
+      <line x1="45" y1="30" x2="35" y2="62" style="${LXS.line};opacity:.5"/><line x1="45" y1="30" x2="75" y2="62" style="${LXS.line};opacity:.5"/>
+      <line x1="175" y1="30" x2="145" y2="62" style="${LXS.line};opacity:.5"/><line x1="175" y1="30" x2="185" y2="62" style="${LXS.line};opacity:.5"/>
+      <rect x="18" y="62" width="74" height="30" rx="10" style="${LXS.acc};fill-opacity:.25;${LXS.accS};stroke-width:2"/>
+      <rect x="128" y="62" width="74" height="30" rx="10" style="${LXS.acc};fill-opacity:.25;${LXS.accS};stroke-width:2"/>
+      ${lxLabel(55, 82, left)}${lxLabel(165, 82, right)}`);
+  }
+
+  // --- Aufgaben mit Grafik / Auswahl pro Thema ---
+  const LX_GEN_VISUAL = {
+    geometry(level){
+      const a = randInt(2, 10), b = randInt(2, 8);
+      if(level === 1){
+        if(randInt(0, 1)) return { text: "Wie groß ist die Fläche? (cm²)", svg: lxRectSvg(a, b, a + " cm", b + " cm"), answer: a * b };
+        return { text: "Wie groß ist die Fläche? (cm²)", svg: lxRectSvg(a, a, a + " cm", a + " cm"), answer: a * a };
+      }
+      if(level === 2){
+        const r = randInt(0, 2);
+        if(r === 0) return { text: "Wie groß ist der Umfang? (cm)", svg: lxRectSvg(a, b, a + " cm", b + " cm"), answer: 2 * (a + b) };
+        const g = 2 * randInt(2, 8), h = randInt(2, 8);
+        if(r === 1) return { text: "Wie groß ist die Fläche des Dreiecks? (cm²)", svg: lxTriangleSvg(g, h, "g = " + g, "h = " + h), answer: g * h / 2 };
+        const correct = "g · h : 2";
+        return { text: "Welche Formel gilt für die Dreiecksfläche?", svg: lxTriangleSvg(g, h, "g", "h"), ...lxShuffleChoices(correct, ["g · h", "g + h", "2 · (g + h)"]) };
+      }
+      const c = randInt(2, 6);
+      if(randInt(0, 1)) return { text: "Wie groß ist das Volumen? (cm³)", svg: lxCuboidSvg(a, b, c, a + " cm", b + " cm", c + " cm"), answer: a * b * c };
+      return { text: `Fläche = ${a * b} cm². Wie lang ist die fehlende Seite? (cm)`, svg: lxRectSvg(a, b, a + " cm", "?"), answer: b };
+    },
+    linfun(level){
+      const m = level === 1 ? randInt(1, 2) : lxNz(-2, 2), b = randInt(-3, 3);
+      const r = randInt(0, 2);
+      if(r === 0) return { text: "Lies die Steigung m am Graphen ab.", svg: lxGraphSvg(m, b), answer: m };
+      if(r === 1) return { text: "Wo schneidet die Gerade die y-Achse? (b = ?)", svg: lxGraphSvg(m, b), answer: b };
+      const correct = "f(x) = " + lxLin(m, b);
+      const wrongs = ["f(x) = " + lxLin(-m, b), "f(x) = " + lxLin(m, -b || b + 2), "f(x) = " + lxLin(m + (m > 0 ? 1 : -1), b), "f(x) = " + lxLin(-m, -b || 1)];
+      return { text: "Welche Funktion gehört zum Graphen?", svg: lxGraphSvg(m, b), ...lxShuffleChoices(correct, wrongs) };
+    },
+    percent(level){
+      if(level === 1 || randInt(0, 1)){
+        const n = level === 1 ? 10 * randInt(1, 9) : randInt(5, 95);
+        return { text: "Wie viel Prozent sind gefärbt?", svg: lxGridSvg(n), answer: n };
+      }
+      const pct = [25, 50, 75, 10][randInt(0, 3)];
+      return { text: "Welcher Anteil ist gefärbt?", svg: lxPieSvg(pct), ...lxShuffleChoices(pct + " %", ["25 %", "50 %", "75 %", "10 %", "90 %"]) };
+    },
+    algebra(level){
+      const x = randInt(1, 9), a = level === 1 ? 1 : randInt(2, 4), b = randInt(1, 9);
+      if(randInt(0, 1)){
+        const left = (a === 1 ? "x" : a + "x") + " + " + b;
+        return { text: "Die Waage ist im Gleichgewicht. x = ?", svg: lxBalanceSvg(left, String(a * x + b)), answer: x };
+      }
+      const correct = `auf beiden Seiten ${M} ${b}`;
+      return { text: `Erster Schritt für ${a === 1 ? "x" : a + "x"} + ${b} = ${a * x + b}?`, ...lxShuffleChoices(correct, [`auf beiden Seiten + ${b}`, `nur links ${M} ${b}`, `auf beiden Seiten · ${b}`]) };
+    }
+  };
+
+  // Blendet Grafik / Auswahl-Knöpfe passend zur aktuellen Aufgabe ein
+  function lxRenderQuestionExtras(q){
+    const vis = $("qVisual"), ch = $("lxChoices");
+    if(!vis || !ch) return;
+    if(q && q.svg){ vis.innerHTML = q.svg; vis.style.display = "block"; } else { vis.innerHTML = ""; vis.style.display = "none"; }
+    const useChoices = !!(q && q.choices);
+    ch.style.display = useChoices ? "grid" : "none";
+    $("numpad").style.display = useChoices ? "none" : "";
+    $("answerDisplay").style.display = useChoices ? "none" : "";
+    $("submitBtn").style.display = useChoices ? "none" : "";
+    if(!useChoices){ ch.innerHTML = ""; return; }
+    ch.innerHTML = q.choices.map((c, i) => `<button class="lx-choice" data-i="${i}">${c}</button>`).join("");
+    ch.querySelectorAll(".lx-choice").forEach(btn => btn.addEventListener("click", () => {
+      if(!lesson || lesson.locked) return;
+      triggerHaptic(10);
+      lesson.answer = btn.dataset.i;
+      const chosen = parseInt(btn.dataset.i, 10);
+      ch.querySelectorAll(".lx-choice").forEach((b, i) => {
+        b.disabled = true;
+        if(i === q.answer) b.classList.add("right");
+        else if(i === chosen) b.classList.add("wrong");
+      });
+      triggerAnswer(false);
+    }));
+  }
 
   $("backHomeFromLocked").addEventListener("click", () => {
     clearInterval(lockedInterval);
@@ -18274,6 +18461,7 @@
     const q = lesson.questions[lesson.index];
     $("qTier").textContent = lesson.tier.name;
     $("qText").textContent = q.text;
+    if(typeof lxRenderQuestionExtras === "function") lxRenderQuestionExtras(q); // LEKTIONEN-SYSTEM: Grafik / Auswahl
     $("progressFill").style.width = (lesson.index / QUESTIONS_PER_LESSON * 100) + "%";
     renderHearts($("lessonHearts"), profile.lives);
     updateAnswerDisplay();
@@ -18577,7 +18765,9 @@
       // Löst die Frage auf (zeigt die richtige Antwort), damit man daraus
       // lernen kann - aber die nächste Frage ist eine ANDERE (nicht dieselbe
       // nochmal) und der Fortschritt in der Lektion bleibt trotzdem stehen.
-      el.textContent = isTimeout ? `Zeit abgelaufen · richtig: ${q.answer}` : `${lesson.answer} · richtig: ${q.answer}`;
+      const rightLbl = q.answerLabel !== undefined ? q.answerLabel : q.answer;
+      const givenLbl = q.choices ? (q.choices[parseInt(lesson.answer, 10)] || "") : lesson.answer;
+      el.textContent = isTimeout ? `Zeit abgelaufen · richtig: ${rightLbl}` : `${givenLbl} · richtig: ${rightLbl}`;
       triggerHaptic([25, 40, 25]);
     }
     el.classList.remove("empty");
@@ -18843,7 +19033,7 @@
     let title, sub, emoji;
     lastLessonGainedProgress = false;
     let perfectBonus = 0;
-    if(typeof lxOnLessonFinished === "function") lxOnLessonFinished(passed); // BETA-LEKTIONEN
+    if(typeof lxOnLessonFinished === "function") lxOnLessonFinished(passed); // LEKTIONEN-SYSTEM
     if(passed){
       const pick = COMPLETE_LINES[randInt(0, COMPLETE_LINES.length-1)];
       title = pick.title; sub = pick.sub; emoji = pick.emoji;
@@ -19008,7 +19198,7 @@
   }
 
   $("resultContinue").addEventListener("click", () => {
-    // BETA-LEKTIONEN: nach einer Themen-Lektion zurück zum Lernpfad
+    // LEKTIONEN-SYSTEM: nach einer Themen-Lektion zurück zum Lernpfad
     if(typeof lxLastFinishedTopic !== "undefined" && lxLastFinishedTopic){
       lxCurrentTopic = lxLastFinishedTopic; lxLastFinishedTopic = null;
       showScreen("lessons"); renderLessonsScreen();

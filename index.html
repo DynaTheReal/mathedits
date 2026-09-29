@@ -2459,14 +2459,14 @@
   body.layout-nova #screen-home{
     padding:0 0 calc(env(safe-area-inset-bottom,0px) + 230px);
     background:
-      radial-gradient(130% 42% at 50% -6%, rgba(124,58,237,.55), transparent 62%),
-      radial-gradient(60% 30% at 100% 55%, rgba(124,58,237,.12), transparent 70%),
+      radial-gradient(130% 42% at 50% -6%, color-mix(in srgb, var(--accent) 55%, transparent), transparent 62%),
+      radial-gradient(60% 30% at 100% 55%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
       #07060b;
   }
   .nova-home{
     --nv-card:#15141b; --nv-card-hi:#1c1a24; --nv-line:rgba(255,255,255,.07);
-    --nv-text:#f5f3fa; --nv-muted:#8e8a9c; --nv-accent:#8b5cf6; --nv-accent-2:#b79cff;
-    --nv-accent-soft:rgba(139,92,246,.16); --nv-gold:#f5c451; --nv-glass:rgba(28,26,36,.8);
+    --nv-text:#f5f3fa; --nv-muted:#8e8a9c; --nv-accent:var(--accent); --nv-accent-2:color-mix(in srgb, var(--accent) 55%, #fff);
+    --nv-accent-soft:color-mix(in srgb, var(--accent) 16%, transparent); --nv-gold:#f5c451; --nv-glass:rgba(28,26,36,.8);
     position:relative; padding:0 18px; color:var(--nv-text);
     font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
   }
@@ -2491,7 +2491,7 @@
   .nv-top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px}
   .nova-home .nv-user{display:flex;align-items:center;gap:12px;min-width:0;text-align:left}
   .nv-avatar{width:52px;height:52px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-weight:800;font-size:20px;color:#fff;
-    background:linear-gradient(145deg,#7c3aed,#3b1d7a);box-shadow:0 0 0 2px rgba(255,255,255,.12),0 8px 24px rgba(124,58,237,.4)}
+    background:linear-gradient(145deg,color-mix(in srgb, var(--accent) 78%, #000),color-mix(in srgb, var(--accent) 40%, #000));box-shadow:0 0 0 2px rgba(255,255,255,.12),0 8px 24px color-mix(in srgb, var(--accent) 40%, transparent)}
   .nova-home .nv-greet{font-size:13px;color:var(--nv-muted)}
   .nv-name{font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .nv-top-right{display:flex;align-items:center;gap:8px}
@@ -2503,7 +2503,7 @@
   .nv-round svg{width:20px;height:20px}
   .nova-home .nv-card{background:var(--nv-card);border-radius:28px;border:1px solid var(--nv-line);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
   .nv-card.glow{position:relative}
-  .nv-card.glow::before{content:"";position:absolute;top:-1px;left:22%;right:22%;height:1px;background:linear-gradient(90deg,transparent,rgba(183,156,255,.9),transparent)}
+  .nv-card.glow::before{content:"";position:absolute;top:-1px;left:22%;right:22%;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb, color-mix(in srgb, var(--accent) 55%, #fff) 90%, transparent),transparent)}
   .nova-home .nv-level{display:flex;align-items:center;gap:16px;padding:16px 18px;margin-top:22px;width:100%;text-align:left}
   .nv-ring{--p:0;width:64px;height:64px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;
     background:conic-gradient(var(--nv-gold) calc(var(--p)*1%), rgba(255,255,255,.08) 0)}
@@ -2538,7 +2538,7 @@
   .nv-section-head h3{font-size:20px;font-weight:700}
   .nova-home .nv-link{font-size:14px;font-weight:600;color:var(--nv-accent-2)}
   .nv-bar{height:8px;border-radius:999px;background:#25232d;overflow:hidden}
-  .nv-bar > div{height:100%;border-radius:999px;min-width:8px;background:linear-gradient(90deg,#7c3aed,#c4b0ff);box-shadow:0 0 12px rgba(167,139,250,.6)}
+  .nv-bar > div{height:100%;border-radius:999px;min-width:8px;background:linear-gradient(90deg,color-mix(in srgb, var(--accent) 78%, #000),color-mix(in srgb, var(--accent) 55%, #fff));box-shadow:0 0 12px color-mix(in srgb, var(--accent) 60%, transparent)}
   .nv-scroll{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -18px;padding:2px 18px 4px;scrollbar-width:none}
   .nv-scroll::-webkit-scrollbar{display:none}
   .nova-home .nv-mission{flex:0 0 72%;scroll-snap-align:start;padding:16px 16px 18px;text-align:left}
@@ -2553,9 +2553,9 @@
   .nova-home .nv-mission .nv-sub{margin-bottom:12px}
   .nv-worlds{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   .nova-home .nv-world{padding:16px 10px 14px;text-align:center;border-radius:22px}
-  .nova-home .nv-world.selected{border-color:rgba(139,92,246,.8);box-shadow:0 0 18px rgba(139,92,246,.35)}
+  .nova-home .nv-world.selected{border-color:color-mix(in srgb, var(--accent) 80%, transparent);box-shadow:0 0 18px color-mix(in srgb, var(--accent) 35%, transparent)}
   .nova-home .nv-world.locked{opacity:.5}
-  .nv-world .w-ico{width:50px;height:50px;margin:0 auto;border-radius:50%;display:grid;place-items:center;font-size:23px;background:var(--nv-card-hi);border:1.5px solid rgba(139,92,246,.55)}
+  .nv-world .w-ico{width:50px;height:50px;margin:0 auto;border-radius:50%;display:grid;place-items:center;font-size:23px;background:var(--nv-card-hi);border:1.5px solid color-mix(in srgb, var(--accent) 55%, transparent)}
   .nv-world b{display:block;font-size:13px;font-weight:700;margin-top:10px;line-height:1.25}
   .nova-home .nv-world small{display:block;font-size:12px;color:var(--nv-muted);margin-top:3px}
   .nova-home .nv-world.more{display:grid;place-items:center;color:var(--nv-accent-2);font-weight:700;font-size:13px}
@@ -2569,17 +2569,17 @@
   }
   #novaDock .nv-continue{
     pointer-events:auto; width:100%; max-width:372px; padding:12px 12px 14px 14px; border-radius:26px; text-align:left;
-    background:rgba(28,26,36,.8); border:1px solid rgba(139,92,246,.35); color:#f5f3fa; cursor:pointer; font:inherit;
+    background:rgba(28,26,36,.8); border:1px solid color-mix(in srgb, var(--accent) 35%, transparent); color:#f5f3fa; cursor:pointer; font:inherit;
     backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
-    box-shadow:0 14px 34px rgba(0,0,0,.5),0 0 30px rgba(139,92,246,.18); transition:transform .15s;
+    box-shadow:0 14px 34px rgba(0,0,0,.5),0 0 30px color-mix(in srgb, var(--accent) 18%, transparent); transition:transform .15s;
   }
   #novaDock .nv-continue:active{transform:scale(.98)}
   #novaDock .c-row{display:flex;align-items:center;gap:12px}
-  #novaDock .topic-ico{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:22px;font-weight:800;background:rgba(139,92,246,.16);color:#b79cff;flex-shrink:0}
+  #novaDock .topic-ico{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:22px;font-weight:800;background:color-mix(in srgb, var(--accent) 16%, transparent);color:color-mix(in srgb, var(--accent) 55%, #fff);flex-shrink:0}
   #novaDock .c-txt{flex:1;min-width:0}
   #novaDock .c-txt small{display:block;font-size:12px;color:#8e8a9c}
   #novaDock .c-txt b{display:block;font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#f5f3fa}
-  #novaDock .c-play{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:#8b5cf6;color:#fff;box-shadow:0 6px 18px rgba(139,92,246,.55)}
+  #novaDock .c-play{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:var(--accent);color:var(--accent-text);box-shadow:0 6px 18px color-mix(in srgb, var(--accent) 55%, transparent)}
   #novaDock .c-play svg{width:19px;height:19px;fill:currentColor;stroke:none}
   #novaDock .c-prog{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:12px;color:#cfcbd9;font-weight:600}
   #novaDock .c-prog .nv-bar{flex:1;height:6px}
@@ -2603,7 +2603,7 @@
   body.layout-nova .nav-item .icon{ display:none; }
   body.layout-nova .nav-item .icon-wrap{ position:static; }
   body.layout-nova .nav-item .nova-ico{ display:block; width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
-  body.layout-nova .nav-item.active{ background:#8b5cf6; color:#fff; box-shadow:0 6px 20px rgba(139,92,246,.6); transform:translateY(-2px); }
+  body.layout-nova .nav-item.active{ background:var(--accent); color:var(--accent-text); box-shadow:0 6px 20px color-mix(in srgb, var(--accent) 60%, transparent); transform:translateY(-2px); }
   body.layout-nova .nav-item:active{ transform:scale(.92); }
   body.layout-nova .nav-item .nav-badge{ position:absolute; top:-2px; right:-2px; }
   @media (max-width:360px){ body.layout-nova .nav-item, .nova-home .nv-tools button{ width:44px; height:44px; } }
@@ -2620,19 +2620,24 @@
   body.layout-nova .app[data-theme]{
     --bg:#07060b; --bg-soft:#140d24; --card:#15141b; --card-2:#1c1a24;
     --border:rgba(255,255,255,.09); --text:#f5f3fa; --text-dim:#c9c5d6;
-    --accent:#8b5cf6; --accent-text:#ffffff; --accent-2:#b79cff;
     --shadow:0 24px 60px rgba(0,0,0,.6); --overlay-bg:rgba(7,6,11,.62);
     --radius-card:22px;
   }
+  /* Designs im Nova-Layout (NEU): die Akzentfarbe kommt jetzt vom gewählten
+     Design (Pink -> alles pink, Blau -> alles blau ...). Nur beim
+     Standard-Design (Schwarz) bleibt Nova in seinem typischen Violett. */
+  body.layout-nova{ --accent:#8b5cf6; --accent-text:#ffffff; }
+  body.layout-nova .app[data-theme="black"],
+  body.layout-nova .app[data-theme="dark"]{ --accent:#8b5cf6; --accent-text:#ffffff; --accent-2:#b79cff; }
   body.layout-nova{ background:#07060b; }
   body.layout-nova .app[data-theme]{
     background:
-      radial-gradient(130% 40% at 50% -8%, rgba(124,58,237,.42), transparent 62%),
-      radial-gradient(60% 30% at 100% 60%, rgba(124,58,237,.10), transparent 70%),
+      radial-gradient(130% 40% at 50% -8%, color-mix(in srgb, var(--accent) 42%, transparent), transparent 62%),
+      radial-gradient(60% 30% at 100% 60%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
       #07060b;
     background-image:
-      radial-gradient(130% 40% at 50% -8%, rgba(124,58,237,.42), transparent 62%),
-      radial-gradient(60% 30% at 100% 60%, rgba(124,58,237,.10), transparent 70%);
+      radial-gradient(130% 40% at 50% -8%, color-mix(in srgb, var(--accent) 42%, transparent), transparent 62%),
+      radial-gradient(60% 30% at 100% 60%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%);
     background-attachment:scroll;
   }
   body.layout-nova .app,
@@ -2652,7 +2657,7 @@
 
   /* --- Obere Leisten der Unterseiten --- */
   body.layout-nova .brand{ font-weight:800; }
-  body.layout-nova .brand .dot{ background:#8b5cf6; box-shadow:0 0 14px #8b5cf6; }
+  body.layout-nova .brand .dot{ background:var(--accent); box-shadow:0 0 14px var(--accent); }
   body.layout-nova .theme-toggle,
   body.layout-nova .exit-x{
     background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); border-radius:50%;
@@ -2672,21 +2677,21 @@
   }
   body.layout-nova .settings-row{ border-radius:20px; padding:15px 16px; }
   body.layout-nova .settings-row[style*="cursor:pointer"]:hover{
-    border-color:rgba(139,92,246,.5); background:#1a1824;
+    border-color:color-mix(in srgb, var(--accent) 50%, transparent); background:#1a1824;
   }
   body.layout-nova .stat-pill{ border-radius:22px; }
   body.layout-nova .lb-row{ border-radius:18px; }
-  body.layout-nova .lb-row.me{ border-color:rgba(139,92,246,.7); background:rgba(139,92,246,.10); box-shadow:0 0 0 1px rgba(139,92,246,.5) inset; }
+  body.layout-nova .lb-row.me{ border-color:color-mix(in srgb, var(--accent) 70%, transparent); background:color-mix(in srgb, var(--accent) 10%, transparent); box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent) inset; }
   body.layout-nova .difficulty-btn{ border-radius:16px; }
-  body.layout-nova .difficulty-btn.active{ border-color:#8b5cf6; box-shadow:0 0 0 1.5px #8b5cf6 inset, 0 0 18px rgba(139,92,246,.25); }
+  body.layout-nova .difficulty-btn.active{ border-color:var(--accent); box-shadow:0 0 0 1.5px var(--accent) inset, 0 0 18px color-mix(in srgb, var(--accent) 25%, transparent); }
 
   /* --- Buttons --- */
   body.layout-nova .btn-primary{
-    background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:#fff !important;
-    box-shadow:0 10px 26px -6px rgba(139,92,246,.6), inset 0 1px 0 rgba(255,255,255,.18);
+    background:linear-gradient(135deg,var(--accent),color-mix(in srgb, var(--accent) 78%, #000)); color:var(--accent-text) !important;
+    box-shadow:0 10px 26px -6px color-mix(in srgb, var(--accent) 60%, transparent), inset 0 1px 0 rgba(255,255,255,.18);
     border-radius:18px;
   }
-  body.layout-nova .btn-primary:active{ transform:scale(.97); box-shadow:0 4px 14px -4px rgba(139,92,246,.6); }
+  body.layout-nova .btn-primary:active{ transform:scale(.97); box-shadow:0 4px 14px -4px color-mix(in srgb, var(--accent) 60%, transparent); }
   body.layout-nova .btn-ghost{
     background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10); border-radius:18px;
   }
@@ -2701,10 +2706,10 @@
   }
   body.layout-nova .input-field:focus,
   body.layout-nova .select-input:focus{
-    border-color:rgba(139,92,246,.7); box-shadow:0 0 0 3px rgba(139,92,246,.18);
+    border-color:color-mix(in srgb, var(--accent) 70%, transparent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
   }
   body.layout-nova .switch{ background:rgba(255,255,255,.12); }
-  body.layout-nova .switch.on{ background:#8b5cf6; box-shadow:0 0 14px rgba(139,92,246,.5); }
+  body.layout-nova .switch.on{ background:var(--accent); box-shadow:0 0 14px color-mix(in srgb, var(--accent) 50%, transparent); }
 
   /* --- Shop --- */
   body.layout-nova .shop-header h2{ font-size:26px; font-weight:800; }
@@ -2714,15 +2719,15 @@
     background:rgba(28,26,36,.8) !important; border:1px solid rgba(255,255,255,.09) !important;
     border-radius:999px !important; backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
   }
-  body.layout-nova .shop-cat-btn:active{ background:#8b5cf6 !important; }
+  body.layout-nova .shop-cat-btn:active{ background:var(--accent) !important; }
   body.layout-nova .shop-item{ border-radius:24px; padding:16px; }
   body.layout-nova .shop-item .item-icon{
-    background:#1c1a24; border:1.5px solid rgba(139,92,246,.45); border-radius:18px;
+    background:#1c1a24; border:1.5px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius:18px;
   }
   body.layout-nova .shop-item .item-title{ font-weight:700; }
   body.layout-nova .shop-item .buy-btn{
-    background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:#fff; border-radius:14px;
-    box-shadow:0 6px 18px -4px rgba(139,92,246,.55);
+    background:linear-gradient(135deg,var(--accent),color-mix(in srgb, var(--accent) 78%, #000)); color:var(--accent-text); border-radius:14px;
+    box-shadow:0 6px 18px -4px color-mix(in srgb, var(--accent) 55%, transparent);
   }
   body.layout-nova .referral-banner{ border-radius:22px; }
 
@@ -2738,11 +2743,11 @@
     border:1px solid rgba(255,255,255,.09);
     border-radius:28px;
     padding:26px 22px;
-    box-shadow:0 30px 70px rgba(0,0,0,.6), 0 0 0 1px rgba(139,92,246,.10), 0 0 40px rgba(139,92,246,.12), inset 0 1px 0 rgba(255,255,255,.07);
+    box-shadow:0 30px 70px rgba(0,0,0,.6), 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent), 0 0 40px color-mix(in srgb, var(--accent) 12%, transparent), inset 0 1px 0 rgba(255,255,255,.07);
   }
   body.layout-nova .modal-card::before{
     content:""; position:absolute; top:-1px; left:20%; right:20%; height:1px; pointer-events:none;
-    background:linear-gradient(90deg, transparent, rgba(183,156,255,.95), transparent);
+    background:linear-gradient(90deg, transparent, color-mix(in srgb, color-mix(in srgb, var(--accent) 55%, #fff) 95%, transparent), transparent);
   }
   body.layout-nova .modal-card h2{ font-size:22px; font-weight:800; }
   body.layout-nova .modal-card p{ color:#c9c5d6; opacity:1; }
@@ -2762,8 +2767,8 @@
 
   /* --- Kurze Meldungen (Toasts) als Glas-Pille --- */
   body.layout-nova .toast{
-    background:rgba(28,26,36,.92); color:#f5f3fa; border:1px solid rgba(139,92,246,.45);
-    box-shadow:0 12px 30px rgba(0,0,0,.5), 0 0 22px rgba(139,92,246,.25);
+    background:rgba(28,26,36,.92); color:#f5f3fa; border:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    box-shadow:0 12px 30px rgba(0,0,0,.5), 0 0 22px color-mix(in srgb, var(--accent) 25%, transparent);
     backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
     bottom:calc(env(safe-area-inset-bottom,0px) + 96px); padding:11px 20px;
   }
@@ -2784,7 +2789,7 @@
   body.layout-nova #screen-trends{ padding-bottom:calc(env(safe-area-inset-bottom,0px) + 120px); }
   .nova-screen{
     --nv-card:#15141b; --nv-card-hi:#1c1a24; --nv-line:rgba(255,255,255,.07);
-    --nv-text:#f5f3fa; --nv-muted:#8e8a9c; --nv-accent:#8b5cf6; --nv-accent-2:#b79cff;
+    --nv-text:#f5f3fa; --nv-muted:#8e8a9c; --nv-accent:var(--accent); --nv-accent-2:color-mix(in srgb, var(--accent) 55%, #fff);
     color:var(--nv-text); font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
     padding-top:calc(env(safe-area-inset-top,0px) + 8px);
   }
@@ -2800,9 +2805,9 @@
   }
   .nova-screen .nsx-chip:active{ transform:scale(.95); }
   .nsx-card{ background:var(--nv-card); border:1px solid var(--nv-line); border-radius:26px; box-shadow:inset 0 1px 0 rgba(255,255,255,.05); position:relative; }
-  .nsx-card.glow::before{ content:""; position:absolute; top:-1px; left:22%; right:22%; height:1px; background:linear-gradient(90deg,transparent,rgba(183,156,255,.9),transparent); }
+  .nsx-card.glow::before{ content:""; position:absolute; top:-1px; left:22%; right:22%; height:1px; background:linear-gradient(90deg,transparent,color-mix(in srgb, color-mix(in srgb, var(--accent) 55%, #fff) 90%, transparent),transparent); }
   .nsx-hero{ display:flex; align-items:center; gap:18px; padding:18px; }
-  .nsx-ring{ --p:0; --c:#8b5cf6; width:84px; height:84px; border-radius:50%; flex-shrink:0; display:grid; place-items:center;
+  .nsx-ring{ --p:0; --c:var(--accent); width:84px; height:84px; border-radius:50%; flex-shrink:0; display:grid; place-items:center;
     background:conic-gradient(var(--c) calc(var(--p)*1%), rgba(255,255,255,.08) 0); }
   /* Bugfix: vorher display:grid - die zwei Zeilen (Zahl + kleiner Text)
      landeten dadurch am OBEREN Rand statt mittig im Kreis. */
@@ -2814,7 +2819,7 @@
   .nova-screen .nsx-hero-txt p{ font-size:13px; color:var(--nv-muted); margin-top:4px; }
   .nsx-pills{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
   .nova-screen .nsx-pill{ font-size:12px; font-weight:700; padding:5px 10px; border-radius:999px; background:rgba(255,255,255,.06); }
-  .nova-screen .nsx-pill.hot{ background:rgba(139,92,246,.2); color:#d6c8ff; }
+  .nova-screen .nsx-pill.hot{ background:color-mix(in srgb, var(--accent) 20%, transparent); color:color-mix(in srgb, var(--accent) 55%, #fff); }
   .nsx-sec{ display:flex; align-items:baseline; justify-content:space-between; margin:24px 2px 12px; }
   .nsx-sec h3{ font-size:18px; font-weight:800; }
   .nova-screen .nsx-sec span{ font-size:13px; font-weight:700; color:var(--nv-muted); }
@@ -2825,29 +2830,29 @@
   .nsx-mid{ flex:1; min-width:0; }
   .nsx-mid b{ display:block; font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .nsx-bar{ height:6px; border-radius:999px; background:#25232d; overflow:hidden; margin-top:9px; }
-  .nsx-bar > div{ height:100%; min-width:6px; border-radius:999px; background:linear-gradient(90deg,#7c3aed,#c4b0ff); box-shadow:0 0 10px rgba(167,139,250,.55); }
+  .nsx-bar > div{ height:100%; min-width:6px; border-radius:999px; background:linear-gradient(90deg,color-mix(in srgb, var(--accent) 78%, #000),color-mix(in srgb, var(--accent) 55%, #fff)); box-shadow:0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
   .nova-screen .nsx-right{ flex-shrink:0; font-size:13px; font-weight:800; color:var(--nv-muted); }
   .nova-screen .nsx-right.ok{ color:#4ade80; font-size:18px; }
   .nova-screen .nsx-open{
     flex-shrink:0; height:38px; padding:0 16px; border-radius:999px; font-weight:800; font-size:13px; color:#fff;
-    background:linear-gradient(135deg,#8b5cf6,#7c3aed); box-shadow:0 6px 18px -4px rgba(139,92,246,.6);
+    background:linear-gradient(135deg,var(--accent),color-mix(in srgb, var(--accent) 78%, #000)); box-shadow:0 6px 18px -4px color-mix(in srgb, var(--accent) 60%, transparent);
     animation:nsx-pulse 1.8s ease-in-out infinite;
   }
-  @keyframes nsx-pulse{ 0%,100%{ box-shadow:0 6px 18px -4px rgba(139,92,246,.6); } 50%{ box-shadow:0 6px 26px -2px rgba(139,92,246,.95); } }
+  @keyframes nsx-pulse{ 0%,100%{ box-shadow:0 6px 18px -4px color-mix(in srgb, var(--accent) 60%, transparent); } 50%{ box-shadow:0 6px 26px -2px color-mix(in srgb, var(--accent) 95%, transparent); } }
   .nsx-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
   .nsx-badge{ padding:14px 6px 12px; text-align:center; border-radius:20px; }
   .nsx-badge .e{ font-size:26px; line-height:1; }
   .nsx-badge b{ display:block; font-size:11px; font-weight:700; margin-top:8px; line-height:1.2; }
   .nsx-badge.locked{ opacity:.38; filter:grayscale(1); }
-  .nsx-badge.claim{ border-color:rgba(139,92,246,.7); box-shadow:0 0 18px rgba(139,92,246,.35); }
-  .nsx-badge.claim::after{ content:""; position:absolute; top:8px; right:8px; width:9px; height:9px; border-radius:50%; background:#8b5cf6; box-shadow:0 0 8px #8b5cf6; }
+  .nsx-badge.claim{ border-color:color-mix(in srgb, var(--accent) 70%, transparent); box-shadow:0 0 18px color-mix(in srgb, var(--accent) 35%, transparent); }
+  .nsx-badge.claim::after{ content:""; position:absolute; top:8px; right:8px; width:9px; height:9px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); }
   .nsx-chips{ display:flex; gap:8px; overflow-x:auto; margin:0 -20px 16px; padding:2px 20px 4px; scrollbar-width:none; }
   .nsx-chips::-webkit-scrollbar{ display:none; }
   .nova-screen .nsx-tier{
     flex-shrink:0; display:flex; align-items:center; gap:7px; height:42px; padding:0 14px; border-radius:999px;
     background:rgba(255,255,255,.05); border:1px solid var(--nv-line); font-weight:700; font-size:13px; white-space:nowrap;
   }
-  .nova-screen .nsx-tier.on{ background:#8b5cf6; border-color:#8b5cf6; color:#fff; box-shadow:0 6px 18px rgba(139,92,246,.5); }
+  .nova-screen .nsx-tier.on{ background:var(--accent); border-color:var(--accent); color:var(--accent-text); box-shadow:0 6px 18px color-mix(in srgb, var(--accent) 50%, transparent); }
   .nova-screen .nsx-tier.locked{ opacity:.45; }
   .nsx-focus{ display:flex; align-items:center; gap:16px; padding:16px; margin-top:12px; }
   .nsx-focus .num{ width:62px; height:62px; border-radius:20px; flex-shrink:0; display:grid; place-items:center; font-size:26px; font-weight:800;
@@ -2864,12 +2869,12 @@
   .nsx-empty{ padding:26px 18px; text-align:center; font-size:14px; color:var(--nv-muted); }
 
   /* Nova-Vorschau in der Einrichtung */
-  .ob-preview-nova{ background:radial-gradient(120% 60% at 50% -10%, rgba(124,58,237,.55), transparent 65%), #07060b; align-items:center; }
+  .ob-preview-nova{ background:radial-gradient(120% 60% at 50% -10%, color-mix(in srgb, var(--accent) 55%, transparent), transparent 65%), #07060b; align-items:center; }
   .ob-nv-bar{ height:9px; width:62%; border-radius:999px; background:rgba(255,255,255,.14); }
   .ob-nv-stats{ display:grid; grid-template-columns:1fr 1fr; gap:5px; width:100%; }
   .ob-nv-stats div{ height:22px; border-radius:8px; background:#15141b; border:1px solid rgba(255,255,255,.08); }
-  .ob-nv-card{ width:100%; flex:1; border-radius:9px; background:#15141b; border:1px solid rgba(139,92,246,.35); }
-  .ob-nv-nav{ height:10px; width:74%; border-radius:999px; background:rgba(139,92,246,.55); box-shadow:0 0 10px rgba(139,92,246,.6); }
+  .ob-nv-card{ width:100%; flex:1; border-radius:9px; background:#15141b; border:1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+  .ob-nv-nav{ height:10px; width:74%; border-radius:999px; background:color-mix(in srgb, var(--accent) 55%, transparent); box-shadow:0 0 10px color-mix(in srgb, var(--accent) 60%, transparent); }
 
 
   /* ============================================================
@@ -2899,20 +2904,20 @@
   body.layout-nova .social-tab{ border-radius:999px; padding:10px 4px; font-size:13px; opacity:.65; transition:background .2s, opacity .2s, box-shadow .2s; }
   body.layout-nova .lb-tab.active,
   body.layout-nova .social-tab.active{
-    background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:#fff !important; opacity:1;
-    box-shadow:0 6px 18px -4px rgba(139,92,246,.65);
+    background:linear-gradient(135deg,var(--accent),color-mix(in srgb, var(--accent) 78%, #000)); color:var(--accent-text) !important; opacity:1;
+    box-shadow:0 6px 18px -4px color-mix(in srgb, var(--accent) 65%, transparent);
   }
   body.layout-nova .lb-sort-btn{
     border-radius:999px !important; height:40px; padding:0 14px !important; font-size:13px !important;
     background:rgba(255,255,255,.04) !important; border:1px solid rgba(255,255,255,.08) !important;
   }
-  body.layout-nova .lb-sort-btn.active{ background:rgba(139,92,246,.2) !important; border-color:rgba(139,92,246,.6) !important; color:#e4dbff !important; }
+  body.layout-nova .lb-sort-btn.active{ background:color-mix(in srgb, var(--accent) 20%, transparent) !important; border-color:color-mix(in srgb, var(--accent) 60%, transparent) !important; color:color-mix(in srgb, var(--accent) 55%, #fff) !important; }
   body.layout-nova #leaderboardList{ margin-top:12px; }
   body.layout-nova .lb-row{ padding:12px 14px; gap:12px; margin-bottom:9px; border-radius:20px; }
   body.layout-nova .lb-rank{ font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:800; width:30px; color:#8e8a9c; opacity:1; }
-  body.layout-nova .lb-avatar{ width:40px; height:40px; background:#1c1a24; box-shadow:0 0 0 2px rgba(139,92,246,.35); }
+  body.layout-nova .lb-avatar{ width:40px; height:40px; background:#1c1a24; box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
   body.layout-nova .lb-name{ font-size:15px; }
-  body.layout-nova .lb-aura{ color:#c4b0ff; font-size:14px; }
+  body.layout-nova .lb-aura{ color:color-mix(in srgb, var(--accent) 55%, #fff); font-size:14px; }
   /* Top 3 mit Medaillen statt #1/#2/#3 */
   body.layout-nova #leaderboardList > .lb-row:nth-child(-n+3) .lb-rank{ font-size:0; }
   body.layout-nova #leaderboardList > .lb-row:nth-child(-n+3) .lb-rank::before{ font-size:24px; }
@@ -2927,18 +2932,18 @@
   body.layout-nova #leaderboardList > .lb-row:nth-child(1) .lb-avatar{ width:48px; height:48px; box-shadow:0 0 0 2px rgba(245,196,81,.8), 0 0 16px rgba(245,196,81,.35); }
   body.layout-nova #leaderboardList > .lb-row:nth-child(2){ border-color:rgba(203,213,225,.3); background:linear-gradient(135deg, rgba(203,213,225,.08), #15141b 60%); }
   body.layout-nova #leaderboardList > .lb-row:nth-child(3){ border-color:rgba(217,142,90,.32); background:linear-gradient(135deg, rgba(217,142,90,.09), #15141b 60%); }
-  body.layout-nova #leaderboardList > .lb-row.me{ border-color:rgba(139,92,246,.7); box-shadow:0 0 0 1px rgba(139,92,246,.5) inset, 0 0 18px rgba(139,92,246,.2); }
+  body.layout-nova #leaderboardList > .lb-row.me{ border-color:color-mix(in srgb, var(--accent) 70%, transparent); box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent) inset, 0 0 18px color-mix(in srgb, var(--accent) 20%, transparent); }
 
   /* ---------- Profil ---------- */
   body.layout-nova #profileHeaderCard{
     position:relative; margin:10px 0 14px; padding:26px 18px 20px; border-radius:28px;
-    background:radial-gradient(120% 70% at 50% 0%, rgba(139,92,246,.30), transparent 70%), #15141b;
+    background:radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 70%), #15141b;
     border:1px solid rgba(255,255,255,.08); box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
   }
-  body.layout-nova #profileHeaderCard::before{ content:""; position:absolute; top:-1px; left:22%; right:22%; height:1px; background:linear-gradient(90deg,transparent,rgba(183,156,255,.95),transparent); }
+  body.layout-nova #profileHeaderCard::before{ content:""; position:absolute; top:-1px; left:22%; right:22%; height:1px; background:linear-gradient(90deg,transparent,color-mix(in srgb, color-mix(in srgb, var(--accent) 55%, #fff) 95%, transparent),transparent); }
   body.layout-nova .avatar-wrap{
     width:96px; height:96px; border:0; background:#1c1a24;
-    box-shadow:0 0 0 3px #8b5cf6, 0 0 0 7px rgba(139,92,246,.18), 0 10px 30px rgba(139,92,246,.45);
+    box-shadow:0 0 0 3px var(--accent), 0 0 0 7px color-mix(in srgb, var(--accent) 18%, transparent), 0 10px 30px color-mix(in srgb, var(--accent) 45%, transparent);
   }
   body.layout-nova #profileUsernameDisplay{ font-size:24px; font-weight:800; margin:6px 0 2px; }
   body.layout-nova #profileHeaderCard .shop-aura-badge{ margin-top:8px; background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.1); }
@@ -2983,7 +2988,7 @@
     background:rgba(255,255,255,.06); font-size:0 !important; opacity:1 !important;
   }
   body.layout-nova #screen-settings > .settings-row[style*="cursor:pointer"] > div:last-child:not(.info)::after{
-    content:""; width:8px; height:8px; border-top:2px solid #b79cff; border-right:2px solid #b79cff; transform:translateX(-2px) rotate(45deg);
+    content:""; width:8px; height:8px; border-top:2px solid color-mix(in srgb, var(--accent) 55%, #fff); border-right:2px solid color-mix(in srgb, var(--accent) 55%, #fff); transform:translateX(-2px) rotate(45deg);
   }
   body.layout-nova #screen-settings > .settings-row[style*="cursor:pointer"]:active{ transform:scale(.985); }
   body.layout-nova #screen-settings .settings-row .d{ color:#8e8a9c; opacity:1; }
@@ -2992,7 +2997,7 @@
   /* Profil-Karte oben in den Einstellungen */
   .nsx-me{ display:flex; align-items:center; gap:14px; width:100%; padding:16px; margin-bottom:6px; text-align:left; }
   .nsx-me .av{ width:54px; height:54px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; font-weight:800; font-size:21px; color:#fff;
-    background:linear-gradient(145deg,#7c3aed,#3b1d7a); box-shadow:0 0 0 2px rgba(255,255,255,.12),0 8px 24px rgba(124,58,237,.4); }
+    background:linear-gradient(145deg,color-mix(in srgb, var(--accent) 78%, #000),color-mix(in srgb, var(--accent) 40%, #000)); box-shadow:0 0 0 2px rgba(255,255,255,.12),0 8px 24px color-mix(in srgb, var(--accent) 40%, transparent); }
   .nsx-me b{ display:block; font-size:18px; font-weight:800; }
   .nova-screen .nsx-me span{ display:block; font-size:13px; color:#8e8a9c; margin-top:3px; font-weight:600; }
 
@@ -3006,19 +3011,19 @@
     background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); }
   .inbox-item.clickable{ cursor:pointer; }
   .inbox-item.clickable:active{ transform:scale(.985); }
-  .inbox-item.unread{ border-color:rgba(139,92,246,.45); background:rgba(139,92,246,.08); }
+  .inbox-item.unread{ border-color:color-mix(in srgb, var(--accent) 45%, transparent); background:color-mix(in srgb, var(--accent) 8%, transparent); }
   .inbox-ico{ width:42px; height:42px; border-radius:14px; flex-shrink:0; display:grid; place-items:center; font-size:20px; background:rgba(255,255,255,.06); }
   .inbox-av{ width:42px; height:42px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; font-weight:800; font-size:17px; color:#fff;
-    background:linear-gradient(145deg,#7c3aed,#3b1d7a); }
+    background:linear-gradient(145deg,color-mix(in srgb, var(--accent) 78%, #000),color-mix(in srgb, var(--accent) 40%, #000)); }
   .inbox-mid{ flex:1; min-width:0; }
   .inbox-mid b{ display:block; font-size:14.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .inbox-mid span{ display:block; font-size:12px; opacity:.6; margin-top:2px; }
   .inbox-mid .txt{ font-size:13.5px; font-weight:600; line-height:1.35; white-space:normal; }
   .inbox-acts{ display:flex; gap:6px; flex-shrink:0; }
   .inbox-yes{ height:36px; padding:0 14px; border-radius:999px; border:0; font-weight:800; font-size:13px; color:#fff; cursor:pointer;
-    background:linear-gradient(135deg,#8b5cf6,#7c3aed); box-shadow:0 6px 16px -4px rgba(139,92,246,.6); }
+    background:linear-gradient(135deg,var(--accent),color-mix(in srgb, var(--accent) 78%, #000)); box-shadow:0 6px 16px -4px color-mix(in srgb, var(--accent) 60%, transparent); }
   .inbox-no{ width:36px; height:36px; border-radius:50%; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:var(--text-dim); font-weight:800; cursor:pointer; }
-  .inbox-chev{ width:8px; height:8px; border-top:2px solid #b79cff; border-right:2px solid #b79cff; transform:rotate(45deg); margin-right:6px; flex-shrink:0; }
+  .inbox-chev{ width:8px; height:8px; border-top:2px solid color-mix(in srgb, var(--accent) 55%, #fff); border-right:2px solid color-mix(in srgb, var(--accent) 55%, #fff); transform:rotate(45deg); margin-right:6px; flex-shrink:0; }
   .inbox-empty{ text-align:center; padding:26px 10px 10px; }
   .inbox-empty div{ font-size:40px; }
   .inbox-empty b{ display:block; font-size:16px; margin-top:8px; }
@@ -3079,7 +3084,7 @@
   .tm-switch button{ flex:1; height:40px; border:0; border-radius:999px; background:none; color:var(--text); font:inherit; font-weight:800; font-size:14px; opacity:.6; cursor:pointer; }
   .tm-switch button.on{ opacity:1; background:var(--accent); color:var(--accent-text); box-shadow:0 6px 16px -6px color-mix(in srgb, var(--accent) 80%, transparent); }
   body.layout-nova .tm-switch{ margin:calc(env(safe-area-inset-top,0px) + 8px) 0 6px; }
-  body.layout-nova .tm-switch button.on{ background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:#fff; }
+  body.layout-nova .tm-switch button.on{ background:linear-gradient(135deg,var(--accent),color-mix(in srgb, var(--accent) 78%, #000)); color:var(--accent-text); }
 
   #screen-lessons{ padding-bottom:calc(env(safe-area-inset-bottom,0px) + 120px); }
   .lx-head{ margin:calc(env(safe-area-inset-top,0px) + 6px) 2px 16px; }
@@ -6211,7 +6216,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.66";
+  const APP_VERSION = "3.67";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -11790,7 +11795,7 @@
           <div class="meter"><div style="width:${acc !== null ? acc : 0}%; background:${colorOf(cls)}"></div></div></button>`;
       }
       const avg = accN ? Math.round(accSum / accN) : 0;
-      const ringColor = !accN ? "#8b5cf6" : avg >= 80 ? "#4ade80" : avg >= 50 ? "#facc15" : "#f87171";
+      const ringColor = !accN ? "var(--accent)" : avg >= 80 ? "#4ade80" : avg >= 50 ? "#facc15" : "#f87171";
       body = `
         <div class="nsx-card glow nsx-hero">
           <div class="nsx-ring" style="--p:${avg}; --c:${ringColor}"><div><b>${accN ? avg + "%" : "–"}</b><small>richtig</small></div></div>

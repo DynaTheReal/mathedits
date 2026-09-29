@@ -2996,6 +2996,75 @@
   .nsx-me b{ display:block; font-size:18px; font-weight:800; }
   .nova-screen .nsx-me span{ display:block; font-size:13px; color:#8e8a9c; margin-top:3px; font-weight:600; }
 
+
+  /* ---------- Posteingang (NEU) ---------- */
+  .inbox-card{ max-height:82vh; overflow-y:auto; font-family:'Plus Jakarta Sans',system-ui,sans-serif; }
+  .inbox-x{ position:absolute; top:14px; right:14px; width:34px; height:34px; border-radius:50%; display:grid; place-items:center;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:var(--text-dim); font-weight:800; cursor:pointer; }
+  .inbox-sec{ font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); opacity:.7; margin:16px 2px 8px; }
+  .inbox-item{ display:flex; align-items:center; gap:12px; padding:12px; border-radius:18px; margin-bottom:8px;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); }
+  .inbox-item.clickable{ cursor:pointer; }
+  .inbox-item.clickable:active{ transform:scale(.985); }
+  .inbox-item.unread{ border-color:rgba(139,92,246,.45); background:rgba(139,92,246,.08); }
+  .inbox-ico{ width:42px; height:42px; border-radius:14px; flex-shrink:0; display:grid; place-items:center; font-size:20px; background:rgba(255,255,255,.06); }
+  .inbox-av{ width:42px; height:42px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; font-weight:800; font-size:17px; color:#fff;
+    background:linear-gradient(145deg,#7c3aed,#3b1d7a); }
+  .inbox-mid{ flex:1; min-width:0; }
+  .inbox-mid b{ display:block; font-size:14.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .inbox-mid span{ display:block; font-size:12px; opacity:.6; margin-top:2px; }
+  .inbox-mid .txt{ font-size:13.5px; font-weight:600; line-height:1.35; white-space:normal; }
+  .inbox-acts{ display:flex; gap:6px; flex-shrink:0; }
+  .inbox-yes{ height:36px; padding:0 14px; border-radius:999px; border:0; font-weight:800; font-size:13px; color:#fff; cursor:pointer;
+    background:linear-gradient(135deg,#8b5cf6,#7c3aed); box-shadow:0 6px 16px -4px rgba(139,92,246,.6); }
+  .inbox-no{ width:36px; height:36px; border-radius:50%; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:var(--text-dim); font-weight:800; cursor:pointer; }
+  .inbox-chev{ width:8px; height:8px; border-top:2px solid #b79cff; border-right:2px solid #b79cff; transform:rotate(45deg); margin-right:6px; flex-shrink:0; }
+  .inbox-empty{ text-align:center; padding:26px 10px 10px; }
+  .inbox-empty div{ font-size:40px; }
+  .inbox-empty b{ display:block; font-size:16px; margin-top:8px; }
+  .inbox-empty span{ display:block; font-size:13px; opacity:.6; margin-top:4px; }
+
+
+  /* ---------- End-Screen nach der Lektion (NEU, komplett überarbeitet) ---------- */
+  #screen-result{ display:none; flex-direction:column; padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px); }
+  #screen-result.active{ display:flex; }
+  .rs-wrap{ position:relative; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px 4px 10px; }
+  .rs-glow{ position:absolute; top:6%; left:50%; width:320px; height:320px; transform:translateX(-50%); border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle, color-mix(in srgb, var(--accent) 32%, transparent), transparent 65%); filter:blur(10px); opacity:.8;
+    animation:rs-breathe 3.2s ease-in-out infinite; }
+  @keyframes rs-breathe{ 0%,100%{ transform:translateX(-50%) scale(1); opacity:.7; } 50%{ transform:translateX(-50%) scale(1.08); opacity:.95; } }
+  .rs-ring{ position:relative; width:168px; height:168px; display:grid; place-items:center; }
+  .rs-ring svg{ position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg); }
+  .rs-ring-bg{ fill:none; stroke:color-mix(in srgb, var(--text) 10%, transparent); stroke-width:9; }
+  .rs-ring-fg{ fill:none; stroke:var(--accent); stroke-width:9; stroke-linecap:round; stroke-dasharray:326.7; stroke-dashoffset:326.7;
+    filter:drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 70%, transparent)); transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1) .25s; }
+  #screen-result.rs-fail .rs-ring-fg{ stroke:var(--danger); filter:drop-shadow(0 0 8px color-mix(in srgb, var(--danger) 60%, transparent)); }
+  .rs-emoji{ position:relative; font-size:64px; line-height:1; }
+  .rs-stars{ display:flex; gap:10px; margin:14px 0 4px; font-size:30px; line-height:1; }
+  .rs-stars span{ color:color-mix(in srgb, var(--text) 16%, transparent); transform:scale(.6); transition:color .3s, transform .45s cubic-bezier(.34,1.7,.5,1), text-shadow .3s; }
+  .rs-stars span.lit{ color:#fbbf24; transform:scale(1); text-shadow:0 0 14px rgba(251,191,36,.7); }
+  .rs-stars span:nth-child(2){ font-size:38px; margin-top:-6px; }
+  #screen-result .complete-title{ font-size:28px; margin:8px 0 2px; letter-spacing:-.02em; }
+  #screen-result .complete-sub{ opacity:.65; margin-bottom:22px; }
+  .rs-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:100%; max-width:360px; }
+  .rs-stat{ padding:14px 6px 12px; border-radius:20px; background:var(--card); border:1px solid var(--border); box-shadow:inset 0 1px 0 rgba(255,255,255,.05); }
+  .rs-stat .n{ font-size:22px; font-weight:800; letter-spacing:-.02em; line-height:1; color:var(--text); font-variant-numeric:tabular-nums; }
+  .rs-stat .l{ font-size:11.5px; font-weight:700; opacity:.55; margin-top:6px; text-transform:uppercase; letter-spacing:.05em; }
+  .rs-stat-aura{ border-color:color-mix(in srgb, var(--accent) 55%, transparent); background:color-mix(in srgb, var(--accent) 10%, var(--card)); }
+  .rs-stat-aura .n{ color:var(--accent); }
+  .rs-hint{ margin-top:16px; max-width:360px; padding:11px 14px; border-radius:16px; font-size:13px; font-weight:600;
+    background:color-mix(in srgb, var(--accent) 10%, transparent); border:1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+  .rs-continue{ width:100%; max-width:380px; margin:0 auto; }
+  /* Gestaffeltes Hereingleiten */
+  #screen-result.rs-play .rs-in{ animation:rs-in .55s cubic-bezier(.2,.9,.25,1.05) both; animation-delay:var(--d, 0s); }
+  @keyframes rs-in{ from{ opacity:0; transform:translateY(18px) scale(.97); } to{ opacity:1; transform:none; } }
+  #screen-result.rs-play .rs-emoji{ animation:rs-pop .7s cubic-bezier(.34,1.7,.5,1) .35s both; }
+  @keyframes rs-pop{ 0%{ transform:scale(0) rotate(-20deg); } 100%{ transform:scale(1) rotate(0); } }
+  @media (prefers-reduced-motion: reduce){
+    #screen-result.rs-play .rs-in, #screen-result.rs-play .rs-emoji{ animation:none; }
+    .rs-ring-fg{ transition:none; }
+  }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -3720,7 +3789,7 @@
         </button>
         <div class="nv-top-right">
           <button class="nv-pill" id="nvAuraPill" title="Aura"><span class="emo">💀</span><span id="nvAura">0</span></button>
-          <button class="nv-round" id="nvBell" aria-label="Freundschaftsanfragen">
+          <button class="nv-round" id="nvBell" aria-label="Posteingang">
             <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
             <span class="nv-dot" id="nvBellDot"></span>
           </button>
@@ -5155,21 +5224,30 @@
 
   <!-- ============ RESULT ============ -->
   <section class="screen" id="screen-result">
-    <div class="topbar"><div class="brand"><span class="dot"></span>MathEdits</div><div></div></div>
-    <div class="locked-wrap">
-      <div class="complete-emoji" id="resultEmoji">🔥</div>
-      <div class="complete-title" id="resultTitle">Lektion geschafft!</div>
-      <div class="complete-sub" id="resultSub">Starkes Tempo.</div>
-      <div class="complete-stats">
-        <div class="box"><div class="n" id="resCorrect">0/10</div><div class="l">Richtig</div></div>
-        <div class="box"><div class="n" id="resAura">+0</div><div class="l">Aura</div></div>
-        <div class="box"><div class="n" id="resLevel">0:00</div><div class="l">Zeit</div></div>
+    <!-- End-Screen (NEU, komplett überarbeitet): Ring mit Trefferquote,
+         Sterne, hochzählende Werte und gestaffelte Einblende-Animation. -->
+    <div class="rs-wrap">
+      <div class="rs-glow" aria-hidden="true"></div>
+      <div class="rs-ring rs-in" style="--d:0s">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="rs-ring-bg" cx="60" cy="60" r="52"></circle>
+          <circle class="rs-ring-fg" id="resRing" cx="60" cy="60" r="52"></circle>
+        </svg>
+        <div class="complete-emoji rs-emoji" id="resultEmoji">🔥</div>
       </div>
-      <div class="d" id="resultStreakHint" style="display:none; margin-top:14px; background:rgba(201,255,82,.1); border:1.5px solid var(--accent); border-radius:12px; padding:10px 14px;">
-        🔥 Lern morgen noch einmal und verlängere deinen Streak - dafür gibt's am zweiten Tag eine Truhe!
+      <div class="rs-stars rs-in" id="resStars" style="--d:.25s"><span>★</span><span>★</span><span>★</span></div>
+      <div class="complete-title rs-in" id="resultTitle" style="--d:.35s">Lektion geschafft!</div>
+      <div class="complete-sub rs-in" id="resultSub" style="--d:.42s">Starkes Tempo.</div>
+      <div class="rs-stats">
+        <div class="rs-stat rs-in" style="--d:.5s"><div class="n" id="resCorrect">0/10</div><div class="l">Richtig</div></div>
+        <div class="rs-stat rs-in rs-stat-aura" style="--d:.58s"><div class="n" id="resAura">+0</div><div class="l">Aura</div></div>
+        <div class="rs-stat rs-in" style="--d:.66s"><div class="n" id="resLevel">0:00</div><div class="l">Zeit</div></div>
+      </div>
+      <div class="rs-hint rs-in" id="resultStreakHint" style="display:none; --d:.74s">
+        🔥 Lern morgen noch einmal - am zweiten Tag gibt's eine Truhe!
       </div>
     </div>
-    <button class="btn btn-primary" id="resultContinue">Weiter</button>
+    <button class="btn btn-primary rs-in rs-continue" id="resultContinue" style="--d:.8s">Weiter</button>
   </section>
 
   <!-- ============ BOTTOM NAVIGATION BAR ============ -->
@@ -5888,6 +5966,16 @@
 
   <!-- Spieler-Ziel gewonnen (NEU): große Anzeige, die von selbst wieder
        verschwindet, statt nur eines kleinen Toasts. -->
+  <!-- Posteingang (NEU, Nova-Glocke) -->
+  <div class="overlay" id="overlayInbox">
+    <div class="modal-card inbox-card" style="max-width:380px; text-align:left;">
+      <button id="inboxClose" class="inbox-x" aria-label="Schließen">✕</button>
+      <h2 style="margin:0 0 4px;">Posteingang</h2>
+      <p id="inboxSub" style="margin:0 0 16px; font-size:13px;">Alles auf einen Blick</p>
+      <div id="inboxBody"></div>
+    </div>
+  </div>
+
   <!-- Sauberes Bestätigen-Popup (NEU): ersetzt window.confirm(). -->
   <div class="overlay" id="overlayConfirmPopup">
     <div class="modal-card" style="max-width:340px;">
@@ -5993,7 +6081,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.62";
+  const APP_VERSION = "3.63";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6288,6 +6376,7 @@
     avatarData: null, // kleines, komprimiertes Profilbild als Base64-Data-URL
     comboCount: 0, // Aufgaben in Folge richtig am neuesten freigeschalteten Level (bleibt über Lektionen hinweg erhalten)
     bestComboCount: 0, // höchster je erreichter Combo-Stand (bleibt bestehen, auch wenn der aktuelle Combo-Zähler auf 0 fällt)
+    inboxEvents: [], // Posteingang (Nova): { id, icon, text, ts, read }
     dismissedFollowRequests: [], // abgelehnte Freundschaftsanfragen (blendet sie aus der eigenen Ansicht aus)
     comboLossCount: 0, // zählt Combo-Verluste, steuert den Schreckmoment (jeder 5., inkl. dem ersten)
     hasSeenSharePrompt: false, // "Teile diese Website"-Hinweis nach der ersten Lektion, erscheint nur einmal
@@ -8107,6 +8196,7 @@
         if(newIds.length === 0) return;
         profile.totalAura += total;
         perDonorEntries.forEach(e => logAuraTransaction(e.amount, `Spende von @${e.fromUsername}`));
+        perDonorEntries.forEach(e => pushInboxEvent("💝", `@${e.fromUsername} hat dir ${e.amount} Aura gespendet`));
         profile.claimedAuraDonationIds = [...(profile.claimedAuraDonationIds || []), ...newIds];
         saveProfile();
         renderHome();
@@ -8135,6 +8225,7 @@
         const data = doc.data();
         totalCredit += data.amount || 0;
         newIds.push(doc.id);
+        pushInboxEvent("🎉", `@${data.fromUsername || "Jemand"} hat sich über deinen Link angemeldet · +${data.amount || 0} Aura`);
       });
       console.log("[Einladung] Neue, noch nicht abgeholte Belohnungen:", newIds.length, "| Gesamt-Aura:", totalCredit);
       if(newIds.length === 0) return;
@@ -13285,6 +13376,7 @@
     Object.values(screens).forEach(s => s.classList.remove("active"));
     screens[name].classList.add("active");
     document.body.classList.toggle("nova-home-active", name === "home");
+    if(name === "result" && typeof animateResultScreen === "function") animateResultScreen();
 
     // Neue Lektionen / Lektions-Hintergrund (NEU, Beta-Einstellungen)
     if(name === "lesson"){
@@ -14085,6 +14177,7 @@
         const dismissed = profile.dismissedFollowRequests || [];
         const notFollowedBack = followers.filter(f => !following.includes(f.uid) && !dismissed.includes(f.uid));
         pendingFriendRequestCount = notFollowedBack.length;
+        inboxFollowers = followers;
         const reqTabBadge = $("friendRequestsTabBadge");
         if(reqTabBadge){
           if(pendingFriendRequestCount > 0){
@@ -14095,6 +14188,8 @@
           }
         }
         updateMessagesBadge();
+        if(typeof syncNovaDots === "function") syncNovaDots();
+        if($("overlayInbox") && $("overlayInbox").classList.contains("show")) renderInbox();
 
         if(friendRequestInitialSnapshotDone){
           snap.docChanges().forEach(change => {
@@ -17335,7 +17430,7 @@
     const vis = id => { const el = $(id); return !!el && el.style.display !== "none" && el.style.display !== ""; };
     if($("nvChatDot")) $("nvChatDot").style.display = vis("chatUnreadDot") ? "block" : "none";
     if($("nvSettingsDot")) $("nvSettingsDot").style.display = vis("ownerNotifyDot") ? "block" : "none";
-    if($("nvBellDot")) $("nvBellDot").style.display = (typeof pendingFriendRequestCount !== "undefined" && pendingFriendRequestCount > 0) ? "block" : "none";
+    if($("nvBellDot")) $("nvBellDot").style.display = (typeof inboxHasUnread === "function" && inboxHasUnread()) ? "block" : "none";
   }
   ["chatUnreadDot", "ownerNotifyDot", "profileNavBadge", "friendRequestsTabBadge"].forEach(id => {
     const el = $(id);
@@ -17352,10 +17447,7 @@
   });
   $("nvUser").addEventListener("click", () => $("navProfile").click());
   $("nvAuraPill").addEventListener("click", () => $("navShop").click());
-  $("nvBell").addEventListener("click", () => {
-    $("navProfile").click();
-    if(typeof switchSocialTab === "function") switchSocialTab("requests");
-  });
+  $("nvBell").addEventListener("click", () => openInbox());
   $("nvLevelCard").addEventListener("click", () => {
     $("nvWorlds").scrollIntoView({ behavior:"smooth", block:"center" });
   });
@@ -17368,6 +17460,156 @@
     $("nvWorlds").scrollIntoView({ behavior:"smooth", block:"center" });
   });
   $("nvContinue").addEventListener("click", () => $("startBtn").click());
+
+
+  /* ========================================================
+     POSTEINGANG (NEU): Glocke im Nova-Layout. Zeigt offene
+     Freundschaftsanfragen (annehmen/ablehnen), neue Nachrichten,
+     bereite Truhen und einen Verlauf mit Ereignissen.
+  ======================================================== */
+  var inboxFollowers = [];
+  function pushInboxEvent(icon, text){
+    if(!profile.inboxEvents) profile.inboxEvents = [];
+    profile.inboxEvents.unshift({ id: Date.now() + "_" + Math.random().toString(36).slice(2, 7), icon, text, ts: Date.now(), read: false });
+    profile.inboxEvents = profile.inboxEvents.slice(0, 30);
+    saveProfile();
+    if(typeof syncNovaDots === "function") syncNovaDots();
+  }
+  function inboxPendingRequests(){
+    const following = profile.following || [];
+    const dismissed = profile.dismissedFollowRequests || [];
+    return (inboxFollowers || []).filter(f => !following.includes(f.uid) && !dismissed.includes(f.uid));
+  }
+  function inboxReadyChestCount(){
+    let n = 0;
+    const dm = profile.dailyMissions || {};
+    Object.values(dm.chests || {}).forEach(c => { if(c && !c.claimed) n++; });
+    Object.values(profile.achievements || {}).forEach(c => { if(c && !c.claimed) n++; });
+    ["shareChest","streak2Chest","combo50Chest","installChest"].forEach(k => { if(profile[k] && !profile[k].claimed) n++; });
+    Object.values(profile.redeemedCodeChests || {}).forEach(c => { if(c && !c.claimed) n++; });
+    Object.values(profile.inviteChests || {}).forEach(c => { if(c && !c.claimed) n++; });
+    return n;
+  }
+  function inboxHasUnread(){
+    const chatUnread = $("chatUnreadDot") && $("chatUnreadDot").style.display === "block";
+    return inboxPendingRequests().length > 0 || (profile.inboxEvents || []).some(e => !e.read) || chatUnread;
+  }
+  function renderInbox(){
+    const body = $("inboxBody");
+    const reqs = inboxPendingRequests();
+    const chatUnread = $("chatUnreadDot") && $("chatUnreadDot").style.display === "block";
+    const chests = inboxReadyChestCount();
+    const events = profile.inboxEvents || [];
+    const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+    let html = "";
+    if(reqs.length){
+      html += `<div class="inbox-sec">Freundschaftsanfragen</div>`;
+      html += reqs.map(f => {
+        const name = f.username || (profile.friendUsernameCache || {})[f.uid] || "Unbekannt";
+        return `<div class="inbox-item unread">
+          <div class="inbox-av">${esc(name.charAt(0).toUpperCase())}</div>
+          <div class="inbox-mid clickable" data-profile="${f.uid}" style="cursor:pointer;"><b>@${esc(name)}</b><span>möchte mit dir befreundet sein</span></div>
+          <div class="inbox-acts"><button class="inbox-yes" data-accept="${f.uid}">Annehmen</button><button class="inbox-no" data-decline="${f.uid}" aria-label="Ablehnen">✕</button></div>
+        </div>`;
+      }).join("");
+    }
+    const todo = [];
+    if(chatUnread) todo.push(`<div class="inbox-item clickable unread" data-go="chat"><div class="inbox-ico">💬</div><div class="inbox-mid"><b>Neue Nachrichten</b><span>Tippen zum Öffnen</span></div><div class="inbox-chev"></div></div>`);
+    if(chests) todo.push(`<div class="inbox-item clickable unread" data-go="missions"><div class="inbox-ico">🎁</div><div class="inbox-mid"><b>${chests} ${chests === 1 ? "Truhe" : "Truhen"} bereit</b><span>Zu den Missionen</span></div><div class="inbox-chev"></div></div>`);
+    if(todo.length) html += `<div class="inbox-sec">Für dich</div>` + todo.join("");
+    if(events.length){
+      html += `<div class="inbox-sec">Verlauf</div>`;
+      html += events.slice(0, 20).map(e => `<div class="inbox-item${e.read ? "" : " unread"}">
+        <div class="inbox-ico">${e.icon}</div>
+        <div class="inbox-mid"><div class="txt">${esc(e.text)}</div><span>${formatRelativeTime(e.ts)}</span></div></div>`).join("");
+    }
+    if(!html){
+      html = `<div class="inbox-empty"><div>✨</div><b>Alles erledigt</b><span>Hier landen Anfragen, Spenden und mehr.</span></div>`;
+    }
+    body.innerHTML = html;
+    const open = reqs.length + (chatUnread ? 1 : 0) + chests;
+    $("inboxSub").textContent = open ? `${open} ${open === 1 ? "offene Sache" : "offene Sachen"}` : "Alles auf einen Blick";
+
+    body.querySelectorAll("[data-accept]").forEach(b => b.addEventListener("click", async () => {
+      const f = reqs.find(x => x.uid === b.dataset.accept);
+      await followBack(b.dataset.accept);
+      showToast(`🤝 Du und @${(f && f.username) || "?"} seid jetzt Freunde!`);
+      renderInbox(); syncNovaDots();
+    }));
+    body.querySelectorAll("[data-decline]").forEach(b => b.addEventListener("click", () => {
+      declineFollowRequest(b.dataset.decline);
+      renderInbox(); syncNovaDots();
+    }));
+    body.querySelectorAll("[data-profile]").forEach(el => el.addEventListener("click", () => {
+      $("overlayInbox").classList.remove("show");
+      openFriendProfile(el.dataset.profile);
+    }));
+    body.querySelectorAll("[data-go]").forEach(el => el.addEventListener("click", () => {
+      $("overlayInbox").classList.remove("show");
+      if(el.dataset.go === "chat") $("homeChatBtn").click();
+      else { showScreen("missions"); renderMissions(); }
+    }));
+  }
+  function openInbox(){
+    renderInbox();
+    $("overlayInbox").classList.add("show");
+    // Verlauf gilt beim Öffnen als gelesen (Anfragen bleiben, bis man sie bearbeitet)
+    let changed = false;
+    (profile.inboxEvents || []).forEach(e => { if(!e.read){ e.read = true; changed = true; } });
+    if(changed){ saveProfile(); }
+    syncNovaDots();
+  }
+  $("inboxClose").addEventListener("click", () => { $("overlayInbox").classList.remove("show"); renderInbox(); });
+
+
+  /* End-Screen-Animation (NEU): liest die bereits eingetragenen Werte und
+     animiert Ring, Sterne und hochzählende Zahlen. Wird bei jedem Anzeigen
+     des End-Screens aufgerufen (Lektion UND Duell). */
+  var rsAnimTimers = [];
+  function animateResultScreen(){
+    const scr = $("screen-result");
+    if(!scr) return;
+    rsAnimTimers.forEach(t => clearTimeout(t)); rsAnimTimers = [];
+    const m = ($("resCorrect").textContent || "").match(/(\d+)\s*\/\s*(\d+)/);
+    const correct = m ? parseInt(m[1], 10) : 0, total = m ? Math.max(1, parseInt(m[2], 10)) : 1;
+    const ratio = Math.max(0, Math.min(1, correct / total));
+    const auraMatch = ($("resAura").textContent || "").match(/-?\d+/);
+    const aura = auraMatch ? parseInt(auraMatch[0], 10) : 0;
+    const passed = ratio >= 0.6;
+    scr.classList.toggle("rs-fail", !passed);
+    // Animation neu starten
+    scr.classList.remove("rs-play"); void scr.offsetWidth; scr.classList.add("rs-play");
+    // Ring
+    const ring = $("resRing");
+    const C = 326.7;
+    ring.style.transition = "none"; ring.style.strokeDashoffset = C; void ring.getBoundingClientRect();
+    ring.style.transition = "";
+    rsAnimTimers.push(setTimeout(() => { ring.style.strokeDashoffset = C * (1 - ratio); }, 30));
+    // Sterne: 1 ab 60 %, 2 ab 80 %, 3 bei 100 %
+    const stars = ratio >= 1 ? 3 : ratio >= 0.8 ? 2 : ratio >= 0.6 ? 1 : 0;
+    const starEls = $("resStars").children;
+    [...starEls].forEach(s => s.classList.remove("lit"));
+    for(let i = 0; i < stars; i++){
+      rsAnimTimers.push(setTimeout(() => starEls[i] && starEls[i].classList.add("lit"), 700 + i * 220));
+    }
+    // Zahlen hochzählen
+    const countUp = (el, from, to, fmt, delay) => {
+      const dur = 900;
+      el.textContent = fmt(from);
+      rsAnimTimers.push(setTimeout(() => {
+        const t0 = performance.now();
+        const step = now => {
+          const k = Math.min(1, (now - t0) / dur);
+          const e = 1 - Math.pow(1 - k, 3);
+          el.textContent = fmt(Math.round(from + (to - from) * e));
+          if(k < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }, delay));
+    };
+    countUp($("resCorrect"), 0, correct, v => `${v}/${total}`, 520);
+    countUp($("resAura"), 0, aura, v => `+${v}`, 600);
+  }
 
   $("backHomeFromLocked").addEventListener("click", () => {
     clearInterval(lockedInterval);
@@ -17443,40 +17685,74 @@
   // Trends (NEU): baut eine Lektion NUR aus den Zahlen, mit denen laut
   // factStats am meisten gestruggelt wird (schlechteste Genauigkeit zuerst,
   // nur Zahlen mit genug Daten). Gibt wie eine normale Lektion Aura & Level.
-  function buildWeakTasksLesson(){
-    const stats = profile.factStats || {};
-    const candidates = [];
-    for(let n = 1; n <= 12; n++){
-      const s = stats[String(n)];
-      const total = s ? s.correct + s.wrong : 0;
-      const acc = total >= 3 ? (s.correct / total) : 1; // ohne genug Daten: nicht als "schwach" werten
-      candidates.push({ n, acc, total });
-    }
-    candidates.sort((a, b) => a.acc - b.acc);
-    const weakNumbers = candidates.filter(c => c.total >= 3 && c.acc < 0.8).slice(0, 5).map(c => c.n);
-    const pool = weakNumbers.length > 0 ? weakNumbers : [2,3,4,5,6,7,8,9,10];
+  // Schwierige Aufgaben (ÜBERARBEITET): kommt jetzt NUR mit Aufgaben, die man
+  // wirklich schon falsch hatte bzw. in denen man schwach ist - vorher wurden
+  // nur schwache REIHEN gewählt und mit einer ZUFÄLLIGEN Zahl kombiniert, so
+  // kamen viele Aufgaben dran, die man eigentlich kann, und die konkret
+  // falsch gemachten oft gar nicht. Basis ist die Statistik pro einzelner
+  // Aufgabe (factPairStats, z.B. "7×8").
+  function collectWeakPairs(){
+    const pairStats = profile.factPairStats || {};
+    const byKey = {};
+    Object.keys(pairStats).forEach(rowKey => {
+      const row = parseInt(rowKey, 10);
+      Object.keys(pairStats[rowKey] || {}).forEach(colKey => {
+        const col = parseInt(colKey, 10);
+        const st = pairStats[rowKey][colKey];
+        if(!st || !(st.wrong > 0)) return; // nur Aufgaben, die schon mal falsch waren
+        const a = Math.min(row, col), b = Math.max(row, col);
+        const key = a + "x" + b; // 7×8 und 8×7 sind dieselbe Aufgabe
+        const total = st.correct + st.wrong;
+        const prev = byKey[key];
+        if(!prev || st.wrong > prev.wrong) byKey[key] = { a, b, wrong: st.wrong, total, acc: st.correct / total };
+      });
+    });
+    // Schwächste zuerst: niedrigste Trefferquote, dann meiste Fehler.
+    return Object.values(byKey).sort((x, y) => (x.acc - y.acc) || (y.wrong - x.wrong));
+  }
 
+  function buildWeakTasksLesson(){
+    const weak = collectWeakPairs();
+    if(weak.length === 0) return null;
+    // Die schwächsten Aufgaben (bis zur Lektionslänge); gibt es weniger
+    // falsche Aufgaben als Fragen, werden genau diese wiederholt - es kommen
+    // also KEINE Aufgaben dazu, die man schon sicher kann.
+    const picked = weak.slice(0, QUESTIONS_PER_LESSON);
     const questions = [];
-    const seenTexts = new Set();
+    let last = null;
     for(let i = 0; i < QUESTIONS_PER_LESSON; i++){
-      let q, attempts = 0;
-      do{
-        const n = pool[randInt(0, pool.length - 1)];
-        const other = randInt(2, 12);
-        const swap = Math.random() < 0.5;
-        const a = swap ? other : n, b = swap ? n : other;
-        q = { text: `${a} × ${b}`, answer: a * b };
-        attempts++;
-      } while(seenTexts.has(q.text) && attempts < 30);
-      seenTexts.add(q.text);
-      questions.push(q);
+      let p = picked[i % picked.length];
+      if(i >= picked.length){
+        const options = picked.length > 1 ? picked.filter(x => x !== last) : picked;
+        p = options[randInt(0, options.length - 1)];
+      }
+      last = p;
+      const swap = Math.random() < 0.5;
+      const a = swap ? p.b : p.a, b = swap ? p.a : p.b;
+      questions.push({ text: `${a} × ${b}`, answer: a * b });
+    }
+    // Reihenfolge mischen, aber nie zweimal dieselbe Aufgabe direkt hintereinander
+    for(let i = questions.length - 1; i > 0; i--){
+      const j = randInt(0, i);
+      [questions[i], questions[j]] = [questions[j], questions[i]];
+    }
+    for(let i = 1; i < questions.length; i++){
+      if(questions[i].answer === questions[i-1].answer && questions[i].text.split(" × ").sort().join() === questions[i-1].text.split(" × ").sort().join()){
+        const k = questions.findIndex((q, idx) => idx > i && q.text.split(" × ").sort().join() !== questions[i].text.split(" × ").sort().join());
+        if(k > 0) [questions[i], questions[k]] = [questions[k], questions[i]];
+      }
     }
     const tier = { id: "weak_tasks", name: "Schwierige Aufgaben", icon: "💪", timeMs: 9000, normalAura: 2, editAura: 4 };
     return { tier, isMainProgression: false, noLifeLoss: true, questions, index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false };
   }
 
   function startWeakTasksLesson(){
-    lesson = buildWeakTasksLesson();
+    const built = buildWeakTasksLesson();
+    if(!built){
+      showErrorPopup("Du hast noch keine Einmaleins-Aufgabe falsch gemacht - stark! 💪 Sobald dir mal eine nicht gelingt, kannst du sie hier gezielt üben.");
+      return;
+    }
+    lesson = built;
     lesson.startedAt = performance.now();
     lesson.streakThisLesson = profile.comboCount || 0;
     updateComboCounter(lesson.streakThisLesson);

@@ -6047,6 +6047,7 @@
 
   <div class="overlay" id="overlayChest">
     <div class="modal-card chest-modal">
+      <button id="chestModalClose" class="inbox-x" aria-label="Schließen">✕</button>
       <div style="font-size:12px; font-weight:800; opacity:.6; letter-spacing:.5px; text-transform:uppercase;">Truhen-Öffnung</div>
       <h2 id="chestModalTitle">Tagesmission</h2>
       <p id="chestModalSub">Tippe auf die Truhe für eine Chance auf ein Upgrade (25%)!</p>
@@ -6056,6 +6057,7 @@
       </div>
       <div class="chest-tier-current" id="chestTierCurrent">Standard</div>
       <div class="chest-attempts" id="chestAttemptsText">Versuche übrig: 3/3</div>
+      <button class="btn btn-primary" id="chestTapBtn" style="margin-bottom:10px;">👆 Truhe antippen</button>
       <button class="btn btn-primary" id="chestClaimBtn" style="display:none; margin-bottom:10px;">Belohnung abholen</button>
     </div>
   </div>
@@ -6081,7 +6083,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.63";
+  const APP_VERSION = "3.64";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -10724,14 +10726,20 @@
 
     if(canTap){
       const remaining = MAX_CHEST_ATTEMPTS - chest.attemptsUsed;
-      $("chestModalSub").textContent = "Tippe auf die Truhe für eine Chance auf ein Upgrade (25%)!";
+      $("chestModalSub").textContent = "Tippe auf die Truhe - jedes Mal 25% Chance auf ein Upgrade! Danach kannst du sie abholen.";
       $("chestAttemptsText").textContent = `Versuche übrig: ${remaining}/${MAX_CHEST_ATTEMPTS}`;
       $("chestClaimBtn").style.display = "none";
+      // Klar sichtbarer Knopf (NEU): vorher war NUR das Truhen-Symbol
+      // antippbar - viele haben nicht gemerkt, dass man erst tippen muss,
+      // bevor "Abholen" erscheint.
+      $("chestTapBtn").style.display = "flex";
+      $("chestTapBtn").textContent = `👆 Truhe antippen (${remaining}× übrig)`;
     } else {
       $("chestModalSub").textContent = chest.tier === "ultra"
         ? "Maximale Stufe erreicht!"
         : "Keine Versuche mehr übrig.";
       $("chestAttemptsText").textContent = `Belohnung: +${CHEST_REWARDS[chest.tier]} Aura`;
+      $("chestTapBtn").style.display = "none";
       $("chestClaimBtn").style.display = "flex";
       $("chestClaimBtn").textContent = chest.claimed
         ? "Abgeholt ✓"
@@ -11531,16 +11539,10 @@
       </div>`;
     }).join("");
 
-    // Sonder-Truhen (nur die, die noch geöffnet werden können)
-    const specials = [];
-    const addSpecial = (chest, src, id, icon, label) => { if(chest && !chest.claimed) specials.push({ src, id, icon, label }); };
-    addSpecial(profile.shareChest, "share", "share", "📣", "Teilen");
-    addSpecial(profile.streak2Chest, "streak2", "streak2", "🔥", "2 Tage Streak");
-    addSpecial(profile.combo50Chest, "combo50", "combo50", "⚡", "50er-Combo");
-    addSpecial(profile.installChest, "install", "install", "📲", "App installiert");
-    Object.entries(profile.redeemedCodeChests || {}).forEach(([id, c]) => addSpecial(c, "redeemcode", id, "🎁", "Einlöse-Code"));
-    const inviteLbl = { rank2a:"Invite Platz 2", rank2b:"Invite Platz 2", rank3:"Invite Platz 3" };
-    ["rank2a","rank2b","rank3"].forEach(k => addSpecial((profile.inviteChests || {})[k], "invite", k, "🏆", inviteLbl[k]));
+    // Alle weiteren abholbaren Truhen (Erfolge, Codes, Teilen, Streak ...)
+    // mit einem klaren "Öffnen"-Knopf - Tagesmissionen haben ihren Knopf
+    // schon direkt in der eigenen Zeile.
+    const specials = collectReadyChests().filter(c => c.src !== "mission");
     readyCount += specials.length;
 
     // Erfolge als Abzeichen-Raster
@@ -11571,7 +11573,7 @@
       </div>
       <div class="nsx-sec"><h3>Heute</h3></div>
       <div class="nsx-list">${rows}</div>
-      ${specials.length ? `<div class="nsx-sec"><h3>Truhen</h3><span>${specials.length}</span></div>
+      ${specials.length ? `<div class="nsx-sec"><h3>🎁 Zum Abholen</h3><span>${specials.length}</span></div>
         <div class="nsx-list">${specials.map(s => `<div class="nsx-card nsx-row">
           <div class="nsx-ico">${s.icon}</div><div class="nsx-mid"><b>${s.label}</b></div>
           <button class="nsx-open" data-src="${s.src}" data-id="${s.id}">Öffnen</button></div>`).join("")}</div>` : ""}
@@ -16147,6 +16149,8 @@
   $("chestClaimBtn").addEventListener("click", () => {
     claimChestFromModal();
   });
+  $("chestTapBtn").addEventListener("click", () => tapChest());
+  $("chestModalClose").addEventListener("click", () => closeChestModal());
 
   /* Einladungslink (Shop-Banner + einmaliger Popup) */
   // Teilen-Funktion (NEU): nutzt die native Teilen-Funktion des Geräts
@@ -17480,16 +17484,31 @@
     const dismissed = profile.dismissedFollowRequests || [];
     return (inboxFollowers || []).filter(f => !following.includes(f.uid) && !dismissed.includes(f.uid));
   }
-  function inboxReadyChestCount(){
-    let n = 0;
-    const dm = profile.dailyMissions || {};
-    Object.values(dm.chests || {}).forEach(c => { if(c && !c.claimed) n++; });
-    Object.values(profile.achievements || {}).forEach(c => { if(c && !c.claimed) n++; });
-    ["shareChest","streak2Chest","combo50Chest","installChest"].forEach(k => { if(profile[k] && !profile[k].claimed) n++; });
-    Object.values(profile.redeemedCodeChests || {}).forEach(c => { if(c && !c.claimed) n++; });
-    Object.values(profile.inviteChests || {}).forEach(c => { if(c && !c.claimed) n++; });
-    return n;
+  // Bugfix ("5 Truhen, aber da sind keine"): morgens wird für JEDE Mission
+  // schon eine Truhe angelegt - auch wenn die Mission noch gar nicht
+  // geschafft ist. Gezählt werden jetzt nur Truhen, die man wirklich
+  // abholen kann (Mission geschafft / Erfolg erreicht / Sonder-Truhe offen).
+  function collectReadyChests(){
+    const out = [];
+    const add = (chest, src, id, icon, label) => { if(chest && !chest.claimed) out.push({ src, id, icon, label }); };
+    if(profile.dailyMissions){
+      activeMissionDefs().forEach(m => {
+        if(m.rewardType === "aura") return;
+        if(missionProgressValue(m) < m.target) return;
+        add(profile.dailyMissions.chests && profile.dailyMissions.chests[m.id], "mission", m.id, "📦", m.label);
+      });
+    }
+    ACHIEVEMENT_DEFS.forEach(a => add((profile.achievements || {})[a.id], "achievement", a.id, (typeof NOVA_ACH_ICON !== "undefined" && NOVA_ACH_ICON[a.id]) || "🏅", "Erfolg: " + a.label));
+    add(profile.shareChest, "share", "share", "📣", "Teilen");
+    add(profile.streak2Chest, "streak2", "streak2", "🔥", "2 Tage Streak");
+    add(profile.combo50Chest, "combo50", "combo50", "⚡", "50er-Combo");
+    add(profile.installChest, "install", "install", "📲", "App installiert");
+    Object.entries(profile.redeemedCodeChests || {}).forEach(([id, c]) => add(c, "redeemcode", id, "🎁", "Einlöse-Code"));
+    const inviteLbl = { rank2a:"Invite Platz 2", rank2b:"Invite Platz 2", rank3:"Invite Platz 3" };
+    ["rank2a","rank2b","rank3"].forEach(k => add((profile.inviteChests || {})[k], "invite", k, "🏆", inviteLbl[k]));
+    return out;
   }
+  function inboxReadyChestCount(){ return collectReadyChests().length; }
   function inboxHasUnread(){
     const chatUnread = $("chatUnreadDot") && $("chatUnreadDot").style.display === "block";
     return inboxPendingRequests().length > 0 || (profile.inboxEvents || []).some(e => !e.read) || chatUnread;

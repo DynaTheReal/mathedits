@@ -3240,6 +3240,25 @@
   .lupe-bubble.pop{ animation:lupe-pop .3s cubic-bezier(.34,1.6,.5,1) both; }
   @keyframes lupe-pop{ from{ opacity:0; transform:translateY(-6px) scale(.9); } to{ opacity:1; transform:none; } }
 
+
+  /* Lupe-Pfeil + Anker (NEU) */
+  .lupe-arrow{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:32; overflow:visible; }
+  .lupe-arrow-path{ fill:none; stroke:var(--accent); stroke-width:3; stroke-linecap:round; stroke-dasharray:400; stroke-dashoffset:400;
+    animation:lupe-arrow-draw .55s cubic-bezier(.4,0,.2,1) forwards; filter:drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 60%, transparent)); }
+  @keyframes lupe-arrow-draw{ to{ stroke-dashoffset:0; } }
+  .lupe-anchor{ border-radius:6px; padding:0 2px; transition:background .2s, box-shadow .2s; }
+  .lupe-anchor.hit{ background:color-mix(in srgb, var(--accent) 30%, transparent); box-shadow:0 0 0 2px var(--accent); animation:lupe-hit .6s ease .45s both; }
+  #qVisual [data-anchor].hit{ stroke-width:5 !important; filter:drop-shadow(0 0 8px var(--accent)); }
+  @keyframes lupe-hit{ 0%{ transform:scale(1); } 50%{ transform:scale(1.15); } 100%{ transform:scale(1); } }
+  /* Tutorial: Kapitel-Label, Rechenschritte, 📖-Knoten */
+  .lx-tut-chapter{ font-size:11.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; opacity:.6; margin-bottom:8px; }
+  .lx-tut-visual .lxa-seq{ animation:lxa-fade .5s ease var(--d, 0s) both; }
+  .lx-node.book{ width:80px; height:80px; font-size:34px; background:linear-gradient(145deg, var(--lx-c), color-mix(in srgb, var(--lx-c) 60%, #000));
+    box-shadow:0 7px 0 color-mix(in srgb, var(--lx-c) 45%, #000), 0 0 22px color-mix(in srgb, var(--lx-c) 45%, transparent); border-radius:24px; }
+  .lx-node.book.done{ opacity:.85; }
+  .lx-node.book .stars{ color:var(--text); opacity:.7; font-size:10.5px; letter-spacing:0; }
+  .lx-node.book.locked{ background:color-mix(in srgb, var(--text) 14%, var(--card)); box-shadow:0 7px 0 color-mix(in srgb, var(--text) 8%, #000); filter:grayscale(1); opacity:.55; }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -5407,15 +5426,14 @@
     <div class="lupe-panel" id="lupePanel">
       <div class="lupe-head"><b>🔍 Lupe</b><span>⏸ Zeit pausiert</span></div>
       <div class="lupe-hint" id="lupeHint"></div>
-      <div class="lupe-note" id="lupeNote"></div>
       <div class="lupe-sol" id="lupeSolution" style="display:none;"></div>
-      <div class="lupe-warn">Wenn du die Lupe schließt, ist diese Aufgabe verloren und es kommt eine neue.</div>
       <div class="lupe-btns">
         <button class="btn btn-ghost" id="lupeShowResult">💡 Ergebnis anzeigen</button>
         <button class="btn btn-primary" id="lupeClose">Lupe schließen</button>
       </div>
     </div>
     <div class="lupe-bubble" id="lupeBubble" style="display:none;"></div>
+    <svg class="lupe-arrow" id="lupeArrow" aria-hidden="true"></svg>
 
     <div id="duelOpponentProgress" style="display:none; text-align:center; font-size:12.5px; color:var(--text-dim); margin-top:8px; min-height:16px;"></div>
   </section>
@@ -6310,7 +6328,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.69";
+  const APP_VERSION = "3.70";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -17924,8 +17942,14 @@
     const st = profile.lessonTopics[topicId];
     if(!st.stars) st.stars = {};
     if(!st.chests) st.chests = {};
+    if(!st.chTut) st.chTut = {};
+    // Wer schon weiter ist, muss erreichte Kapitel-Tutorials nicht nachholen
+    if(st.done >= 1 || st.tutorialSeen) st.chTut[1] = true;
+    if(st.done >= 11) st.chTut[2] = true;
+    if(st.done >= 21) st.chTut[3] = true;
     return st;
   }
+  const lxChapterOf = n => Math.ceil(n / 10);
   function lxTopic(id){ return LX_TOPICS.find(t => t.id === id); }
 
   /* ---------- Aufgaben-Generatoren (alle Antworten sind ganze Zahlen) ---------- */
@@ -17945,12 +17969,13 @@
   const lxUp = (a, b, n) => Math.round(a + (b - a) * lxT(n));
   const lxNegChance = (n, from) => n < from ? 0 : Math.min(0.5, (n - from + 1) / 20);
   const lxSign = (n, from) => Math.random() < lxNegChance(n, from) ? -1 : 1;
-  const E = (v, t) => `{{${v}|${t}}}`;
+  const E = (v, t, to) => to ? `{{${v}|${t}|${to}}}` : `{{${v}|${t}}}`; // to = Anker, auf den der Lupe-Pfeil zeigt
+  const A = (id, disp) => `[[${id}|${disp}]]`; // Anker (Ziel eines Lupe-Pfeils)
   function lxLinE(m, b){
     const mTxt = "Das ist m, die Steigung. Sie steht direkt vor dem x und sagt, wie steil die Linie ist.";
-    let s = m === 1 ? "x" : m === -1 ? M + "x" : E(lxNum(m), mTxt) + "x";
+    let s = m === 1 ? A("x", "x") : m === -1 ? M + A("x", "x") : E(lxNum(m), mTxt, "m") + A("x", "x");
     const bTxt = v => `Das ist b = ${lxNum(v)}. Die Zahl ohne x am Ende – dort schneidet die Linie die y-Achse.`;
-    if(b > 0) s += " + " + E(b, bTxt(b)); else if(b < 0) s += " " + M + " " + E(Math.abs(b), bTxt(b) + " Das Minus davor gehört dazu.");
+    if(b > 0) s += " + " + E(b, bTxt(b), "b"); else if(b < 0) s += " " + M + " " + E(Math.abs(b), bTxt(b) + " Das Minus davor gehört dazu.", "b");
     return s;
   }
   function lxPick(types, n){
@@ -17962,25 +17987,25 @@
   const lxPlus = (a, b) => b === 0 ? `${a}` : b < 0 ? `${a} ${M} ${Math.abs(b)}` : `${a} + ${b}`;
   const LX_TYPES = {
     linfun: [
-      { from: 1,  gen: n => { const m = randInt(1, lxUp(2, 6, n)) * lxSign(n, 8), b = randInt(0, lxUp(3, 9, n)) * lxSign(n, 10), x = randInt(n >= 10 ? -lxUp(1, 5, n) : 0, lxUp(3, 6, n));
-                              return { text: `f(x) = ${lxLinE(m, b)}\nf(${E(lxNum(x), "Diese Zahl setzt du für x ein.")}) = ?`, answer: m * x + b,
+      { from: 1,  gen: n => { const m = randInt(1, lxUp(2, 6, n)) * lxSign(n, 11), b = randInt(0, lxUp(3, 9, n)) * lxSign(n, 11), x = randInt(n >= 11 ? -lxUp(1, 5, n) : 0, lxUp(3, 6, n));
+                              return { text: `f(x) = ${lxLinE(m, b)}\nf(${E(lxNum(x), "Diese Zahl setzt du für x ein – der Pfeil zeigt, wo sie hinkommt.", "x")}) = ?`, answer: m * x + b,
                                        hint: "Setze die Zahl für x ein und rechne: m · x + b.", solution: `f(${lxNum(x)}) = ${lxPlus(`${lxNum(m)} · ${lxNum(x)}`, b)} = ${lxNum(m * x + b)}` }; } },
-      { from: 1,  gen: n => { const m = randInt(1, lxUp(3, 9, n)) * lxSign(n, 8), b = lxNz(1, lxUp(5, 12, n)) * lxSign(n, 6);
-                              return { text: `f(x) = ${lxLinE(m, b)}\ny-Achsenabschnitt b = ?`, answer: b, hint: "b ist die Zahl ohne x am Ende (mit Vorzeichen).", solution: `b = ${lxNum(b)}` }; } },
-      { from: 2,  gen: n => { const m = lxNz(1, lxUp(3, 9, n)) * lxSign(n, 7), b = randInt(0, lxUp(5, 12, n)) * lxSign(n, 8);
-                              return { text: `f(x) = ${lxLinE(m, b)}\nSteigung m = ?`, answer: m, hint: "m ist die Zahl direkt vor dem x. Steht nur x da, ist m = 1.", solution: `m = ${lxNum(m)}` }; } },
-      { from: 4,  gen: n => { const m = randInt(1, 2) * lxSign(n, 9), b = randInt(n < 10 ? 0 : -3, 3);
+      { from: 1,  gen: n => { const m = randInt(1, lxUp(3, 9, n)) * lxSign(n, 11), b = lxNz(1, lxUp(5, 12, n)) * lxSign(n, 11);
+                              return { text: `f(x) = ${lxLinE(m, b)}\n[[b|y-Achsenabschnitt b]] = ?`, answer: b, hint: "b ist die Zahl ohne x am Ende (mit Vorzeichen).", solution: `b = ${lxNum(b)}` }; } },
+      { from: 2,  gen: n => { const m = lxNz(1, lxUp(3, 9, n)) * lxSign(n, 11), b = randInt(0, lxUp(5, 12, n)) * lxSign(n, 11);
+                              return { text: `f(x) = ${lxLinE(m, b)}\n[[m|Steigung m]] = ?`, answer: m, hint: "m ist die Zahl direkt vor dem x. Steht nur x da, ist m = 1.", solution: `m = ${lxNum(m)}` }; } },
+      { from: 4,  gen: n => { const m = randInt(1, 2) * lxSign(n, 11), b = randInt(n < 11 ? 0 : -3, 3);
                               return { text: "Wo schneidet die Gerade die y-Achse? (b = ?)", svg: lxGraphSvg(m, b), answer: b, hint: "Schau, wo die Linie die senkrechte y-Achse kreuzt.", solution: `Die Linie kreuzt die y-Achse bei ${lxNum(b)}, also b = ${lxNum(b)}.` }; } },
-      { from: 6,  gen: n => { const m = randInt(1, 2) * lxSign(n, 9), b = randInt(-2, 3);
+      { from: 6,  gen: n => { const m = randInt(1, 2) * lxSign(n, 11), b = randInt(-2, 3);
                               return { text: "Lies die Steigung m am Graphen ab.", svg: lxGraphSvg(m, b), answer: m, hint: "Geh 1 Kästchen nach rechts und zähl, wie viele es hoch (oder runter) geht.", solution: `1 nach rechts → ${Math.abs(m)} ${m > 0 ? "hoch" : "runter"}, also m = ${lxNum(m)}.` }; } },
-      { from: 12, gen: n => { const m = lxNz(1, lxUp(2, 6, n)) * lxSign(n, 12), x0 = randInt(-lxUp(2, 6, n), lxUp(3, 6, n)), b = -m * x0;
+      { from: 11, gen: n => { const m = lxNz(1, lxUp(2, 6, n)) * lxSign(n, 12), x0 = randInt(-lxUp(2, 6, n), lxUp(3, 6, n)), b = -m * x0;
                               return { text: `f(x) = ${lxLinE(m, b)}\nNullstelle x = ?`, answer: x0, hint: "An der Nullstelle ist f(x) = 0. Also: m · x + b = 0 nach x auflösen.",
                                        solution: `${lxPlus(`${lxNum(m)}x`, b)} = 0 → ${lxNum(m)}x = ${lxNum(-b)} → x = ${lxNum(x0)}` }; } },
       { from: 15, gen: n => { const m = lxNz(-2, 2), b = randInt(-3, 3);
                               const wrongs = ["f(x) = " + lxLin(-m, b), "f(x) = " + lxLin(m, -b || b + 2), "f(x) = " + lxLin(m + (m > 0 ? 1 : -1), b), "f(x) = " + lxLin(-m, -b || 1)];
                               return { text: "Welche Funktion gehört zum Graphen?", svg: lxGraphSvg(m, b), ...lxShuffleChoices("f(x) = " + lxLin(m, b), wrongs),
                                        hint: "Lies erst b ab (Schnitt mit der y-Achse), dann m (1 nach rechts, wie viel hoch?).", solution: `b = ${lxNum(b)}, m = ${lxNum(m)} → f(x) = ${lxLin(m, b)}` }; } },
-      { from: 18, gen: n => { const m = lxNz(1, lxUp(2, 5, n)) * lxSign(n, 18), x1 = randInt(-4, 4), dx = randInt(1, lxUp(2, 4, n)), y1 = randInt(-6, 6), x2 = x1 + dx, y2 = y1 + m * dx;
+      { from: 21, gen: n => { const m = lxNz(1, lxUp(2, 5, n)) * lxSign(n, 21), x1 = randInt(-4, 4), dx = randInt(1, lxUp(2, 4, n)), y1 = randInt(-6, 6), x2 = x1 + dx, y2 = y1 + m * dx;
                               return { text: `Gerade durch P(${E(lxNum(x1), "x-Wert von Punkt P")} | ${E(lxNum(y1), "y-Wert von Punkt P")}) und Q(${E(lxNum(x2), "x-Wert von Punkt Q")} | ${E(lxNum(y2), "y-Wert von Punkt Q")})\nSteigung m = ?`, answer: m,
                                        hint: "m = (y von Q − y von P) : (x von Q − x von P)", solution: `m = (${lxNum(y2)} − ${lxNum(y1)}) : (${lxNum(x2)} − ${lxNum(x1)}) = ${lxNum(y2 - y1)} : ${dx} = ${lxNum(m)}` }; } }
     ],
@@ -17996,18 +18021,18 @@
       { from: 8,  gen: n => { const a = randInt(1, 3), b = randInt(1, 9), x = randInt(1, 9);
                               return { text: `Erster Schritt für ${a === 1 ? "x" : a + "x"} + ${E(b, "Diese Zahl steht mit Plus bei x – die musst du zuerst wegbekommen.")} = ${a * x + b}?`,
                                        ...lxShuffleChoices(`auf beiden Seiten ${M} ${b}`, [`auf beiden Seiten + ${b}`, `nur links ${M} ${b}`, `auf beiden Seiten · ${b}`]), hint: "Mach auf BEIDEN Seiten das Gegenteil von + " + b + ".", solution: `auf beiden Seiten ${M} ${b}` }; } },
-      { from: 10, gen: n => { const x = randInt(1, lxUp(5, 12, n)) * lxSign(n, 20), a = randInt(2, lxUp(4, 9, n)), b = randInt(1, lxUp(6, 20, n));
+      { from: 11, gen: n => { const x = randInt(1, lxUp(5, 12, n)) * lxSign(n, 21), a = randInt(2, lxUp(4, 9, n)), b = randInt(1, lxUp(6, 20, n));
                               return { text: `${E(a, "Mit dieser Zahl wird x malgenommen.")}x + ${E(b, "Diese Zahl wird dazugezählt.")} = ${E(lxNum(a * x + b), "Das kommt insgesamt heraus.")}\nx = ?`, answer: x,
                                        hint: "Erst auf beiden Seiten − " + b + ", dann durch " + a + " teilen.", solution: `${a}x = ${lxNum(a * x + b)} − ${b} = ${lxNum(a * x)} → x = ${lxNum(a * x)} : ${a} = ${lxNum(x)}` }; } },
-      { from: 14, gen: n => { const x = randInt(1, lxUp(5, 12, n)) * lxSign(n, 20), a = randInt(2, lxUp(4, 9, n)), b = randInt(1, lxUp(6, 20, n));
+      { from: 14, gen: n => { const x = randInt(1, lxUp(5, 12, n)) * lxSign(n, 21), a = randInt(2, lxUp(4, 9, n)), b = randInt(1, lxUp(6, 20, n));
                               return { text: `${E(a, "Mit dieser Zahl wird x malgenommen.")}x ${M} ${E(b, "Diese Zahl wird abgezogen.")} = ${E(lxNum(a * x - b), "Das kommt insgesamt heraus.")}\nx = ?`, answer: x,
                                        hint: "Erst auf beiden Seiten + " + b + ", dann durch " + a + " teilen.", solution: `${a}x = ${lxNum(a * x - b)} + ${b} = ${lxNum(a * x)} → x = ${lxNum(a * x)} : ${a} = ${lxNum(x)}` }; } },
       { from: 16, gen: n => { const x = randInt(1, 6), a = randInt(2, 4), b = randInt(1, 9);
                               return { text: "Die Waage ist im Gleichgewicht. x = ?", svg: lxBalanceSvg(`${a}x + ${b}`, String(a * x + b)), answer: x, hint: "Erst die einzelne Zahl auf beiden Seiten wegnehmen, dann teilen.", solution: `${a}x = ${a * x + b} − ${b} = ${a * x} → x = ${x}` }; } },
-      { from: 19, gen: n => { const x = randInt(1, lxUp(5, 10, n)) * lxSign(n, 21), a = randInt(2, lxUp(4, 8, n)), b = randInt(1, lxUp(5, 12, n));
+      { from: 21, gen: n => { const x = randInt(1, lxUp(5, 10, n)) * lxSign(n, 21), a = randInt(2, lxUp(4, 8, n)), b = randInt(1, lxUp(5, 12, n));
                               return { text: `${E(a, "Mit dieser Zahl wird die ganze Klammer malgenommen.")} · (x + ${E(b, "Diese Zahl wird in der Klammer zu x dazugezählt.")}) = ${E(lxNum(a * (x + b)), "Das kommt insgesamt heraus.")}\nx = ?`, answer: x,
                                        hint: "Erst beide Seiten durch " + a + " teilen, dann − " + b + ".", solution: `x + ${b} = ${lxNum(a * (x + b))} : ${a} = ${lxNum(x + b)} → x = ${lxNum(x)}` }; } },
-      { from: 23, gen: n => { const x = randInt(1, lxUp(5, 10, n)) * lxSign(n, 24), a = randInt(3, lxUp(5, 9, n)), c = randInt(1, a - 1), b = randInt(1, lxUp(6, 15, n)), d = (a - c) * x + b;
+      { from: 24, gen: n => { const x = randInt(1, lxUp(5, 10, n)) * lxSign(n, 24), a = randInt(3, lxUp(5, 9, n)), c = randInt(1, a - 1), b = randInt(1, lxUp(6, 15, n)), d = (a - c) * x + b;
                               return { text: `${E(a, "So oft steht x auf der linken Seite.")}x + ${E(b, "Zahl ohne x links.")} = ${c === 1 ? "" : E(c, "So oft steht x auf der rechten Seite.")}x + ${E(lxNum(d), "Zahl ohne x rechts.")}\nx = ?`, answer: x,
                                        hint: "Bring alle x auf eine Seite: auf beiden Seiten − " + c + "x.", solution: `${a - c}x + ${b} = ${lxNum(d)} → ${a - c}x = ${lxNum(d - b)} → x = ${lxNum(x)}` }; } }
     ],
@@ -18019,10 +18044,10 @@
                               return { text: "Welcher Anteil ist gefärbt?", svg: lxPieSvg(pct), ...lxShuffleChoices(pct + " %", ["25 %", "50 %", "75 %", "10 %"]), hint: "Ein Viertel = 25 %, die Hälfte = 50 %, drei Viertel = 75 %.", solution: `${pct} %` }; } },
       { from: 5,  gen: n => { const p = [10, 25][randInt(0, 1)], g = (p === 25 ? 4 : 10) * randInt(2, lxUp(10, 30, n));
                               return { text: `${E(p, p === 10 ? "10 % ist ein Zehntel." : "25 % ist ein Viertel.")} % von ${E(g, "Das ist das Ganze (100 %).")} = ?`, answer: g * p / 100, hint: p === 10 ? "10 % = durch 10 teilen." : "25 % = durch 4 teilen.", solution: `${g} : ${p === 10 ? 10 : 4} = ${g * p / 100}` }; } },
-      { from: 9,  gen: n => { const k = randInt(3, 97); return { text: "Wie viel Prozent sind gefärbt?", svg: lxGridSvg(k), answer: k, hint: "Zähle die vollen Reihen (je 10 %) und dann die einzelnen Kästchen.", solution: `${Math.floor(k / 10)} volle Reihen + ${k % 10} Kästchen = ${k} %` }; } },
-      { from: 12, gen: n => { const p = [5, 20, 30, 40, 75][randInt(0, 4)], g = 20 * randInt(1, lxUp(8, 20, n));
+      { from: 8,  gen: n => { const k = randInt(3, 97); return { text: "Wie viel Prozent sind gefärbt?", svg: lxGridSvg(k), answer: k, hint: "Zähle die vollen Reihen (je 10 %) und dann die einzelnen Kästchen.", solution: `${Math.floor(k / 10)} volle Reihen + ${k % 10} Kästchen = ${k} %` }; } },
+      { from: 11, gen: n => { const p = [5, 20, 30, 40, 75][randInt(0, 4)], g = 20 * randInt(1, lxUp(8, 20, n));
                               return { text: `${E(p, "Das ist der Prozentsatz: so viele Hundertstel.")} % von ${E(g, "Das ist das Ganze (100 %).")} = ?`, answer: g * p / 100, hint: "Erst 1 % ausrechnen (durch 100), dann mal " + p + ".", solution: `${g} : 100 = ${g / 100} → ${g / 100} · ${p} = ${g * p / 100}` }; } },
-      { from: 17, gen: n => { let p, g; do { p = 5 * randInt(1, 19); g = 20 * randInt(1, lxUp(10, 25, n)); } while((p * g) % 100);
+      { from: 15, gen: n => { let p, g; do { p = 5 * randInt(1, 19); g = 20 * randInt(1, lxUp(10, 25, n)); } while((p * g) % 100);
                               return { text: `${E(p, "Das ist der Prozentsatz: so viele Hundertstel.")} % von ${E(g, "Das ist das Ganze (100 %).")} = ?`, answer: p * g / 100, hint: "Ganzes durch 100, dann mal " + p + ".", solution: `${g} : 100 · ${p} = ${p * g / 100}` }; } },
       { from: 21, gen: n => { const p = [10, 20, 25, 50][randInt(0, 3)], g = (100 / p) * randInt(2, lxUp(10, 30, n)), v = g * p / 100;
                               return { text: `${E(p, "So viel Prozent sind bekannt.")} % sind ${E(v, "So viel sind diese " + p + " %.")}.\nGrundwert (100 %) = ?`, answer: g, hint: "Rechne hoch auf 100 %: durch " + p + ", dann mal 100.", solution: `${v} : ${p} · 100 = ${g}` }; } },
@@ -18033,11 +18058,11 @@
       { from: 1,  gen: n => { const a = randInt(2, lxUp(4, 12, n)); return { text: "Wie groß ist die Fläche? (cm²)", svg: lxRectSvg(a, a, a + " cm", a + " cm"), answer: a * a, hint: "Quadrat: Seite mal Seite.", solution: `${a} · ${a} = ${a * a} cm²` }; } },
       { from: 2,  gen: n => { const a = randInt(2, lxUp(5, 12, n)), b = randInt(2, lxUp(4, 10, n)); return { text: "Wie groß ist die Fläche? (cm²)", svg: lxRectSvg(a, b, a + " cm", b + " cm"), answer: a * b, hint: "Rechteck: Länge mal Breite.", solution: `${a} · ${b} = ${a * b} cm²` }; } },
       { from: 6,  gen: n => { const a = randInt(2, lxUp(6, 15, n)), b = randInt(2, lxUp(5, 12, n)); return { text: "Wie groß ist der Umfang? (cm)", svg: lxRectSvg(a, b, a + " cm", b + " cm"), answer: 2 * (a + b), hint: "Einmal außen herum: alle 4 Seiten zusammenzählen.", solution: `${a} + ${b} + ${a} + ${b} = ${2 * (a + b)} cm` }; } },
-      { from: 9,  gen: n => { const a = randInt(2, lxUp(8, 20, n)); return { text: `Quadrat: a = ${E(a, "Das ist eine Seite. Ein Quadrat hat 4 gleich lange Seiten.")} cm\nUmfang = ? cm`, answer: 4 * a, hint: "4 gleiche Seiten: 4 mal die Seite.", solution: `4 · ${a} = ${4 * a} cm` }; } },
-      { from: 12, gen: n => { const g = 2 * randInt(2, lxUp(5, 10, n)), h = randInt(2, lxUp(6, 12, n)); return { text: "Wie groß ist die Fläche des Dreiecks? (cm²)", svg: lxTriangleSvg(g, h, "g = " + g, "h = " + h), answer: g * h / 2, hint: "Dreieck = halbes Rechteck: g mal h, dann durch 2.", solution: `${g} · ${h} : 2 = ${g * h / 2} cm²` }; } },
-      { from: 15, gen: n => { const g = 2 * randInt(2, 6), h = randInt(2, 6); return { text: "Welche Formel gilt für die Dreiecksfläche?", svg: lxTriangleSvg(g, h, "g", "h"), ...lxShuffleChoices("g · h : 2", ["g · h", "g + h", "2 · (g + h)"]), hint: "Ein Dreieck ist genau die Hälfte von einem Rechteck.", solution: "g · h : 2" }; } },
-      { from: 18, gen: n => { const a = randInt(2, lxUp(8, 12, n)), b = randInt(2, lxUp(8, 12, n));
-                              return { text: `Fläche = ${E(a * b, "Das ist die ganze Fläche: Länge mal Breite.")} cm². Wie lang ist die fehlende Seite? (cm)`, svg: lxRectSvg(a, b, a + " cm", "?"), answer: b, hint: "Fläche durch die bekannte Seite teilen.", solution: `${a * b} : ${a} = ${b} cm` }; } },
+      { from: 8,  gen: n => { const a = randInt(2, lxUp(8, 20, n)); return { text: `Quadrat: a = ${E(a, "Das ist eine Seite. Ein Quadrat hat 4 gleich lange Seiten.")} cm\nUmfang = ? cm`, answer: 4 * a, hint: "4 gleiche Seiten: 4 mal die Seite.", solution: `4 · ${a} = ${4 * a} cm` }; } },
+      { from: 11, gen: n => { const g = 2 * randInt(2, lxUp(5, 10, n)), h = randInt(2, lxUp(6, 12, n)); return { text: "Wie groß ist die Fläche des Dreiecks? (cm²)", svg: lxTriangleSvg(g, h, "g = " + g, "h = " + h), answer: g * h / 2, hint: "Dreieck = halbes Rechteck: g mal h, dann durch 2.", solution: `${g} · ${h} : 2 = ${g * h / 2} cm²` }; } },
+      { from: 14, gen: n => { const g = 2 * randInt(2, 6), h = randInt(2, 6); return { text: "Welche Formel gilt für die Dreiecksfläche?", svg: lxTriangleSvg(g, h, "g", "h"), ...lxShuffleChoices("g · h : 2", ["g · h", "g + h", "2 · (g + h)"]), hint: "Ein Dreieck ist genau die Hälfte von einem Rechteck.", solution: "g · h : 2" }; } },
+      { from: 17, gen: n => { const a = randInt(2, lxUp(8, 12, n)), b = randInt(2, lxUp(8, 12, n));
+                              return { text: `Fläche = ${E(a * b, "Das ist die ganze Fläche: Länge mal Breite – also das ganze Rechteck.", "area")} cm². Wie lang ist die fehlende Seite? (cm)`, svg: lxRectSvg(a, b, a + " cm", "?"), answer: b, hint: "Fläche durch die bekannte Seite teilen.", solution: `${a * b} : ${a} = ${b} cm` }; } },
       { from: 21, gen: n => { const s = randInt(2, lxUp(5, 10, n)); return { text: `Würfel: a = ${E(s, "Jede Kante des Würfels ist so lang.")} cm\nVolumen = ? cm³`, answer: s * s * s, hint: "Würfel: a mal a mal a.", solution: `${s} · ${s} · ${s} = ${s * s * s} cm³` }; } },
       { from: 24, gen: n => { const a = randInt(2, 9), b = randInt(2, 7), c = randInt(2, lxUp(5, 8, n)); return { text: "Wie groß ist das Volumen? (cm³)", svg: lxCuboidSvg(a, b, c, a + " cm", b + " cm", c + " cm"), answer: a * b * c, hint: "Quader: Länge mal Breite mal Höhe.", solution: `${a} · ${b} · ${c} = ${a * b * c} cm³` }; } }
     ]
@@ -18048,7 +18073,7 @@
     percent: n => lxPick(LX_TYPES.percent, n),
     geometry: n => lxPick(LX_TYPES.geometry, n)
   };
-  const lxPlain = t => String(t).replace(/\{\{([^|}]*)\|[^}]*\}\}/g, "$1");
+  const lxPlain = t => String(t).replace(/\{\{([^|}]*)\|[^}]*\}\}/g, "$1").replace(/\[\[[^|\]]*\|([^\]]*)\]\]/g, "$1");
 
   function lxLevelFor(lessonNo){ return lessonNo <= 10 ? 1 : lessonNo <= 20 ? 2 : 3; }
 
@@ -18131,9 +18156,15 @@
     const xs = [0, 46, 70, 46, 0, -46, -70, -46];
     let html = "";
     for(let n = 1; n <= LX_LESSONS_PER_TOPIC; n++){
-      if((n - 1) % 10 === 0) html += `<div class="lx-section">${LX_SECTIONS[(n - 1) / 10]} · Lektion ${n}–${n + 9}</div>`;
+      const ch = lxChapterOf(n);
+      if((n - 1) % 10 === 0){
+        html += `<div class="lx-section">${LX_SECTIONS[ch - 1]} · Lektion ${n}–${n + 9}</div>`;
+        const tDone = !!st.chTut[ch], tOpen = st.done >= n - 1;
+        html += `<button class="lx-node book${tDone ? " done" : tOpen ? " current" : " locked"}" data-book="${ch}" style="--x:0px">
+          ${!tDone && tOpen ? '<span class="start">START</span>' : ""}📖${tDone ? '<span class="stars">✓ Tutorial</span>' : ""}</button>`;
+      }
       const x = xs[(n - 1) % xs.length];
-      const done = n <= st.done, current = n === st.done + 1;
+      const done = n <= st.done, current = n === st.done + 1 && !!st.chTut[ch];
       const stars = st.stars[n] || 0;
       html += `<button class="lx-node${done ? " done" : current ? " current" : " locked"}" data-lesson="${n}" style="--x:${x}px">
         ${current ? '<span class="start">START</span>' : ""}${done ? "✓" : current ? n : "🔒"}
@@ -18152,10 +18183,16 @@
       </div>
       <div class="lx-path" style="--lx-c:${t.color}">${html}</div>`;
     $("lxBack").addEventListener("click", () => { lxCurrentTopic = null; renderLessonsScreen(); });
-    $("lxTutBtn").addEventListener("click", () => lxOpenTutorial(t.id));
+    $("lxTutBtn").addEventListener("click", () => lxOpenTutorial(t.id, Math.min(3, lxChapterOf(Math.max(1, st.done + 1)))));
+    root.querySelectorAll("[data-book]").forEach(b => b.addEventListener("click", () => {
+      const ch = parseInt(b.dataset.book, 10);
+      if(st.done < (ch - 1) * 10){ showToast("🔒 Schließe erst das Kapitel davor ab."); return; }
+      lxOpenTutorial(t.id, ch);
+    }));
     root.querySelectorAll("[data-lesson]").forEach(b => b.addEventListener("click", () => {
       const n = parseInt(b.dataset.lesson, 10);
       if(n > st.done + 1){ showToast("🔒 Schließe erst die Lektion davor ab."); return; }
+      if(!st.chTut[lxChapterOf(n)]){ showToast("📖 Schau dir zuerst das Tutorial zu diesem Kapitel an."); return; }
       lxStartLesson(t.id, n);
     }));
     root.querySelectorAll("[data-chest]").forEach(b => b.addEventListener("click", () => {
@@ -18170,20 +18207,11 @@
   }
 
   function lxOpenTopic(topicId){
-    const t = lxTopic(topicId);
     const st = lxState(topicId);
-    // Nur beim ersten Mal fragen: hat man schon eine Lektion gemacht oder
-    // das Tutorial gesehen, geht es direkt in den Pfad (📖 oben rechts
-    // öffnet das Tutorial jederzeit).
-    if(st.done > 0 || st.tutorialSeen){
-      lxCurrentTopic = topicId;
-      renderLessonsScreen();
-      return;
-    }
-    $("lxStartTitle").textContent = `${t.icon} ${t.name}`;
-    $("lxStartCard").style.setProperty("--lx-c", t.color);
-    $("overlayLxStart").dataset.topic = topicId;
-    $("overlayLxStart").classList.add("show");
+    lxCurrentTopic = topicId;
+    renderLessonsScreen();
+    // Erstes Öffnen: direkt das Tutorial zum ersten (einfachsten) Kapitel
+    if(!st.chTut[1]) setTimeout(() => lxOpenTutorial(topicId, 1), 250);
   }
 
   /* ---------- Tutorial in Schritten (NEU: ganz einfach + Animationen) ---------- */
@@ -18207,93 +18235,189 @@
   const lxSvgT = inner => `<svg viewBox="0 0 200 150" aria-hidden="true">${inner}</svg>`;
   const lxTxt = (x, y, t, size = 14, extra = "", cls = "") => `<text class="${cls}" x="${x}" y="${y}" text-anchor="middle" font-size="${size}" font-weight="800" style="fill:currentColor;${extra}">${t}</text>`;
 
+  // Rechenschritte, die nacheinander erscheinen (für Tutorials)
+  function lxSeq(lines, startDelay = 0.3, gap = 0.75){
+    const n = lines.length, top = 150 / (n + 1);
+    return lxSvgT(lines.map((l, i) => {
+      const [t0, size = 16, acc = false] = Array.isArray(l) ? l : [l];
+      const t = String(t0).replace(/ {2,}/g, m => "\u00a0".repeat(m.length)); // Abstände wie "− 4      − 4" erhalten
+      return `<text class="lxa-seq" x="100" y="${Math.round(top * (i + 1) + size / 3)}" text-anchor="middle" font-size="${size}" font-weight="800"
+        style="--d:${(startDelay + i * gap).toFixed(2)}s;fill:${acc ? "var(--lx-c, var(--accent))" : "currentColor"}">${t}</text>`;
+    }).join(""));
+  }
+  const LXG = (m, b, extra = "") => lxSvgT(lxAx(LXT_X, LXT_Y, true) + lxTutLine(m, b) + extra);
+  const lxDot = (x, y, d = 1, r = 6) => `<circle class="lxa-pop" style="--d:${d}s;fill:var(--lx-c, var(--accent))" cx="${LXT_X(x)}" cy="${LXT_Y(y)}" r="${r}"/>`;
+  const lxGrid100 = (n, lit = n, step = .012) => { let c = ""; for(let i = 0; i < 100; i++){ const r = Math.floor(i / 10), k = i % 10;
+      c += `<rect ${i < lit ? `class="lxa-pop" style="--d:${(i * step).toFixed(3)}s;fill:var(--lx-c, var(--accent))"` : 'style="fill:currentColor;opacity:.12"'} x="${50 + k * 10}" y="${25 + r * 10}" width="9" height="9" rx="1.5"/>`; } return lxSvgT(c); };
+  const lxBalanceT = (l, r) => lxSvgT(`<g class="lxa-tilt" style="transform-origin:100px 42px">
+      <line x1="30" y1="42" x2="170" y2="42" style="stroke:currentColor;stroke-width:3;opacity:.7"/>
+      <rect x="18" y="52" width="66" height="30" rx="10" style="fill:var(--lx-c, var(--accent));fill-opacity:.25;stroke:var(--lx-c, var(--accent));stroke-width:2"/>
+      <rect x="116" y="52" width="66" height="30" rx="10" style="fill:var(--lx-c, var(--accent));fill-opacity:.25;stroke:var(--lx-c, var(--accent));stroke-width:2"/>
+      ${lxTxt(51, 72, l, 13)}${lxTxt(149, 72, r, 14)}</g>
+      <line x1="100" y1="42" x2="100" y2="128" style="stroke:currentColor;stroke-width:3;opacity:.55"/><polygon points="84,132 116,132 100,118" style="fill:currentColor;opacity:.45"/>`);
+  const lxAreaGrid = (w, h, label = true) => { let c = ""; const s = Math.min(22, 110 / w, 90 / h), x0 = 100 - w * s / 2, y0 = 78 - h * s / 2;
+      for(let i = 0; i < w * h; i++){ const r = Math.floor(i / w), k = i % w; c += `<rect class="lxa-pop" x="${x0 + k * s}" y="${y0 + r * s}" width="${s - 1.5}" height="${s - 1.5}" rx="2" style="--d:${(i * 0.07).toFixed(2)}s;fill:var(--lx-c, var(--accent));fill-opacity:.75"/>`; }
+      return lxSvgT(c + (label ? lxTxt(100, y0 - 7, String(w), 13) + lxTxt(x0 + w * s + 12, 82, String(h), 13) : "")); };
+  const lxBig = (t, sub) => lxSvgT(`<g class="lxa-pop" style="--d:.2s">${lxTxt(100, 78, t, 46)}</g>` + (sub ? lxTxt(100, 118, sub, 14, "fill:var(--lx-c, var(--accent))", "lxa-fade1") : ""));
+
+  // Kapitel-Tutorials: jedes Kapitel (10 Lektionen bis zur Truhe) beginnt
+  // mit einem 📖-Tutorial zu genau dem, was darin neu ist.
+  const LX_CHAPTER_NAMES = ["Kapitel 1 · Einstieg", "Kapitel 2 · Fortgeschritten", "Kapitel 3 · Profi"];
   const LX_TUTORIALS = {
-    linfun: [
-      { v: () => lxSvgT(lxAx(LXT_X, LXT_Y, true) + lxTutLine(1, 1)),
-        t: "Eine gerade Linie", p: "Eine lineare Funktion ist einfach eine gerade Linie. Man schreibt sie so:", ex: "f(x) = m·x + b" },
-      { v: () => lxSvgT(lxAx(LXT_X, LXT_Y, true) + `<g class="lxa-lift">${lxTutLine(1, 0, "", "")}<circle class="lxa-pulse" cx="${LXT_X(0)}" cy="${LXT_Y(0)}" r="6" style="fill:var(--lx-c, var(--accent))"/></g>`),
-        t: "b = wo die Linie startet", p: "b ist der Punkt, an dem die Linie die senkrechte y-Achse trifft. Ist b größer, rutscht die Linie nach oben.", ex: "f(x) = 2x + 3  →  b = 3" },
-      { v: () => lxSvgT(lxAx(LXT_X, LXT_Y, true) + lxTutLine(2, -1) +
-            `<path class="lxa-fade1" d="M${LXT_X(1)},${LXT_Y(1)} H${LXT_X(2)} V${LXT_Y(3)}" style="fill:none;stroke:currentColor;stroke-width:3;stroke-linejoin:round"/>` +
-            lxTxt((LXT_X(1) + LXT_X(2)) / 2, LXT_Y(1) + 14, "1", 12, "", "lxa-fade1") +
-            lxTxt(LXT_X(2) + 10, LXT_Y(2) + 4, "2", 12, "fill:var(--lx-c, var(--accent))", "lxa-fade2") +
-            `<circle class="lxa-pop" style="--d:.9s;fill:currentColor" cx="${LXT_X(1)}" cy="${LXT_Y(1)}" r="3.5"/><circle class="lxa-pop" style="--d:1.6s;fill:currentColor" cx="${LXT_X(2)}" cy="${LXT_Y(3)}" r="3.5"/>`),
-        t: "m = wie steil", p: "m sagt, wie steil die Linie ist: 1 Kästchen nach rechts, dann m Kästchen hoch. Hier: 1 rechts, 2 hoch. Minus = geht runter.", ex: "f(x) = 2x − 1  →  m = 2" },
-      { v: () => lxSvgT(lxTxt(100, 48, "f(x) = 2·x + 1", 16) +
-              lxTxt(100, 82, "f(3) = 2·3 + 1", 16, "", "lxa-fade1") +
-              lxTxt(100, 118, "= 7", 22, "fill:var(--lx-c, var(--accent))", "lxa-fade2")),
-        t: "Zahl einsetzen", p: "Für x setzt du einfach die Zahl ein und rechnest aus.", ex: "f(3) = 7" },
-      { v: () => lxSvgT(lxAx(LXT_X, LXT_Y, true) + lxTutLine(2, -4) + `<circle class="lxa-pop" style="--d:1.1s;fill:var(--lx-c, var(--accent))" cx="${LXT_X(2)}" cy="${LXT_Y(0)}" r="7"/>`),
-        t: "Nullstelle", p: "Die Nullstelle ist dort, wo die Linie die waagerechte x-Achse trifft. Für negative Zahlen gibt es unten die −-Taste.", ex: "f(x) = 2x − 4  →  x = 2" }
-    ],
-    algebra: [
-      { v: () => lxSvgT(`<g class="lxa-tilt" style="transform-origin:100px 42px">
-              <line x1="30" y1="42" x2="170" y2="42" style="stroke:currentColor;stroke-width:3;opacity:.7"/>
-              <rect x="20" y="52" width="60" height="30" rx="10" style="fill:var(--lx-c, var(--accent));fill-opacity:.25;stroke:var(--lx-c, var(--accent));stroke-width:2"/>
-              <rect x="120" y="52" width="60" height="30" rx="10" style="fill:var(--lx-c, var(--accent));fill-opacity:.25;stroke:var(--lx-c, var(--accent));stroke-width:2"/>
-              ${lxTxt(50, 72, "x + 3", 13)}${lxTxt(150, 72, "7", 15)}</g>
-              <line x1="100" y1="42" x2="100" y2="128" style="stroke:currentColor;stroke-width:3;opacity:.55"/><polygon points="84,132 116,132 100,118" style="fill:currentColor;opacity:.45"/>`),
-        t: "Eine Waage", p: "Eine Gleichung ist wie eine Waage: Links und rechts ist gleich viel. Du suchst die Zahl x.", ex: "x + 3 = 7" },
-      { v: () => lxSvgT(lxTxt(100, 45, "x + 3 = 7", 20) + lxTxt(100, 80, `${M} 3      ${M} 3`, 15, "fill:var(--lx-c, var(--accent))", "lxa-fade1") + lxTxt(100, 120, "x = 4", 22, "", "lxa-fade2")),
-        t: "Plus wegmachen", p: "Mach auf beiden Seiten das Gegenteil: Aus + 3 wird − 3. Dann bleibt x allein.", ex: "x + 3 = 7  →  x = 4" },
-      { v: () => lxSvgT(lxTxt(100, 45, "3 · x = 12", 20) + lxTxt(100, 80, ": 3      : 3", 15, "fill:var(--lx-c, var(--accent))", "lxa-fade1") + lxTxt(100, 120, "x = 4", 22, "", "lxa-fade2")),
-        t: "Mal wegmachen", p: "Steht eine Zahl mal x da, teilst du beide Seiten durch diese Zahl.", ex: "3x = 12  →  x = 4" },
-      { v: () => lxSvgT(lxTxt(100, 34, "2x + 3 = 11", 17) + lxTxt(100, 72, "2x = 8", 17, "", "lxa-fade1") + lxTxt(100, 112, "x = 4", 22, "fill:var(--lx-c, var(--accent))", "lxa-fade2")),
-        t: "Zwei Schritte", p: "Erst das Plus oder Minus weg, dann durch die Zahl vor x teilen.", ex: "fertig: x = 4" }
-    ],
-    percent: [
-      { v: () => { let c = ""; for(let i = 0; i < 100; i++){ const r = Math.floor(i / 10), k = i % 10; c += `<rect class="lxa-pop" x="${50 + k * 10}" y="${25 + r * 10}" width="9" height="9" rx="1.5" style="--d:${(i * 0.012).toFixed(3)}s;fill:var(--lx-c, var(--accent));fill-opacity:.85"/>`; } return lxSvgT(c); },
-        t: "Prozent heißt „von 100“", p: "Stell dir 100 Kästchen vor. 1 % ist genau ein Kästchen, 100 % sind alle.", ex: "100 % = alles" },
-      { v: () => { let c = ""; for(let i = 0; i < 100; i++){ const r = Math.floor(i / 10), k = i % 10; c += `<rect ${i < 50 ? `class="lxa-pop" style="--d:${(i * 0.02).toFixed(2)}s;fill:var(--lx-c, var(--accent))"` : 'style="fill:currentColor;opacity:.12"'} x="${50 + k * 10}" y="${25 + r * 10}" width="9" height="9" rx="1.5"/>`; } return lxSvgT(c); },
-        t: "50 % ist die Hälfte", p: "50 Kästchen von 100 sind die Hälfte. 25 % ist ein Viertel.", ex: "50 % von 40 = 20" },
-      { v: () => lxSvgT(lxTxt(100, 45, "10 % von 200", 18) + lxTxt(100, 80, "200 : 10", 16, "", "lxa-fade1") + lxTxt(100, 118, "= 20", 22, "fill:var(--lx-c, var(--accent))", "lxa-fade2")),
-        t: "10 % = durch 10", p: "10 % bekommst du, wenn du durch 10 teilst. Das hilft bei vielen Aufgaben.", ex: "10 % von 200 = 20" },
-      { v: () => lxSvgT(lxTxt(100, 40, "20 % von 150", 17) + lxTxt(100, 74, "10 % = 15", 16, "", "lxa-fade1") + lxTxt(100, 112, "20 % = 30", 22, "fill:var(--lx-c, var(--accent))", "lxa-fade2")),
-        t: "Andere Prozente", p: "Rechne erst 10 % aus und nimm das dann mal. 20 % sind zweimal 10 %.", ex: "20 % von 150 = 30" }
-    ],
-    geometry: [
-      { v: () => { let c = ""; for(let i = 0; i < 15; i++){ const r = Math.floor(i / 5), k = i % 5; c += `<rect class="lxa-pop" x="${50 + k * 20}" y="${35 + r * 20}" width="19" height="19" rx="2" style="--d:${(i * 0.09).toFixed(2)}s;fill:var(--lx-c, var(--accent));fill-opacity:.75"/>`; }
-              return lxSvgT(c + lxTxt(100, 26, "5", 13) + lxTxt(162, 70, "3", 13)); },
-        t: "Fläche = Kästchen zählen", p: "Die Fläche sagt, wie viele Kästchen hineinpassen. Beim Rechteck: Länge mal Breite.", ex: "5 · 3 = 15 cm²" },
-      { v: () => lxSvgT(`<rect x="50" y="40" width="100" height="60" rx="3" style="fill:none;stroke:currentColor;opacity:.2;stroke-width:3"/>
-              <rect class="lxa-draw" x="50" y="40" width="100" height="60" rx="3" style="fill:none;stroke:var(--lx-c, var(--accent));stroke-width:4"/>` + lxTxt(100, 32, "5", 13) + lxTxt(160, 75, "3", 13)),
-        t: "Umfang = einmal außen herum", p: "Den Umfang bekommst du, wenn du alle Seiten zusammenzählst.", ex: "5 + 3 + 5 + 3 = 16 cm" },
-      { v: () => lxSvgT(`<rect x="50" y="40" width="100" height="70" style="fill:currentColor;opacity:.1"/>
-              <polygon class="lxa-fade1" points="50,110 150,110 150,40" style="fill:var(--lx-c, var(--accent));fill-opacity:.7"/>
-              <line x1="50" y1="110" x2="150" y2="40" style="stroke:currentColor;stroke-width:2;stroke-dasharray:4 3;opacity:.6"/>`),
-        t: "Dreieck = halbes Rechteck", p: "Ein Dreieck ist die Hälfte von einem Rechteck. Darum: Grundseite mal Höhe, dann durch 2.", ex: "6 · 4 : 2 = 12 cm²" },
-      { v: () => { let c = ""; const f = (x, y, i) => `<g class="lxa-pop" style="--d:${(i * 0.18).toFixed(2)}s"><polygon points="${x},${y} ${x + 24},${y} ${x + 24},${y + 24} ${x},${y + 24}" style="fill:color-mix(in srgb, var(--lx-c, var(--accent)) 70%, #000);stroke:var(--bg);stroke-width:1.2"/><polygon points="${x},${y} ${x + 10},${y - 10} ${x + 34},${y - 10} ${x + 24},${y}" style="fill:color-mix(in srgb, var(--lx-c, var(--accent)) 70%, #fff);stroke:var(--bg);stroke-width:1.2"/><polygon points="${x + 24},${y} ${x + 34},${y - 10} ${x + 34},${y + 14} ${x + 24},${y + 24}" style="fill:color-mix(in srgb, var(--lx-c, var(--accent)) 45%, #000);stroke:var(--bg);stroke-width:1.2"/></g>`;
+    linfun: {
+      1: [
+        { v: () => LXG(1, 1), t: "Eine gerade Linie", p: "Eine lineare Funktion ist einfach eine gerade Linie. Man schreibt sie so:", ex: "f(x) = m·x + b" },
+        { v: () => lxSeq(["f(x) = 2x + 1", ["x = 1  →  f(1) = 3", 14], ["x = 2  →  f(2) = 5", 14], ["x = 3  →  f(3) = 7", 14, true]]),
+          t: "Rein kommt x, raus kommt f(x)", p: "Du gibst eine Zahl für x hinein und bekommst einen Wert heraus. Jede Zahl x hat genau einen Wert.", ex: "Wie eine Rechenmaschine" },
+        { v: () => lxSvgT(lxAx(LXT_X, LXT_Y, true) + `<g class="lxa-lift">${lxTutLine(1, 0, "", "")}<circle class="lxa-pulse" cx="${LXT_X(0)}" cy="${LXT_Y(0)}" r="6" style="fill:var(--lx-c, var(--accent))"/></g>`),
+          t: "b = wo die Linie startet", p: "b ist die Zahl ohne x am Ende. Dort trifft die Linie die senkrechte y-Achse. Größeres b = Linie weiter oben.", ex: "f(x) = 2x + 3  →  b = 3" },
+        { v: () => lxSvgT(lxAx(LXT_X, LXT_Y, true) + lxTutLine(2, -1) + `<path class="lxa-fade1" d="M${LXT_X(1)},${LXT_Y(1)} H${LXT_X(2)} V${LXT_Y(3)}" style="fill:none;stroke:currentColor;stroke-width:3;stroke-linejoin:round"/>` +
+              lxTxt((LXT_X(1) + LXT_X(2)) / 2, LXT_Y(1) + 14, "1", 12, "", "lxa-fade1") + lxTxt(LXT_X(2) + 10, LXT_Y(2) + 4, "2", 12, "fill:var(--lx-c, var(--accent))", "lxa-fade2")),
+          t: "m = wie steil", p: "m ist die Zahl direkt vor dem x. Geh 1 Kästchen nach rechts – dann geht es m Kästchen hoch.", ex: "f(x) = 2x − 1  →  m = 2" },
+        { v: () => lxSeq(["f(x) = x + 4", ["„x“ heißt: 1 · x", 14], ["m = 1,  b = 4", 18, true]]),
+          t: "Nur x? Dann ist m = 1", p: "Steht vor dem x keine Zahl, ist m = 1. Steht am Ende keine Zahl, ist b = 0.", ex: "f(x) = x  →  m = 1, b = 0" },
+        { v: () => lxSeq(["f(x) = 2·x + 1", ["f(3) = 2·3 + 1", 16], ["= 7", 24, true]]),
+          t: "Zahl einsetzen", p: "Setz die Zahl überall dort ein, wo x steht. Dann erst mal rechnen, dann plus.", ex: "f(3) = 7" },
+        { v: () => LXG(1, 2, lxDot(0, 2, 1.2) + `<path class="lxa-fade2" d="M${LXT_X(0)},${LXT_Y(2)} H${LXT_X(1)} V${LXT_Y(3)}" style="fill:none;stroke:currentColor;stroke-width:3"/>`),
+          t: "Am Graphen ablesen", p: "b: wo die Linie die y-Achse kreuzt (Punkt). m: vom Punkt 1 nach rechts, dann zählen, wie viel es hoch geht.", ex: "Hier: b = 2, m = 1" }
+      ],
+      2: [
+        { v: () => LXG(-1, 2), t: "Minus-Steigung", p: "Ist m negativ, geht die Linie von links nach rechts nach UNTEN.", ex: "f(x) = −2x + 3  →  m = −2" },
+        { v: () => LXG(1, -3, lxDot(0, -3, 1.1)), t: "Minus bei b", p: "Ist b negativ, trifft die Linie die y-Achse UNTER der Mitte.", ex: "f(x) = x − 3  →  b = −3" },
+        { v: () => lxSvgT(`<g class="lxa-pop" style="--d:.2s"><rect x="70" y="40" width="60" height="60" rx="16" style="fill:currentColor;opacity:.1;stroke:var(--lx-c, var(--accent));stroke-width:3"/>${lxTxt(100, 84, "−", 40)}</g>` + lxTxt(100, 130, "zuerst −, dann die Zahl", 13, "", "lxa-fade1")),
+          t: "Minus eintippen", p: "Ist deine Antwort negativ, drückst du unten zuerst die −-Taste und dann die Zahl.", ex: "−3  =  [−] [3]" },
+        { v: () => LXG(2, -4, lxDot(2, 0, 1.1, 7)), t: "Die Nullstelle", p: "Die Nullstelle ist die Stelle, wo die Linie die waagerechte x-Achse kreuzt. Dort ist f(x) = 0.", ex: "Hier: x = 2" },
+        { v: () => lxSeq(["2x − 6 = 0", ["+ 6      + 6", 14, true], ["2x = 6", 16], ["x = 3", 22, true]]),
+          t: "Nullstelle ausrechnen", p: "Setz die Funktion gleich 0 und rechne x aus – wie bei einer Gleichung.", ex: "f(x) = 2x − 6  →  x = 3" },
+        { v: () => LXG(-1, 1, lxDot(0, 1, 1.1)), t: "Welche Formel passt?", p: "Lies erst b am Punkt auf der y-Achse ab, dann m (geht's hoch oder runter?). Dann such die passende Formel.", ex: "Hier: b = 1, m = −1  →  f(x) = −x + 1" }
+      ],
+      3: [
+        { v: () => lxSvgT(lxAx(LXT_X, LXT_Y, true) + lxTutLine(2, 1) + lxDot(1, 3, .9) + lxDot(2, 5, 1.3)),
+          t: "Zwei Punkte", p: "Durch zwei Punkte geht genau eine gerade Linie. Aus den Punkten kannst du die Steigung m ausrechnen.", ex: "P(1 | 3) und Q(2 | 5)" },
+        { v: () => lxSeq(["P(1 | 3)   Q(2 | 5)", ["rechts: 2 − 1 = 1", 15], ["hoch: 5 − 3 = 2", 15, true]]),
+          t: "Wie weit rechts, wie weit hoch?", p: "Rechts: x von Q minus x von P. Hoch: y von Q minus y von P.", ex: "rechts 1, hoch 2" },
+        { v: () => lxSeq([["m = hoch : rechts", 17], ["m = 2 : 1", 17], ["m = 2", 26, true]]),
+          t: "Dann teilen", p: "Die Steigung ist „hoch geteilt durch rechts“.", ex: "m = (y₂ − y₁) : (x₂ − x₁)" },
+        { v: () => lxSeq(["P(1 | 7)   Q(3 | 1)", ["hoch: 1 − 7 = −6", 15], ["rechts: 3 − 1 = 2", 15], ["m = −6 : 2 = −3", 16, true]]),
+          t: "Es geht auch runter", p: "Wird „hoch“ negativ, geht die Linie nach unten – dann ist auch m negativ.", ex: "m = −3" },
+        { v: () => lxBig("💪", "Gleiche Regeln, größere Zahlen"), t: "Profi-Level", p: "Ab jetzt werden die Zahlen größer und alles wird gemischt. Die Regeln bleiben gleich – nimm dir Zeit.", ex: "Tipp: Die Lupe 🔍 hilft dir" }
+      ]
+    },
+    algebra: {
+      1: [
+        { v: () => lxBalanceT("x + 3", "7"), t: "Eine Waage", p: "Eine Gleichung ist wie eine Waage: Links und rechts ist gleich viel. x ist eine versteckte Zahl.", ex: "x + 3 = 7" },
+        { v: () => lxSeq(["x + 3 = 7", ["? + 3 = 7", 16], ["? = 4", 22, true]]), t: "Die versteckte Zahl", p: "Frag dich: Welche Zahl plus 3 ergibt 7? Genau diese Zahl ist x.", ex: "x = 4" },
+        { v: () => lxSeq(["x + 3 = 7", [`${M} 3      ${M} 3`, 15, true], ["x = 4", 22]]), t: "Plus wegmachen", p: "Mach auf BEIDEN Seiten das Gegenteil: Aus + 3 wird − 3. Dann bleibt x allein.", ex: "x + 3 = 7  →  x = 4" },
+        { v: () => lxSeq(["x − 2 = 5", ["+ 2      + 2", 15, true], ["x = 7", 22]]), t: "Minus wegmachen", p: "Steht − 2 bei x, rechnest du auf beiden Seiten + 2.", ex: "x − 2 = 5  →  x = 7" },
+        { v: () => lxSeq(["3 · x = 12", [": 3      : 3", 15, true], ["x = 4", 22]]), t: "Mal wegmachen", p: "Steht eine Zahl mal x da, teilst du beide Seiten durch diese Zahl.", ex: "3x = 12  →  x = 4" },
+        { v: () => lxBalanceT("x + 5", "9"), t: "Immer beide Seiten!", p: "Was du links machst, musst du auch rechts machen – sonst kippt die Waage.", ex: "links − 5  UND  rechts − 5" }
+      ],
+      2: [
+        { v: () => lxSeq(["3x + 4 = 19", [`${M} 4      ${M} 4`, 14, true], ["3x = 15", 16], [": 3     : 3", 14, true], ["x = 5", 20]], .3, .6),
+          t: "Zwei Schritte", p: "Jetzt gibt es Plus UND Mal. Erst das Plus/Minus weg, dann durch die Zahl vor x teilen.", ex: "3x + 4 = 19  →  x = 5" },
+        { v: () => lxSeq(["4x − 3 = 13", ["+ 3      + 3", 14, true], ["4x = 16", 16], ["x = 4", 20, true]]), t: "Mit Minus", p: "Bei − 3 rechnest du zuerst + 3 auf beiden Seiten, dann teilen.", ex: "4x − 3 = 13  →  x = 4" },
+        { v: () => lxBalanceT("2x + 3", "11"), t: "Waage mit 2x", p: "2x heißt: zweimal x. Nimm erst die 3 weg, dann teil durch 2.", ex: "2x + 3 = 11  →  x = 4" },
+        { v: () => lxSeq(["x = 5 ?", ["3 · 5 + 4", 16], ["= 19 ✓", 22, true]]), t: "Die Probe", p: "Setz dein Ergebnis für x ein. Kommt dasselbe heraus, ist es richtig.", ex: "3 · 5 + 4 = 19 ✓" },
+        { v: () => lxBig("🧩", "Erst ±, dann : "), t: "Merksatz", p: "Plus und Minus zuerst weg, danach Mal und Geteilt.", ex: "Reihenfolge merken" }
+      ],
+      3: [
+        { v: () => lxSeq(["2 · (x + 3) = 14", [": 2         : 2", 14, true], ["x + 3 = 7", 16], ["x = 4", 20, true]]), t: "Klammern", p: "Steht eine Zahl vor der Klammer, teilst du zuerst beide Seiten durch diese Zahl.", ex: "2·(x + 3) = 14  →  x = 4" },
+        { v: () => lxSeq(["5x + 2 = 3x + 10", [`${M} 3x          ${M} 3x`, 14, true], ["2x + 2 = 10", 16], ["x = 4", 20, true]]), t: "x auf beiden Seiten", p: "Bring alle x auf eine Seite: Zieh auf beiden Seiten das kleinere x ab.", ex: "5x + 2 = 3x + 10  →  x = 4" },
+        { v: () => lxSeq(["x + 5 = 2", [`${M} 5      ${M} 5`, 15, true], [`x = ${M}3`, 22]]), t: "Negative Lösungen", p: "x kann auch negativ sein. Tippe dann zuerst die −-Taste.", ex: "x + 5 = 2  →  x = −3" },
+        { v: () => lxSeq(["x = 4 ?", ["5·4 + 2 = 22", 15], ["3·4 + 10 = 22 ✓", 15, true]]), t: "Probe auf beiden Seiten", p: "Setz x links und rechts ein. Kommt auf beiden Seiten dasselbe heraus, stimmt es.", ex: "22 = 22 ✓" },
+        { v: () => lxBig("💪", "Gleiche Regeln, größere Zahlen"), t: "Profi-Level", p: "Jetzt wird gemischt und die Zahlen werden größer. Schritt für Schritt – die Lupe 🔍 hilft dir.", ex: "Du schaffst das!" }
+      ]
+    },
+    percent: {
+      1: [
+        { v: () => lxGrid100(100), t: "Prozent heißt „von 100“", p: "Stell dir 100 Kästchen vor. 1 % ist genau ein Kästchen, 100 % sind alle Kästchen.", ex: "100 % = alles" },
+        { v: () => lxGrid100(100, 30, .03), t: "Kästchen zählen", p: "Jede volle Reihe hat 10 Kästchen = 10 %. Zähl die Reihen und die einzelnen Kästchen.", ex: "3 Reihen = 30 %" },
+        { v: () => lxGrid100(100, 50, .02), t: "50 % ist die Hälfte", p: "50 Kästchen von 100 sind genau die Hälfte. 50 % von etwas = durch 2 teilen.", ex: "50 % von 40 = 20" },
+        { v: () => lxSvgT(`<circle cx="100" cy="75" r="55" style="fill:currentColor;opacity:.12"/><path class="lxa-pop" style="--d:.4s;fill:var(--lx-c, var(--accent))" d="M100,75 L100,20 A55,55 0 0,1 155,75 Z"/>`),
+          t: "25 % ist ein Viertel", p: "Teilst du etwas in 4 gleiche Teile, ist ein Teil 25 %. 25 % von etwas = durch 4 teilen.", ex: "25 % von 80 = 20" },
+        { v: () => lxSeq(["10 % von 200", ["200 : 10", 16], ["= 20", 22, true]]), t: "10 % = durch 10", p: "10 % bekommst du, wenn du durch 10 teilst. Das hilft bei ganz vielen Aufgaben.", ex: "10 % von 200 = 20" },
+        { v: () => lxBig("½ ¼ ⅒", "50 %  ·  25 %  ·  10 %"), t: "Merken", p: "50 % = Hälfte, 25 % = Viertel, 10 % = Zehntel. Damit kannst du fast alles im Kopf rechnen.", ex: "Die drei wichtigsten" }
+      ],
+      2: [
+        { v: () => lxSeq(["20 % von 150", ["10 % = 15", 16], ["20 % = 30", 22, true]]), t: "Über 10 % rechnen", p: "Rechne erst 10 % aus und nimm das dann mal. 20 % sind zweimal 10 %.", ex: "20 % von 150 = 30" },
+        { v: () => lxSeq(["5 % von 80", ["10 % = 8", 16], ["5 % = 4", 22, true]]), t: "5 % = halbe 10 %", p: "5 % ist die Hälfte von 10 %.", ex: "5 % von 80 = 4" },
+        { v: () => lxSeq(["75 % von 40", ["25 % = 10", 16], ["75 % = 30", 22, true]]), t: "75 % = drei Viertel", p: "Rechne 25 % aus und nimm es mal 3.", ex: "75 % von 40 = 30" },
+        { v: () => lxSeq(["35 % von 200", ["1 % = 200 : 100 = 2", 14], ["35 % = 2 · 35 = 70", 16, true]]), t: "Jeder Prozentsatz", p: "Für jede Zahl klappt: erst 1 % ausrechnen (durch 100), dann mal den Prozentsatz.", ex: "35 % von 200 = 70" },
+        { v: () => lxBig("🧮", "erst 1 %, dann mal"), t: "Merksatz", p: "Ganzes : 100 · Prozent. Das funktioniert immer.", ex: "Ganzes : 100 · p" }
+      ],
+      3: [
+        { v: () => lxSeq(["Grundwert", ["= das Ganze", 16], ["= 100 %", 22, true]]), t: "Der Grundwert", p: "Der Grundwert ist das Ganze – also 100 %. Manchmal ist er gesucht.", ex: "Grundwert = 100 %" },
+        { v: () => lxSeq(["20 % sind 14", ["10 % sind 7", 16], ["100 % sind 70", 22, true]]), t: "Zurückrechnen", p: "Weißt du, wie viel ein Teil ist, rechne auf 10 % zurück und dann hoch auf 100 %.", ex: "Grundwert = 70" },
+        { v: () => lxSeq(["15 von 60", ["15 : 60 = 0,25", 16], ["· 100 = 25 %", 22, true]]), t: "Den Prozentsatz finden", p: "Teil geteilt durch das Ganze, dann mal 100.", ex: "15 von 60 = 25 %" },
+        { v: () => lxSeq([["Prozentwert?  →  Ganzes : 100 · p", 12], ["Grundwert?  →  hochrechnen auf 100 %", 12], ["Prozentsatz?  →  Teil : Ganzes · 100", 12, true]]), t: "Was ist gesucht?", p: "Lies genau: Wird der Teil, das Ganze oder der Prozentsatz gesucht?", ex: "Erst lesen, dann rechnen" },
+        { v: () => lxBig("💪", "Du bist jetzt Profi"), t: "Profi-Level", p: "Ab jetzt werden alle Aufgaben gemischt. Die Lupe 🔍 zeigt dir, welche Zahl was bedeutet.", ex: "Viel Erfolg!" }
+      ]
+    },
+    geometry: {
+      1: [
+        { v: () => lxAreaGrid(5, 3), t: "Fläche = Kästchen zählen", p: "Die Fläche sagt, wie viele Kästchen in eine Form passen.", ex: "15 Kästchen" },
+        { v: () => lxSeq(["5 cm · 3 cm", ["= 15 cm²", 22, true]]), t: "Länge mal Breite", p: "Beim Rechteck musst du nicht zählen: Länge mal Breite geht schneller.", ex: "5 · 3 = 15 cm²" },
+        { v: () => lxBig("cm²", "„Quadrat-Zentimeter“"), t: "Die Einheit cm²", p: "Fläche misst man in cm². Die kleine 2 heißt: Länge mal Breite.", ex: "15 cm²" },
+        { v: () => lxAreaGrid(4, 4), t: "Das Quadrat", p: "Beim Quadrat sind alle Seiten gleich lang. Fläche = Seite mal Seite.", ex: "4 · 4 = 16 cm²" },
+        { v: () => lxSvgT(`<rect x="50" y="40" width="100" height="60" rx="3" style="fill:none;stroke:currentColor;opacity:.2;stroke-width:3"/><rect class="lxa-draw" x="50" y="40" width="100" height="60" rx="3" style="fill:none;stroke:var(--lx-c, var(--accent));stroke-width:4"/>` + lxTxt(100, 32, "5", 13) + lxTxt(160, 75, "3", 13)),
+          t: "Umfang = einmal außen herum", p: "Der Umfang ist der Weg einmal um die Form herum. Zähl alle Seiten zusammen.", ex: "5 + 3 + 5 + 3 = 16 cm" },
+        { v: () => lxSeq(["Fläche: innen", ["→ mal", 16, true], ["Umfang: außen", 17], ["→ plus", 16, true]]), t: "Fläche oder Umfang?", p: "Fläche = was INNEN drin ist (mal). Umfang = der Rand AUSSEN herum (plus).", ex: "Genau lesen!" }
+      ],
+      2: [
+        { v: () => lxSvgT(`<rect x="50" y="40" width="100" height="70" style="fill:currentColor;opacity:.1"/><polygon class="lxa-fade1" points="50,110 150,110 150,40" style="fill:var(--lx-c, var(--accent));fill-opacity:.7"/><line x1="50" y1="110" x2="150" y2="40" style="stroke:currentColor;stroke-width:2;stroke-dasharray:4 3;opacity:.6"/>`),
+          t: "Dreieck = halbes Rechteck", p: "Schneidest du ein Rechteck schräg durch, bekommst du zwei gleiche Dreiecke.", ex: "Dreieck = Rechteck : 2" },
+        { v: () => lxSvgT(`<polygon points="40,115 160,115 85,35" style="fill:var(--lx-c, var(--accent));fill-opacity:.25;stroke:var(--lx-c, var(--accent));stroke-width:3"/><line class="lxa-draw" x1="85" y1="35" x2="85" y2="115" style="stroke:currentColor;stroke-width:2.5"/>` + lxTxt(100, 132, "g", 13) + lxTxt(96, 80, "h", 13, "", "lxa-fade1")),
+          t: "Grundseite g und Höhe h", p: "g ist die Seite unten. h ist die gerade Linie von der Spitze senkrecht nach unten.", ex: "h steht immer senkrecht auf g" },
+        { v: () => lxSeq(["g = 6,  h = 4", ["6 · 4 = 24", 16], ["24 : 2 = 12 cm²", 20, true]]), t: "Dreiecksfläche", p: "Grundseite mal Höhe, dann durch 2.", ex: "g · h : 2" },
+        { v: () => lxSeq(["Fläche = 24 cm²", ["eine Seite = 6 cm", 15], ["24 : 6 = 4 cm", 20, true]]), t: "Die fehlende Seite", p: "Kennst du die Fläche und eine Seite, teilst du die Fläche durch diese Seite.", ex: "Fläche : Seite = andere Seite" },
+        { v: () => lxBig("📐", "halbieren nicht vergessen"), t: "Häufiger Fehler", p: "Beim Dreieck vergessen viele das „durch 2“. Denk dran!", ex: "g · h : 2" }
+      ],
+      3: [
+        { v: () => { let c = ""; const f = (x, y, i) => `<g class="lxa-pop" style="--d:${(i * 0.18).toFixed(2)}s"><polygon points="${x},${y} ${x + 24},${y} ${x + 24},${y + 24} ${x},${y + 24}" style="fill:color-mix(in srgb, var(--lx-c, var(--accent)) 70%, #000);stroke:var(--bg);stroke-width:1.2"/><polygon points="${x},${y} ${x + 10},${y - 10} ${x + 34},${y - 10} ${x + 24},${y}" style="fill:color-mix(in srgb, var(--lx-c, var(--accent)) 70%, #fff);stroke:var(--bg);stroke-width:1.2"/><polygon points="${x + 24},${y} ${x + 34},${y - 10} ${x + 34},${y + 14} ${x + 24},${y + 24}" style="fill:color-mix(in srgb, var(--lx-c, var(--accent)) 45%, #000);stroke:var(--bg);stroke-width:1.2"/></g>`;
               let i = 0; for(let z = 0; z < 2; z++) for(let k = 0; k < 3; k++) c += f(62 + k * 24, 96 - z * 24, i++); return lxSvgT(c); },
-        t: "Volumen = Würfel stapeln", p: "Das Volumen sagt, wie viele kleine Würfel hineinpassen: Länge mal Breite mal Höhe.", ex: "3 · 1 · 2 = 6 cm³" }
-    ]
+          t: "Volumen = Würfel stapeln", p: "Das Volumen sagt, wie viele kleine Würfel in einen Körper passen.", ex: "6 Würfel" },
+        { v: () => lxBig("cm³", "„Kubik-Zentimeter“"), t: "Die Einheit cm³", p: "Volumen misst man in cm³. Die kleine 3 heißt: Länge mal Breite mal Höhe.", ex: "27 cm³" },
+        { v: () => lxSeq(["Würfel: a = 3 cm", ["3 · 3 · 3", 17], ["= 27 cm³", 22, true]]), t: "Der Würfel", p: "Beim Würfel sind alle Kanten gleich lang: a mal a mal a.", ex: "a · a · a" },
+        { v: () => lxSeq(["Quader: 4 · 2 · 3", ["= 8 · 3", 17], ["= 24 cm³", 22, true]]), t: "Der Quader", p: "Beim Quader: Länge mal Breite mal Höhe. Rechne einfach Schritt für Schritt.", ex: "L · B · H" },
+        { v: () => lxBig("💪", "Fläche · Umfang · Volumen"), t: "Profi-Level", p: "Jetzt kommt alles gemischt. Achte darauf, was gefragt ist: cm, cm² oder cm³?", ex: "Die Einheit verrät es dir" }
+      ]
+    }
   };
 
-  let lxTutState = { topic: null, step: 0 };
-  function lxOpenTutorial(topicId){
-    lxTutState = { topic: topicId, step: 0 };
+  let lxTutState = { topic: null, chapter: 1, step: 0 };
+  function lxOpenTutorial(topicId, chapter = 1){
+    lxTutState = { topic: topicId, chapter, step: 0 };
     $("lxTutCard").style.setProperty("--lx-c", lxTopic(topicId).color);
     lxRenderTutorial();
     $("overlayLxTutorial").classList.add("show");
   }
   function lxRenderTutorial(){
-    const steps = LX_TUTORIALS[lxTutState.topic];
+    const steps = LX_TUTORIALS[lxTutState.topic][lxTutState.chapter];
     const s = steps[lxTutState.step];
     const last = lxTutState.step === steps.length - 1;
     $("lxTutBody").innerHTML = `<div class="lx-tut-step">
+      <div class="lx-tut-chapter">${LX_CHAPTER_NAMES[lxTutState.chapter - 1]}</div>
       <div class="lx-tut-visual">${s.v()}</div>
       <h2>${s.t}</h2><p>${s.p}</p>${s.ex ? `<div class="ex">${s.ex}</div>` : ""}</div>`;
     $("lxTutDots").innerHTML = steps.map((_, i) => `<span class="${i === lxTutState.step ? "on" : ""}"></span>`).join("");
     $("lxTutPrev").style.visibility = lxTutState.step === 0 ? "hidden" : "visible";
     $("lxTutNext").textContent = last ? "Los geht's 🚀" : "Weiter";
   }
+  // Nur wer bis zum Ende durchgeht, schaltet das Kapitel frei
   function lxFinishTutorial(){
     const st = lxState(lxTutState.topic);
-    st.tutorialSeen = true;
+    st.chTut[lxTutState.chapter] = true;
+    if(lxTutState.chapter === 1) st.tutorialSeen = true;
     saveProfile();
     $("overlayLxTutorial").classList.remove("show");
     lxCurrentTopic = lxTutState.topic;
     if(!screens.lessons.classList.contains("active")) showScreen("lessons");
     renderLessonsScreen();
+  }
+  function lxCloseTutorial(){
+    const st = lxState(lxTutState.topic);
+    $("overlayLxTutorial").classList.remove("show");
+    if(!st.chTut[lxTutState.chapter]) showToast("📖 Schau das Tutorial bis zum Ende an, um das Kapitel freizuschalten.");
   }
 
   /* ---------- Leiste & Beta-Schalter ---------- */
@@ -18336,11 +18460,11 @@
   $("lxStartClose").addEventListener("click", () => $("overlayLxStart").classList.remove("show"));
   $("lxTutPrev").addEventListener("click", () => { if(lxTutState.step > 0){ lxTutState.step--; lxRenderTutorial(); } });
   $("lxTutNext").addEventListener("click", () => {
-    const steps = LX_TUTORIALS[lxTutState.topic];
+    const steps = LX_TUTORIALS[lxTutState.topic][lxTutState.chapter];
     if(lxTutState.step < steps.length - 1){ lxTutState.step++; lxRenderTutorial(); }
     else lxFinishTutorial();
   });
-  $("lxTutClose").addEventListener("click", () => lxFinishTutorial());
+  $("lxTutClose").addEventListener("click", () => lxCloseTutorial());
   lxApplyBeta();
   /* ===================== LEKTIONEN-SYSTEM ENDE (JS) ===================== */
 
@@ -18360,7 +18484,7 @@
   // --- Grafik-Bausteine ---
   function lxRectSvg(a, b, la, lb){
     const s = Math.min(130 / a, 90 / b), w = a * s, h = b * s, x = (220 - w) / 2 - 14, y = (120 - h) / 2 + 4; // Platz rechts für die Beschriftung
-    return lxSvg(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" style="${LXS.acc};fill-opacity:.22;${LXS.accS};stroke-width:3"/>
+    return lxSvg(`<rect data-anchor="area" x="${x}" y="${y}" width="${w}" height="${h}" rx="4" style="${LXS.acc};fill-opacity:.22;${LXS.accS};stroke-width:3"/>
       ${lxLabel(x + w / 2, y - 6, la)}${lxLabel(x + w + 8, y + h / 2 + 5, lb, "start")}`);
   }
   function lxTriangleSvg(g, h, lg, lh){
@@ -18466,19 +18590,17 @@
     // Zahlen antippbar machen
     const parts = [];
     let last = 0, hasNums = false;
-    const re = /\{\{([^|}]*)\|([^}]*)\}\}/g; let m;
+    const re = /\{\{([^|}]*)\|([^|}]*)(?:\|([^}]*))?\}\}|\[\[([^|\]]*)\|([^\]]*)\]\]/g; let m;
     while((m = re.exec(q.text))){
       parts.push(lxEsc(q.text.slice(last, m.index)));
-      parts.push(`<span class="lupe-num" data-t="${lxEsc(m[2])}">${lxEsc(m[1])}</span>`);
-      last = re.lastIndex; hasNums = true;
+      if(m[4] !== undefined) parts.push(`<span class="lupe-anchor" data-a="${lxEsc(m[4])}">${lxEsc(m[5])}</span>`);
+      else { parts.push(`<span class="lupe-num" data-t="${lxEsc(m[2])}"${m[3] ? ` data-to="${lxEsc(m[3])}"` : ""}>${lxEsc(m[1])}</span>`); hasNums = true; }
+      last = re.lastIndex;
     }
     parts.push(lxEsc(q.text.slice(last)));
     $("qText").innerHTML = parts.join("");
     $("qText").querySelectorAll(".lupe-num").forEach(sp => sp.addEventListener("click", (e) => { e.stopPropagation(); lxLupeExplain(sp); }));
     $("lupeHint").textContent = "💡 " + (q.hint || "Lies die Aufgabe in Ruhe genau durch.");
-    $("lupeNote").textContent = hasNums
-      ? "Tippe auf eine leuchtende Zahl in der Aufgabe, um zu sehen, woher sie kommt."
-      : "In dieser Aufgabe stehen die Zahlen in der Grafik – der Tipp oben hilft dir.";
     $("lupeSolution").style.display = "none";
     $("lupeShowResult").style.display = "";
     $("lupePanel").classList.add("show");
@@ -18498,6 +18620,30 @@
     bub.style.top = (r.bottom - s.top + 12) + "px";
     bub.style.setProperty("--ax", (cx - left) + "px"); // Pfeil zeigt genau auf die Zahl
     bub.classList.remove("pop"); void bub.offsetWidth; bub.classList.add("pop");
+    lxLupeArrow(sp);
+  }
+  // Zeichnet einen Pfeil von der angetippten Zahl dorthin, wo sie hingehört
+  // (z.B. die 3 in f(3) -> das x in der Formel, die Fläche -> das Rechteck).
+  function lxLupeArrow(sp){
+    const svg = $("lupeArrow"), scr = $("screen-lesson");
+    svg.innerHTML = "";
+    $("screen-lesson").querySelectorAll(".lupe-anchor.hit, [data-anchor].hit").forEach(x => x.classList.remove("hit"));
+    const to = sp.dataset.to;
+    if(!to) return;
+    const tgt = $("qText").querySelector(`.lupe-anchor[data-a="${to}"]`) || $("qVisual").querySelector(`[data-anchor="${to}"]`);
+    if(!tgt) return;
+    tgt.classList.add("hit");
+    const s = scr.getBoundingClientRect(), a = sp.getBoundingClientRect(), b = tgt.getBoundingClientRect();
+    const ax = a.left + a.width / 2 - s.left, bx = b.left + b.width / 2 - s.left;
+    const up = b.top + b.height / 2 < a.top + a.height / 2; // Ziel liegt höher?
+    const ay = up ? a.top - s.top - 3 : a.bottom - s.top + 3;
+    const by = up ? b.bottom - s.top + 5 : b.top - s.top - 5;
+    const bend = Math.max(34, Math.abs(ax - bx) * .35) * (ax > bx ? -1 : 1);
+    const cx = (ax + bx) / 2 + (Math.abs(ax - bx) < 20 ? 44 : 0), cy = Math.min(ay, by) - (up ? 16 : -16) + (Math.abs(ax - bx) < 20 ? 0 : 0);
+    svg.setAttribute("viewBox", `0 0 ${s.width} ${s.height}`);
+    svg.innerHTML = `<defs><marker id="lupeHead" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" style="fill:var(--accent)"/></marker></defs>
+      <path class="lupe-arrow-path" d="M${ax},${ay} Q${cx + (Math.abs(ax - bx) < 20 ? 0 : bend * .2)},${cy} ${bx},${by}" marker-end="url(#lupeHead)"/>`;
   }
   function lxLupeShowResult(){
     const q = lesson && lesson.questions[lesson.index];
@@ -18511,6 +18657,7 @@
     lxLupeActive = false;
     $("lupePanel").classList.remove("show");
     $("lupeBubble").style.display = "none";
+    $("lupeArrow").innerHTML = "";
     $("screen-lesson").classList.remove("lupe-on");
   }
   // Lupe schließen = Aufgabe verloren (zählt als falsch, neue Aufgabe kommt)
@@ -18540,7 +18687,7 @@
   $("lupeClose").addEventListener("click", lxLupeClose);
   $("lupeShowResult").addEventListener("click", lxLupeShowResult);
   $("screen-lesson").addEventListener("click", (e) => {
-    if(lxLupeActive && !e.target.closest(".lupe-num") && !e.target.closest("#lupeBubble")) $("lupeBubble").style.display = "none";
+    if(lxLupeActive && !e.target.closest(".lupe-num") && !e.target.closest("#lupeBubble")){ $("lupeBubble").style.display = "none"; $("lupeArrow").innerHTML = ""; }
   });
 
   $("backHomeFromLocked").addEventListener("click", () => {

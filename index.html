@@ -3383,6 +3383,72 @@
     color:#fff; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); }
   .ob-quick-login:active{ transform:scale(.95); }
 
+
+  /* ===== Anmelde-Schritt der Einrichtung (Redesign) ===== */
+  .ob-auth{ max-width:400px; width:100%; }
+  .ob-auth-hero{ width:84px; height:84px; margin:0 auto 12px; border-radius:28px; display:grid; place-items:center; font-size:44px;
+    background:linear-gradient(145deg,#8b5cf6,#ec4899); box-shadow:0 14px 40px rgba(139,92,246,.45), inset 0 1px 0 rgba(255,255,255,.3);
+    animation:ob-float 3s ease-in-out infinite; }
+  @keyframes ob-float{ 0%,100%{ transform:translateY(0) rotate(-3deg); } 50%{ transform:translateY(-6px) rotate(3deg); } }
+  .ob-auth h2{ font-size:25px; margin-bottom:6px; }
+  .ob-auth > p{ opacity:.75; margin-bottom:14px; }
+  .ob-benefits{ display:grid; grid-template-columns:1fr 1fr; gap:8px; text-align:left; }
+  .ob-benefit{ display:flex; gap:9px; align-items:flex-start; padding:11px 10px; border-radius:16px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09);
+    animation:ob-in .45s cubic-bezier(.2,.9,.25,1.05) both; animation-delay:var(--d); }
+  .ob-benefit > span{ font-size:21px; line-height:1; }
+  .ob-benefit b{ display:block; font-size:13px; line-height:1.2; }
+  .ob-benefit small{ display:block; font-size:11px; opacity:.6; line-height:1.3; margin-top:2px; }
+  @keyframes ob-in{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+  .ob-guest-link{ background:none; border:0; color:#fff; opacity:.7; font:inherit; font-weight:700; font-size:14px; cursor:pointer; padding:8px; text-decoration:underline; text-underline-offset:3px; }
+  .ob-guest-link:disabled{ opacity:.35; text-decoration:none; }
+  .ob-guest-note{ font-size:11.5px; opacity:.45; margin-top:2px; }
+
+  /* ===== Freundesprofil (Redesign) ===== */
+  .fp-card{ position:relative; padding:0 0 18px !important; overflow-y:auto; max-height:88vh; text-align:center; }
+  .fp-card > *:not(.fp-hero):not(.inbox-x){ margin-left:18px; margin-right:18px; }
+  .fp-hero{ padding:28px 18px 16px; border-radius:inherit; border-bottom-left-radius:0; border-bottom-right-radius:0;
+    background:radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--accent) 38%, transparent), transparent 75%); }
+  .fp-hero .avatar-wrap{ width:92px; height:92px; margin:0 auto 10px; box-shadow:0 0 0 3px var(--accent), 0 0 0 7px color-mix(in srgb, var(--accent) 20%, transparent), 0 10px 28px color-mix(in srgb, var(--accent) 40%, transparent); }
+  .fp-hero h2{ margin:0; font-size:23px; }
+  .fp-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:4px; }
+  .fp-stat{ padding:12px 6px 10px; border-radius:18px; background:var(--card-2); border:1px solid var(--border); }
+  .fp-stat span{ display:block; font-size:18px; }
+  .fp-stat b{ display:block; font-size:21px; font-weight:800; letter-spacing:-.02em; margin-top:2px; }
+  .fp-stat small{ display:block; font-size:11px; font-weight:700; opacity:.55; text-transform:uppercase; letter-spacing:.05em; }
+  .fp-stat.fp-streak{ background:linear-gradient(145deg, rgba(249,115,22,.18), var(--card-2)); border-color:rgba(249,115,22,.35); }
+  .fp-facts{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+  .fp-facts > div{ display:grid; grid-template-columns:auto 1fr; grid-template-rows:auto auto; column-gap:8px; align-items:center; text-align:left;
+    padding:9px 11px; border-radius:14px; background:color-mix(in srgb, var(--text) 4%, transparent); border:1px solid var(--border); }
+  .fp-facts span{ grid-row:span 2; font-size:18px; }
+  .fp-facts small{ font-size:10.5px; opacity:.55; font-weight:700; }
+  .fp-facts b{ font-size:13.5px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .fp-section{ margin-top:12px; padding:12px; border-radius:18px; background:color-mix(in srgb, var(--text) 3%, transparent); border:1px solid var(--border); }
+  .fp-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .fp-card .week-grid{ gap:3px; }
+  .fp-card .week-day{ min-width:0; }
+  .fp-card .week-day .dot{ width:min(34px, 100%); height:auto; aspect-ratio:1; font-size:14px; } /* passt immer in die Breite */
+  .fp-actions .btn{ flex:1 1 45%; margin-top:0 !important; border-radius:16px; }
+
+
+  /* Spenden: Gegenstand */
+  .donate-item{ display:flex; align-items:center; gap:12px; padding:12px; border-radius:16px; background:var(--card-2); border:1px solid var(--border); }
+  .donate-item-ico{ width:46px; height:46px; border-radius:14px; display:grid; place-items:center; font-size:26px; background:rgba(56,189,248,.15); }
+  .donate-item b{ display:block; font-size:15px; }
+  .donate-item small{ display:block; font-size:11.5px; opacity:.6; }
+  .donate-item-have{ font-weight:800; font-size:16px; }
+  /* Streak-Rettung */
+  .rescue-card{ max-width:360px; text-align:center; }
+  .rescue-flame{ font-size:54px; line-height:1; animation:ob-float 2.6s ease-in-out infinite; }
+  .rescue-flame.big{ font-size:76px; filter:drop-shadow(0 0 24px rgba(249,115,22,.7)); animation:rescue-pop .7s cubic-bezier(.34,1.7,.5,1) both, ob-float 2.6s ease-in-out .7s infinite; }
+  @keyframes rescue-pop{ from{ transform:scale(0) rotate(-30deg); } to{ transform:scale(1) rotate(0); } }
+  .rescue-card h2{ font-size:21px; margin:8px 0 6px; }
+  .rescue-num{ display:inline-flex; align-items:baseline; gap:6px; margin:4px 0 10px; padding:6px 18px; border-radius:999px;
+    background:linear-gradient(135deg, rgba(249,115,22,.25), rgba(239,68,68,.2)); border:1px solid rgba(249,115,22,.45); }
+  .rescue-num b{ font-size:30px; font-weight:900; color:#fb923c; }
+  .rescue-num span{ font-weight:800; opacity:.8; }
+  .rescue-card p{ font-size:14px; line-height:1.5; opacity:.85; }
+  .rescued .rescue-hero{ color:var(--accent); font-size:17px; }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -5753,12 +5819,21 @@
       </div>
 
       <!-- Schritt 5: Einloggen / Gast -->
-      <div class="ob-step" id="obStepAuth" style="display:none;">
-        <div style="font-size:44px; margin-bottom:8px;" id="welcomeEmoji">👋</div>
-        <h2>Willkommen bei MathEdits!</h2>
-        <p id="welcomeMessageText">Möchtest du dich direkt einloggen, um deine Aura, dein Level und deinen Fortschritt sicher zu speichern?</p>
-        <button class="btn-glow" id="welcomeAuthBtn" style="margin-top:18px; margin-bottom:10px;">Einloggen / Account erstellen</button>
-        <button class="btn btn-ghost" id="welcomeGuestBtn">Erstmal als Gast spielen</button>
+      <div class="ob-step ob-auth" id="obStepAuth" style="display:none;">
+        <div class="ob-auth-hero"><span id="welcomeEmoji">👋</span></div>
+        <h2>Sichere deinen Fortschritt</h2>
+        <p id="welcomeMessageText">Mit einem kostenlosen Account bekommst du alles aus MathEdits heraus:</p>
+        <div class="ob-benefits">
+          <div class="ob-benefit" style="--d:.05s"><span>☁️</span><div><b>Nie mehr verlieren</b><small>Aura, Level & Streak sicher in der Cloud</small></div></div>
+          <div class="ob-benefit" style="--d:.12s"><span>📱</span><div><b>Überall weiterspielen</b><small>Handy, Tablet und PC – immer derselbe Stand</small></div></div>
+          <div class="ob-benefit" style="--d:.19s"><span>🏆</span><div><b>Rangliste</b><small>Tritt weltweit und gegen Freunde an</small></div></div>
+          <div class="ob-benefit" style="--d:.26s"><span>⚔️</span><div><b>Duelle & Gruppen</b><small>Freunde, Nachrichten, Live-Duelle</small></div></div>
+          <div class="ob-benefit" style="--d:.33s"><span>🎁</span><div><b>Mehr Belohnungen</b><small>Truhen, Spenden & 500 Aura pro eingeladenem Freund</small></div></div>
+          <div class="ob-benefit" style="--d:.40s"><span>🔥</span><div><b>Streak-Rettung</b><small>Freunde können deinen verlorenen Streak retten</small></div></div>
+        </div>
+        <button class="btn-glow" id="welcomeAuthBtn" style="margin-top:18px; margin-bottom:10px; width:100%;">Kostenlos anmelden / registrieren</button>
+        <button class="ob-guest-link" id="welcomeGuestBtn">Erstmal als Gast spielen</button>
+        <div class="ob-guest-note">Als Gast wird dein Fortschritt nur auf diesem Gerät gespeichert.</div>
       </div>
 
     </div>
@@ -5793,44 +5868,53 @@
   </div>
 
   <div class="overlay" id="overlayFriendProfile">
-    <div class="modal-card" id="friendProfileCard" style="max-width:380px;">
-      <div class="avatar-wrap avatar-wrap-readonly" id="friendAvatarWrap">
-        <img id="friendProfileAvatarImg" class="avatar-img" style="display:none;" alt="Profilbild">
-        <div id="friendProfileAvatarPlaceholder" class="avatar-placeholder">👤</div>
-      </div>
-      <h2 id="friendProfileUsername">@user</h2>
-      <div id="friendProfileTitle" class="profile-title" style="display:none;"></div>
-
-      <div class="stats-row" style="margin: 14px 0 10px;">
-        <div class="stat-pill"><div class="val" id="friendProfileLevel">1</div><div class="lbl">Level</div></div>
-        <div class="stat-pill"><div class="val" id="friendProfileAura">0</div><div class="lbl">Aura</div></div>
-        <div class="stat-pill"><div class="val" id="friendProfileStreak">0</div><div class="lbl">Streak</div></div>
+    <div class="modal-card fp-card" id="friendProfileCard" style="max-width:390px;">
+      <button class="inbox-x" id="friendProfileCloseX" aria-label="Schließen">✕</button>
+      <div class="fp-hero">
+        <div class="avatar-wrap avatar-wrap-readonly" id="friendAvatarWrap">
+          <img id="friendProfileAvatarImg" class="avatar-img" style="display:none;" alt="Profilbild">
+          <div id="friendProfileAvatarPlaceholder" class="avatar-placeholder">👤</div>
+        </div>
+        <h2 id="friendProfileUsername">@user</h2>
+        <div id="friendProfileTitle" class="profile-title" style="display:none;"></div>
       </div>
 
-      <div style="font-size:13px; opacity:.85; text-align:left; line-height:1.7; margin-bottom:10px;">
-        📅 Lektionen heute: <b id="friendProfileLessonsToday">0</b><br>
-        📚 Lektionen insgesamt: <b id="friendProfileTotalLessons">0</b><br>
-        ⏱️ Heute in der App: <b id="friendProfileTimeToday">0 Min</b><br>
-        🕐 Zuletzt gelernt: <b id="friendProfileLastActive">-</b>
+      <div class="fp-stats">
+        <div class="fp-stat"><span>⭐</span><b id="friendProfileLevel">1</b><small>Level</small></div>
+        <div class="fp-stat"><span>💀</span><b id="friendProfileAura">0</b><small>Aura</small></div>
+        <div class="fp-stat fp-streak"><span>🔥</span><b id="friendProfileStreak">0</b><small>Streak</small></div>
       </div>
 
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-        <button id="friendStreakWeekPrev" class="week-nav-btn" aria-label="Vorherige Woche">‹</button>
-        <div class="levels-heading" id="friendStreakWeekLabel" style="text-align:center; flex:1; margin:0;">🔥 Streak · Diese Woche</div>
-        <button id="friendStreakWeekNext" class="week-nav-btn" aria-label="Nächste Woche">›</button>
+      <div class="fp-facts">
+        <div><span>📅</span><small>Heute</small><b id="friendProfileLessonsToday">0</b></div>
+        <div><span>📚</span><small>Lektionen</small><b id="friendProfileTotalLessons">0</b></div>
+        <div><span>⏱️</span><small>Heute in App</small><b id="friendProfileTimeToday">0 Min</b></div>
+        <div><span>🕐</span><small>Zuletzt</small><b id="friendProfileLastActive">-</b></div>
       </div>
-      <div class="week-grid" id="friendProfileWeekGrid" style="margin-top:10px;"></div>
 
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-        <button id="friendProfileWeekPrev" class="week-nav-btn" aria-label="Vorherige Woche">‹</button>
-        <div class="levels-heading" id="friendProfileWeekChartLabel" style="text-align:center; flex:1; margin:0;">📊 Lektionen · Diese Woche</div>
-        <button id="friendProfileWeekNext" class="week-nav-btn" aria-label="Nächste Woche">›</button>
+      <div class="fp-section">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+          <button id="friendStreakWeekPrev" class="week-nav-btn" aria-label="Vorherige Woche">‹</button>
+          <div class="levels-heading" id="friendStreakWeekLabel" style="text-align:center; flex:1; margin:0;">🔥 Streak · Diese Woche</div>
+          <button id="friendStreakWeekNext" class="week-nav-btn" aria-label="Nächste Woche">›</button>
+        </div>
+        <div class="week-grid" id="friendProfileWeekGrid" style="margin-top:10px;"></div>
       </div>
-      <div id="friendProfileWeekChart" style="margin:10px 0 4px;"></div>
 
+      <div class="fp-section">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+          <button id="friendProfileWeekPrev" class="week-nav-btn" aria-label="Vorherige Woche">‹</button>
+          <div class="levels-heading" id="friendProfileWeekChartLabel" style="text-align:center; flex:1; margin:0;">📊 Lektionen · Diese Woche</div>
+          <button id="friendProfileWeekNext" class="week-nav-btn" aria-label="Nächste Woche">›</button>
+        </div>
+        <div id="friendProfileWeekChart" style="margin:10px 0 4px;"></div>
+      </div>
+
+      <div class="fp-actions">
       <button class="btn btn-primary" id="friendProfileAddBtn" style="margin-top:18px; display:none;">➕ Freund hinzufügen</button>
       <button class="btn btn-primary" id="friendProfileMessageBtn" style="margin-top:10px; display:none;">💬 Nachrichten</button>
-      <button class="btn btn-primary" id="friendProfileDonateBtn" style="margin-top:10px; display:none;">🎁 Aura spenden</button>
+      <button class="btn btn-primary" id="friendProfileDonateBtn" style="margin-top:10px; display:none;">🎁 Spenden</button>
+      </div>
 
       <!-- Owner-Moderation direkt vom Profil aus (NEU): ein einziger
            kompakter Mini-Button statt fest sichtbarer Bann-Buttons -
@@ -5841,17 +5925,31 @@
         <button class="btn btn-ghost btn-small" id="friendProfileOpenOwnerPanelBtn" style="border-color:#ef4444; color:#ef4444;">🛠️ Owner-Panel öffnen</button>
       </div>
 
-      <button class="btn btn-ghost" id="closeFriendProfile" style="margin-top:10px;">Schließen</button>
+      <button class="btn btn-ghost" id="closeFriendProfile" style="margin-top:10px; display:none;">Schließen</button>
     </div>
   </div>
 
   <!-- Aura spenden: Betrag eingeben (NEU) -->
   <div class="overlay" id="overlayDonateAura">
-    <div class="modal-card" style="max-width:340px;">
+    <div class="modal-card" style="max-width:350px;">
       <div style="font-size:36px; margin-bottom:6px;">🎁</div>
-      <h2>Aura spenden</h2>
-      <p>Wie viel Aura möchtest du <b id="donateAuraTargetName">@jemandem</b> schenken? Der Betrag wird dir sofort abgezogen.</p>
-      <input type="number" id="donateAuraAmountInput" class="input-field" placeholder="Betrag" min="1" style="margin-bottom:12px;">
+      <h2>Spenden</h2>
+      <p style="margin-bottom:12px;">Was möchtest du <b id="donateAuraTargetName">@jemandem</b> schenken? Es wird dir sofort abgezogen.</p>
+      <div class="tm-switch" style="display:flex; margin:0 0 14px;">
+        <button id="donateTabAura" class="on">💀 Aura</button><button id="donateTabIce">🧊 Icecube</button>
+      </div>
+      <div id="donatePaneAura">
+        <input type="number" id="donateAuraAmountInput" class="input-field" placeholder="Wie viel Aura?" min="1" style="margin-bottom:6px;">
+        <div class="d" id="donateAuraHave" style="font-size:12px; margin-bottom:12px;"></div>
+      </div>
+      <div id="donatePaneIce" style="display:none;">
+        <div class="donate-item">
+          <div class="donate-item-ico">🧊</div>
+          <div style="text-align:left; flex:1;"><b>Icecube</b><small>Schützt den Streak für einen verpassten Tag</small></div>
+          <div class="donate-item-have" id="donateIceHave">0×</div>
+        </div>
+        <div class="d" id="donateIceNote" style="font-size:12px; margin:8px 0 12px;"></div>
+      </div>
       <button class="btn btn-primary" id="donateAuraConfirmBtn">Spenden</button>
       <button class="btn btn-ghost" id="donateAuraCancelBtn" style="margin-top:10px;">Abbrechen</button>
     </div>
@@ -6347,6 +6445,28 @@
     </div>
   </div>
 
+  <!-- Streak-Rettung: Frage an Freunde -->
+  <div class="overlay" id="overlayStreakRescue">
+    <div class="modal-card rescue-card">
+      <div class="rescue-flame">💔</div>
+      <h2><span id="rescueFriendName">@Freund</span> hat seinen Streak verloren!</h2>
+      <div class="rescue-num"><b id="rescueStreakNum">20</b><span>Tage</span></div>
+      <p>Willst du helfen? Lade jemanden zu MathEdits ein. Sobald sich die Person registriert, bekommt <b id="rescueFriendName2">@Freund</b> seinen Streak zurück – und du die Einladungs-Belohnung.</p>
+      <button class="btn btn-primary" id="rescueShareBtn" style="width:100%; margin-top:6px;">🔗 Einladungslink teilen</button>
+      <button class="btn btn-ghost" id="rescueLaterBtn" style="width:100%; margin-top:10px;">Nicht jetzt</button>
+    </div>
+  </div>
+  <!-- Streak-Rettung: großes Fenster beim geretteten Freund -->
+  <div class="overlay" id="overlayStreakRescued">
+    <div class="modal-card rescue-card rescued">
+      <div class="rescue-flame big">🔥</div>
+      <h2>Dein Streak ist zurück!</h2>
+      <div class="rescue-num"><b id="rescuedStreakNum">20</b><span>Tage</span></div>
+      <p><b id="rescuedByName" class="rescue-hero">@Freund</b> hat deinen Streak gerettet, indem er jemanden zu MathEdits eingeladen hat. 🙌</p>
+      <button class="btn btn-primary" id="rescuedOkBtn" style="width:100%; margin-top:6px;">Danke! Weiterlernen</button>
+    </div>
+  </div>
+
   <!-- Posteingang (NEU, Nova-Glocke) -->
   <div class="overlay" id="overlayInbox">
     <div class="modal-card inbox-card" style="max-width:380px; text-align:left;">
@@ -6464,7 +6584,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.80";
+  const APP_VERSION = "3.81";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6681,8 +6801,11 @@
   const STREAK_REPAIR_COST = 10000;
   const PENDING_REF_KEY = "mathedits_pending_ref";
   let pendingReferralCode = null;
+  const PENDING_RESCUE_KEY = "mathedits_pending_rescue";
   try{
     const urlParams = new URLSearchParams(window.location.search);
+    const rescueFromUrl = urlParams.get("rescue"); // Streak-Rettung für einen Freund (NEU)
+    if(rescueFromUrl) localStorage.setItem(PENDING_RESCUE_KEY, rescueFromUrl);
     const refFromUrl = urlParams.get("ref");
     if(refFromUrl){
       pendingReferralCode = refFromUrl;
@@ -8522,6 +8645,17 @@
           }
         }
       }catch(e){ console.error("[Einladung] Spieler-Ziel-Prüfung Fehler:", e); }
+      // Streak-Rettung (NEU): kam die Person über einen "Rette meinen
+      // Freund"-Link, bekommt dieser Freund seinen verlorenen Streak zurück.
+      try{
+        const rescueTarget = localStorage.getItem(PENDING_RESCUE_KEY);
+        if(rescueTarget && rescueTarget !== newUid){
+          await db().collection("streakRescues").add({
+            targetUid: rescueTarget, rescuerUid: referrerUid, rescuerUsername: code, newUid, createdAt: Date.now()
+          });
+          localStorage.removeItem(PENDING_RESCUE_KEY);
+        }
+      }catch(e){ console.error("[Streak-Rettung] Anlegen fehlgeschlagen:", e); }
       await db().collection("referralRewards").add({
         toUid: referrerUid,
         amount: REFERRAL_REWARD + bonusAmount,
@@ -8549,15 +8683,60 @@
   // darf ja nicht direkt in ein fremdes Konto schreiben).
   let donateAuraTargetUid = null;
   let donateAuraTargetUsername = null;
+  let donateMode = "aura"; // "aura" oder "icecube"
+  function setDonateMode(mode){
+    donateMode = mode;
+    $("donateTabAura").classList.toggle("on", mode === "aura");
+    $("donateTabIce").classList.toggle("on", mode === "icecube");
+    $("donatePaneAura").style.display = mode === "aura" ? "" : "none";
+    $("donatePaneIce").style.display = mode === "icecube" ? "" : "none";
+    const ice = (profile.inventory && profile.inventory.icecube) || 0;
+    $("donateAuraHave").textContent = `Du hast ${profile.totalAura} Aura.`;
+    $("donateIceHave").textContent = ice + "×";
+    $("donateIceNote").textContent = ice > 0 ? "Du spendest 1 Icecube – er wird dir abgezogen." : "Du hast gerade keinen Icecube. Du kannst welche im Shop kaufen.";
+    $("donateAuraConfirmBtn").textContent = mode === "aura" ? "Aura spenden" : "1 Icecube spenden";
+    $("donateAuraConfirmBtn").disabled = mode === "icecube" && ice <= 0;
+  }
   function openDonateAuraOverlay(uid, username){
     donateAuraTargetUid = uid;
     donateAuraTargetUsername = username;
     $("donateAuraTargetName").textContent = "@" + username;
     $("donateAuraAmountInput").value = "";
+    setDonateMode("aura");
     $("overlayDonateAura").classList.add("show");
   }
 
+  async function confirmDonateIcecube(){
+    const have = (profile.inventory && profile.inventory.icecube) || 0;
+    if(have <= 0){ showToast("Du hast keinen Icecube zum Spenden."); return; }
+    if(!donateAuraTargetUid || !firebaseInitialized || !currentUser){ showToast("Bitte zuerst einloggen."); return; }
+    if(donateAuraTargetUid === currentUser.uid){ showToast("Du kannst dir nicht selbst etwas spenden."); return; }
+    if(isOffline()){ showToast("Spenden geht nur online."); return; }
+    const btn = $("donateAuraConfirmBtn"); btn.disabled = true; btn.textContent = "Wird gespendet...";
+    try{
+      // Hat der Freund schon das Maximum (2)? Dann gar nicht erst abziehen.
+      const target = await fetchUserDoc(donateAuraTargetUid);
+      if(target && ((target.inventory && target.inventory.icecube) || 0) >= 2){
+        showToast(`@${donateAuraTargetUsername} hat schon 2 Icecubes (Maximum).`);
+        return;
+      }
+      await withTimeout(db().collection("auraDonations").add({
+        fromUid: currentUser.uid, fromUsername: profile.username, toUid: donateAuraTargetUid,
+        amount: 0, item: "icecube", count: 1, createdAt: Date.now()
+      }));
+      profile.inventory.icecube = Math.max(0, have - 1);
+      saveProfile(); renderHome();
+      $("overlayDonateAura").classList.remove("show");
+      showToast(`🧊 1 Icecube an @${donateAuraTargetUsername} gespendet!`);
+    }catch(err){
+      showToast(friendlyFirestoreError(err)); console.error("Icecube spenden Fehler:", err);
+    }finally{
+      setDonateMode("icecube");
+    }
+  }
+
   async function confirmDonateAura(){
+    if(donateMode === "icecube") return confirmDonateIcecube();
     const amount = parseInt($("donateAuraAmountInput").value, 10);
     if(!amount || amount <= 0){
       showToast("Bitte einen gültigen Betrag eingeben.");
@@ -8637,14 +8816,32 @@
         // ohne die Namen. Jetzt bekommt JEDE einzelne Spende ihren eigenen
         // Eintrag im Aura-Verlauf, mit dem Namen der jeweiligen Person.
         const perDonorEntries = [];
+        const itemGifts = [];
         snap.forEach(doc => {
           if(already.has(doc.id)) return;
           const data = doc.data();
-          total += data.amount || 0;
           newIds.push(doc.id);
+          if(data.item === "icecube"){ itemGifts.push({ count: data.count || 1, fromUsername: data.fromUsername || "?" }); return; }
+          total += data.amount || 0;
           perDonorEntries.push({ amount: data.amount || 0, fromUsername: data.fromUsername || "?" });
         });
         if(newIds.length === 0) return;
+        // Gespendete Icecubes (NEU): ins Inventar (max. 2) - was nicht mehr
+        // passt, wird in Aura umgewandelt (500 pro Icecube), damit nichts verloren geht.
+        itemGifts.forEach(g => {
+          if(!profile.inventory) profile.inventory = {};
+          const cur = profile.inventory.icecube || 0, fits = Math.max(0, Math.min(g.count, 2 - cur));
+          profile.inventory.icecube = cur + fits;
+          const overflow = g.count - fits;
+          if(overflow > 0){ profile.totalAura += overflow * 500; logAuraTransaction(overflow * 500, `Icecube von @${g.fromUsername} (Inventar voll)`); }
+          pushInboxEvent("🧊", `@${g.fromUsername} hat dir ${g.count === 1 ? "einen Icecube" : g.count + " Icecubes"} geschenkt`);
+          showToast(`🧊 @${g.fromUsername} hat dir einen Icecube geschenkt!`);
+        });
+        if(total === 0){
+          profile.claimedAuraDonationIds = [...(profile.claimedAuraDonationIds || []), ...newIds];
+          saveProfile(); renderHome();
+          return;
+        }
         profile.totalAura += total;
         perDonorEntries.forEach(e => logAuraTransaction(e.amount, `Spende von @${e.fromUsername}`));
         perDonorEntries.forEach(e => pushInboxEvent("💝", `@${e.fromUsername} hat dir ${e.amount} Aura gespendet`));
@@ -8849,6 +9046,7 @@
           return doc.exists ? { ...doc.data(), uid } : null;
         }catch(e){ return null; }
       }));
+      if(typeof checkFriendsForStreakRescue === "function") checkFriendsForStreakRescue(friendDocs.filter(Boolean)); // Streak-Rettung (ohne Extra-Lesevorgänge)
       const onlineFriends = friendDocs.filter(u => u && isOnline(u));
       const currentOnlineUids = new Set(onlineFriends.map(u => u.uid));
       const newlyOnline = onlineFriends.filter(u => !knownOnlineFriendUids.has(u.uid));
@@ -10307,7 +10505,7 @@
         showToast(toUse === 1 ? "🧊 Icecube hat deinen Streak gerettet!" : `🧊 ${toUse} Icecubes haben deinen Streak gerettet!`);
       } else {
         // Nicht genug Icecubes für alle verpassten Tage - Streak bricht.
-        if(profile.streak > 0) profile.lastBrokenStreak = profile.streak;
+        if(profile.streak > 0){ profile.lastBrokenStreak = profile.streak; profile.lastBrokenStreakAt = Date.now(); } // Zeitpunkt für die Streak-Rettung durch Freunde
         profile.streak = 0;
       }
       // Bugfix: Verbrauch/Bruch SOFORT speichern - vorher blieb der Einsatz
@@ -16247,6 +16445,9 @@
   });
 
   $("donateAuraConfirmBtn").addEventListener("click", confirmDonateAura);
+  $("donateTabAura").addEventListener("click", () => setDonateMode("aura"));
+  $("donateTabIce").addEventListener("click", () => setDonateMode("icecube"));
+  $("friendProfileCloseX").addEventListener("click", () => $("closeFriendProfile").click());
   $("donateAuraCancelBtn").addEventListener("click", () => {
     $("overlayDonateAura").classList.remove("show");
   });
@@ -17161,6 +17362,7 @@
               profile.isMod = !!cloudData.isMod;
               lastSettingsJSON = settingsSnapshot(profile); // übernommene Einstellungen sind kein "neuer" Wechsel
               syncSettingsOnOpen(cloudData); // Einstellungen EINMAL beim Öffnen abgleichen
+              setTimeout(() => { if(typeof claimStreakRescues === "function") claimStreakRescues(); }, 1500); // gerettete Streaks abholen
               applyTheme();
               cloudSyncReady = true;
               // Bugfix (siehe init()): die Streak-/Icecube-Prüfung wird für
@@ -19719,6 +19921,74 @@
   $("screen-lesson").addEventListener("click", (e) => {
     if(lxLupeActive && !e.target.closest(".lupe-num") && !e.target.closest("#lupeBubble")){ $("lupeBubble").style.display = "none"; $("lupeArrow").innerHTML = ""; }
   });
+
+
+  /* ===== STREAK-RETTUNG (NEU) =====
+     Verliert ein Freund einen Streak von 20+ Tagen WIRKLICH (nicht per
+     Icecube gerettet), bekommst du einmalig ein Fenster: "Willst du helfen?"
+     Du teilst einen Einladungslink - sobald sich jemand darüber registriert,
+     bekommt dein Freund seinen Streak zurück und sieht ein großes Fenster,
+     dass DU ihn gerettet hast. */
+  const RESCUE_MIN_STREAK = 20, RESCUE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+  let rescueFriend = null;
+  function checkFriendsForStreakRescue(friends){
+    if(!profile.username || document.querySelector(".overlay.show")) return;
+    const seen = profile.rescuePromptSeen || {};
+    const f = friends.find(u => (u.lastBrokenStreak || 0) >= RESCUE_MIN_STREAK && u.lastBrokenStreakAt
+      && Date.now() - u.lastBrokenStreakAt < RESCUE_WINDOW_MS
+      && !((u.streakRescuedAt || 0) >= u.lastBrokenStreakAt)
+      && seen[u.uid] !== u.lastBrokenStreakAt);
+    if(!f) return;
+    rescueFriend = f;
+    profile.rescuePromptSeen = { ...seen, [f.uid]: f.lastBrokenStreakAt };
+    saveProfile();
+    $("rescueFriendName").textContent = "@" + (f.username || "Freund");
+    $("rescueFriendName2").textContent = "@" + (f.username || "Freund");
+    $("rescueStreakNum").textContent = f.lastBrokenStreak;
+    $("overlayStreakRescue").classList.add("show");
+  }
+  function rescueLink(){ return `${referralLink()}&rescue=${encodeURIComponent(rescueFriend ? rescueFriend.uid : "")}`; }
+  async function shareRescueLink(){
+    const link = rescueLink();
+    const text = `Hilf mir, den Streak von @${rescueFriend ? rescueFriend.username : "meinem Freund"} zu retten! Melde dich bei MathEdits an:`;
+    try{
+      if(navigator.share){ await navigator.share({ title: "MathEdits", text, url: link }); }
+      else { await navigator.clipboard.writeText(`${text} ${link}`); showToast("🔗 Link kopiert – schick ihn jemandem!"); }
+    }catch(e){ try{ await navigator.clipboard.writeText(link); showToast("🔗 Link kopiert!"); }catch(_){ } }
+  }
+  // Beim Öffnen: wurde MEIN Streak von jemandem gerettet?
+  async function claimStreakRescues(){
+    if(!firebaseInitialized || !currentUser) return;
+    try{
+      const snap = await db().collection("streakRescues").where("targetUid", "==", currentUser.uid).get();
+      if(snap.empty) return;
+      const done = new Set(profile.claimedStreakRescueIds || []);
+      const fresh = snap.docs.filter(d => !done.has(d.id));
+      if(!fresh.length) return;
+      profile.claimedStreakRescueIds = [...done, ...fresh.map(d => d.id)];
+      const lost = profile.lastBrokenStreak || 0;
+      if(lost > 0 && !((profile.streakRescuedAt || 0) >= (profile.lastBrokenStreakAt || 0))){
+        const r = fresh[0].data();
+        const now = profile.streak || 0;
+        profile.streak = lost + now;          // verlorene Tage zurück (+ was seitdem neu gelernt wurde)
+        // Datum mindestens auf gestern setzen - sonst würde die tägliche
+        // Streak-Prüfung den geretteten Streak sofort wieder als verloren werten.
+        if(!profile.lastStreakDate || profile.lastStreakDate < yesterdayStr()) profile.lastStreakDate = yesterdayStr();
+        profile.streakRescuedAt = Date.now();
+        profile.lastBrokenStreak = 0;
+        saveProfile(); renderHome();
+        $("rescuedByName").textContent = "@" + (r.rescuerUsername || "Ein Freund");
+        $("rescuedStreakNum").textContent = profile.streak;
+        setTimeout(() => { $("overlayStreakRescued").classList.add("show"); }, 900);
+        pushInboxEvent("🔥", `@${r.rescuerUsername || "Ein Freund"} hat deinen Streak gerettet (${profile.streak} Tage)`);
+      } else {
+        saveProfile();
+      }
+    }catch(e){ console.error("Streak-Rettung abholen Fehler:", e); }
+  }
+  $("rescueShareBtn").addEventListener("click", shareRescueLink);
+  $("rescueLaterBtn").addEventListener("click", () => $("overlayStreakRescue").classList.remove("show"));
+  $("rescuedOkBtn").addEventListener("click", () => $("overlayStreakRescued").classList.remove("show"));
 
   $("backHomeFromLocked").addEventListener("click", () => {
     clearInterval(lockedInterval);

@@ -3259,6 +3259,25 @@
   .lx-node.book .stars{ color:var(--text); opacity:.7; font-size:10.5px; letter-spacing:0; }
   .lx-node.book.locked{ background:color-mix(in srgb, var(--text) 14%, var(--card)); box-shadow:0 7px 0 color-mix(in srgb, var(--text) 8%, #000); filter:grayscale(1); opacity:.55; }
 
+
+  /* Lösen: Schritt für Schritt (NEU) */
+  .lupe-sol{ text-align:left; padding:12px; background:color-mix(in srgb, var(--text) 5%, transparent); border:1px solid var(--border); }
+  .lupe-sol-head{ font-size:12px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; opacity:.6; margin:0 2px 8px; }
+  .lupe-steps{ max-height:34vh; overflow-y:auto; display:flex; flex-direction:column; gap:8px; scroll-behavior:smooth; }
+  .lupe-step{ display:flex; gap:10px; align-items:flex-start; padding:8px 10px; border-radius:12px; opacity:.5; transition:opacity .3s, background .3s; }
+  .lupe-step .n{ flex-shrink:0; width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-size:11.5px; font-weight:800;
+    background:color-mix(in srgb, var(--text) 12%, transparent); }
+  .lupe-step .ex{ font-size:15px; font-weight:800; line-height:1.35; }
+  .lupe-step .why{ font-size:12.5px; opacity:.75; margin-top:2px; line-height:1.35; }
+  .lupe-step.now{ opacity:1; background:color-mix(in srgb, var(--accent) 12%, transparent); animation:lupe-step-in .4s cubic-bezier(.2,.9,.25,1.05) both; }
+  .lupe-step.now .n{ background:var(--accent); color:var(--accent-text); }
+  .lupe-step.now .ex{ font-size:18px; }
+  .lupe-step.last.now{ background:color-mix(in srgb, var(--success) 16%, transparent); }
+  .lupe-step.last.now .n{ background:var(--success); color:#fff; }
+  .lupe-step em.hl{ font-style:normal; color:var(--accent); padding:0 3px; border-radius:6px; background:color-mix(in srgb, var(--accent) 16%, transparent); }
+  .lupe-step.last em.hl{ color:var(--success); background:color-mix(in srgb, var(--success) 16%, transparent); }
+  @keyframes lupe-step-in{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -5428,7 +5447,7 @@
       <div class="lupe-hint" id="lupeHint"></div>
       <div class="lupe-sol" id="lupeSolution" style="display:none;"></div>
       <div class="lupe-btns">
-        <button class="btn btn-ghost" id="lupeShowResult">💡 Ergebnis anzeigen</button>
+        <button class="btn btn-ghost" id="lupeShowResult">🧩 Lösen</button>
         <button class="btn btn-primary" id="lupeClose">Lupe schließen</button>
       </div>
     </div>
@@ -6328,7 +6347,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.70";
+  const APP_VERSION = "3.71";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -17984,87 +18003,202 @@
     open.forEach(t => { const w = (n - t.from < 4) ? 3 : 1; for(let i = 0; i < w; i++) bag.push(t); });
     return bag[randInt(0, bag.length - 1)].gen(n);
   }
+  const lxPar = v => v < 0 ? `(${lxNum(v)})` : String(v);            // negative Zahlen in Klammern
+  const lxDec = v => String(Math.round(v * 1000) / 1000).replace(".", ","); // Kommazahl deutsch
   const lxPlus = (a, b) => b === 0 ? `${a}` : b < 0 ? `${a} ${M} ${Math.abs(b)}` : `${a} + ${b}`;
   const LX_TYPES = {
     linfun: [
       { from: 1,  gen: n => { const m = randInt(1, lxUp(2, 6, n)) * lxSign(n, 11), b = randInt(0, lxUp(3, 9, n)) * lxSign(n, 11), x = randInt(n >= 11 ? -lxUp(1, 5, n) : 0, lxUp(3, 6, n));
-                              return { text: `f(x) = ${lxLinE(m, b)}\nf(${E(lxNum(x), "Diese Zahl setzt du für x ein – der Pfeil zeigt, wo sie hinkommt.", "x")}) = ?`, answer: m * x + b,
+                              return { steps: [[`f(x) = ${lxLin(m, b)}`, "Das ist die Funktion. Wir suchen ihren Wert für eine bestimmte Zahl."],
+  [`x = «${lxNum(x)}»`, "Die Zahl in den Klammern von f( ) ist das x – die setzen wir ein."],
+  [`f(${lxNum(x)}) = ${lxNum(m)} · «${lxPar(x)}»${b > 0 ? ` + ${b}` : b < 0 ? ` ${M} ${-b}` : ""}`, "Überall, wo vorher x stand, steht jetzt diese Zahl."],
+  [`${lxNum(m)} · ${lxPar(x)} = «${lxNum(m * x)}»`, "Zuerst mal rechnen – Punkt vor Strich."],
+  b !== 0 ? [`${lxNum(m * x)} ${b > 0 ? "+" : M} ${Math.abs(b)} = «${lxNum(m * x + b)}»`, b > 0 ? "Dann das b dazuzählen." : "Dann das b abziehen."] : null,
+  [`f(${lxNum(x)}) = «${lxNum(m * x + b)}»`, "Das ist das Ergebnis."]].filter(Boolean), text: `f(x) = ${lxLinE(m, b)}\nf(${E(lxNum(x), "Diese Zahl setzt du für x ein – der Pfeil zeigt, wo sie hinkommt.", "x")}) = ?`, answer: m * x + b,
                                        hint: "Setze die Zahl für x ein und rechne: m · x + b.", solution: `f(${lxNum(x)}) = ${lxPlus(`${lxNum(m)} · ${lxNum(x)}`, b)} = ${lxNum(m * x + b)}` }; } },
       { from: 1,  gen: n => { const m = randInt(1, lxUp(3, 9, n)) * lxSign(n, 11), b = lxNz(1, lxUp(5, 12, n)) * lxSign(n, 11);
-                              return { text: `f(x) = ${lxLinE(m, b)}\n[[b|y-Achsenabschnitt b]] = ?`, answer: b, hint: "b ist die Zahl ohne x am Ende (mit Vorzeichen).", solution: `b = ${lxNum(b)}` }; } },
+                              return { steps: [[`f(x) = ${lxLin(m, b)}`, "Jede lineare Funktion ist so aufgebaut: m · x + b."],
+  ["b = die Zahl ohne x", "b steht am Ende und hat kein x dabei."],
+  [b < 0 ? `… ${M} «${-b}»` : `… + «${b}»`, b < 0 ? "Das Minus davor gehört dazu – b ist also negativ." : "Das Plus davor heißt: b ist positiv."],
+  [`b = «${lxNum(b)}»`, "Fertig!"]].filter(Boolean), text: `f(x) = ${lxLinE(m, b)}\n[[b|y-Achsenabschnitt b]] = ?`, answer: b, hint: "b ist die Zahl ohne x am Ende (mit Vorzeichen).", solution: `b = ${lxNum(b)}` }; } },
       { from: 2,  gen: n => { const m = lxNz(1, lxUp(3, 9, n)) * lxSign(n, 11), b = randInt(0, lxUp(5, 12, n)) * lxSign(n, 11);
-                              return { text: `f(x) = ${lxLinE(m, b)}\n[[m|Steigung m]] = ?`, answer: m, hint: "m ist die Zahl direkt vor dem x. Steht nur x da, ist m = 1.", solution: `m = ${lxNum(m)}` }; } },
+                              return { steps: [[`f(x) = ${lxLin(m, b)}`, "Jede lineare Funktion ist so aufgebaut: m · x + b."],
+  ["m = die Zahl direkt vor dem x", "Sie sagt, wie steil die Linie ist."],
+  Math.abs(m) === 1 ? [`nur „${m < 0 ? M : ""}x“  →  «${lxNum(m)}»`, "Steht keine Zahl vor dem x, ist sie 1 (bei Minus −1)."] : [`«${lxNum(m)}»x`, m < 0 ? "Das Minus gehört zu m dazu." : "Das ist die Zahl vor dem x."],
+  [`m = «${lxNum(m)}»`, "Fertig!"]].filter(Boolean), text: `f(x) = ${lxLinE(m, b)}\n[[m|Steigung m]] = ?`, answer: m, hint: "m ist die Zahl direkt vor dem x. Steht nur x da, ist m = 1.", solution: `m = ${lxNum(m)}` }; } },
       { from: 4,  gen: n => { const m = randInt(1, 2) * lxSign(n, 11), b = randInt(n < 11 ? 0 : -3, 3);
-                              return { text: "Wo schneidet die Gerade die y-Achse? (b = ?)", svg: lxGraphSvg(m, b), answer: b, hint: "Schau, wo die Linie die senkrechte y-Achse kreuzt.", solution: `Die Linie kreuzt die y-Achse bei ${lxNum(b)}, also b = ${lxNum(b)}.` }; } },
+                              return { steps: [["Finde die y-Achse", "Das ist die senkrechte Linie in der Mitte."],
+  ["Wo kreuzt die Gerade sie?", "Schau, bei welcher Zahl die Linie die y-Achse trifft."],
+  [`bei «${lxNum(b)}»`, "Dort liegt der Schnittpunkt."],
+  [`b = «${lxNum(b)}»`, "Fertig!"]].filter(Boolean), text: "Wo schneidet die Gerade die y-Achse? (b = ?)", svg: lxGraphSvg(m, b), answer: b, hint: "Schau, wo die Linie die senkrechte y-Achse kreuzt.", solution: `Die Linie kreuzt die y-Achse bei ${lxNum(b)}, also b = ${lxNum(b)}.` }; } },
       { from: 6,  gen: n => { const m = randInt(1, 2) * lxSign(n, 11), b = randInt(-2, 3);
-                              return { text: "Lies die Steigung m am Graphen ab.", svg: lxGraphSvg(m, b), answer: m, hint: "Geh 1 Kästchen nach rechts und zähl, wie viele es hoch (oder runter) geht.", solution: `1 nach rechts → ${Math.abs(m)} ${m > 0 ? "hoch" : "runter"}, also m = ${lxNum(m)}.` }; } },
+                              return { steps: [["Such einen Punkt auf der Linie", "Am besten einen, der genau auf einer Gitterecke liegt."],
+  ["1 Kästchen nach rechts", "Die Steigung zählt man immer ab 1 nach rechts."],
+  [`${Math.abs(m)} ${m > 0 ? "hoch" : "runter"}`, m > 0 ? "So viele Kästchen geht es hoch bis zur Linie." : "Es geht nach unten – darum wird m negativ."],
+  [`m = «${lxNum(m)}»`, "Fertig!"]].filter(Boolean), text: "Lies die Steigung m am Graphen ab.", svg: lxGraphSvg(m, b), answer: m, hint: "Geh 1 Kästchen nach rechts und zähl, wie viele es hoch (oder runter) geht.", solution: `1 nach rechts → ${Math.abs(m)} ${m > 0 ? "hoch" : "runter"}, also m = ${lxNum(m)}.` }; } },
       { from: 11, gen: n => { const m = lxNz(1, lxUp(2, 6, n)) * lxSign(n, 12), x0 = randInt(-lxUp(2, 6, n), lxUp(3, 6, n)), b = -m * x0;
-                              return { text: `f(x) = ${lxLinE(m, b)}\nNullstelle x = ?`, answer: x0, hint: "An der Nullstelle ist f(x) = 0. Also: m · x + b = 0 nach x auflösen.",
+                              return { steps: [["f(x) = 0", "An der Nullstelle ist der Wert der Funktion genau 0."],
+  [`${lxNum(m)}x${b > 0 ? ` + ${b}` : b < 0 ? ` ${M} ${-b}` : ""} = 0`, "Wir setzen die Funktion gleich 0."],
+  b !== 0 ? [`${lxNum(m)}x = «${lxNum(-b)}»`, b > 0 ? `Auf beiden Seiten − ${b}.` : `Auf beiden Seiten + ${-b}.`] : null,
+  [`x = ${lxNum(-b)} : ${lxPar(m)}`, `Durch ${lxNum(m)} teilen, damit x allein steht.`],
+  [`x = «${lxNum(x0)}»`, "Fertig!"]].filter(Boolean), text: `f(x) = ${lxLinE(m, b)}\nNullstelle x = ?`, answer: x0, hint: "An der Nullstelle ist f(x) = 0. Also: m · x + b = 0 nach x auflösen.",
                                        solution: `${lxPlus(`${lxNum(m)}x`, b)} = 0 → ${lxNum(m)}x = ${lxNum(-b)} → x = ${lxNum(x0)}` }; } },
       { from: 15, gen: n => { const m = lxNz(-2, 2), b = randInt(-3, 3);
                               const wrongs = ["f(x) = " + lxLin(-m, b), "f(x) = " + lxLin(m, -b || b + 2), "f(x) = " + lxLin(m + (m > 0 ? 1 : -1), b), "f(x) = " + lxLin(-m, -b || 1)];
-                              return { text: "Welche Funktion gehört zum Graphen?", svg: lxGraphSvg(m, b), ...lxShuffleChoices("f(x) = " + lxLin(m, b), wrongs),
+                              return { steps: [["Erst b ablesen", "Wo kreuzt die Linie die y-Achse?"],
+  [`b = «${lxNum(b)}»`, "Das wird die Zahl am Ende der Formel."],
+  ["Dann m ablesen", "1 nach rechts – wie viel geht es hoch oder runter?"],
+  [`m = «${lxNum(m)}»`, m < 0 ? "Es geht runter, also ist m negativ." : "Es geht hoch, also ist m positiv."],
+  [`«f(x) = ${lxLin(m, b)}»`, "Diese Formel passt zum Graphen."]].filter(Boolean), text: "Welche Funktion gehört zum Graphen?", svg: lxGraphSvg(m, b), ...lxShuffleChoices("f(x) = " + lxLin(m, b), wrongs),
                                        hint: "Lies erst b ab (Schnitt mit der y-Achse), dann m (1 nach rechts, wie viel hoch?).", solution: `b = ${lxNum(b)}, m = ${lxNum(m)} → f(x) = ${lxLin(m, b)}` }; } },
       { from: 21, gen: n => { const m = lxNz(1, lxUp(2, 5, n)) * lxSign(n, 21), x1 = randInt(-4, 4), dx = randInt(1, lxUp(2, 4, n)), y1 = randInt(-6, 6), x2 = x1 + dx, y2 = y1 + m * dx;
-                              return { text: `Gerade durch P(${E(lxNum(x1), "x-Wert von Punkt P")} | ${E(lxNum(y1), "y-Wert von Punkt P")}) und Q(${E(lxNum(x2), "x-Wert von Punkt Q")} | ${E(lxNum(y2), "y-Wert von Punkt Q")})\nSteigung m = ?`, answer: m,
+                              return { steps: [[`P(${lxNum(x1)} | ${lxNum(y1)}),  Q(${lxNum(x2)} | ${lxNum(y2)})`, "Die beiden Punkte, durch die die Gerade geht."],
+  [`rechts: ${lxNum(x2)} − ${lxPar(x1)} = «${dx}»`, "So weit geht es von P nach Q nach rechts."],
+  [`hoch: ${lxNum(y2)} − ${lxPar(y1)} = «${lxNum(y2 - y1)}»`, "So weit geht es hoch (negativ heißt: runter)."],
+  [`m = ${lxNum(y2 - y1)} : ${dx}`, "Steigung = hoch geteilt durch rechts."],
+  [`m = «${lxNum(m)}»`, "Fertig!"]].filter(Boolean), text: `Gerade durch P(${E(lxNum(x1), "x-Wert von Punkt P")} | ${E(lxNum(y1), "y-Wert von Punkt P")}) und Q(${E(lxNum(x2), "x-Wert von Punkt Q")} | ${E(lxNum(y2), "y-Wert von Punkt Q")})\nSteigung m = ?`, answer: m,
                                        hint: "m = (y von Q − y von P) : (x von Q − x von P)", solution: `m = (${lxNum(y2)} − ${lxNum(y1)}) : (${lxNum(x2)} − ${lxNum(x1)}) = ${lxNum(y2 - y1)} : ${dx} = ${lxNum(m)}` }; } }
     ],
     algebra: [
       { from: 1,  gen: n => { const x = randInt(1, lxUp(5, 15, n)), a = randInt(1, lxUp(5, 20, n));
-                              return { text: `x + ${E(a, "Diese Zahl wird zu x dazugezählt.")} = ${E(x + a, "Das kommt insgesamt heraus.")}\nx = ?`, answer: x, hint: "Mach das Gegenteil: auf beiden Seiten minus rechnen.", solution: `x = ${x + a} − ${a} = ${x}` }; } },
+                              return { steps: [[`x + ${a} = ${x + a}`, `Gesucht ist x. Die + ${a} stört noch.`],
+  [`x + ${a} «− ${a}» = ${x + a} «− ${a}»`, `Das Gegenteil von + ${a} ist − ${a} – und zwar auf beiden Seiten.`],
+  [`x = ${x + a} − ${a}`, "Links bleibt nur noch x übrig."],
+  [`x = «${x}»`, "Ausgerechnet – fertig!"]].filter(Boolean), text: `x + ${E(a, "Diese Zahl wird zu x dazugezählt.")} = ${E(x + a, "Das kommt insgesamt heraus.")}\nx = ?`, answer: x, hint: "Mach das Gegenteil: auf beiden Seiten minus rechnen.", solution: `x = ${x + a} − ${a} = ${x}` }; } },
       { from: 3,  gen: n => { const x = randInt(1, lxUp(4, 9, n)), b = randInt(1, lxUp(4, 9, n));
-                              return { text: "Die Waage ist im Gleichgewicht. x = ?", svg: lxBalanceSvg("x + " + b, String(x + b)), answer: x, hint: "Nimm auf beiden Seiten gleich viel weg, bis x allein ist.", solution: `x + ${b} = ${x + b} → x = ${x + b} − ${b} = ${x}` }; } },
+                              return { steps: [[`x + ${b} = ${x + b}`, "Die Waage als Gleichung geschrieben."],
+  [`beide Seiten «− ${b}»`, "Nimm von beiden Schalen gleich viel weg – so bleibt die Waage gerade."],
+  [`x = ${x + b} − ${b}`, "Links liegt jetzt nur noch x."],
+  [`x = «${x}»`, "Fertig!"]].filter(Boolean), text: "Die Waage ist im Gleichgewicht. x = ?", svg: lxBalanceSvg("x + " + b, String(x + b)), answer: x, hint: "Nimm auf beiden Seiten gleich viel weg, bis x allein ist.", solution: `x + ${b} = ${x + b} → x = ${x + b} − ${b} = ${x}` }; } },
       { from: 5,  gen: n => { const x = randInt(1, lxUp(5, 12, n)), a = randInt(2, lxUp(3, 9, n));
-                              return { text: `${E(a, "Mit dieser Zahl wird x malgenommen.")} · x = ${E(a * x, "Das kommt insgesamt heraus.")}\nx = ?`, answer: x, hint: "Teile beide Seiten durch die Zahl vor x.", solution: `x = ${a * x} : ${a} = ${x}` }; } },
+                              return { steps: [[`${a} · x = ${a * x}`, `x wird mit ${a} malgenommen.`],
+  [`beide Seiten «: ${a}»`, "Das Gegenteil von mal ist geteilt."],
+  [`x = ${a * x} : ${a}`, "Links bleibt x allein."],
+  [`x = «${x}»`, "Fertig!"]].filter(Boolean), text: `${E(a, "Mit dieser Zahl wird x malgenommen.")} · x = ${E(a * x, "Das kommt insgesamt heraus.")}\nx = ?`, answer: x, hint: "Teile beide Seiten durch die Zahl vor x.", solution: `x = ${a * x} : ${a} = ${x}` }; } },
       { from: 7,  gen: n => { const x = randInt(1, lxUp(5, 15, n)), a = randInt(1, n < 12 ? x : lxUp(5, 15, n));
-                              return { text: `x ${M} ${E(a, "Diese Zahl wird von x abgezogen.")} = ${E(lxNum(x - a), "Das kommt insgesamt heraus.")}\nx = ?`, answer: x, hint: "Mach das Gegenteil: auf beiden Seiten plus rechnen.", solution: `x = ${lxNum(x - a)} + ${a} = ${x}` }; } },
+                              return { steps: [[`x − ${a} = ${lxNum(x - a)}`, `Von x wird ${a} abgezogen.`],
+  [`beide Seiten «+ ${a}»`, "Das Gegenteil von minus ist plus."],
+  [`x = ${lxNum(x - a)} + ${a}`, "Links bleibt x allein."],
+  [`x = «${x}»`, "Fertig!"]].filter(Boolean), text: `x ${M} ${E(a, "Diese Zahl wird von x abgezogen.")} = ${E(lxNum(x - a), "Das kommt insgesamt heraus.")}\nx = ?`, answer: x, hint: "Mach das Gegenteil: auf beiden Seiten plus rechnen.", solution: `x = ${lxNum(x - a)} + ${a} = ${x}` }; } },
       { from: 8,  gen: n => { const a = randInt(1, 3), b = randInt(1, 9), x = randInt(1, 9);
-                              return { text: `Erster Schritt für ${a === 1 ? "x" : a + "x"} + ${E(b, "Diese Zahl steht mit Plus bei x – die musst du zuerst wegbekommen.")} = ${a * x + b}?`,
+                              return { steps: [[`${a === 1 ? "" : a}x + ${b} = ${a * x + b}`, "Wir wollen, dass x allein steht."],
+  [`Was stört? «+ ${b}»`, "Die Zahl mit Plus muss zuerst weg."],
+  [`Gegenteil: «− ${b}»`, "Plus macht man mit Minus rückgängig."],
+  [`«auf beiden Seiten − ${b}»`, "Immer auf beiden Seiten – sonst stimmt die Gleichung nicht mehr."]].filter(Boolean), text: `Erster Schritt für ${a === 1 ? "x" : a + "x"} + ${E(b, "Diese Zahl steht mit Plus bei x – die musst du zuerst wegbekommen.")} = ${a * x + b}?`,
                                        ...lxShuffleChoices(`auf beiden Seiten ${M} ${b}`, [`auf beiden Seiten + ${b}`, `nur links ${M} ${b}`, `auf beiden Seiten · ${b}`]), hint: "Mach auf BEIDEN Seiten das Gegenteil von + " + b + ".", solution: `auf beiden Seiten ${M} ${b}` }; } },
       { from: 11, gen: n => { const x = randInt(1, lxUp(5, 12, n)) * lxSign(n, 21), a = randInt(2, lxUp(4, 9, n)), b = randInt(1, lxUp(6, 20, n));
-                              return { text: `${E(a, "Mit dieser Zahl wird x malgenommen.")}x + ${E(b, "Diese Zahl wird dazugezählt.")} = ${E(lxNum(a * x + b), "Das kommt insgesamt heraus.")}\nx = ?`, answer: x,
+                              return { steps: [[`${a}x + ${b} = ${lxNum(a * x + b)}`, "Zwei Schritte: erst das Plus weg, dann das Mal."],
+  [`beide Seiten «− ${b}»`, `Die + ${b} kommt weg.`],
+  [`${a}x = «${lxNum(a * x)}»`, `${lxNum(a * x + b)} − ${b} = ${lxNum(a * x)}`],
+  [`beide Seiten «: ${a}»`, `Jetzt das „mal ${a}“ rückgängig machen.`],
+  [`x = «${lxNum(x)}»`, `${lxNum(a * x)} : ${a} = ${lxNum(x)} – fertig!`]].filter(Boolean), text: `${E(a, "Mit dieser Zahl wird x malgenommen.")}x + ${E(b, "Diese Zahl wird dazugezählt.")} = ${E(lxNum(a * x + b), "Das kommt insgesamt heraus.")}\nx = ?`, answer: x,
                                        hint: "Erst auf beiden Seiten − " + b + ", dann durch " + a + " teilen.", solution: `${a}x = ${lxNum(a * x + b)} − ${b} = ${lxNum(a * x)} → x = ${lxNum(a * x)} : ${a} = ${lxNum(x)}` }; } },
       { from: 14, gen: n => { const x = randInt(1, lxUp(5, 12, n)) * lxSign(n, 21), a = randInt(2, lxUp(4, 9, n)), b = randInt(1, lxUp(6, 20, n));
-                              return { text: `${E(a, "Mit dieser Zahl wird x malgenommen.")}x ${M} ${E(b, "Diese Zahl wird abgezogen.")} = ${E(lxNum(a * x - b), "Das kommt insgesamt heraus.")}\nx = ?`, answer: x,
+                              return { steps: [[`${a}x − ${b} = ${lxNum(a * x - b)}`, "Zwei Schritte: erst das Minus weg, dann das Mal."],
+  [`beide Seiten «+ ${b}»`, `Die − ${b} kommt weg.`],
+  [`${a}x = «${lxNum(a * x)}»`, `${lxNum(a * x - b)} + ${b} = ${lxNum(a * x)}`],
+  [`beide Seiten «: ${a}»`, `Jetzt das „mal ${a}“ rückgängig machen.`],
+  [`x = «${lxNum(x)}»`, `${lxNum(a * x)} : ${a} = ${lxNum(x)} – fertig!`]].filter(Boolean), text: `${E(a, "Mit dieser Zahl wird x malgenommen.")}x ${M} ${E(b, "Diese Zahl wird abgezogen.")} = ${E(lxNum(a * x - b), "Das kommt insgesamt heraus.")}\nx = ?`, answer: x,
                                        hint: "Erst auf beiden Seiten + " + b + ", dann durch " + a + " teilen.", solution: `${a}x = ${lxNum(a * x - b)} + ${b} = ${lxNum(a * x)} → x = ${lxNum(a * x)} : ${a} = ${lxNum(x)}` }; } },
       { from: 16, gen: n => { const x = randInt(1, 6), a = randInt(2, 4), b = randInt(1, 9);
-                              return { text: "Die Waage ist im Gleichgewicht. x = ?", svg: lxBalanceSvg(`${a}x + ${b}`, String(a * x + b)), answer: x, hint: "Erst die einzelne Zahl auf beiden Seiten wegnehmen, dann teilen.", solution: `${a}x = ${a * x + b} − ${b} = ${a * x} → x = ${x}` }; } },
+                              return { steps: [[`${a}x + ${b} = ${a * x + b}`, "Die Waage als Gleichung."],
+  [`beide Seiten «− ${b}»`, "Erst die einzelnen Gewichte wegnehmen."],
+  [`${a}x = «${a * x}»`, `${a * x + b} − ${b} = ${a * x}`],
+  [`beide Seiten «: ${a}»`, `${a}x heißt ${a}-mal x – darum durch ${a} teilen.`],
+  [`x = «${x}»`, "Fertig!"]].filter(Boolean), text: "Die Waage ist im Gleichgewicht. x = ?", svg: lxBalanceSvg(`${a}x + ${b}`, String(a * x + b)), answer: x, hint: "Erst die einzelne Zahl auf beiden Seiten wegnehmen, dann teilen.", solution: `${a}x = ${a * x + b} − ${b} = ${a * x} → x = ${x}` }; } },
       { from: 21, gen: n => { const x = randInt(1, lxUp(5, 10, n)) * lxSign(n, 21), a = randInt(2, lxUp(4, 8, n)), b = randInt(1, lxUp(5, 12, n));
-                              return { text: `${E(a, "Mit dieser Zahl wird die ganze Klammer malgenommen.")} · (x + ${E(b, "Diese Zahl wird in der Klammer zu x dazugezählt.")}) = ${E(lxNum(a * (x + b)), "Das kommt insgesamt heraus.")}\nx = ?`, answer: x,
+                              return { steps: [[`${a} · (x + ${b}) = ${lxNum(a * (x + b))}`, "Die ganze Klammer wird malgenommen."],
+  [`beide Seiten «: ${a}»`, "Zuerst das Mal vor der Klammer rückgängig machen."],
+  [`x + ${b} = «${lxNum(x + b)}»`, `${lxNum(a * (x + b))} : ${a} = ${lxNum(x + b)}`],
+  [`beide Seiten «− ${b}»`, "Jetzt noch das Plus weg."],
+  [`x = «${lxNum(x)}»`, "Fertig!"]].filter(Boolean), text: `${E(a, "Mit dieser Zahl wird die ganze Klammer malgenommen.")} · (x + ${E(b, "Diese Zahl wird in der Klammer zu x dazugezählt.")}) = ${E(lxNum(a * (x + b)), "Das kommt insgesamt heraus.")}\nx = ?`, answer: x,
                                        hint: "Erst beide Seiten durch " + a + " teilen, dann − " + b + ".", solution: `x + ${b} = ${lxNum(a * (x + b))} : ${a} = ${lxNum(x + b)} → x = ${lxNum(x)}` }; } },
       { from: 24, gen: n => { const x = randInt(1, lxUp(5, 10, n)) * lxSign(n, 24), a = randInt(3, lxUp(5, 9, n)), c = randInt(1, a - 1), b = randInt(1, lxUp(6, 15, n)), d = (a - c) * x + b;
-                              return { text: `${E(a, "So oft steht x auf der linken Seite.")}x + ${E(b, "Zahl ohne x links.")} = ${c === 1 ? "" : E(c, "So oft steht x auf der rechten Seite.")}x + ${E(lxNum(d), "Zahl ohne x rechts.")}\nx = ?`, answer: x,
+                              return { steps: [[`${a}x + ${b} = ${c === 1 ? "" : c}x + ${lxNum(d)}`, "x steht auf beiden Seiten."],
+  [`beide Seiten «− ${c === 1 ? "" : c}x»`, "Bring alle x nach links."],
+  [`${a - c}x + ${b} = ${lxNum(d)}`, `${a}x − ${c}x = ${a - c}x`],
+  [`${a - c}x = «${lxNum(d - b)}»`, `Auf beiden Seiten − ${b}.`],
+  [`x = «${lxNum(x)}»`, `${lxNum(d - b)} : ${a - c} = ${lxNum(x)} – fertig!`]].filter(Boolean), text: `${E(a, "So oft steht x auf der linken Seite.")}x + ${E(b, "Zahl ohne x links.")} = ${c === 1 ? "" : E(c, "So oft steht x auf der rechten Seite.")}x + ${E(lxNum(d), "Zahl ohne x rechts.")}\nx = ?`, answer: x,
                                        hint: "Bring alle x auf eine Seite: auf beiden Seiten − " + c + "x.", solution: `${a - c}x + ${b} = ${lxNum(d)} → ${a - c}x = ${lxNum(d - b)} → x = ${lxNum(x)}` }; } }
     ],
     percent: [
-      { from: 1,  gen: n => { const k = 10 * randInt(1, 9); return { text: "Wie viel Prozent sind gefärbt?", svg: lxGridSvg(k), answer: k, hint: "Es sind 100 Kästchen. Jedes gefärbte Kästchen ist 1 %.", solution: `${k} von 100 Kästchen = ${k} %` }; } },
+      { from: 1,  gen: n => { const k = 10 * randInt(1, 9); return { steps: [["100 Kästchen = 100 %", "Jedes Kästchen ist genau 1 %."],
+  [`${k / 10} volle Reihen`, "Zähl die gefärbten Reihen."],
+  [`${k / 10} · 10 = «${k}»`, "Jede Reihe hat 10 Kästchen."],
+  [`«${k} %»`, "Fertig!"]].filter(Boolean), text: "Wie viel Prozent sind gefärbt?", svg: lxGridSvg(k), answer: k, hint: "Es sind 100 Kästchen. Jedes gefärbte Kästchen ist 1 %.", solution: `${k} von 100 Kästchen = ${k} %` }; } },
       { from: 2,  gen: n => { const g = 2 * randInt(2, lxUp(10, 60, n));
-                              return { text: `${E(50, "50 % bedeutet: die Hälfte.")} % von ${E(g, "Das ist das Ganze (100 %).")} = ?`, answer: g / 2, hint: "Die Hälfte heißt: durch 2 teilen.", solution: `${g} : 2 = ${g / 2}` }; } },
+                              return { steps: [[`50 % von ${g}`, `Gesucht ist die Hälfte von ${g}.`],
+  ["50 % = die Hälfte", "50 von 100 ist genau die Hälfte."],
+  [`${g} : 2 = «${g / 2}»`, "Halbieren heißt: durch 2 teilen."]].filter(Boolean), text: `${E(50, "50 % bedeutet: die Hälfte.")} % von ${E(g, "Das ist das Ganze (100 %).")} = ?`, answer: g / 2, hint: "Die Hälfte heißt: durch 2 teilen.", solution: `${g} : 2 = ${g / 2}` }; } },
       { from: 4,  gen: n => { const pct = [25, 50, 75][randInt(0, 2)];
-                              return { text: "Welcher Anteil ist gefärbt?", svg: lxPieSvg(pct), ...lxShuffleChoices(pct + " %", ["25 %", "50 %", "75 %", "10 %"]), hint: "Ein Viertel = 25 %, die Hälfte = 50 %, drei Viertel = 75 %.", solution: `${pct} %` }; } },
+                              return { steps: [["Ganzer Kreis = 100 %", "Der ganze Kreis ist alles."],
+  [`${pct / 25} von 4 Teilen`, "Teil den Kreis in Gedanken in 4 gleiche Viertel."],
+  [`${pct / 25} · 25 % = «${pct} %»`, "Jedes Viertel sind 25 %."]].filter(Boolean), text: "Welcher Anteil ist gefärbt?", svg: lxPieSvg(pct), ...lxShuffleChoices(pct + " %", ["25 %", "50 %", "75 %", "10 %"]), hint: "Ein Viertel = 25 %, die Hälfte = 50 %, drei Viertel = 75 %.", solution: `${pct} %` }; } },
       { from: 5,  gen: n => { const p = [10, 25][randInt(0, 1)], g = (p === 25 ? 4 : 10) * randInt(2, lxUp(10, 30, n));
-                              return { text: `${E(p, p === 10 ? "10 % ist ein Zehntel." : "25 % ist ein Viertel.")} % von ${E(g, "Das ist das Ganze (100 %).")} = ?`, answer: g * p / 100, hint: p === 10 ? "10 % = durch 10 teilen." : "25 % = durch 4 teilen.", solution: `${g} : ${p === 10 ? 10 : 4} = ${g * p / 100}` }; } },
-      { from: 8,  gen: n => { const k = randInt(3, 97); return { text: "Wie viel Prozent sind gefärbt?", svg: lxGridSvg(k), answer: k, hint: "Zähle die vollen Reihen (je 10 %) und dann die einzelnen Kästchen.", solution: `${Math.floor(k / 10)} volle Reihen + ${k % 10} Kästchen = ${k} %` }; } },
+                              return { steps: [[`${p} % von ${g}`, `Gesucht ist ein Teil von ${g}.`],
+  [p === 10 ? "10 % = ein Zehntel" : "25 % = ein Viertel", p === 10 ? "10 von 100 ist ein Zehntel." : "25 von 100 ist ein Viertel."],
+  [`${g} : ${p === 10 ? 10 : 4} = «${g * p / 100}»`, p === 10 ? "Also durch 10 teilen." : "Also durch 4 teilen."]].filter(Boolean), text: `${E(p, p === 10 ? "10 % ist ein Zehntel." : "25 % ist ein Viertel.")} % von ${E(g, "Das ist das Ganze (100 %).")} = ?`, answer: g * p / 100, hint: p === 10 ? "10 % = durch 10 teilen." : "25 % = durch 4 teilen.", solution: `${g} : ${p === 10 ? 10 : 4} = ${g * p / 100}` }; } },
+      { from: 8,  gen: n => { const k = randInt(3, 97); return { steps: [["100 Kästchen = 100 %", "Jedes Kästchen ist 1 %."],
+  [`${Math.floor(k / 10)} volle Reihen = «${Math.floor(k / 10) * 10} %»`, "Jede volle Reihe sind 10 %."],
+  [`+ ${k % 10} einzelne = «${k % 10} %»`, "Dann die einzelnen Kästchen dazuzählen."],
+  [`«${k} %»`, `${Math.floor(k / 10) * 10} + ${k % 10} = ${k}`]].filter(Boolean), text: "Wie viel Prozent sind gefärbt?", svg: lxGridSvg(k), answer: k, hint: "Zähle die vollen Reihen (je 10 %) und dann die einzelnen Kästchen.", solution: `${Math.floor(k / 10)} volle Reihen + ${k % 10} Kästchen = ${k} %` }; } },
       { from: 11, gen: n => { const p = [5, 20, 30, 40, 75][randInt(0, 4)], g = 20 * randInt(1, lxUp(8, 20, n));
-                              return { text: `${E(p, "Das ist der Prozentsatz: so viele Hundertstel.")} % von ${E(g, "Das ist das Ganze (100 %).")} = ?`, answer: g * p / 100, hint: "Erst 1 % ausrechnen (durch 100), dann mal " + p + ".", solution: `${g} : 100 = ${g / 100} → ${g / 100} · ${p} = ${g * p / 100}` }; } },
+                              return { steps: [[`${p} % von ${g}`, "Gesucht ist der Prozentwert."],
+  [`1 % = ${g} : 100 = «${lxDec(g / 100)}»`, "Erst ausrechnen, wie viel 1 % ist."],
+  [`${p} % = ${lxDec(g / 100)} · ${p}`, `${p} % ist ${p}-mal so viel wie 1 %.`],
+  [`= «${g * p / 100}»`, "Fertig!"]].filter(Boolean), text: `${E(p, "Das ist der Prozentsatz: so viele Hundertstel.")} % von ${E(g, "Das ist das Ganze (100 %).")} = ?`, answer: g * p / 100, hint: "Erst 1 % ausrechnen (durch 100), dann mal " + p + ".", solution: `${g} : 100 = ${g / 100} → ${g / 100} · ${p} = ${g * p / 100}` }; } },
       { from: 15, gen: n => { let p, g; do { p = 5 * randInt(1, 19); g = 20 * randInt(1, lxUp(10, 25, n)); } while((p * g) % 100);
-                              return { text: `${E(p, "Das ist der Prozentsatz: so viele Hundertstel.")} % von ${E(g, "Das ist das Ganze (100 %).")} = ?`, answer: p * g / 100, hint: "Ganzes durch 100, dann mal " + p + ".", solution: `${g} : 100 · ${p} = ${p * g / 100}` }; } },
+                              return { steps: [[`${p} % von ${g}`, "Gesucht ist der Prozentwert."],
+  [`1 % = ${g} : 100 = «${lxDec(g / 100)}»`, "Erst ausrechnen, wie viel 1 % ist."],
+  [`${p} % = ${lxDec(g / 100)} · ${p}`, `${p} % ist ${p}-mal so viel wie 1 %.`],
+  [`= «${p * g / 100}»`, "Fertig!"]].filter(Boolean), text: `${E(p, "Das ist der Prozentsatz: so viele Hundertstel.")} % von ${E(g, "Das ist das Ganze (100 %).")} = ?`, answer: p * g / 100, hint: "Ganzes durch 100, dann mal " + p + ".", solution: `${g} : 100 · ${p} = ${p * g / 100}` }; } },
       { from: 21, gen: n => { const p = [10, 20, 25, 50][randInt(0, 3)], g = (100 / p) * randInt(2, lxUp(10, 30, n)), v = g * p / 100;
-                              return { text: `${E(p, "So viel Prozent sind bekannt.")} % sind ${E(v, "So viel sind diese " + p + " %.")}.\nGrundwert (100 %) = ?`, answer: g, hint: "Rechne hoch auf 100 %: durch " + p + ", dann mal 100.", solution: `${v} : ${p} · 100 = ${g}` }; } },
+                              return { steps: [[`${p} % sind ${v}`, "Wir kennen einen Teil und suchen das Ganze (100 %)."],
+  [`1 % = ${v} : ${p} = «${lxDec(v / p)}»`, "Erst auf 1 % zurückrechnen."],
+  [`100 % = ${lxDec(v / p)} · 100`, "Dann hoch auf 100 %."],
+  [`= «${g}»`, "Fertig!"]].filter(Boolean), text: `${E(p, "So viel Prozent sind bekannt.")} % sind ${E(v, "So viel sind diese " + p + " %.")}.\nGrundwert (100 %) = ?`, answer: g, hint: "Rechne hoch auf 100 %: durch " + p + ", dann mal 100.", solution: `${v} : ${p} · 100 = ${g}` }; } },
       { from: 25, gen: n => { let g, p; do { g = [20, 25, 50, 200, 400][randInt(0, 4)]; p = 5 * randInt(1, 19); } while((g * p) % 100); const part = g * p / 100;
-                              return { text: `${E(part, "Das ist der Teil.")} von ${E(g, "Das ist das Ganze (100 %).")}\nsind wie viel Prozent?`, answer: p, hint: "Teil durch Ganzes, dann mal 100.", solution: `${part} : ${g} · 100 = ${p} %` }; } }
+                              return { steps: [[`${part} von ${g}`, "Wie viel Prozent ist der Teil vom Ganzen?"],
+  [`${part} : ${g} = «${lxDec(part / g)}»`, "Teil geteilt durch Ganzes."],
+  [`${lxDec(part / g)} · 100 = «${p}»`, "Mal 100 macht daraus Prozent."],
+  [`«${p} %»`, "Fertig!"]].filter(Boolean), text: `${E(part, "Das ist der Teil.")} von ${E(g, "Das ist das Ganze (100 %).")}\nsind wie viel Prozent?`, answer: p, hint: "Teil durch Ganzes, dann mal 100.", solution: `${part} : ${g} · 100 = ${p} %` }; } }
     ],
     geometry: [
-      { from: 1,  gen: n => { const a = randInt(2, lxUp(4, 12, n)); return { text: "Wie groß ist die Fläche? (cm²)", svg: lxRectSvg(a, a, a + " cm", a + " cm"), answer: a * a, hint: "Quadrat: Seite mal Seite.", solution: `${a} · ${a} = ${a * a} cm²` }; } },
-      { from: 2,  gen: n => { const a = randInt(2, lxUp(5, 12, n)), b = randInt(2, lxUp(4, 10, n)); return { text: "Wie groß ist die Fläche? (cm²)", svg: lxRectSvg(a, b, a + " cm", b + " cm"), answer: a * b, hint: "Rechteck: Länge mal Breite.", solution: `${a} · ${b} = ${a * b} cm²` }; } },
-      { from: 6,  gen: n => { const a = randInt(2, lxUp(6, 15, n)), b = randInt(2, lxUp(5, 12, n)); return { text: "Wie groß ist der Umfang? (cm)", svg: lxRectSvg(a, b, a + " cm", b + " cm"), answer: 2 * (a + b), hint: "Einmal außen herum: alle 4 Seiten zusammenzählen.", solution: `${a} + ${b} + ${a} + ${b} = ${2 * (a + b)} cm` }; } },
-      { from: 8,  gen: n => { const a = randInt(2, lxUp(8, 20, n)); return { text: `Quadrat: a = ${E(a, "Das ist eine Seite. Ein Quadrat hat 4 gleich lange Seiten.")} cm\nUmfang = ? cm`, answer: 4 * a, hint: "4 gleiche Seiten: 4 mal die Seite.", solution: `4 · ${a} = ${4 * a} cm` }; } },
-      { from: 11, gen: n => { const g = 2 * randInt(2, lxUp(5, 10, n)), h = randInt(2, lxUp(6, 12, n)); return { text: "Wie groß ist die Fläche des Dreiecks? (cm²)", svg: lxTriangleSvg(g, h, "g = " + g, "h = " + h), answer: g * h / 2, hint: "Dreieck = halbes Rechteck: g mal h, dann durch 2.", solution: `${g} · ${h} : 2 = ${g * h / 2} cm²` }; } },
-      { from: 14, gen: n => { const g = 2 * randInt(2, 6), h = randInt(2, 6); return { text: "Welche Formel gilt für die Dreiecksfläche?", svg: lxTriangleSvg(g, h, "g", "h"), ...lxShuffleChoices("g · h : 2", ["g · h", "g + h", "2 · (g + h)"]), hint: "Ein Dreieck ist genau die Hälfte von einem Rechteck.", solution: "g · h : 2" }; } },
+      { from: 1,  gen: n => { const a = randInt(2, lxUp(4, 12, n)); return { steps: [[`Quadrat: Seite = ${a} cm`, "Beim Quadrat sind alle Seiten gleich lang."],
+  ["Fläche = Seite · Seite", "So viele Kästchen passen hinein."],
+  [`${a} · ${a} = «${a * a}»`, "Ausrechnen."],
+  [`«${a * a} cm²»`, "Fläche immer in cm²."]].filter(Boolean), text: "Wie groß ist die Fläche? (cm²)", svg: lxRectSvg(a, a, a + " cm", a + " cm"), answer: a * a, hint: "Quadrat: Seite mal Seite.", solution: `${a} · ${a} = ${a * a} cm²` }; } },
+      { from: 2,  gen: n => { const a = randInt(2, lxUp(5, 12, n)), b = randInt(2, lxUp(4, 10, n)); return { steps: [[`Länge ${a} cm,  Breite ${b} cm`, "Die zwei Seiten stehen an der Grafik."],
+  ["Fläche = Länge · Breite", "Innen drin – also mal rechnen."],
+  [`${a} · ${b} = «${a * b}»`, "Ausrechnen."],
+  [`«${a * b} cm²»`, "Fertig!"]].filter(Boolean), text: "Wie groß ist die Fläche? (cm²)", svg: lxRectSvg(a, b, a + " cm", b + " cm"), answer: a * b, hint: "Rechteck: Länge mal Breite.", solution: `${a} · ${b} = ${a * b} cm²` }; } },
+      { from: 6,  gen: n => { const a = randInt(2, lxUp(6, 15, n)), b = randInt(2, lxUp(5, 12, n)); return { steps: [[`Seiten: ${a}, ${b}, ${a}, ${b}`, "Ein Rechteck hat je zwei gleich lange Seiten."],
+  ["Umfang = alle Seiten zusammen", "Einmal außen herum – also plus rechnen."],
+  [`${a} + ${b} + ${a} + ${b} = «${2 * (a + b)}»`, "Alle vier Seiten addieren."],
+  [`«${2 * (a + b)} cm»`, "Der Umfang ist eine Länge: cm."]].filter(Boolean), text: "Wie groß ist der Umfang? (cm)", svg: lxRectSvg(a, b, a + " cm", b + " cm"), answer: 2 * (a + b), hint: "Einmal außen herum: alle 4 Seiten zusammenzählen.", solution: `${a} + ${b} + ${a} + ${b} = ${2 * (a + b)} cm` }; } },
+      { from: 8,  gen: n => { const a = randInt(2, lxUp(8, 20, n)); return { steps: [[`Quadrat: a = ${a} cm`, "Ein Quadrat hat 4 gleich lange Seiten."],
+  [`4 · ${a} = «${4 * a}»`, `4 Seiten, jede ist ${a} cm lang.`],
+  [`«${4 * a} cm»`, "Fertig!"]].filter(Boolean), text: `Quadrat: a = ${E(a, "Das ist eine Seite. Ein Quadrat hat 4 gleich lange Seiten.")} cm\nUmfang = ? cm`, answer: 4 * a, hint: "4 gleiche Seiten: 4 mal die Seite.", solution: `4 · ${a} = ${4 * a} cm` }; } },
+      { from: 11, gen: n => { const g = 2 * randInt(2, lxUp(5, 10, n)), h = randInt(2, lxUp(6, 12, n)); return { steps: [[`g = ${g},  h = ${h}`, "Grundseite und Höhe aus der Grafik."],
+  [`${g} · ${h} = «${g * h}»`, "Erst wie beim Rechteck: g mal h."],
+  [`${g * h} : 2 = «${g * h / 2}»`, "Ein Dreieck ist ein halbes Rechteck – darum durch 2."],
+  [`«${g * h / 2} cm²»`, "Fertig!"]].filter(Boolean), text: "Wie groß ist die Fläche des Dreiecks? (cm²)", svg: lxTriangleSvg(g, h, "g = " + g, "h = " + h), answer: g * h / 2, hint: "Dreieck = halbes Rechteck: g mal h, dann durch 2.", solution: `${g} · ${h} : 2 = ${g * h / 2} cm²` }; } },
+      { from: 14, gen: n => { const g = 2 * randInt(2, 6), h = randInt(2, 6); return { steps: [["Rechteck = g · h", "So groß wäre das ganze Rechteck um das Dreieck."],
+  ["Dreieck = halbes Rechteck", "Das Dreieck füllt genau die Hälfte davon."],
+  ["«g · h : 2»", "Darum wird durch 2 geteilt."]].filter(Boolean), text: "Welche Formel gilt für die Dreiecksfläche?", svg: lxTriangleSvg(g, h, "g", "h"), ...lxShuffleChoices("g · h : 2", ["g · h", "g + h", "2 · (g + h)"]), hint: "Ein Dreieck ist genau die Hälfte von einem Rechteck.", solution: "g · h : 2" }; } },
       { from: 17, gen: n => { const a = randInt(2, lxUp(8, 12, n)), b = randInt(2, lxUp(8, 12, n));
-                              return { text: `Fläche = ${E(a * b, "Das ist die ganze Fläche: Länge mal Breite – also das ganze Rechteck.", "area")} cm². Wie lang ist die fehlende Seite? (cm)`, svg: lxRectSvg(a, b, a + " cm", "?"), answer: b, hint: "Fläche durch die bekannte Seite teilen.", solution: `${a * b} : ${a} = ${b} cm` }; } },
-      { from: 21, gen: n => { const s = randInt(2, lxUp(5, 10, n)); return { text: `Würfel: a = ${E(s, "Jede Kante des Würfels ist so lang.")} cm\nVolumen = ? cm³`, answer: s * s * s, hint: "Würfel: a mal a mal a.", solution: `${s} · ${s} · ${s} = ${s * s * s} cm³` }; } },
-      { from: 24, gen: n => { const a = randInt(2, 9), b = randInt(2, 7), c = randInt(2, lxUp(5, 8, n)); return { text: "Wie groß ist das Volumen? (cm³)", svg: lxCuboidSvg(a, b, c, a + " cm", b + " cm", c + " cm"), answer: a * b * c, hint: "Quader: Länge mal Breite mal Höhe.", solution: `${a} · ${b} · ${c} = ${a * b * c} cm³` }; } }
+                              return { steps: [[`Fläche = ${a * b},  Seite = ${a}`, "Wir kennen die Fläche und eine Seite."],
+  [`${a} · ? = ${a * b}`, "Fläche = Seite mal Seite."],
+  [`? = ${a * b} : ${a}`, "Das Gegenteil von mal ist geteilt."],
+  [`«${b} cm»`, "Fertig!"]].filter(Boolean), text: `Fläche = ${E(a * b, "Das ist die ganze Fläche: Länge mal Breite – also das ganze Rechteck.", "area")} cm². Wie lang ist die fehlende Seite? (cm)`, svg: lxRectSvg(a, b, a + " cm", "?"), answer: b, hint: "Fläche durch die bekannte Seite teilen.", solution: `${a * b} : ${a} = ${b} cm` }; } },
+      { from: 21, gen: n => { const s = randInt(2, lxUp(5, 10, n)); return { steps: [[`Würfel: a = ${s} cm`, "Beim Würfel sind alle Kanten gleich lang."],
+  [`${s} · ${s} = «${s * s}»`, "Erst die Grundfläche."],
+  [`${s * s} · ${s} = «${s * s * s}»`, "Dann mal die Höhe."],
+  [`«${s * s * s} cm³»`, "Volumen immer in cm³."]].filter(Boolean), text: `Würfel: a = ${E(s, "Jede Kante des Würfels ist so lang.")} cm\nVolumen = ? cm³`, answer: s * s * s, hint: "Würfel: a mal a mal a.", solution: `${s} · ${s} · ${s} = ${s * s * s} cm³` }; } },
+      { from: 24, gen: n => { const a = randInt(2, 9), b = randInt(2, 7), c = randInt(2, lxUp(5, 8, n)); return { steps: [[`${a} · ${b} · ${c}`, "Länge mal Breite mal Höhe."],
+  [`${a} · ${b} = «${a * b}»`, "Erst die Grundfläche."],
+  [`${a * b} · ${c} = «${a * b * c}»`, "Dann mal die Höhe."],
+  [`«${a * b * c} cm³»`, "Fertig!"]].filter(Boolean), text: "Wie groß ist das Volumen? (cm³)", svg: lxCuboidSvg(a, b, c, a + " cm", b + " cm", c + " cm"), answer: a * b * c, hint: "Quader: Länge mal Breite mal Höhe.", solution: `${a} · ${b} · ${c} = ${a * b * c} cm³` }; } }
     ]
   };
   const LX_GEN = {
@@ -18603,6 +18737,9 @@
     $("lupeHint").textContent = "💡 " + (q.hint || "Lies die Aufgabe in Ruhe genau durch.");
     $("lupeSolution").style.display = "none";
     $("lupeShowResult").style.display = "";
+    $("lupeShowResult").textContent = "🧩 Lösen";
+    $("lupeHint").style.display = "";
+    lxSolveIdx = -1;
     $("lupePanel").classList.add("show");
     $("screen-lesson").classList.add("lupe-on");
   }
@@ -18645,13 +18782,35 @@
         <path d="M0,0 L10,5 L0,10 z" style="fill:var(--accent)"/></marker></defs>
       <path class="lupe-arrow-path" d="M${ax},${ay} Q${cx + (Math.abs(ax - bx) < 20 ? 0 : bend * .2)},${cy} ${bx},${by}" marker-end="url(#lupeHead)"/>`;
   }
+  // "Lösen" (NEU): zeigt den Lösungsweg Stück für Stück. Jeder Tipp auf
+  // "Weiter" deckt EINEN kleinen Schritt auf - mit Begründung. Die Schritte
+  // davor bleiben stehen, damit man den Faden nicht verliert.
+  let lxSolveIdx = -1;
+  const lxHl = t => lxEsc(t).replace(/«([^»]*)»/g, '<em class="hl">$1</em>');
   function lxLupeShowResult(){
     const q = lesson && lesson.questions[lesson.index];
     if(!q) return;
-    const res = q.answerLabel !== undefined ? q.answerLabel : lxNum(q.answer);
-    $("lupeSolution").innerHTML = `<span>Ergebnis</span><b>${lxEsc(res)}</b>${q.solution ? `<small>${lxEsc(q.solution)}</small>` : ""}`;
-    $("lupeSolution").style.display = "block";
-    $("lupeShowResult").style.display = "none";
+    const steps = (q.steps && q.steps.length) ? q.steps : [[`«${q.answerLabel !== undefined ? q.answerLabel : lxNum(q.answer)}»`, q.solution || "Das ist das Ergebnis."]];
+    lxSolveIdx++;
+    const box = $("lupeSolution");
+    if(lxSolveIdx === 0){
+      box.innerHTML = `<div class="lupe-sol-head">🧩 Lösungsweg</div><div class="lupe-steps" id="lupeSteps"></div>`;
+      box.style.display = "block";
+      $("lupeHint").style.display = "none";
+    }
+    const list = $("lupeSteps");
+    list.querySelectorAll(".lupe-step.now").forEach(x => x.classList.remove("now"));
+    const [expr, why] = steps[lxSolveIdx];
+    const isLast = lxSolveIdx === steps.length - 1;
+    const el = document.createElement("div");
+    el.className = "lupe-step now" + (isLast ? " last" : "");
+    el.innerHTML = `<span class="n">${lxSolveIdx + 1}</span><div><div class="ex">${lxHl(expr)}</div><div class="why">${lxEsc(why)}</div></div>`;
+    list.appendChild(el);
+    list.scrollTop = list.scrollHeight;
+    triggerHaptic(8);
+    const btn = $("lupeShowResult");
+    if(isLast){ btn.style.display = "none"; }
+    else { btn.textContent = `Weiter › (${lxSolveIdx + 1}/${steps.length})`; }
   }
   function lxLupeHideUi(){
     lxLupeActive = false;

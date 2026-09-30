@@ -3349,6 +3349,40 @@
   .ix-rect-ctl > span{ width:52px; font-size:12.5px; font-weight:800; opacity:.7; }
   .ix-rect-ctl .ix-range-wrap{ flex:1; padding:0 0 16px; }
 
+
+  /* ===== Lektion auf allen Bildschirmhöhen (Bugfix PC/kleine Fenster) =====
+     Der Aufgabentext wird NIE mehr abgeschnitten - stattdessen passen sich
+     Tastatur, Kästchenfeld, Grafiken und Regler der verfügbaren Höhe an. */
+  #screen-lesson .question-card{ flex-shrink:0 !important; overflow:visible !important; }
+  #screen-lesson .q-visual{ height:clamp(44px, 14vh, 140px); }
+  #screen-lesson .numpad{ grid-template-rows:repeat(4, minmax(0, 1fr)) !important; overflow:hidden; min-height:96px; }
+  #screen-lesson .numpad .key{ font-size:clamp(15px, 3.2vh, 26px); }
+  #screen-lesson .lx-interactive{ flex:1 1 auto; min-height:0; overflow:hidden; } /* darf schrumpfen (vorher durch "#screen-lesson > *" blockiert) */
+  @media (max-height: 540px){
+    .ix-graph, .ix-balance{ height:52px; }
+    .ix-rect{ height:40px; }
+    .ix-rect-ctl .ix-range-wrap{ padding-bottom:4px; }
+    .ix-rect-ctl .ix-ticks{ display:none; }
+    .ix-range{ height:26px; }
+  }
+  #screen-lesson .lx-choices{ overflow:hidden; }
+  #screen-lesson .lx-choice{ min-height:clamp(36px, 6.5vh, 62px); }
+  .ix-grid{ width:min(100%, 260px, 27vh); min-width:110px; }
+  .ix-graph, .ix-balance, .ix-rect{ height:clamp(58px, 15vh, 150px); }
+  @media (max-height: 640px){
+    .ix-card{ padding:8px 12px 4px; }
+    .ix-range-wrap{ padding:0 0 16px; }
+    .ix-bar{ height:30px; margin-top:16px; }
+    .ix-param, .ix-rect-info{ font-size:13px; margin:2px 0; }
+    #screen-lesson .timer-wrap{ transform:scale(.82); margin:-6px 0; }
+    #screen-lesson .answer-display{ min-height:24px; margin:2px 0; }
+  }
+
+
+  .ob-quick-login{ flex-shrink:0; height:32px; padding:0 14px; border-radius:999px; font:inherit; font-size:13px; font-weight:800; cursor:pointer;
+    color:#fff; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); }
+  .ob-quick-login:active{ transform:scale(.95); }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -5630,8 +5664,10 @@
        mehr durchschimmern, und eine Fortschrittsleiste oben zeigt, wie
        weit man in der Einrichtung schon ist. -->
   <div id="onboardingScreen" style="display:none; position:fixed; inset:0; z-index:99500; background:#0a0a12; flex-direction:column; overflow:hidden;">
-    <div style="padding:calc(18px + env(safe-area-inset-top)) 22px 0;">
-      <div class="ob-progress-track"><div class="ob-progress-fill" id="obProgressFill"></div></div>
+    <div style="padding:calc(18px + env(safe-area-inset-top)) 22px 0; display:flex; align-items:center; gap:12px;">
+      <div class="ob-progress-track" style="flex:1;"><div class="ob-progress-fill" id="obProgressFill"></div></div>
+      <!-- Schon ein Konto? Direkt zur Anmeldung (überspringt Einrichtung + Tutorial) -->
+      <button id="obQuickLoginBtn" class="ob-quick-login">Anmelden</button>
     </div>
     <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:24px; overflow-y:auto;">
 
@@ -6428,7 +6464,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.76";
+  const APP_VERSION = "3.79";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6819,7 +6855,36 @@
   let hasWarnedAboutSaveFailure = false;
   let lastMeaningfulProfileJSON = null;
 
+  // Einstellungen synchronisieren (NEU, sparsam): Theme, Layout usw. lösen
+  // KEINEN eigenen Firebase-Schreibvorgang mehr aus. Sie bekommen einen
+  // eigenen Zeitstempel und werden beim Öffnen der App einmal abgeglichen
+  // (neuere Seite gewinnt). Wird ohnehin gespeichert (z.B. nach einer
+  // Lektion), reisen sie kostenlos mit.
+  // var + Funktionsdeklarationen: saveProfile() kann schon beim Start laufen,
+  // bevor diese Zeilen erreicht sind (const/let würde dann abstürzen).
+  var SETTINGS_SYNC_KEYS = ["theme", "layoutStyle", "appIntroStyle", "auraOverlayMotif", "longMode",
+    "betaNewShopEnabled", "betaCleanLessons", "betaLessonBackground", "betaLessonBackgroundKeyboard", "betaButtonParticles"];
+  var lastSettingsJSON = null;
+  function settingsSnapshot(p){ return JSON.stringify((SETTINGS_SYNC_KEYS || []).map(k => p[k] === undefined ? null : p[k])); }
+  function trackSettingsChange(){
+    if(!SETTINGS_SYNC_KEYS || typeof profile === "undefined" || !profile) return;
+    const now = settingsSnapshot(profile);
+    if(lastSettingsJSON === null){ lastSettingsJSON = now; return; } // Startwert, keine Änderung
+    if(now !== lastSettingsJSON){ lastSettingsJSON = now; profile.settingsUpdatedAt = Date.now(); }
+  }
+  // Einmal beim Öffnen: lokale Einstellungen hochladen, falls sie neuer sind
+  function syncSettingsOnOpen(cloudData){
+    if(!firebaseInitialized || !currentUser) return;
+    const cloudTs = (cloudData && cloudData.settingsUpdatedAt) || 0;
+    if((profile.settingsUpdatedAt || 0) > cloudTs){
+      const payload = { settingsUpdatedAt: profile.settingsUpdatedAt };
+      SETTINGS_SYNC_KEYS.forEach(k => { if(profile[k] !== undefined) payload[k] = profile[k]; });
+      db().collection("users").doc(currentUser.uid).set(payload, { merge: true }).catch(err => console.error("Einstellungen-Sync Fehler:", err));
+    }
+  }
+
   function saveProfile(){
+    trackSettingsChange();
     try{
       // WICHTIG (schwerwiegender Bugfix: gemeldeter Aura-Verlust bis auf
       // 0): sollte "totalAura" aus IRGENDEINEM Grund ungültig geworden
@@ -6846,7 +6911,8 @@
       // ausführliche Erklärung weiter unten). "lifetimeActiveMs" zählt aus
       // demselben Grund jede 10 Sekunden mit hoch und wird deshalb genauso
       // ausgenommen.
-      const { lastActiveAt, lastLocalSaveAt, todayActiveMs: _todayActiveMsExcluded, lifetimeActiveMs: _lifetimeActiveMsExcluded, dailyActiveMs: _dailyActiveMsExcluded, ...meaningful } = profile;
+      const { lastActiveAt, lastLocalSaveAt, todayActiveMs: _todayActiveMsExcluded, lifetimeActiveMs: _lifetimeActiveMsExcluded, dailyActiveMs: _dailyActiveMsExcluded, settingsUpdatedAt: _settingsUpdExcluded, ...meaningful } = profile;
+      (SETTINGS_SYNC_KEYS || []).forEach(k => { delete meaningful[k]; }); // Einstellungen haben ihren eigenen Zeitstempel
       const meaningfulJSON = JSON.stringify(meaningful);
       if(meaningfulJSON !== lastMeaningfulProfileJSON){
         lastMeaningfulProfileJSON = meaningfulJSON;
@@ -6866,7 +6932,10 @@
         // Synchronisierung, deshalb hier ausgenommen (wird aber trotzdem
         // ganz normal MIT gespeichert, sobald aus einem ANDEREN Grund
         // ohnehin geschrieben wird).
-        const { todayActiveMs, lifetimeActiveMs, dailyActiveMs, ...cloudRelevant } = profile;
+        const { todayActiveMs, lifetimeActiveMs, dailyActiveMs, settingsUpdatedAt: _sUpd, ...cloudRelevant0 } = profile;
+        // Einstellungen allein lösen keinen Schreibvorgang aus (werden beim Öffnen abgeglichen)
+        const cloudRelevant = { ...cloudRelevant0 };
+        (SETTINGS_SYNC_KEYS || []).forEach(k => { delete cloudRelevant[k]; });
         const cloudRelevantJSON = JSON.stringify(cloudRelevant);
         if(cloudRelevantJSON === lastWrittenProfileJSON) return; // unverändert (bis auf Nutzungszeit) - kein erneuter Schreibvorgang nötig
         lastWrittenProfileJSON = cloudRelevantJSON;
@@ -6913,8 +6982,10 @@
         layoutStyle: cloudData.layoutStyle === "beta" ? "clean" : (cloudData.layoutStyle === "normal" ? "simpel" : (cloudData.layoutStyle || DEFAULT_PROFILE.layoutStyle))
       };
       const previousDoubleAuraUntil = (profile.inventory && profile.inventory.doubleAuraUntil) || 0;
+      const settingsBefore = settingsSnapshot(profile);
       profile = reconcileProfiles(profile, normalizedCloud);
       profile.lastFirebaseUid = currentUser.uid;
+      if(settingsSnapshot(profile) !== settingsBefore){ lastSettingsJSON = settingsSnapshot(profile); applyTheme(); }
       saveProfile();
       renderHome();
       if(screens.shop && screens.shop.classList.contains("active")) renderShop();
@@ -12306,6 +12377,11 @@
     if(!cloudP) return localP;
     if(!localP) return cloudP;
     const merged = { ...localP };
+    // Einstellungen: die zuletzt geänderte Seite gewinnt (z.B. Theme vom anderen Gerät)
+    if((cloudP.settingsUpdatedAt || 0) > (localP.settingsUpdatedAt || 0)){
+      (SETTINGS_SYNC_KEYS || []).forEach(k => { if(cloudP[k] !== undefined) merged[k] = cloudP[k]; });
+      merged.settingsUpdatedAt = cloudP.settingsUpdatedAt;
+    }
 
     // Level und levelProgress gehören zusammen (3 Lektionen = 1 Level) - beim
     // Abgleich als gemeinsame "Fortschrittseinheiten" vergleichen, statt Level
@@ -16696,7 +16772,12 @@
      statt mehrerer einzelner schwebender Overlays - Willkommen -> Level ->
      Tägliches Lernziel -> Layout -> Login. */
   const ONBOARDING_STEPS = ["obStepWelcome", "obStepLevel", "obStepGoal", "obStepLayout", "obStepAuth"];
+  function showOnboardingStepQuickLoginSync(id){
+    // Auf dem Login-Schritt ist der kleine Knopf überflüssig
+    const b = $("obQuickLoginBtn"); if(b) b.style.visibility = id === "obStepAuth" ? "hidden" : "visible";
+  }
   function showOnboardingStep(stepId){
+    showOnboardingStepQuickLoginSync(stepId);
     ONBOARDING_STEPS.forEach(id => { $(id).style.display = (id === stepId) ? "block" : "none"; });
     const idx = ONBOARDING_STEPS.indexOf(stepId);
     const pct = ((idx + 1) / ONBOARDING_STEPS.length) * 100;
@@ -16868,6 +16949,10 @@
       if(authBox) authBox.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 80);
   });
+
+  // "Anmelden" oben in der Einrichtung (NEU): Einrichtung + Tutorial
+  // überspringen und direkt zu den Login-Feldern in den Einstellungen
+  $("obQuickLoginBtn").addEventListener("click", () => $("welcomeAuthBtn").click());
 
   $("welcomeGuestBtn").addEventListener("click", () => {
     profile.hasSeenWelcome = true;
@@ -17048,6 +17133,9 @@
               // man z.B. selbst wieder etwas lokal änderte. Direkt aus den
               // rohen Cloud-Daten übernehmen, genau wie beim Sperr-Status.
               profile.isMod = !!cloudData.isMod;
+              lastSettingsJSON = settingsSnapshot(profile); // übernommene Einstellungen sind kein "neuer" Wechsel
+              syncSettingsOnOpen(cloudData); // Einstellungen EINMAL beim Öffnen abgleichen
+              applyTheme();
               cloudSyncReady = true;
               // Bugfix (siehe init()): die Streak-/Icecube-Prüfung wird für
               // bereits zuvor eingeloggte Geräte bewusst erst HIER
@@ -20725,13 +20813,30 @@
   const PWA_ANDROID_DISMISS_KEY = "mathedits_android_install_dismissed";
   let deferredAndroidInstallPrompt = null;
 
+  // "App installieren?" erst zeigen, wenn Einrichtung, Tutorial und ggf.
+  // die Anmeldung vorbei sind (NEU) - vorher kam die Frage mittendrin.
+  function installPromptBlocked(){
+    const ob = $("onboardingScreen"), tut = $("overlayTutorial");
+    if(ob && ob.style.display === "flex") return true;
+    if(tut && tut.style.display === "block") return true;
+    if(!profile.hasSeenWelcome && !profile.username) return true;
+    if(screens.settings && screens.settings.classList.contains("active") && !currentUser) return true; // gerade beim Anmelden
+    return false;
+  }
+  function showInstallBannerWhenReady(id){
+    const tryShow = () => {
+      if(installPromptBlocked()){ setTimeout(tryShow, 1500); return; }
+      setTimeout(() => { if(!installPromptBlocked()) $(id).classList.add("show"); else tryShow(); }, 2500);
+    };
+    tryShow();
+  }
   function maybeShowIOSInstallBanner(){
     if(isRunningStandalone()) return;
     if(!isIOSDevice()) return;
     let dismissed = false;
     try{ dismissed = localStorage.getItem(PWA_IOS_DISMISS_KEY) === "1"; }catch(e){ }
     if(dismissed) return;
-    setTimeout(() => { $("iosInstallBanner").classList.add("show"); }, 1200);
+    showInstallBannerWhenReady("iosInstallBanner");
   }
 
   $("iosInstallDismiss").addEventListener("click", () => {
@@ -20746,7 +20851,7 @@
     let dismissed = false;
     try{ dismissed = localStorage.getItem(PWA_ANDROID_DISMISS_KEY) === "1"; }catch(err){ }
     if(dismissed) return;
-    setTimeout(() => { $("androidInstallBanner").classList.add("show"); }, 1200);
+    showInstallBannerWhenReady("androidInstallBanner");
   });
 
   // Feuert auf Android/Chrome direkt beim erfolgreichen Installieren - so

@@ -3300,7 +3300,8 @@
   .ss-tok.statement{ font-size:22px; text-align:center; padding:10px 14px; line-height:1.35; }
   .ss-tok em{ font-style:normal; color:var(--accent); }
   .ss-tok.final em{ color:inherit; }
-  .ss-tok.shown{ display:inline-block; opacity:.45; }
+  .ss-tok.shown{ display:inline-block; opacity:.45; cursor:pointer; }
+  .ss-tok.tapped{ opacity:1; box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent); }
   .ss-tok.cur{ animation:ss-tok-in .45s cubic-bezier(.34,1.6,.5,1) both; }
   @keyframes ss-tok-in{ from{ opacity:0; transform:translateY(12px) scale(.7); } to{ opacity:1; transform:scale(1.08); } }
   .ss-tok.hl.shown{ color:var(--accent); }
@@ -4768,6 +4769,7 @@
            freigeschaltet hat. -->
       <div id="modTabContentBroadcast" style="display:none;">
         <textarea id="modBroadcastInput" class="input-field" rows="3" placeholder="Nachricht an alle Nutzer weltweit..." style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
+        <div class="d" id="modBroadcastLimit" style="margin-bottom:8px; font-size:12px;"></div>
         <button class="btn btn-primary btn-small" id="modSendBroadcastBtn" style="width:100%;">Senden</button>
       </div>
 
@@ -5491,7 +5493,7 @@
     <svg class="lupe-arrow" id="lupeArrow" aria-hidden="true"></svg>
     <!-- Lösen-Bühne: die Aufgabe verschwindet, der Lösungsweg erscheint Teil für Teil -->
     <div class="solve-stage" id="solveStage">
-      <div class="ss-top"><span>🧩 Lösen</span><span id="ssCount"></span></div>
+      <div class="ss-top"><span>🧩 Lösen · Teile antippbar</span><span id="ssCount"></span></div>
       <div class="ss-prev" id="ssPrev"></div>
       <div class="ss-row" id="ssRow"></div>
       <div class="ss-label" id="ssLabel"></div>
@@ -6391,7 +6393,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.73";
+  const APP_VERSION = "3.74";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -15219,7 +15221,7 @@
   async function ownerMakeMod(){
     if(!ownerEditingUid || !isOwner()) return;
     try{
-      await db().collection("users").doc(ownerEditingUid).set({ isMod: true, modPermissions: DEFAULT_MOD_PERMISSIONS }, { merge: true });
+      await db().collection("users").doc(ownerEditingUid).set({ isMod: true, modPermissions: DEFAULT_MOD_PERMISSIONS, modSince: Date.now() }, { merge: true });
       $("ownerModStatus").textContent = "🛡️ Ist aktuell Mod.";
       logModAction("Zum Mod ernannt", $("ownerTargetLabel").textContent);
       showToast("🛡️ Zum Mod ernannt.");
@@ -15351,10 +15353,17 @@
     if(modGroupsListUnsubscribe){ modGroupsListUnsubscribe(); modGroupsListUnsubscribe = null; }
   }
 
+  // Mods sehen nur, was NACH ihrer Ernennung passiert ist (NEU). Bei Mods,
+  // die schon vorher ernannt wurden (ohne gespeicherten Zeitpunkt), gilt ab jetzt.
+  function modSinceTs(){
+    if(!profile.modSince){ profile.modSince = Date.now(); saveProfile(); }
+    return profile.modSince;
+  }
   function watchModRegistrations(){
     if(modRegListUnsubscribe){ modRegListUnsubscribe(); modRegListUnsubscribe = null; }
     if(!firebaseInitialized || !currentUser || !isMod()) return;
     modRegListUnsubscribe = db().collection("registrationEvents")
+      .where("createdAt", ">=", modSinceTs())
       .orderBy("createdAt", "desc")
       .limit(50)
       .onSnapshot((snap) => {
@@ -15497,6 +15506,7 @@
     if(modGroupsListUnsubscribe){ modGroupsListUnsubscribe(); modGroupsListUnsubscribe = null; }
     if(!firebaseInitialized || !currentUser || !isMod()) return;
     modGroupsListUnsubscribe = db().collection("groups")
+      .where("createdAt", ">=", modSinceTs()) // nur Gruppen, die seit der Ernennung erstellt wurden
       .onSnapshot((snap) => {
         renderModGroupsList(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }, (err) => console.error("Mod-Panel Gruppen Fehler:", err));
@@ -15557,14 +15567,33 @@
   }
 
   // Nachricht an alle (NEU, nur mit Berechtigung "broadcast" sichtbar).
+  const MOD_BROADCASTS_PER_DAY = 5;
+  function modBroadcastsLeft(){
+    const log = profile.modBroadcastLog || {};
+    return log.date === todayStr() ? Math.max(0, MOD_BROADCASTS_PER_DAY - (log.count || 0)) : MOD_BROADCASTS_PER_DAY;
+  }
+  function renderModBroadcastLimit(){
+    const el = $("modBroadcastLimit");
+    if(!el) return;
+    const left = modBroadcastsLeft();
+    el.textContent = left > 0 ? `Noch ${left} von ${MOD_BROADCASTS_PER_DAY} Nachrichten heute` : "Heute keine Nachrichten mehr – morgen wieder.";
+    if($("modSendBroadcastBtn")) $("modSendBroadcastBtn").disabled = left <= 0;
+  }
   async function modSendBroadcast(){
     const text = ($("modBroadcastInput").value || "").trim();
     if(!text) return;
+    // Einschränkung für Mods (NEU): höchstens 5 Nachrichten an alle pro Tag
+    if(modBroadcastsLeft() <= 0){ showErrorPopup("Du hast heute schon 5 Nachrichten an alle gesendet – morgen wieder."); return; }
     try{
       await db().collection("broadcasts").add({
         message: text, ownerUsername: profile.username, ownerTheme: profile.theme, createdAt: Date.now()
       });
       $("modBroadcastInput").value = "";
+      const today = todayStr();
+      const log = profile.modBroadcastLog && profile.modBroadcastLog.date === today ? profile.modBroadcastLog : { date: today, count: 0 };
+      profile.modBroadcastLog = { date: today, count: (log.count || 0) + 1 };
+      saveProfile();
+      renderModBroadcastLimit();
       logModAction("Nachricht an alle gesendet", "");
       showToast("📢 Gesendet.");
     }catch(err){
@@ -15665,7 +15694,7 @@
   async function modMakeModOfTarget(){
     if(!modEditingUid) return;
     try{
-      await db().collection("users").doc(modEditingUid).set({ isMod: true, modPermissions: DEFAULT_MOD_PERMISSIONS }, { merge: true });
+      await db().collection("users").doc(modEditingUid).set({ isMod: true, modPermissions: DEFAULT_MOD_PERMISSIONS, modSince: Date.now() }, { merge: true });
       $("modTargetModStatus").textContent = "🛡️ Ist aktuell Mod.";
       logModAction("Zum Mod ernannt", $("modTargetLabel").textContent);
       showToast("🛡️ Zum Mod ernannt.");
@@ -15964,6 +15993,7 @@
       $(t.content).style.display = t.tab === tabId ? "block" : "none";
     });
     if(tabId === "modTabCodes") renderModCodeLimitStatus();
+    renderModBroadcastLimit();
   }
 
   // Berechtigungen anwenden (NEU): zeigt nur die Tabs, die der Owner für
@@ -18867,7 +18897,7 @@
   const LX_OPS = { "·": "mal", "×": "mal", "+": "plus", "−": "minus", "-": "minus", ":": "geteilt durch", "=": "ist gleich" };
   const lxIsNum = t => /^\(?[−-]?\d/.test(t) || /^\(?[−-]?\d/.test(t.replace(/^[(]/, ""));
   const lxIsOp = t => Object.prototype.hasOwnProperty.call(LX_OPS, t);
-  const lxIsVar = t => /^[(]?(\d+)?x\)?$/.test(t) || /^[(]?[−-]x\)?$/.test(t);
+  const lxIsVar = t => /^\(?[−-]?\d*x\)?$/.test(t);
   const lxIsUnit = t => /^(cm|cm²|cm³|%)[,.]?$/.test(t);
   // Zerlegt einen Rechenschritt in einzelne Teile ({t, hl})
   function lxTokenize(expr){
@@ -18896,11 +18926,27 @@
   const LX_NUM_AFTER = { "·": "Die nächste Zahl – mit ihr wird malgenommen.", "×": "Die nächste Zahl – mit ihr wird malgenommen.", "+": "Diese Zahl kommt dazu.",
     "−": "Diese Zahl wird abgezogen.", "-": "Diese Zahl wird abgezogen.", ":": "Durch diese Zahl wird geteilt." };
   function lxTokenLabel(tokens, i, why, isLastRow){
-    const tok = tokens[i], t = tok.t, prev = tokens[i - 1], eqIdx = tokens.findIndex(x => x.t === "=");
+    const tok = tokens[i], t = tok.t, prev = tokens[i - 1];
+    let eqIdx = -1; tokens.forEach((x, j) => { if(x.t === "=") eqIdx = j; }); // letztes "="
     const afterEq = eqIdx !== -1 && i > eqIdx, isLastTok = i === tokens.length - 1;
-    // Steht links ein x, ist es eine GLEICHUNG: die Zahl rechts ist gegeben, nicht ausgerechnet
-    const leftHasVar = eqIdx !== -1 && tokens.slice(0, eqIdx).some(x => lxIsVar(x.t));
-    const isResult = afterEq && (tok.hl || (isLastTok && !leftHasVar));
+    // Steht links ein x oder f(...), ist es eine Gleichung/Funktion: rechts steht nichts Ausgerechnetes
+    const leftHasVar = eqIdx !== -1 && tokens.slice(0, eqIdx).some(x => lxIsVar(x.t) || /^f\(/.test(x.t));
+    const rightIsValue = eqIdx !== -1 && tokens.length - eqIdx - 1 === 1; // rechts vom "=" steht genau EIN Wert
+    const isResult = afterEq && rightIsValue && (tok.hl || !leftHasVar);
+    // Funktionsvorschrift "f(x) = 2x + 1": die Zahlen stehen so in der Aufgabe (m und b)
+    const isDef = tokens[0] && tokens[0].t === "f(x)" && tokens[1] && tokens[1].t === "=";
+    if(isDef){
+      if(i === 0) return { text: "f(x) ist der Name der Funktion – sprich „f von x“." };
+      if(i === 1) return { text: "ist gleich – rechts steht, wie f(x) berechnet wird." };
+      if(lxIsVar(t)){
+        const k = t.replace(/[()x]/g, "");
+        if(!k) return { text: "Nur x heißt 1 · x – die Steigung m ist hier 1." };
+        if(k === "−" || k === "-") return { text: "−x heißt −1 · x – die Steigung m ist hier −1." };
+        return { text: `${t} heißt ${k} mal x. Die ${k} ist die Steigung m. Sie steht so in der Aufgabe – jede Aufgabe bekommt ihre eigenen Zahlen.` };
+      }
+      if(lxIsOp(t)) return { text: `${LX_OPS[t]} – danach kommt b.` };
+      if(lxIsNum(t)) return { text: `Das ist b = ${prev && (prev.t === "−" || prev.t === "-") ? M : ""}${t}, der y-Achsenabschnitt. Auch b steht so in der Aufgabe.` };
+    }
     if(isResult){
       // Einfache Rechnung "a op b = c" als ganzer Satz: "4 mal 2 ist 8."
       const left = tokens.slice(0, eqIdx);
@@ -18981,6 +19027,13 @@
     if(newRow){
       $("ssRow").innerHTML = row.tokens.map((tk, i) => `<span class="ss-tok${tk.hl ? " hl" : ""}${tk.word ? " word" : ""}${tk.statement ? " statement" : ""}" data-i="${i}">${tk.html || lxEsc(tk.t)}</span>`).join("");
       $("ssRow").classList.remove("in"); void $("ssRow").offsetWidth; $("ssRow").classList.add("in");
+      // Jedes schon gezeigte Teil kann angetippt werden: "Woher kommt diese Zahl?"
+      $("ssRow").querySelectorAll(".ss-tok").forEach((el, i) => el.addEventListener("click", () => {
+        if(!el.classList.contains("shown")) return;
+        $("ssRow").querySelectorAll(".ss-tok").forEach(x => x.classList.remove("tapped"));
+        el.classList.add("tapped");
+        lxSolveDraw(el, row.tokens[i], row, i, false);
+      }));
     }
     const els = $("ssRow").querySelectorAll(".ss-tok");
     els.forEach((el, i) => {
@@ -19014,14 +19067,14 @@
     lab.classList.remove("pop"); void lab.offsetWidth; lab.classList.add("pop");
     svg.setAttribute("viewBox", `0 0 ${s.width} ${s.height}`);
     let paths = "";
-    const eq0 = row.tokens.findIndex(x => x.t === "=");
-    const isEquation = eq0 !== -1 && row.tokens.slice(0, eq0).some(x => lxIsVar(x.t));
+    let eq0 = -1, eqPrev = -1; row.tokens.forEach((x, j) => { if(x.t === "="){ eqPrev = eq0; eq0 = j; } });
+    const isEquation = eq0 !== -1 && row.tokens.slice(0, eq0).some(x => lxIsVar(x.t) || /^f\(/.test(x.t));
     if(tok.result && !isEquation){
       // Pfeile von den Zahlen vor dem "=" zum Ergebnis (nur bei echten Rechnungen)
       const eq = eq0;
       const toks = $("ssRow").querySelectorAll(".ss-tok");
       row.tokens.forEach((x, i) => {
-        if(eq === -1 || i >= eq || !(lxIsNum(x.t) || lxIsVar(x.t) || x.hl)) return;
+        if(eq === -1 || i >= eq || i <= eqPrev || !(lxIsNum(x.t) || lxIsVar(x.t) || x.hl)) return;
         const a = toks[i].getBoundingClientRect();
         const ax = a.left + a.width / 2 - s.left, ay = a.top - s.top - 4;
         const bx = cx, by = r.top - s.top - 4;

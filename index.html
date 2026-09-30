@@ -6464,7 +6464,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.79";
+  const APP_VERSION = "3.80";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -6988,6 +6988,7 @@
       if(settingsSnapshot(profile) !== settingsBefore){ lastSettingsJSON = settingsSnapshot(profile); applyTheme(); }
       saveProfile();
       renderHome();
+      if(screens.lessons && screens.lessons.classList.contains("active") && typeof renderLessonsScreen === "function") renderLessonsScreen();
       if(screens.shop && screens.shop.classList.contains("active")) renderShop();
       if(screens.settings && screens.settings.classList.contains("active")) renderSettings();
       const nowDoubleAuraUntil = (profile.inventory && profile.inventory.doubleAuraUntil) || 0;
@@ -12377,6 +12378,31 @@
     if(!cloudP) return localP;
     if(!localP) return cloudP;
     const merged = { ...localP };
+    // Lektionen-Fortschritt (Bugfix: wurde nicht synchronisiert - es gewann
+    // immer das aktuelle Gerät). Jetzt geht nichts verloren: weitester
+    // Fortschritt, meiste Sterne, freigeschaltete Tutorials bleiben frei,
+    // eine abgeholte Truhe bleibt abgeholt (kein doppeltes Abholen).
+    {
+      const TIER_RANK = { standard: 0, rare: 1, epic: 2, legendary: 3, ultra: 4 };
+      const lt = localP.lessonTopics || {}, ct = cloudP.lessonTopics || {};
+      const out = {};
+      new Set([...Object.keys(lt), ...Object.keys(ct)]).forEach(id => {
+        const a = lt[id] || {}, b = ct[id] || {};
+        const stars = { ...(a.stars || {}) };
+        Object.entries(b.stars || {}).forEach(([n, v]) => { stars[n] = Math.max(stars[n] || 0, v || 0); });
+        const chTut = { ...(a.chTut || {}) };
+        Object.entries(b.chTut || {}).forEach(([c, v]) => { if(v) chTut[c] = true; });
+        const chests = {};
+        new Set([...Object.keys(a.chests || {}), ...Object.keys(b.chests || {})]).forEach(n => {
+          const x = (a.chests || {})[n], y = (b.chests || {})[n];
+          if(x && y) chests[n] = { tier: (TIER_RANK[x.tier] || 0) >= (TIER_RANK[y.tier] || 0) ? x.tier : y.tier,
+                                   attemptsUsed: Math.max(x.attemptsUsed || 0, y.attemptsUsed || 0), claimed: !!(x.claimed || y.claimed) };
+          else chests[n] = { ...(x || y) };
+        });
+        out[id] = { done: Math.max(a.done || 0, b.done || 0), stars, chTut, chests, tutorialSeen: !!(a.tutorialSeen || b.tutorialSeen) };
+      });
+      merged.lessonTopics = out;
+    }
     // Einstellungen: die zuletzt geänderte Seite gewinnt (z.B. Theme vom anderen Gerät)
     if((cloudP.settingsUpdatedAt || 0) > (localP.settingsUpdatedAt || 0)){
       (SETTINGS_SYNC_KEYS || []).forEach(k => { if(cloudP[k] !== undefined) merged[k] = cloudP[k]; });
@@ -18904,6 +18930,257 @@
       ]
     }
   };
+
+
+  /* ===================== NEUE THEMEN (Brüche, Potenzen, Dreisatz, Pythagoras) ===================== */
+  LX_TOPICS.push(
+    { id: "fractions", name: "Brüche",              icon: "🍕", color: "#ec4899", sub: "Teilen, kürzen, rechnen" },
+    { id: "powers",    name: "Potenzen & Wurzeln",  icon: "⚡", color: "#f97316", sub: "Hoch 2, Wurzel, Gesetze" },
+    { id: "ratio",     name: "Dreisatz",            icon: "⚖️", color: "#14b8a6", sub: "Mehr, weniger, umgekehrt" },
+    { id: "pythagoras",name: "Pythagoras",          icon: "🔺", color: "#eab308", sub: "a² + b² = c²" }
+  );
+  const LX_SUP = { "0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹" };
+  const lxSup = n => String(n).split("").map(c => LX_SUP[c] || c).join("");
+  const lxPick1 = arr => arr[randInt(0, arr.length - 1)];
+  // Kreis in n Stücke, k davon gefärbt
+  function lxFracPie(k, n){
+    const cx = 110, cy = 65, r = 52; let out = `<circle cx="${cx}" cy="${cy}" r="${r}" style="${LXS.txt};opacity:.1"/>`;
+    for(let i = 0; i < n; i++){
+      const a0 = i / n * Math.PI * 2 - Math.PI / 2, a1 = (i + 1) / n * Math.PI * 2 - Math.PI / 2;
+      const x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0), x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
+      out += `<path d="M${cx},${cy} L${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 0,1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" style="${i < k ? LXS.acc : LXS.txt + ";opacity:.08"};stroke:var(--card);stroke-width:2.5"/>`;
+    }
+    return lxSvg(out);
+  }
+  // rechtwinkliges Dreieck, rechter Winkel unten links
+  function lxRightTri(la, lb, lc){
+    const A = [40, 112], B = [184, 112], C = [40, 18];
+    return lxSvg(`<polygon points="${A} ${B} ${C}" style="${LXS.acc};fill-opacity:.18;${LXS.accS};stroke-width:3;stroke-linejoin:round"/>
+      <path d="M${A[0]},${A[1] - 14} H${A[0] + 14} V${A[1]}" style="fill:none;${LXS.line};stroke-width:2;opacity:.7"/>
+      ${lxLabel(112, 127, la)}${lxLabel(26, 70, lb, "end")}${lxLabel(122, 58, lc, "start")}`, 220, 132);
+  }
+  const LX_TRIPLES = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [9, 12, 15], [8, 15, 17], [12, 16, 20], [7, 24, 25], [15, 20, 25], [20, 21, 29]];
+  const lxTriple = maxC => lxPick1(LX_TRIPLES.filter(t => t[2] <= maxC));
+
+  const LX_NEW_TYPES = {
+    fractions: [
+      { from: 1, gen: n => { const q = lxPick1([2, 3, 4, 6, 8]), k = randInt(1, q - 1);
+          return { steps: [[`Teile: «${q}»`, "So viele gleich große Stücke hat der Kreis – das ist der Nenner (unten)."], [`gefärbt: «${k}»`, "Das ist der Zähler (oben)."], [`«${k}/${q}»`, "Zähler über Nenner."]],
+            text: "Welcher Bruch ist gefärbt?", svg: lxFracPie(k, q), ...lxShuffleChoices(`${k}/${q}`, [`${q - k}/${q}`, `${k}/${q + 1}`, `${Math.min(k + 1, q)}/${q}`, `${q}/${k}`]),
+            hint: "Unten (Nenner) = alle Stücke, oben (Zähler) = gefärbte Stücke." }; } },
+      { from: 3, gen: n => { const q = randInt(2, lxUp(5, 10, n)), N = q * randInt(2, lxUp(6, 12, n));
+          return { steps: [[`1/${q} von ${N}`, `Das Ganze in ${q} gleiche Teile teilen und einen nehmen.`], [`${N} : ${q} = «${N / q}»`, "Einmal teilen – fertig."]],
+            text: `${E("1/" + q, `Ein ${q}-tel: das Ganze in ${q} gleiche Teile teilen.`)} von ${E(N, "Das ist das Ganze.")} = ?`, answer: N / q, hint: "1/q von einer Zahl = die Zahl durch q.", solution: `${N} : ${q} = ${N / q}` }; } },
+      { from: 6, gen: n => { const q = randInt(3, lxUp(5, 10, n)), k = randInt(2, q - 1), N = q * randInt(2, lxUp(5, 10, n));
+          return { steps: [[`1/${q} von ${N} = ${N} : ${q} = «${N / q}»`, "Erst ausrechnen, wie viel EIN Teil ist."], [`${k} · ${N / q} = «${k * N / q}»`, `Dann ${k} solche Teile nehmen.`]],
+            text: `${E(k + "/" + q, `${k} von ${q} gleichen Teilen.`)} von ${E(N, "Das ist das Ganze.")} = ?`, answer: k * N / q, hint: "Erst durch den Nenner teilen, dann mal den Zähler.", solution: `${N} : ${q} · ${k} = ${k * N / q}` }; } },
+      { from: 8, gen: n => { const same = randInt(0, 1); let f1, f2, big;
+          if(same){ const q = randInt(4, 9), a = randInt(1, q - 2), b = randInt(a + 1, q - 1); f1 = `${a}/${q}`; f2 = `${b}/${q}`; big = f2; }
+          else { const a = randInt(2, 5), b = randInt(a + 1, 9); f1 = `1/${a}`; f2 = `1/${b}`; big = f1; }
+          return { steps: same ? [["gleicher Nenner", "Die Stücke sind gleich groß."], [`mehr Stücke → «${big}»`, "Wer mehr Stücke hat, hat mehr."]] : [["Zähler gleich (1)", "Man hat jeweils ein Stück."], [`kleinerer Nenner → «${big}»`, "Weniger Teile heißt: jedes Stück ist größer!"]],
+            text: "Welcher Bruch ist größer?", choices: [f1, f2], answer: [f1, f2].indexOf(big), answerLabel: big, hint: same ? "Gleicher Nenner: der größere Zähler gewinnt." : "Gleicher Zähler: der KLEINERE Nenner gewinnt (größere Stücke)." }; } },
+      { from: 11, gen: n => { const pairs = [[1, 2], [1, 3], [2, 3], [1, 4], [3, 4], [2, 5], [3, 5], [1, 6], [5, 6]]; const [p, q] = lxPick1(pairs), f = randInt(2, lxUp(3, 6, n));
+          return { steps: [[`${q * f} : ${q} = «${f}»`, "Womit wurde der Nenner geteilt?"], [`${p * f} : ${f} = «${p}»`, "Den Zähler durch dieselbe Zahl teilen."]],
+            text: `Kürze: ${E(p * f, "Der Zähler (oben).")}/${E(q * f, "Der Nenner (unten).")} = ?/${E(q, "Der neue, gekürzte Nenner.")}`, answer: p, hint: "Kürzen = oben und unten durch dieselbe Zahl teilen.", solution: `${p * f}/${q * f} = ${p}/${q}` }; } },
+      { from: 13, gen: n => { const pairs = [[1, 2], [1, 3], [2, 3], [3, 4], [2, 5], [4, 5]]; const [p, q] = lxPick1(pairs), f = randInt(2, lxUp(4, 8, n));
+          return { steps: [[`${q * f} : ${q} = «${f}»`, "Womit wurde der Nenner malgenommen?"], [`${p} · ${f} = «${p * f}»`, "Den Zähler mit derselben Zahl malnehmen."]],
+            text: `Erweitere: ${E(p, "Der Zähler (oben).")}/${E(q, "Der Nenner (unten).")} = ?/${E(q * f, "Der neue Nenner.")}`, answer: p * f, hint: "Erweitern = oben und unten mit derselben Zahl malnehmen.", solution: `${p}/${q} = ${p * f}/${q * f}` }; } },
+      { from: 15, gen: n => { const q = randInt(4, lxUp(8, 12, n)), a = randInt(1, q - 2), b = randInt(1, q - 1 - a);
+          return { steps: [[`Nenner gleich: «${q}»`, "Gleicher Nenner – der bleibt einfach stehen."], [`${a} + ${b} = «${a + b}»`, "Nur die Zähler zusammenzählen."]],
+            text: `${E(a + "/" + q, "Der erste Bruch.")} + ${E(b + "/" + q, "Der zweite Bruch – gleicher Nenner!")} = ?/${q}`, answer: a + b, hint: "Gleicher Nenner: nur die Zähler addieren.", solution: `${a + b}/${q}` }; } },
+      { from: 17, gen: n => { const q = lxPick1([2, 4, 5, 10, 20, 25, 50]), p = randInt(1, q - 1);
+          return { steps: [[`${q} · «${100 / q}» = 100`, "Erweitern, bis unten 100 steht."], [`${p} · ${100 / q} = «${p * 100 / q}»`, "Oben genauso malnehmen – das sind die Prozent."]],
+            text: `${E(p + "/" + q, "Dieser Bruch soll in Prozent umgewandelt werden.")} = ? %`, answer: p * 100 / q, hint: "Prozent heißt „von 100“: erweitere auf den Nenner 100.", solution: `${p}/${q} = ${p * 100 / q}/100` }; } },
+      { from: 21, gen: n => { const q = randInt(2, 5), f = randInt(2, 3), n2 = q * f, a = randInt(1, q - 1), b = randInt(1, n2 - 1);
+          return { steps: [[`${a}/${q} = ${a * f}/${n2}`, `Erst auf den gleichen Nenner ${n2} erweitern (mal ${f}).`], [`${a * f} + ${b} = «${a * f + b}»`, "Jetzt die Zähler addieren."]],
+            text: `${E(a + "/" + q, "Dieser Bruch hat einen anderen Nenner – erst erweitern.")} + ${E(b + "/" + n2, "Der zweite Bruch.")} = ?/${n2}`, answer: a * f + b, hint: "Ungleiche Nenner: erst gleichnamig machen, dann Zähler addieren.", solution: `${a * f + b}/${n2}` }; } },
+      { from: 23, gen: n => { const q = randInt(2, 8), p = randInt(1, q - 1), N = q * randInt(2, lxUp(6, 12, n));
+          return { steps: [[`${N} : ${q} = «${N / q}»`, "Erst durch den Nenner teilen."], [`${N / q} · ${p} = «${p * N / q}»`, "Dann mal den Zähler."]],
+            text: `${E(p + "/" + q, "Der Bruch.")} · ${E(N, "Die Zahl, von der der Bruch genommen wird.")} = ?`, answer: p * N / q, hint: "Bruch mal Zahl = Zahl durch Nenner, dann mal Zähler.", solution: `${N} : ${q} · ${p} = ${p * N / q}` }; } },
+      { from: 25, gen: n => { const q = randInt(2, 9), g = randInt(1, lxUp(4, 9, n)), r = randInt(1, q - 1), z = q * g + r;
+          return { steps: [[`${z} : ${q} = ${g} Rest ${r}`, "So oft passt der Nenner in den Zähler."], [`«${g}» Ganze`, `Und es bleiben noch ${r}/${q} übrig.`]],
+            text: `Wie viele Ganze stecken in ${E(z + "/" + q, "Ein Bruch, der größer als 1 ist.")}?`, answer: g, hint: "Teile den Zähler durch den Nenner – ohne den Rest.", solution: `${z}/${q} = ${g} ${r}/${q}` }; } },
+      { from: 27, gen: n => { const q = randInt(2, 4), f = randInt(2, 3), n2 = q * f, b = randInt(1, q - 1), a = randInt(b * f + 1, n2 + b * f);
+          return { steps: [[`${b}/${q} = ${b * f}/${n2}`, "Auf den gleichen Nenner erweitern."], [`${a} − ${b * f} = «${a - b * f}»`, "Jetzt die Zähler abziehen."]],
+            text: `${E(a + "/" + n2, "Der erste Bruch.")} − ${E(b + "/" + q, "Dieser hat einen anderen Nenner – erst erweitern.")} = ?/${n2}`, answer: a - b * f, hint: "Erst gleichnamig machen, dann die Zähler abziehen.", solution: `${a - b * f}/${n2}` }; } }
+    ],
+    powers: [
+      { from: 1, gen: n => { const b = randInt(1, lxUp(6, 12, n));
+          return { steps: [[`${b}² = ${b} · ${b}`, "Hoch 2 heißt: die Zahl zweimal malnehmen."], [`${b} · ${b} = «${b * b}»`, "Ausrechnen."]],
+            text: `${E(b, "Die Basis: diese Zahl wird malgenommen.")}${E("²", "Der Exponent: so oft wird die Basis mit sich selbst malgenommen.")} = ?`, answer: b * b, hint: "b² = b · b", solution: `${b} · ${b} = ${b * b}` }; } },
+      { from: 3, gen: n => { const b = randInt(1, lxUp(4, 6, n));
+          return { steps: [[`${b}³ = ${b} · ${b} · ${b}`, "Hoch 3 heißt: dreimal malnehmen."], [`${b} · ${b} = «${b * b}»`, "Erst zwei davon."], [`${b * b} · ${b} = «${b ** 3}»`, "Dann noch einmal."]],
+            text: `${E(b, "Die Basis.")}${E("³", "Exponent 3: dreimal mit sich selbst malnehmen.")} = ?`, answer: b ** 3, hint: "b³ = b · b · b", solution: `${b} · ${b} · ${b} = ${b ** 3}` }; } },
+      { from: 5, gen: n => { const s = randInt(2, lxUp(5, 9, n));
+          return { steps: [[`${s} Reihen mit je ${s}`, "Das Quadrat ist genauso lang wie breit."], [`${s}² = ${s} · ${s} = «${s * s}»`, "Darum heißt „hoch 2“ auch „zum Quadrat“."]],
+            text: `Wie viele Kästchen hat ein Quadrat mit Seite ${E(s, "So lang ist jede Seite.")}? (= ${s}²)`, svg: lxRectSvg(s, s, String(s), String(s)), answer: s * s, hint: "Quadrat = Seite mal Seite = Seite².", solution: `${s}² = ${s * s}` }; } },
+      { from: 7, gen: n => { const r = randInt(1, lxUp(6, 12, n));
+          return { steps: [[`Welche Zahl mal sich selbst = ${r * r}?`, "Die Wurzel sucht genau diese Zahl."], [`${r} · ${r} = ${r * r}`, "Probieren und prüfen."], [`√${r * r} = «${r}»`, "Das ist die Wurzel."]],
+            text: `√${E(r * r, "Unter der Wurzel: gesucht ist die Zahl, die mit sich selbst malgenommen das hier ergibt.")} = ?`, answer: r, hint: "√x ist die Zahl, die mit sich selbst malgenommen x ergibt.", solution: `${r} · ${r} = ${r * r}` }; } },
+      { from: 11, gen: n => { const ten = randInt(0, 1), b = ten ? 10 : 2, e = ten ? randInt(2, lxUp(3, 6, n)) : randInt(3, lxUp(6, 10, n));
+          return { steps: [[`${b}${lxSup(e)} = ${Array(e).fill(b).join(" · ")}`, `${e}-mal die ${b} malnehmen.`], [`«${b ** e}»`, ten ? `10 hoch ${e}: eine 1 mit ${e} Nullen.` : "Bei 2 immer verdoppeln."]],
+            text: `${E(b, "Die Basis.")}${E(lxSup(e), `Exponent ${e}: ${e}-mal malnehmen.`)} = ?`, answer: b ** e, hint: ten ? "10 hoch n = 1 mit n Nullen." : "2, 4, 8, 16, 32 … immer verdoppeln.", solution: `${b ** e}` }; } },
+      { from: 13, gen: n => { const r = randInt(2, lxUp(9, 15, n));
+          return { steps: [[`? · ? = ${r * r}`, "Gesucht ist die Zahl, die mit sich selbst malgenommen das ergibt."], [`${r} · ${r} = ${r * r}`, "Ausprobieren."], [`? = «${r}»`, "Gefunden!"]],
+            text: `?² = ${E(r * r, "Das Ergebnis vom Quadrieren.")}`, answer: r, hint: "Das ist die Wurzel: √" + (r * r), solution: `√${r * r} = ${r}` }; } },
+      { from: 15, gen: n => { const a = randInt(1, lxUp(5, 10, n)), b = randInt(1, lxUp(5, 10, n));
+          return { steps: [[`${a}² = «${a * a}»`, "Erst die erste Potenz."], [`${b}² = «${b * b}»`, "Dann die zweite."], [`${a * a} + ${b * b} = «${a * a + b * b}»`, "Potenz vor Strich: erst hoch, dann plus."]],
+            text: `${E(a, "Erste Basis.")}² + ${E(b, "Zweite Basis.")}² = ?`, answer: a * a + b * b, hint: "Erst die Potenzen ausrechnen, dann addieren.", solution: `${a * a} + ${b * b} = ${a * a + b * b}` }; } },
+      { from: 17, gen: n => { const a = randInt(1, lxUp(6, 12, n)), b = randInt(1, lxUp(6, 12, n));
+          return { steps: [[`√${a * a} = «${a}»`, `Welche Zahl mal sich selbst ist ${a * a}?`], [`√${b * b} = «${b}»`, `Welche Zahl mal sich selbst ist ${b * b}?`], [`${a} + ${b} = «${a + b}»`, "Dann addieren."]],
+            text: `√${E(a * a, "Erste Wurzel.")} + √${E(b * b, "Zweite Wurzel.")} = ?`, answer: a + b, hint: "Erst beide Wurzeln einzeln ziehen, dann addieren.", solution: `${a} + ${b} = ${a + b}` }; } },
+      { from: 21, gen: n => { const b = randInt(2, 9), m = randInt(2, lxUp(4, 8, n)), k = randInt(2, lxUp(4, 8, n));
+          return { steps: [[`${b}${lxSup(m)} · ${b}${lxSup(k)}`, "Gleiche Basis wird malgenommen."], [`Exponenten: ${m} + ${k} = «${m + k}»`, "Beim Malnehmen werden die Hochzahlen addiert."]],
+            text: `${b}${E(lxSup(m), "Erster Exponent.")} · ${b}${E(lxSup(k), "Zweiter Exponent.")} = ${b} hoch ?`, answer: m + k, hint: "aᵐ · aⁿ = a hoch (m + n)", solution: `${b} hoch ${m + k}` }; } },
+      { from: 23, gen: n => { const b = randInt(2, 9), k = randInt(1, 5), m = k + randInt(1, lxUp(4, 7, n));
+          return { steps: [[`${b}${lxSup(m)} : ${b}${lxSup(k)}`, "Gleiche Basis wird geteilt."], [`Exponenten: ${m} − ${k} = «${m - k}»`, "Beim Teilen werden die Hochzahlen abgezogen."]],
+            text: `${b}${E(lxSup(m), "Erster Exponent.")} : ${b}${E(lxSup(k), "Zweiter Exponent.")} = ${b} hoch ?`, answer: m - k, hint: "aᵐ : aⁿ = a hoch (m − n)", solution: `${b} hoch ${m - k}` }; } },
+      { from: 25, gen: n => { const b = randInt(2, 9), m = randInt(2, 5), k = randInt(2, lxUp(3, 5, n));
+          return { steps: [[`(${b}${lxSup(m)})${lxSup(k)}`, "Eine Potenz wird nochmal potenziert."], [`Exponenten: ${m} · ${k} = «${m * k}»`, "Dann werden die Hochzahlen malgenommen."]],
+            text: `(${b}${E(lxSup(m), "Innerer Exponent.")})${E(lxSup(k), "Äußerer Exponent.")} = ${b} hoch ?`, answer: m * k, hint: "(aᵐ)ⁿ = a hoch (m · n)", solution: `${b} hoch ${m * k}` }; } },
+      { from: 27, gen: n => { const b = randInt(1, lxUp(3, 5, n)), e = randInt(2, 3), ans = (-b) ** e;
+          return { steps: [[`(${M}${b}) · (${M}${b})${e === 3 ? ` · (${M}${b})` : ""}`, "Die negative Zahl wird mit sich selbst malgenommen."], [`«${lxNum(ans)}»`, e % 2 ? "Ungerade Hochzahl: das Minus bleibt." : "Gerade Hochzahl: Minus mal Minus = Plus."]],
+            text: `(${E(M + b, "Negative Basis – die Klammer gehört dazu.")})${E(lxSup(e), "Exponent.")} = ?`, answer: ans, hint: "Minus mal Minus = Plus. Gerade Hochzahl → positiv, ungerade → negativ.", solution: lxNum(ans) }; } }
+    ],
+    ratio: [
+      { from: 1, gen: n => { const [it, pl] = lxPick1([["Heft", "Hefte"], ["Stift", "Stifte"], ["Brötchen", "Brötchen"], ["Apfel", "Äpfel"], ["Eis", "Eis"]]), u = randInt(1, lxUp(5, 12, n)), c = randInt(2, lxUp(6, 12, n));
+          return { steps: [[`1 ${it} = «${u} €»`, "So viel kostet eines."], [`${c} · ${u} = «${u * c}»`, `${c} Stück kosten ${c}-mal so viel.`]],
+            text: `1 ${it} kostet ${E(u, "Der Preis für EIN Stück.")} €. Wie viel kosten ${E(c, "So viele Stück werden gekauft.")} ${pl}? (€)`, answer: u * c, hint: "Mehr Stück = mehr Geld: mal die Anzahl.", solution: `${c} · ${u} = ${u * c}` }; } },
+      { from: 3, gen: n => { const [it, pl] = lxPick1([["Heft", "Hefte"], ["Stift", "Stifte"], ["Apfel", "Äpfel"], ["Ticket", "Tickets"]]), u = randInt(1, lxUp(5, 12, n)), c = randInt(2, lxUp(6, 10, n));
+          return { steps: [[`${c} ${pl} = ${u * c} €`, "Das ist der Preis für alle zusammen."], [`${u * c} : ${c} = «${u}»`, "Auf 1 Stück runterrechnen: durch die Anzahl teilen."]],
+            text: `${E(c, "So viele Stück.")} ${pl} kosten ${E(u * c, "Der Preis für alle zusammen.")} €. Wie viel kostet 1 ${it}? (€)`, answer: u, hint: "Auf 1 Stück runterrechnen = durch die Anzahl teilen.", solution: `${u * c} : ${c} = ${u}` }; } },
+      { from: 6, gen: n => { const u = randInt(2, lxUp(5, 9, n)), c1 = randInt(2, 6), c2 = randInt(2, lxUp(8, 12, n));
+          return { steps: [[`${u * c1} : ${c1} = «${u}»`, "Erst: Was kostet 1 Stück?"], [`${u} · ${c2} = «${u * c2}»`, "Dann auf die neue Anzahl hochrechnen."]],
+            text: `${E(c1, "So viele Stifte im ersten Satz.")} Stifte kosten ${E(u * c1, "Ihr gemeinsamer Preis.")} €. Wie viel kosten ${E(c2, "Die neue Anzahl.")} Stifte? (€)`, answer: u * c2, hint: "Dreisatz: erst auf 1 runter, dann auf die neue Menge hoch.", solution: `${u * c1} : ${c1} · ${c2} = ${u * c2}` }; } },
+      { from: 8, gen: n => { const k = lxPick1([["doppelt", "Doppelt so viele", "doppelt so viel"], ["dreimal", "Dreimal so viele", "dreimal so viel"], ["halb", "Halb so viele", "halb so viel"]]);
+          return { steps: [["mehr Hefte → mehr Geld", "Das ist proportional: je mehr, desto mehr."], [`«${k[2]}»`, "Die Menge und der Preis ändern sich im gleichen Verhältnis."]],
+            text: `${k[1]} Hefte kosten …`, ...lxShuffleChoices(k[2], ["doppelt so viel", "dreimal so viel", "halb so viel", "gleich viel"]), hint: "Proportional: ändert sich die Menge, ändert sich der Preis genauso." }; } },
+      { from: 11, gen: n => { const u = randInt(2, 9), c1 = randInt(3, 8), c2 = randInt(5, lxUp(12, 20, n));
+          return { steps: [[`1 Liter: ${u * c1} : ${c1} = «${u}»`, "Erst auf 1 Liter runterrechnen."], [`${c2} Liter: ${u} · ${c2} = «${u * c2}»`, "Dann auf die neue Menge hoch."]],
+            text: `${E(c1, "Menge im ersten Satz.")} Liter kosten ${E(u * c1, "Preis dafür.")} €. Wie viel kosten ${E(c2, "Die neue Menge.")} Liter? (€)`, answer: u * c2, hint: "Erst durch, dann mal.", solution: `${u * c1} : ${c1} · ${c2} = ${u * c2}` }; } },
+      { from: 13, gen: n => { const v = 10 * randInt(4, 12), h = randInt(2, lxUp(4, 6, n));
+          return { steps: [[`1 Stunde = «${v} km»`, "So weit kommt das Auto in einer Stunde."], [`${h} · ${v} = «${v * h}»`, `In ${h} Stunden ${h}-mal so weit.`]],
+            text: `Ein Auto fährt ${E(v, "Die Strecke in EINER Stunde.")} km in 1 Stunde. Wie weit kommt es in ${E(h, "So viele Stunden fährt es.")} Stunden? (km)`, answer: v * h, hint: "Doppelte Zeit = doppelte Strecke.", solution: `${v} · ${h} = ${v * h}` }; } },
+      { from: 15, gen: n => { const a = 25 * randInt(1, 4), p = randInt(2, 6), q = randInt(2, lxUp(6, 10, n));
+          return { steps: [[`1 Person: ${a * p} : ${p} = «${a}»`, "Erst für 1 Person ausrechnen."], [`${q} Personen: ${a} · ${q} = «${a * q}»`, "Dann für alle."]],
+            text: `Für ${E(p, "So viele Personen reicht das Rezept.")} Personen braucht man ${E(a * p, "So viel Mehl dafür.")} g Mehl. Wie viel für ${E(q, "Die neue Personenzahl.")} Personen? (g)`, answer: a * q, hint: "Erst auf 1 Person, dann auf die neue Anzahl.", solution: `${a * p} : ${p} · ${q} = ${a * q}` }; } },
+      { from: 17, gen: n => { const w = randInt(2, 4), w2 = lxPick1([2, 3, 4, 6].filter(x => x !== w)), k = randInt(1, 4), t = w2 * k;
+          return { steps: [[`1 Arbeiter: ${w} · ${t} = «${w * t}» Std.`, "Einer allein bräuchte länger: diesmal MAL rechnen (umgekehrt)."], [`${w2} Arbeiter: ${w * t} : ${w2} = «${w * t / w2}»`, "Mehr Arbeiter – weniger Zeit: durch die neue Anzahl teilen."]],
+            text: `${E(w, "So viele arbeiten im ersten Fall.")} Arbeiter brauchen ${E(t, "So lange brauchen sie.")} Stunden. Wie lange brauchen ${E(w2, "Die neue Anzahl Arbeiter.")} Arbeiter? (Std.)`, answer: w * t / w2, hint: "Umgekehrt: mehr Arbeiter = weniger Zeit. Erst mal, dann geteilt.", solution: `${w} · ${t} : ${w2} = ${w * t / w2}` }; } },
+      { from: 21, gen: n => { const p1 = randInt(2, 6), p2 = lxPick1([2, 3, 4, 5, 6, 8, 10, 12].filter(x => x !== p1)), k = randInt(1, lxUp(3, 6, n)), t = p2 * k;
+          return { steps: [[`1 Pumpe: ${p1} · ${t} = «${p1 * t}» Std.`, "Eine Pumpe allein bräuchte viel länger."], [`${p2} Pumpen: ${p1 * t} : ${p2} = «${p1 * t / p2}»`, "Mehr Pumpen – weniger Zeit."]],
+            text: `${E(p1, "Pumpen im ersten Fall.")} Pumpen leeren ein Becken in ${E(t, "So lange dauert es.")} Stunden. Wie lange brauchen ${E(p2, "Die neue Anzahl Pumpen.")} Pumpen? (Std.)`, answer: p1 * t / p2, hint: "Antiproportional: je mehr Pumpen, desto weniger Zeit.", solution: `${p1} · ${t} : ${p2} = ${p1 * t / p2}` }; } },
+      { from: 23, gen: n => { const sc = lxPick1([["Mehr Äpfel kaufen – der Preis?", "proportional"], ["Mehr Arbeiter – die benötigte Zeit?", "antiproportional"], ["Länger fahren – die Strecke?", "proportional"], ["Mehr Personen teilen eine Pizza – Stücke pro Person?", "antiproportional"], ["Mehr Liter tanken – der Preis?", "proportional"], ["Schneller fahren – die Fahrzeit?", "antiproportional"]]);
+          return { steps: [[sc[1] === "proportional" ? "je mehr → desto mehr" : "je mehr → desto weniger", sc[1] === "proportional" ? "Beides wächst zusammen." : "Das eine wächst, das andere schrumpft."], [`«${sc[1]}»`, sc[1] === "proportional" ? "Also proportional." : "Also antiproportional (umgekehrt)."]],
+            text: `${sc[0]}\nProportional oder antiproportional?`, choices: ["proportional", "antiproportional"], answer: sc[1] === "proportional" ? 0 : 1, answerLabel: sc[1], hint: "Je mehr – desto mehr: proportional. Je mehr – desto weniger: antiproportional." }; } },
+      { from: 25, gen: n => { const u = randInt(3, 15), c1 = randInt(3, 12), c2 = randInt(10, lxUp(25, 40, n));
+          return { steps: [[`1 Stück: ${u * c1} : ${c1} = «${u}»`, "Auf 1 runterrechnen."], [`${c2} Stück: ${u} · ${c2} = «${u * c2}»`, "Auf die neue Menge hochrechnen."]],
+            text: `${E(c1, "Anzahl im ersten Satz.")} Kinokarten kosten ${E(u * c1, "Preis dafür.")} €. Wie viel kosten ${E(c2, "Die neue Anzahl.")} Karten? (€)`, answer: u * c2, hint: "Dreisatz: durch, dann mal.", solution: `${u * c2}` }; } },
+      { from: 27, gen: n => { const s1 = lxPick1([4, 5, 6, 8, 10]), s2 = lxPick1([2, 3, 4, 5, 6, 8, 10, 12, 15, 20].filter(x => x !== s1)), per = s2 * randInt(1, 6);
+          return { steps: [[`Stücke gesamt: ${s1} · ${per} = «${s1 * per}»`, "So viele Stücke gibt es insgesamt."], [`${s1 * per} : ${s2} = «${s1 * per / s2}»`, "Auf die neue Personenzahl verteilen."]],
+            text: `Bei ${E(s1, "Personen im ersten Fall.")} Personen bekommt jeder ${E(per, "Stücke pro Person.")} Stücke. Wie viele bekommt jeder bei ${E(s2, "Die neue Personenzahl.")} Personen?`, answer: s1 * per / s2, hint: "Mehr Personen – weniger pro Person: erst gesamt (mal), dann teilen.", solution: `${s1 * per / s2}` }; } }
+    ],
+    pythagoras: [
+      { from: 1, gen: n => { const s = randInt(2, lxUp(6, 12, n));
+          return { steps: [[`Quadrat mit Seite ${s}`, "Über jeder Seite kann man ein Quadrat zeichnen."], [`${s}² = ${s} · ${s} = «${s * s}»`, "Seine Fläche ist Seite mal Seite."]],
+            text: `Wie groß ist das Quadrat über einer Seite von ${E(s, "Die Seitenlänge.")} cm? (cm²)`, svg: lxRectSvg(s, s, s + " cm", s + " cm"), answer: s * s, hint: "Quadrat = Seite · Seite = Seite².", solution: `${s * s}` }; } },
+      { from: 3, gen: n => { const [a, b] = lxTriple(lxUp(10, 20, n));
+          return { steps: [[`${a}² = «${a * a}»`, "Die erste kurze Seite quadrieren."], [`${b}² = «${b * b}»`, "Die zweite kurze Seite quadrieren."], [`${a * a} + ${b * b} = «${a * a + b * b}»`, "Dann addieren."]],
+            text: `${E(a, "Erste kurze Seite (Kathete).")}² + ${E(b, "Zweite kurze Seite (Kathete).")}² = ?`, answer: a * a + b * b, hint: "Erst beide quadrieren, dann addieren.", solution: `${a * a + b * b}` }; } },
+      { from: 5, gen: n => { const L = ["a", "b", "c"]; for(let i = 2; i > 0; i--){ const j = randInt(0, i); [L[i], L[j]] = [L[j], L[i]]; }
+          return { steps: [["rechter Winkel ⌟", "Such zuerst den rechten Winkel (das kleine Eck-Zeichen)."], ["gegenüber = Hypotenuse", "Die Seite gegenüber vom rechten Winkel ist immer die längste."], [`«${L[2]}»`, "Das ist die Hypotenuse."]],
+            text: "Welche Seite ist die Hypotenuse?", svg: lxRightTri(L[0], L[1], L[2]), ...lxShuffleChoices(L[2], [L[0], L[1]]), hint: "Die Hypotenuse liegt dem rechten Winkel gegenüber – sie ist die längste Seite." }; } },
+      { from: 7, gen: n => { const [a, b, c] = lxTriple(lxUp(10, 15, n));
+          return { steps: [[`${a}² + ${b}² = ${a * a} + ${b * b} = «${c * c}»`, "Erst die Quadrate addieren."], [`√${c * c} = «${c}»`, "Dann die Wurzel ziehen."]],
+            text: `√(${E(a, "Erste Kathete.")}² + ${E(b, "Zweite Kathete.")}²) = ?`, answer: c, hint: "Erst was in der Klammer steht, dann die Wurzel.", solution: `√${c * c} = ${c}` }; } },
+      { from: 11, gen: n => { const [a, b, c] = lxTriple(lxUp(13, 25, n));
+          return { steps: [["c² = a² + b²", "Satz des Pythagoras: die beiden kurzen Quadrate ergeben das lange."], [`c² = ${a * a} + ${b * b} = «${c * c}»`, "Einsetzen und ausrechnen."], [`c = √${c * c} = «${c}»`, "Wurzel ziehen."]],
+            text: "Wie lang ist die Hypotenuse c? (cm)", svg: lxRightTri(a + " cm", b + " cm", "c = ?"), answer: c, hint: "a² + b² = c², dann die Wurzel.", solution: `c = ${c}` }; } },
+      { from: 14, gen: n => { const [a, b, c] = lxTriple(lxUp(13, 25, n));
+          return { steps: [["a² = c² − b²", "Die kurze Seite: vom großen Quadrat das kleine abziehen."], [`a² = ${c * c} − ${b * b} = «${a * a}»`, "Einsetzen und ausrechnen."], [`a = √${a * a} = «${a}»`, "Wurzel ziehen."]],
+            text: "Wie lang ist die Seite a? (cm)", svg: lxRightTri("a = ?", b + " cm", c + " cm"), answer: a, hint: "a² = c² − b², dann die Wurzel.", solution: `a = ${a}` }; } },
+      { from: 17, gen: n => { const [x, y, z0] = lxTriple(25), ok = randInt(0, 1) === 1, z = ok ? z0 : z0 + 1;
+          return { steps: [[`${x}² + ${y}² = «${x * x + y * y}»`, "Die zwei kurzen Seiten quadrieren und addieren."], [`${z}² = «${z * z}»`, "Die längste Seite quadrieren."], [`«${ok ? "Ja" : "Nein"}»`, ok ? "Gleich – also rechtwinklig!" : "Nicht gleich – also nicht rechtwinklig."]],
+            text: `Ist ein Dreieck mit den Seiten ${E(x, "Kurze Seite.")}, ${E(y, "Kurze Seite.")} und ${E(z, "Längste Seite.")} rechtwinklig?`, choices: ["Ja", "Nein"], answer: ok ? 0 : 1, answerLabel: ok ? "Ja" : "Nein", hint: "Prüfe: Ist a² + b² genau gleich c²?" }; } },
+      { from: 21, gen: n => { const [a, b, c] = lxTriple(lxUp(15, 25, n));
+          return { steps: [["Leiter = Hypotenuse", "Die Leiter ist die schräge, längste Seite."], [`Höhe² = ${c}² − ${a}² = ${c * c} − ${a * a} = «${b * b}»`, "Vom Leiter-Quadrat das Boden-Quadrat abziehen."], [`Höhe = √${b * b} = «${b}»`, "Wurzel ziehen."]],
+            text: `Eine Leiter ist ${E(c, "Die Länge der Leiter – die schräge Seite.")} m lang und steht ${E(a, "Abstand am Boden zur Wand.")} m von der Wand weg. Wie hoch reicht sie? (m)`, answer: b, hint: "Die Leiter ist die Hypotenuse: Höhe² = Leiter² − Boden².", solution: `${b}` }; } },
+      { from: 23, gen: n => { const [a, b, c] = lxTriple(lxUp(20, 29, n));
+          return { steps: [["Diagonale = Hypotenuse", "Die Diagonale teilt das Rechteck in zwei rechtwinklige Dreiecke."], [`d² = ${a}² + ${b}² = «${c * c}»`, "Beide Seiten quadrieren und addieren."], [`d = √${c * c} = «${c}»`, "Wurzel ziehen."]],
+            text: `Ein Rechteck ist ${E(a, "Die Länge.")} cm lang und ${E(b, "Die Breite.")} cm breit. Wie lang ist die Diagonale? (cm)`, answer: c, hint: "d² = Länge² + Breite².", solution: `${c}` }; } },
+      { from: 26, gen: n => { const [a, b, c] = lxTriple(29), askC = randInt(0, 1) === 1;
+          return askC
+            ? { steps: [["c² = a² + b²", "Die Hypotenuse ist gesucht."], [`c² = ${a * a} + ${b * b} = «${c * c}»`, "Einsetzen."], [`c = «${c}»`, "Wurzel ziehen."]],
+                text: `a = ${E(a, "Kathete.")} cm, b = ${E(b, "Kathete.")} cm. c = ? (cm)`, answer: c, hint: "a² + b² = c²", solution: `${c}` }
+            : { steps: [["b² = c² − a²", "Eine Kathete ist gesucht."], [`b² = ${c * c} − ${a * a} = «${b * b}»`, "Einsetzen."], [`b = «${b}»`, "Wurzel ziehen."]],
+                text: `c = ${E(c, "Hypotenuse.")} cm, a = ${E(a, "Kathete.")} cm. b = ? (cm)`, answer: b, hint: "b² = c² − a²", solution: `${b}` }; } }
+    ]
+  };
+  Object.entries(LX_NEW_TYPES).forEach(([t, types]) => { LX_TYPES[t] = types; LX_GEN[t] = n => lxPick(LX_TYPES[t], n); });
+
+  // Tutorials für die neuen Themen (je Kapitel)
+  const lxPieT = (k, q, d = .2) => { let o = ""; for(let i = 0; i < q; i++){ const a0 = i / q * Math.PI * 2 - Math.PI / 2, a1 = (i + 1) / q * Math.PI * 2 - Math.PI / 2;
+      o += `<path class="lxa-pop" style="--d:${(d + i * .12).toFixed(2)}s;fill:${i < k ? "var(--lx-c, var(--accent))" : "currentColor"};${i < k ? "" : "opacity:.12;"}stroke:var(--card);stroke-width:2.5" d="M100,75 L${(100 + 55 * Math.cos(a0)).toFixed(1)},${(75 + 55 * Math.sin(a0)).toFixed(1)} A55,55 0 0,1 ${(100 + 55 * Math.cos(a1)).toFixed(1)},${(75 + 55 * Math.sin(a1)).toFixed(1)} Z"/>`; }
+    return lxSvgT(o); };
+  const lxTriT = () => lxSvgT(`<polygon class="lxa-fade1" points="40,120 170,120 40,30" style="fill:var(--lx-c, var(--accent));fill-opacity:.2;stroke:var(--lx-c, var(--accent));stroke-width:3"/>
+      <path d="M40,106 H54 V120" style="fill:none;stroke:currentColor;stroke-width:2"/>${lxTxt(105, 137, "a", 13)}${lxTxt(28, 80, "b", 13)}${lxTxt(116, 68, "c", 14, "fill:var(--lx-c, var(--accent))", "lxa-fade2")}`);
+  Object.assign(LX_TUTORIALS, {
+    fractions: {
+      1: [ { v: () => lxPieT(0, 4), t: "Ein Ganzes teilen", p: "Ein Bruch entsteht, wenn man etwas Ganzes in gleich große Stücke teilt – wie eine Pizza.", ex: "Pizza in 4 Stücke" },
+           { v: () => lxPieT(3, 4), t: "Zähler und Nenner", p: "Unten (Nenner): in wie viele Stücke geteilt wurde. Oben (Zähler): wie viele Stücke man hat.", ex: "3/4 = 3 von 4 Stücken" },
+           { v: () => lxSeq(["1/4 von 20", ["20 : 4", 16], ["= 5", 22, true]]), t: "Teil von einer Zahl", p: "1/4 von etwas heißt: in 4 Teile teilen und einen nehmen.", ex: "1/4 von 20 = 5" },
+           { v: () => lxSeq(["3/4 von 20", ["20 : 4 = 5", 16], ["5 · 3 = 15", 22, true]]), t: "Mehrere Teile", p: "Erst ausrechnen, wie viel EIN Teil ist, dann mal den Zähler.", ex: "3/4 von 20 = 15" },
+           { v: () => lxSeq(["1/2  oder  1/4 ?", ["weniger Stücke →", 15], ["größere Stücke!", 18, true]]), t: "Welcher ist größer?", p: "Gleicher Zähler: der kleinere Nenner ist größer. Gleicher Nenner: der größere Zähler ist größer.", ex: "1/2 > 1/4" } ],
+      2: [ { v: () => lxSeq(["6/8", [": 2      : 2", 14, true], ["3/4", 22]]), t: "Kürzen", p: "Oben und unten durch dieselbe Zahl teilen – der Bruch bleibt gleich groß.", ex: "6/8 = 3/4" },
+           { v: () => lxSeq(["2/3", ["· 4      · 4", 14, true], ["8/12", 22]]), t: "Erweitern", p: "Oben und unten mit derselben Zahl malnehmen – auch das ändert den Wert nicht.", ex: "2/3 = 8/12" },
+           { v: () => lxSeq(["2/7 + 3/7", ["Nenner bleibt 7", 14], ["= 5/7", 22, true]]), t: "Gleiche Nenner addieren", p: "Sind die Nenner gleich, zählst du nur die Zähler zusammen.", ex: "2/7 + 3/7 = 5/7" },
+           { v: () => lxSeq(["3/4", ["= 75/100", 18], ["= 75 %", 22, true]]), t: "Bruch in Prozent", p: "Erweitere so, dass unten 100 steht – oben steht dann der Prozentwert.", ex: "3/4 = 75 %" } ],
+      3: [ { v: () => lxSeq(["1/2 + 1/4", ["2/4 + 1/4", 16], ["= 3/4", 22, true]]), t: "Ungleiche Nenner", p: "Erst auf den gleichen Nenner erweitern, dann die Zähler addieren.", ex: "1/2 + 1/4 = 3/4" },
+           { v: () => lxSeq(["3/5 · 20", ["20 : 5 = 4", 16], ["4 · 3 = 12", 22, true]]), t: "Bruch mal Zahl", p: "Zahl durch den Nenner, dann mal den Zähler.", ex: "3/5 · 20 = 12" },
+           { v: () => lxSeq(["17/5", ["17 : 5 = 3 Rest 2", 15], ["= 3 Ganze + 2/5", 18, true]]), t: "Ganze herausziehen", p: "Ist der Zähler größer als der Nenner, stecken Ganze drin: so oft passt der Nenner hinein.", ex: "17/5 = 3 2/5" },
+           { v: () => lxBig("🍕", "Gleiche Regeln, schwerere Zahlen"), t: "Profi-Level", p: "Jetzt wird gemischt. Bei Plus und Minus immer zuerst auf den gleichen Nenner!", ex: "Die Lupe 🔍 hilft dir" } ]
+    },
+    powers: {
+      1: [ { v: () => lxSeq(["5²", ["= 5 · 5", 18], ["= 25", 24, true]]), t: "Hoch 2", p: "Die kleine 2 oben (Exponent) sagt: die Zahl zweimal mit sich selbst malnehmen.", ex: "5² = 25" },
+           { v: () => lxAreaGrid(4, 4), t: "Warum „Quadrat“?", p: "4² sind genau so viele Kästchen, wie in ein Quadrat mit Seite 4 passen.", ex: "4² = 16" },
+           { v: () => lxSeq(["2³", ["= 2 · 2 · 2", 18], ["= 8", 24, true]]), t: "Hoch 3", p: "Hoch 3 heißt: dreimal malnehmen.", ex: "2³ = 8" },
+           { v: () => lxSeq(["√49 = ?", ["? · ? = 49", 16], ["7 · 7 = 49 → 7", 18, true]]), t: "Die Wurzel", p: "Die Wurzel ist das Gegenteil von hoch 2: welche Zahl mal sich selbst ergibt das?", ex: "√49 = 7" } ],
+      2: [ { v: () => lxSeq(["2, 4, 8, 16, 32", ["= 2¹ … 2⁵", 16, true]]), t: "Zweierpotenzen", p: "Bei 2 hoch etwas verdoppelt sich die Zahl jedes Mal.", ex: "2⁵ = 32" },
+           { v: () => lxSeq(["10³", ["= 1 000", 22, true], ["3 Nullen", 15]]), t: "Zehnerpotenzen", p: "10 hoch n ist eine 1 mit n Nullen.", ex: "10⁴ = 10 000" },
+           { v: () => lxSeq(["3² + 4²", ["= 9 + 16", 16], ["= 25", 22, true]]), t: "Potenz vor Strich", p: "Erst die Potenzen ausrechnen, dann plus oder minus.", ex: "3² + 4² = 25" },
+           { v: () => lxSeq(["? ² = 144", ["12 · 12 = 144", 16], ["? = 12", 22, true]]), t: "Rückwärts denken", p: "Ist das Ergebnis gegeben, suchst du die Wurzel.", ex: "?² = 144 → 12" } ],
+      3: [ { v: () => lxSeq(["2³ · 2²", ["= (2·2·2)·(2·2)", 14], ["= 2⁵", 22, true]]), t: "Malnehmen: addieren", p: "Gleiche Basis malnehmen: die Hochzahlen werden addiert.", ex: "aᵐ · aⁿ = a hoch (m+n)" },
+           { v: () => lxSeq(["5⁶ : 5⁴", ["6 − 4 = 2", 16], ["= 5²", 22, true]]), t: "Teilen: abziehen", p: "Gleiche Basis teilen: die Hochzahlen werden abgezogen.", ex: "aᵐ : aⁿ = a hoch (m−n)" },
+           { v: () => lxSeq(["(3²)³", ["2 · 3 = 6", 16], ["= 3⁶", 22, true]]), t: "Potenz hoch Potenz", p: "Wird eine Potenz nochmal potenziert, werden die Hochzahlen malgenommen.", ex: "(aᵐ)ⁿ = a hoch (m·n)" },
+           { v: () => lxSeq(["(−2)² = 4", ["(−2)³ = −8", 18, true]]), t: "Negative Basis", p: "Minus mal Minus ist Plus. Gerade Hochzahl → positiv, ungerade → negativ.", ex: "(−3)² = 9, (−3)³ = −27" } ]
+    },
+    ratio: {
+      1: [ { v: () => lxSeq(["1 Heft = 2 €", ["3 Hefte = ?", 16], ["3 · 2 = 6 €", 22, true]]), t: "Von 1 nach oben", p: "Weißt du, was EINES kostet, nimmst du einfach mal die Anzahl.", ex: "3 Hefte = 6 €" },
+           { v: () => lxSeq(["4 Äpfel = 8 €", ["1 Apfel = ?", 16], ["8 : 4 = 2 €", 22, true]]), t: "Auf 1 runter", p: "Kennst du den Preis für mehrere, teilst du durch die Anzahl.", ex: "1 Apfel = 2 €" },
+           { v: () => lxSeq(["3 Stifte = 6 €", ["1 Stift = 2 €", 16], ["5 Stifte = 10 €", 20, true]]), t: "Der Dreisatz", p: "Drei Schritte: gegeben – auf 1 runter – auf die neue Menge hoch.", ex: "erst durch, dann mal" },
+           { v: () => lxBig("↗↗", "je mehr – desto mehr"), t: "Proportional", p: "Doppelt so viel kaufen = doppelt so viel bezahlen. Das nennt man proportional.", ex: "Menge und Preis wachsen zusammen" } ],
+      2: [ { v: () => lxSeq(["1 Std. = 60 km", ["3 Std. = ?", 16], ["3 · 60 = 180 km", 20, true]]), t: "Zeit und Strecke", p: "Auch Strecken funktionieren so: längere Zeit = längere Strecke.", ex: "180 km" },
+           { v: () => lxSeq(["4 Pers. = 200 g", ["1 Pers. = 50 g", 16], ["6 Pers. = 300 g", 20, true]]), t: "Rezepte", p: "Rezepte umrechnen: erst für 1 Person, dann für alle.", ex: "300 g Mehl" },
+           { v: () => lxBig("↗↘", "je mehr – desto weniger"), t: "Umgekehrt!", p: "Mehr Arbeiter werden schneller fertig: mehr Leute = weniger Zeit. Das ist antiproportional.", ex: "Vorsicht: hier andersherum rechnen" },
+           { v: () => lxSeq(["2 Arbeiter = 6 Std.", ["1 Arbeiter = 12 Std.", 16, true], ["3 Arbeiter = 4 Std.", 20]]), t: "Umgekehrt rechnen", p: "Für 1 Arbeiter MAL nehmen (dauert länger), dann durch die neue Anzahl teilen.", ex: "erst mal, dann durch" } ],
+      3: [ { v: () => lxSeq(["4 Pumpen = 9 Std.", ["1 Pumpe = 36 Std.", 16, true], ["6 Pumpen = 6 Std.", 20]]), t: "Antiproportional üben", p: "Genau wie bei den Arbeitern: erst mal, dann durch.", ex: "6 Stunden" },
+           { v: () => lxSeq([["mehr → mehr: proportional", 13], ["mehr → weniger: anti", 13, true]]), t: "Welche Art ist es?", p: "Frag dich immer zuerst: Wird das andere mehr oder weniger?", ex: "Erst denken, dann rechnen" },
+           { v: () => lxBig("💪", "Größere Zahlen, gleiche Schritte"), t: "Profi-Level", p: "Die Zahlen werden größer, aber der Weg bleibt: auf 1, dann auf die neue Menge.", ex: "Die Lupe 🔍 hilft dir" } ]
+    },
+    pythagoras: {
+      1: [ { v: () => lxTriT(), t: "Das rechtwinklige Dreieck", p: "Ein Dreieck mit einem rechten Winkel (wie eine Zimmerecke). Das kleine Eck-Zeichen markiert ihn.", ex: "⌟ = rechter Winkel" },
+           { v: () => lxTriT(), t: "Katheten und Hypotenuse", p: "Die zwei kurzen Seiten am rechten Winkel heißen Katheten (a, b). Die lange schräge Seite gegenüber heißt Hypotenuse (c).", ex: "c ist immer die längste" },
+           { v: () => lxAreaGrid(3, 3), t: "Quadrate über den Seiten", p: "Über jeder Seite kann man ein Quadrat zeichnen. Seine Fläche ist Seite mal Seite.", ex: "3² = 9" },
+           { v: () => lxSeq(["a² + b² = c²", ["3² + 4² = 5²", 16], ["9 + 16 = 25 ✓", 18, true]]), t: "Der Satz des Pythagoras", p: "Die zwei kleinen Quadrate zusammen sind genau so groß wie das große Quadrat.", ex: "a² + b² = c²" } ],
+      2: [ { v: () => lxSeq(["a = 6, b = 8", ["c² = 36 + 64 = 100", 15], ["c = √100 = 10", 20, true]]), t: "c ausrechnen", p: "Beide Katheten quadrieren, addieren, Wurzel ziehen.", ex: "c = 10" },
+           { v: () => lxSeq(["c = 13, b = 12", ["a² = 169 − 144 = 25", 15], ["a = 5", 22, true]]), t: "Eine Kathete ausrechnen", p: "Vom großen Quadrat (c²) das bekannte kleine abziehen, dann Wurzel ziehen.", ex: "a² = c² − b²" },
+           { v: () => lxSeq(["5, 12, 13 ?", ["25 + 144 = 169", 16], ["13² = 169 ✓", 20, true]]), t: "Ist es rechtwinklig?", p: "Wenn a² + b² genau c² ergibt, ist das Dreieck rechtwinklig.", ex: "Probe machen" } ],
+      3: [ { v: () => lxSeq(["Leiter 10 m, Abstand 6 m", ["h² = 100 − 36 = 64", 15], ["h = 8 m", 22, true]]), t: "Die Leiter", p: "Leiter, Wand und Boden bilden ein rechtwinkliges Dreieck. Die Leiter ist die Hypotenuse.", ex: "h = 8 m" },
+           { v: () => lxSeq(["Rechteck 9 × 12", ["d² = 81 + 144 = 225", 15], ["d = 15", 22, true]]), t: "Die Diagonale", p: "Die Diagonale teilt ein Rechteck in zwei rechtwinklige Dreiecke.", ex: "d = 15" },
+           { v: () => lxBig("📐", "Überall rechte Winkel"), t: "Profi-Level", p: "Such in jeder Aufgabe den rechten Winkel und die längste Seite – dann weißt du, wie du rechnest.", ex: "Die Lupe 🔍 hilft dir" } ]
+    }
+  });
+  /* ===================== NEUE THEMEN ENDE ===================== */
 
   let lxTutState = { topic: null, chapter: 1, step: 0 };
   function lxOpenTutorial(topicId, chapter = 1){

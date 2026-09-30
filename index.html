@@ -3278,6 +3278,42 @@
   .lupe-step.last em.hl{ color:var(--success); background:color-mix(in srgb, var(--success) 16%, transparent); }
   @keyframes lupe-step-in{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
 
+
+  /* ===== Lösen-Bühne (NEU) ===== */
+  .solve-stage{ position:absolute; left:10px; right:10px; top:calc(env(safe-area-inset-top,0px) + 62px); bottom:calc(env(safe-area-inset-bottom,0px) + 150px);
+    z-index:29; border-radius:26px; padding:14px; display:none; flex-direction:column; overflow:hidden;
+    background:radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%), var(--card);
+    border:1.5px solid color-mix(in srgb, var(--accent) 45%, transparent); box-shadow:0 20px 50px rgba(0,0,0,.45); }
+  #screen-lesson.solving .solve-stage{ display:flex; animation:ss-in .4s cubic-bezier(.2,.9,.25,1.05) both; }
+  #screen-lesson.solving .question-card,
+  #screen-lesson.solving .answer-display,
+  #screen-lesson.solving .timer-wrap{ visibility:hidden; }
+  @keyframes ss-in{ from{ opacity:0; transform:scale(.96); } to{ opacity:1; transform:none; } }
+  .ss-top{ display:flex; justify-content:space-between; font-size:12px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; opacity:.6; }
+  .ss-prev{ min-height:22px; margin-top:10px; text-align:center; font-size:14px; font-weight:700; opacity:.4; }
+  .ss-prev .hl{ color:var(--accent); }
+  .ss-row{ margin-top:auto; margin-bottom:auto; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:10px 12px; padding:40px 4px 90px; }
+  .ss-row.in{ animation:ss-row-in .35s ease both; }
+  @keyframes ss-row-in{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
+  .ss-tok{ display:none; font-size:34px; font-weight:800; line-height:1.1; padding:4px 8px; border-radius:12px; transition:opacity .35s, transform .45s cubic-bezier(.34,1.6,.5,1), background .3s, color .3s; }
+  .ss-tok.word{ font-size:20px; }
+  .ss-tok.statement{ font-size:22px; text-align:center; padding:10px 14px; line-height:1.35; }
+  .ss-tok em{ font-style:normal; color:var(--accent); }
+  .ss-tok.final em{ color:inherit; }
+  .ss-tok.shown{ display:inline-block; opacity:.45; }
+  .ss-tok.cur{ animation:ss-tok-in .45s cubic-bezier(.34,1.6,.5,1) both; }
+  @keyframes ss-tok-in{ from{ opacity:0; transform:translateY(12px) scale(.7); } to{ opacity:1; transform:scale(1.08); } }
+  .ss-tok.hl.shown{ color:var(--accent); }
+  .ss-tok.cur{ opacity:1; background:color-mix(in srgb, var(--accent) 18%, transparent); box-shadow:0 0 0 2px var(--accent); transform:scale(1.08); }
+  .ss-tok.final{ color:var(--success) !important; background:color-mix(in srgb, var(--success) 18%, transparent); box-shadow:0 0 0 2px var(--success), 0 0 24px color-mix(in srgb, var(--success) 50%, transparent); }
+  .ss-label{ position:absolute; z-index:2; padding:10px 13px; border-radius:14px; font-size:14px; font-weight:700; line-height:1.35; text-align:center;
+    background:var(--accent); color:var(--accent-text); box-shadow:0 10px 26px rgba(0,0,0,.35); }
+  .ss-label::before{ content:""; position:absolute; top:-8px; left:calc(var(--ax, 50%) - 8px); width:16px; height:16px; background:inherit; transform:rotate(45deg); border-radius:3px; }
+  .ss-label.result{ background:var(--success); color:#fff; }
+  .ss-label.pop{ animation:lupe-pop .35s cubic-bezier(.34,1.6,.5,1) both; }
+  .ss-arrows{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; }
+  .ss-arrow{ fill:none; stroke:var(--accent); stroke-width:2.5; stroke-linecap:round; stroke-dasharray:300; stroke-dashoffset:300; animation:lupe-arrow-draw .6s cubic-bezier(.4,0,.2,1) forwards; }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -5453,6 +5489,14 @@
     </div>
     <div class="lupe-bubble" id="lupeBubble" style="display:none;"></div>
     <svg class="lupe-arrow" id="lupeArrow" aria-hidden="true"></svg>
+    <!-- Lösen-Bühne: die Aufgabe verschwindet, der Lösungsweg erscheint Teil für Teil -->
+    <div class="solve-stage" id="solveStage">
+      <div class="ss-top"><span>🧩 Lösen</span><span id="ssCount"></span></div>
+      <div class="ss-prev" id="ssPrev"></div>
+      <div class="ss-row" id="ssRow"></div>
+      <div class="ss-label" id="ssLabel"></div>
+      <svg class="ss-arrows" id="ssArrows" aria-hidden="true"></svg>
+    </div>
 
     <div id="duelOpponentProgress" style="display:none; text-align:center; font-size:12.5px; color:var(--text-dim); margin-top:8px; min-height:16px;"></div>
   </section>
@@ -6347,7 +6391,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.71";
+  const APP_VERSION = "3.73";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -18738,6 +18782,7 @@
     $("lupeSolution").style.display = "none";
     $("lupeShowResult").style.display = "";
     $("lupeShowResult").textContent = "🧩 Lösen";
+    lxSolveReset();
     $("lupeHint").style.display = "";
     lxSolveIdx = -1;
     $("lupePanel").classList.add("show");
@@ -18812,8 +18857,189 @@
     if(isLast){ btn.style.display = "none"; }
     else { btn.textContent = `Weiter › (${lxSolveIdx + 1}/${steps.length})`; }
   }
+
+  /* ===== LEKTIONEN-SYSTEM: "Lösen" als Animation Teil für Teil =====
+     Die Aufgabe verschwindet, auf einer "Bühne" erscheint der Lösungsweg
+     Stück für Stück: jede Zahl, jedes Rechenzeichen, jedes Ergebnis kommt
+     einzeln - mit Pfeil und kurzer Erklärung. Beim Ergebnis zeigen Pfeile
+     von den Zahlen zum Ergebnis. Grundlage sind die Lösungsschritte (q.steps),
+     die hier automatisch in einzelne Teile zerlegt werden. */
+  const LX_OPS = { "·": "mal", "×": "mal", "+": "plus", "−": "minus", "-": "minus", ":": "geteilt durch", "=": "ist gleich" };
+  const lxIsNum = t => /^\(?[−-]?\d/.test(t) || /^\(?[−-]?\d/.test(t.replace(/^[(]/, ""));
+  const lxIsOp = t => Object.prototype.hasOwnProperty.call(LX_OPS, t);
+  const lxIsVar = t => /^[(]?(\d+)?x\)?$/.test(t) || /^[(]?[−-]x\)?$/.test(t);
+  const lxIsUnit = t => /^(cm|cm²|cm³|%)[,.]?$/.test(t);
+  // Zerlegt einen Rechenschritt in einzelne Teile ({t, hl})
+  function lxTokenize(expr){
+    const out = [];
+    String(expr).split(/(«[^»]*»)/).forEach(seg => {
+      if(!seg) return;
+      const hl = seg.startsWith("«");
+      const inner = hl ? seg.slice(1, -1) : seg;
+      if(hl){ if(inner.trim()) out.push({ t: inner.trim(), hl: true }); return; }
+      inner.split(/\s+/).filter(Boolean).forEach(w => out.push({ t: w, hl: false }));
+    });
+    // Einheiten an die Zahl davor hängen, Wörter zu Phrasen zusammenfassen
+    const merged = [];
+    out.forEach(tok => {
+      const prev = merged[merged.length - 1];
+      const isWord = !tok.hl && !lxIsNum(tok.t) && !lxIsOp(tok.t) && !lxIsVar(tok.t) && !/^f\(/.test(tok.t);
+      if(prev && lxIsUnit(tok.t) && !tok.hl){ prev.t += " " + tok.t; return; }
+      if(prev && isWord && prev.word && !prev.hl){ prev.t += " " + tok.t; return; }
+      merged.push({ ...tok, word: isWord });
+    });
+    return merged;
+  }
+  // Kurze Erklärung pro Teil - je nach Rolle im Rechenschritt
+  const LX_OP_TXT = { "·": "mal – die Zahlen werden malgenommen.", "×": "mal – die Zahlen werden malgenommen.", "+": "plus – es kommt etwas dazu.",
+    "−": "minus – es wird etwas abgezogen.", "-": "minus – es wird etwas abgezogen.", ":": "geteilt durch – es wird geteilt." };
+  const LX_NUM_AFTER = { "·": "Die nächste Zahl – mit ihr wird malgenommen.", "×": "Die nächste Zahl – mit ihr wird malgenommen.", "+": "Diese Zahl kommt dazu.",
+    "−": "Diese Zahl wird abgezogen.", "-": "Diese Zahl wird abgezogen.", ":": "Durch diese Zahl wird geteilt." };
+  function lxTokenLabel(tokens, i, why, isLastRow){
+    const tok = tokens[i], t = tok.t, prev = tokens[i - 1], eqIdx = tokens.findIndex(x => x.t === "=");
+    const afterEq = eqIdx !== -1 && i > eqIdx, isLastTok = i === tokens.length - 1;
+    // Steht links ein x, ist es eine GLEICHUNG: die Zahl rechts ist gegeben, nicht ausgerechnet
+    const leftHasVar = eqIdx !== -1 && tokens.slice(0, eqIdx).some(x => lxIsVar(x.t));
+    const isResult = afterEq && (tok.hl || (isLastTok && !leftHasVar));
+    if(isResult){
+      // Einfache Rechnung "a op b = c" als ganzer Satz: "4 mal 2 ist 8."
+      const left = tokens.slice(0, eqIdx);
+      let sentence = "";
+      if(left.length === 3 && lxIsNum(left[0].t) && lxIsOp(left[1].t) && lxIsNum(left[2].t)) sentence = `${left[0].t} ${LX_OPS[left[1].t]} ${left[2].t} ist ${t}.`;
+      const calc = /^[\d\s−+·:=,().\-]+(– fertig!)?$/.test(why) ? why.replace(/\s*– fertig!$/, "") : "";
+      const generic = /^(Ausrechnen\.|Fertig!|Das ist das Ergebnis\.)$/.test(why) || !!calc;
+      if(!sentence && calc) sentence = calc + ".";
+      const extra = generic ? "" : " " + why;
+      if(isLastRow) return { text: `Das ist das Ergebnis! ${sentence}${extra}`.trim(), result: true };
+      return { text: (sentence ? `Das kommt heraus: ${sentence}` : "Das kommt heraus.") + extra, result: true };
+    }
+    if(tok.hl) return { text: why };
+    if(/^f\(/.test(t)) return { text: `f(${t.slice(2, -1)}) heißt: der Wert der Funktion, wenn x = ${t.slice(2, -1)} ist.` };
+    if(t === "=") return { text: leftHasVar && !tokens.slice(i + 1).some(x => x.hl) ? "ist gleich – links und rechts ist gleich viel." : "ist gleich – jetzt wird ausgerechnet." };
+    if(lxIsOp(t)) return { text: LX_OP_TXT[t] };
+    if(lxIsVar(t)){
+      const k = t.replace(/[()x]/g, "");
+      return { text: !k ? "x – das ist die gesuchte Zahl." : `${t.replace(/[()]/g, "")} heißt: ${k === "−" || k === "-" ? "minus" : k} mal x.` };
+    }
+    if(lxIsNum(t)){
+      if(prev && lxIsOp(prev.t) && prev.t !== "=") return { text: LX_NUM_AFTER[prev.t] || "Die nächste Zahl." };
+      if(afterEq) return { text: "Das steht auf der anderen Seite." };
+      return { text: tokens.filter((x, j) => j < i && lxIsNum(x.t)).length ? "Die nächste Zahl." : "Die erste Zahl." };
+    }
+    return { text: why }; // Wörter wie "rechts:" bekommen die Begründung des Schritts
+  }
+  let lxSolvePlan = null, lxSolvePos = -1;
+  function lxBuildSolvePlan(q){
+    const steps = (q.steps && q.steps.length) ? q.steps : [[`«${q.answerLabel !== undefined ? q.answerLabel : lxNum(q.answer)}»`, q.solution || "Das ist das Ergebnis."]];
+    const rows = steps.map(([expr, why], r) => {
+      let tokens = lxTokenize(expr);
+      const isLastRow = r === steps.length - 1;
+      // Nur echte Rechnungen (Zahlen UND Rechenzeichen) Teil für Teil aufbauen.
+      // Beschreibende Schritte ("Länge 5 cm, Breite 2 cm", "Fläche = Länge · Breite")
+      // kommen als EIN Teil mit ihrer Begründung.
+      const hasNum = tokens.some(tk => !tk.word && !tk.hl && lxIsNum(tk.t));
+      const hasOp = tokens.some(tk => lxIsOp(tk.t));
+      if(!(hasNum && hasOp)){
+        const html = String(expr).split(/(«[^»]*»)/).map(seg => seg.startsWith("«") ? `<em>${lxEsc(seg.slice(1, -1))}</em>` : lxEsc(seg)).join("");
+        const onlyResult = tokens.length === 1 && tokens[0].hl;
+        tokens = [{ t: lxPlain(String(expr).replace(/[«»]/g, "")), html, hl: false, word: true, statement: true,
+          label: isLastRow && (onlyResult || /«/.test(expr)) ? `Das ist das Ergebnis! ${why === "Fertig!" ? "" : why}`.trim() : why, result: isLastRow }];
+      } else {
+        tokens.forEach((tk, i) => { const l = lxTokenLabel(tokens, i, why, isLastRow); tk.label = l.text; tk.result = !!l.result; });
+        // Die Begründung des Schritts geht nie verloren: endet die Zeile nicht mit
+        // einem Ergebnis, steht sie beim letzten Teil mit dabei.
+        const lastTk = tokens[tokens.length - 1];
+        if(!lastTk.result && !lastTk.label.includes(why)) lastTk.label = `${lastTk.label} ${why}`.trim();
+      }
+      return { tokens, why };
+    });
+    const flat = [];
+    rows.forEach((row, r) => row.tokens.forEach((_, i) => flat.push({ r, i })));
+    return { rows, flat };
+  }
+  function lxSolveStart(){
+    const q = lesson && lesson.questions[lesson.index];
+    if(!q) return;
+    lxSolvePlan = lxBuildSolvePlan(q);
+    lxSolvePos = -1;
+    $("screen-lesson").classList.add("solving");
+    $("lupeBubble").style.display = "none";
+    $("lupeArrow").innerHTML = "";
+    $("lupeHint").style.display = "none";
+    lxSolveNext();
+  }
+  function lxSolveNext(){
+    if(!lxSolvePlan) return lxSolveStart();
+    lxSolvePos++;
+    const { rows, flat } = lxSolvePlan;
+    const cur = flat[lxSolvePos];
+    const row = rows[cur.r];
+    const isFinal = lxSolvePos === flat.length - 1;
+    const newRow = cur.i === 0;
+    // Vorheriger Schritt klein darüber (damit man den Faden behält)
+    $("ssPrev").innerHTML = cur.r > 0 ? rows[cur.r - 1].tokens.map(tk => `<span class="${tk.hl ? "hl" : ""}">${tk.html || lxEsc(tk.t)}</span>`).join(" ") : "";
+    if(newRow){
+      $("ssRow").innerHTML = row.tokens.map((tk, i) => `<span class="ss-tok${tk.hl ? " hl" : ""}${tk.word ? " word" : ""}${tk.statement ? " statement" : ""}" data-i="${i}">${tk.html || lxEsc(tk.t)}</span>`).join("");
+      $("ssRow").classList.remove("in"); void $("ssRow").offsetWidth; $("ssRow").classList.add("in");
+    }
+    const els = $("ssRow").querySelectorAll(".ss-tok");
+    els.forEach((el, i) => {
+      el.classList.toggle("shown", i <= cur.i);
+      el.classList.toggle("cur", i === cur.i);
+      el.classList.toggle("final", isFinal && i === cur.i);
+    });
+    const tok = row.tokens[cur.i];
+    $("ssCount").textContent = `Schritt ${cur.r + 1} von ${rows.length}`;
+    requestAnimationFrame(() => lxSolveDraw(els[cur.i], tok, row, cur.i, isFinal));
+    triggerHaptic(8);
+    const btn = $("lupeShowResult");
+    if(isFinal) btn.style.display = "none";
+    else btn.textContent = "Weiter ›";
+  }
+  // Label mit Pfeil unter dem aktuellen Teil + beim Ergebnis Pfeile von den Zahlen
+  function lxSolveDraw(el, tok, row, idx, isFinal){
+    const stage = $("solveStage"), lab = $("ssLabel"), svg = $("ssArrows");
+    if(!el || !stage) return;
+    const s = stage.getBoundingClientRect(), r = el.getBoundingClientRect();
+    const cx = r.left + r.width / 2 - s.left;
+    lab.innerHTML = lxEsc(tok.label || "");
+    lab.style.display = tok.label ? "block" : "none";
+    lab.classList.toggle("result", !!tok.result || isFinal);
+    const lw = Math.min(260, s.width - 20);
+    lab.style.width = lw + "px";
+    const left = Math.max(10, Math.min(s.width - lw - 10, cx - lw / 2));
+    lab.style.left = left + "px";
+    lab.style.top = (r.bottom - s.top + 16) + "px";
+    lab.style.setProperty("--ax", (cx - left) + "px");
+    lab.classList.remove("pop"); void lab.offsetWidth; lab.classList.add("pop");
+    svg.setAttribute("viewBox", `0 0 ${s.width} ${s.height}`);
+    let paths = "";
+    const eq0 = row.tokens.findIndex(x => x.t === "=");
+    const isEquation = eq0 !== -1 && row.tokens.slice(0, eq0).some(x => lxIsVar(x.t));
+    if(tok.result && !isEquation){
+      // Pfeile von den Zahlen vor dem "=" zum Ergebnis (nur bei echten Rechnungen)
+      const eq = eq0;
+      const toks = $("ssRow").querySelectorAll(".ss-tok");
+      row.tokens.forEach((x, i) => {
+        if(eq === -1 || i >= eq || !(lxIsNum(x.t) || lxIsVar(x.t) || x.hl)) return;
+        const a = toks[i].getBoundingClientRect();
+        const ax = a.left + a.width / 2 - s.left, ay = a.top - s.top - 4;
+        const bx = cx, by = r.top - s.top - 4;
+        const h = Math.max(26, Math.abs(bx - ax) * .35);
+        paths += `<path class="ss-arrow" style="animation-delay:${(i * .12).toFixed(2)}s" d="M${ax},${ay} C${ax},${ay - h} ${bx},${by - h} ${bx},${by}" marker-end="url(#ssHead)"/>`;
+      });
+    }
+    svg.innerHTML = `<defs><marker id="ssHead" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--accent)"/></marker></defs>${paths}`;
+  }
+  function lxSolveReset(){
+    lxSolvePlan = null; lxSolvePos = -1;
+    $("screen-lesson").classList.remove("solving");
+    if($("ssArrows")) $("ssArrows").innerHTML = "";
+  }
+
   function lxLupeHideUi(){
     lxLupeActive = false;
+    lxSolveReset();
     $("lupePanel").classList.remove("show");
     $("lupeBubble").style.display = "none";
     $("lupeArrow").innerHTML = "";
@@ -18844,7 +19070,7 @@
   }
   $("lupeBtn").addEventListener("click", lxLupeOpen);
   $("lupeClose").addEventListener("click", lxLupeClose);
-  $("lupeShowResult").addEventListener("click", lxLupeShowResult);
+  $("lupeShowResult").addEventListener("click", () => { if(!lxSolvePlan) lxSolveStart(); else lxSolveNext(); });
   $("screen-lesson").addEventListener("click", (e) => {
     if(lxLupeActive && !e.target.closest(".lupe-num") && !e.target.closest("#lupeBubble")){ $("lupeBubble").style.display = "none"; $("lupeArrow").innerHTML = ""; }
   });

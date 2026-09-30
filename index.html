@@ -3315,6 +3315,40 @@
   .ss-arrows{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; }
   .ss-arrow{ fill:none; stroke:var(--accent); stroke-width:2.5; stroke-linecap:round; stroke-dasharray:300; stroke-dashoffset:300; animation:lupe-arrow-draw .6s cubic-bezier(.4,0,.2,1) forwards; }
 
+
+  /* ===== Interaktive Aufgaben (NEU) ===== */
+  .lx-interactive{ flex:1 1 auto; min-height:0; flex-direction:column; justify-content:center; margin-top:6px; }
+  .ix-card{ background:var(--card); border:1px solid var(--border); border-radius:22px; padding:14px 16px 10px; box-shadow:inset 0 1px 0 rgba(255,255,255,.04); }
+  .ix-range-wrap{ position:relative; padding:6px 0 22px; }
+  .ix-range{ -webkit-appearance:none; appearance:none; width:100%; height:34px; background:transparent; margin:0; touch-action:none; }
+  .ix-range::-webkit-slider-runnable-track{ height:10px; border-radius:999px; background:color-mix(in srgb, var(--text) 14%, transparent); }
+  .ix-range::-moz-range-track{ height:10px; border-radius:999px; background:color-mix(in srgb, var(--text) 14%, transparent); }
+  .ix-range::-webkit-slider-thumb{ -webkit-appearance:none; width:30px; height:30px; margin-top:-10px; border-radius:50%; background:var(--accent);
+    border:4px solid var(--card); box-shadow:0 0 0 2px var(--accent), 0 6px 16px rgba(0,0,0,.4); cursor:grab; }
+  .ix-range::-moz-range-thumb{ width:24px; height:24px; border-radius:50%; background:var(--accent); border:4px solid var(--card); box-shadow:0 0 0 2px var(--accent); }
+  .ix-ticks{ position:absolute; left:15px; right:15px; bottom:0; height:16px; }
+  .ix-ticks span{ position:absolute; transform:translateX(-50%); font-size:11.5px; font-weight:700; opacity:.6; white-space:nowrap; }
+  .ix-bar{ position:relative; height:44px; border-radius:14px; margin:18px 15px 4px; background:color-mix(in srgb, var(--text) 8%, transparent); overflow:visible; }
+  .ix-fill{ height:100%; width:0; border-radius:14px; background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 60%, transparent), var(--accent)); transition:width .12s; }
+  .ix-knob-label{ position:absolute; top:-24px; transform:translateX(-50%); font-size:13px; font-weight:800; padding:2px 8px; border-radius:8px; background:var(--accent); color:var(--accent-text); white-space:nowrap; transition:left .12s; }
+  .ix-grid{ display:grid; grid-template-columns:repeat(10,1fr); gap:3px; width:min(100%, 260px); margin:0 auto; touch-action:none; user-select:none; }
+  .ix-grid div{ aspect-ratio:1; border-radius:3px; background:color-mix(in srgb, var(--text) 12%, transparent); transition:background .08s; cursor:pointer; }
+  .ix-grid div.on{ background:var(--accent); }
+  .ix-graph, .ix-balance, .ix-rect{ width:100%; height:clamp(90px, 18vh, 150px); color:var(--text); display:block; }
+  .ix-target{ fill:transparent; stroke:var(--text); stroke-width:2.5; stroke-dasharray:3 2; transition:fill .2s, stroke .2s; }
+  .ix-target.hit{ fill:var(--success); stroke:var(--success); stroke-dasharray:none; }
+  .ix-param{ text-align:center; font-weight:800; font-size:15px; margin-top:4px; }
+  .ix-param b{ color:var(--accent); }
+  .ix-pan{ fill:color-mix(in srgb, var(--accent) 22%, transparent); stroke:var(--accent); stroke-width:2; }
+  .ix-balance.even .ix-pan{ fill:color-mix(in srgb, var(--success) 25%, transparent); stroke:var(--success); }
+  .ix-cell{ fill:var(--accent); fill-opacity:.8; }
+  .ix-rect-info{ text-align:center; font-size:14px; font-weight:700; margin:4px 0 2px; }
+  .ix-rect-info b{ color:var(--accent); }
+  .ix-rect-info.ok b{ color:var(--success); }
+  .ix-rect-ctl{ display:flex; align-items:center; gap:10px; }
+  .ix-rect-ctl > span{ width:52px; font-size:12.5px; font-weight:800; opacity:.7; }
+  .ix-rect-ctl .ix-range-wrap{ flex:1; padding:0 0 16px; }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -5462,6 +5496,7 @@
 
     <div id="lessonBgLayerKeyboard" class="has-bg-image"></div>
     <div class="lx-choices" id="lxChoices" style="display:none;"></div>
+    <div class="lx-interactive" id="lxInteractive" style="display:none;"></div>
     <div class="numpad" id="numpad">
       <div class="key" data-k="1">1</div>
       <div class="key" data-k="2">2</div>
@@ -6393,7 +6428,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.74";
+  const APP_VERSION = "3.76";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -18238,11 +18273,11 @@
   [`«${p} %»`, "Fertig!"]].filter(Boolean), text: `${E(part, "Das ist der Teil.")} von ${E(g, "Das ist das Ganze (100 %).")}\nsind wie viel Prozent?`, answer: p, hint: "Teil durch Ganzes, dann mal 100.", solution: `${part} : ${g} · 100 = ${p} %` }; } }
     ],
     geometry: [
-      { from: 1,  gen: n => { const a = randInt(2, lxUp(4, 12, n)); return { steps: [[`Quadrat: Seite = ${a} cm`, "Beim Quadrat sind alle Seiten gleich lang."],
+      { from: 1,  gen: n => { const a = randInt(2, lxUp(6, 12, n)); return { steps: [[`Quadrat: Seite = ${a} cm`, "Beim Quadrat sind alle Seiten gleich lang."],
   ["Fläche = Seite · Seite", "So viele Kästchen passen hinein."],
   [`${a} · ${a} = «${a * a}»`, "Ausrechnen."],
   [`«${a * a} cm²»`, "Fläche immer in cm²."]].filter(Boolean), text: "Wie groß ist die Fläche? (cm²)", svg: lxRectSvg(a, a, a + " cm", a + " cm"), answer: a * a, hint: "Quadrat: Seite mal Seite.", solution: `${a} · ${a} = ${a * a} cm²` }; } },
-      { from: 2,  gen: n => { const a = randInt(2, lxUp(5, 12, n)), b = randInt(2, lxUp(4, 10, n)); return { steps: [[`Länge ${a} cm,  Breite ${b} cm`, "Die zwei Seiten stehen an der Grafik."],
+      { from: 1,  gen: n => { const a = randInt(2, lxUp(6, 12, n)), b = randInt(2, lxUp(5, 10, n)); return { steps: [[`Länge ${a} cm,  Breite ${b} cm`, "Die zwei Seiten stehen an der Grafik."],
   ["Fläche = Länge · Breite", "Innen drin – also mal rechnen."],
   [`${a} · ${b} = «${a * b}»`, "Ausrechnen."],
   [`«${a * b} cm²»`, "Fertig!"]].filter(Boolean), text: "Wie groß ist die Fläche? (cm²)", svg: lxRectSvg(a, b, a + " cm", b + " cm"), answer: a * b, hint: "Rechteck: Länge mal Breite.", solution: `${a} · ${b} = ${a * b} cm²` }; } },
@@ -18283,18 +18318,208 @@
   };
   const lxPlain = t => String(t).replace(/\{\{([^|}]*)\|[^}]*\}\}/g, "$1").replace(/\[\[[^|\]]*\|([^\]]*)\]\]/g, "$1");
 
+  /* ===== LEKTIONEN-SYSTEM: Interaktive Aufgaben (NEU) =====
+     Aufgaben ohne Zahlen-Tastatur: Regler ziehen, Kästchen färben, Gerade
+     verschieben/drehen, Waage ausbalancieren, Rechteck bauen. Das Widget
+     schreibt seinen Wert in lesson.answer - geprüft wird ganz normal mit
+     "Prüfen". q.interactive = { kind, ...Einstellungen, fmt, placeholder } */
+  function lxSetInteractiveValue(v){
+    if(!lesson || lesson.locked) return;
+    lesson.answer = String(v);
+    updateAnswerDisplay();
+  }
+  function lxRangeHtml(min, max, step, value, ticks){
+    return `<div class="ix-range-wrap">
+      <input type="range" class="ix-range" min="${min}" max="${max}" step="${step}" value="${value}">
+      <div class="ix-ticks">${ticks.map(t => `<span style="left:${((t.v - min) / (max - min) * 100).toFixed(2)}%">${t.t}</span>`).join("")}</div>
+    </div>`;
+  }
+  const LX_WIDGETS = {
+    // Zahlenstrahl mit Regler (z.B. 0 % ... 100 %)
+    slider(root, cfg){
+      root.innerHTML = `<div class="ix-card">
+        <div class="ix-bar"><div class="ix-fill" id="ixFill"></div><div class="ix-knob-label" id="ixLbl">–</div></div>
+        ${lxRangeHtml(cfg.min, cfg.max, cfg.step, cfg.start, cfg.ticks)}</div>`;
+      const r = root.querySelector(".ix-range");
+      const upd = () => { const v = +r.value, pct = (v - cfg.min) / (cfg.max - cfg.min) * 100;
+        root.querySelector("#ixFill").style.width = pct + "%";
+        const l = root.querySelector("#ixLbl"); l.textContent = cfg.fmt(v); l.style.left = pct + "%"; };
+      r.addEventListener("input", () => { upd(); lxSetInteractiveValue(+r.value); });
+      upd();
+    },
+    // 10x10 Kästchen: wischen/tippen färbt die ersten k Kästchen
+    gridfill(root, cfg){
+      root.innerHTML = `<div class="ix-card"><div class="ix-grid">${Array.from({ length: 100 }, (_, i) => `<div data-i="${i}"></div>`).join("")}</div></div>`;
+      const grid = root.querySelector(".ix-grid"), cells = grid.children;
+      const paint = k => { for(let i = 0; i < 100; i++) cells[i].classList.toggle("on", i < k); };
+      const at = e => { const el = document.elementFromPoint(e.clientX, e.clientY); return el && el.parentElement === grid ? +el.dataset.i + 1 : null; };
+      let down = false;
+      const handle = e => { const k = at(e); if(k === null || (lesson && lesson.locked)) return; paint(k); lxSetInteractiveValue(k); };
+      grid.addEventListener("pointerdown", e => { down = true; grid.setPointerCapture && grid.setPointerCapture(e.pointerId); handle(e); });
+      grid.addEventListener("pointermove", e => { if(down) handle(e); });
+      ["pointerup", "pointercancel", "pointerleave"].forEach(ev => grid.addEventListener(ev, () => { down = false; }));
+    },
+    // Koordinatensystem: Regler verschiebt (b) oder dreht (m) die Gerade live
+    graph(root, cfg){
+      const X = v => 110 + v * 13, Y = v => 65 - v * 11;
+      let grid = "";
+      for(let i = -8; i <= 8; i++) grid += `<line x1="${X(i)}" y1="0" x2="${X(i)}" y2="130" style="stroke:currentColor;opacity:.1"/>`;
+      for(let i = -5; i <= 5; i++) grid += `<line x1="0" y1="${Y(i)}" x2="220" y2="${Y(i)}" style="stroke:currentColor;opacity:.1"/>`;
+      const nums = [-6, -4, -2, 2, 4, 6].map(i => `<text x="${X(i)}" y="${Y(0) + 11}" text-anchor="middle" font-size="8.5" font-weight="700" style="fill:currentColor;opacity:.6">${lxNum(i)}</text>`).join("")
+        + [-4, -2, 2, 4].map(i => `<text x="${X(0) - 4}" y="${Y(i) + 3}" text-anchor="end" font-size="8.5" font-weight="700" style="fill:currentColor;opacity:.6">${lxNum(i)}</text>`).join("");
+      root.innerHTML = `<div class="ix-card"><svg class="ix-graph" viewBox="0 0 220 130">${grid}
+          <line x1="0" y1="${Y(0)}" x2="220" y2="${Y(0)}" style="stroke:currentColor;opacity:.6;stroke-width:1.5"/>
+          <line x1="${X(0)}" y1="0" x2="${X(0)}" y2="130" style="stroke:currentColor;opacity:.6;stroke-width:1.5"/>${nums}
+          <line id="ixLine" style="stroke:var(--accent);stroke-width:3.5;stroke-linecap:round"/>
+          <circle cx="${X(cfg.px)}" cy="${Y(cfg.py)}" r="6" class="ix-target"/>
+          <text x="${X(cfg.px) + 8}" y="${Y(cfg.py) - 8}" font-size="10" font-weight="800" style="fill:currentColor">${cfg.pLabel}</text></svg>
+        <div class="ix-param">${cfg.param} = <b id="ixParam">?</b></div>
+        ${lxRangeHtml(cfg.min, cfg.max, 1, cfg.start, cfg.ticks)}</div>`;
+      const r = root.querySelector(".ix-range"), line = root.querySelector("#ixLine");
+      const upd = () => { const v = +r.value, m = cfg.param === "m" ? v : cfg.m, b = cfg.param === "b" ? v : cfg.b;
+        line.setAttribute("x1", X(-9)); line.setAttribute("y1", Y(m * -9 + b)); line.setAttribute("x2", X(9)); line.setAttribute("y2", Y(m * 9 + b));
+        root.querySelector("#ixParam").textContent = lxNum(v);
+        root.querySelector(".ix-target").classList.toggle("hit", m * cfg.px + b === cfg.py); };
+      r.addEventListener("input", () => { upd(); lxSetInteractiveValue(+r.value); });
+      upd();
+    },
+    // Waage: x per Regler einstellen - sie kippt, bis links = rechts
+    balance(root, cfg){
+      root.innerHTML = `<div class="ix-card"><svg class="ix-balance" viewBox="0 0 220 120">
+          <line x1="110" y1="30" x2="110" y2="110" style="stroke:currentColor;stroke-width:3;opacity:.55"/>
+          <polygon points="92,114 128,114 110,100" style="fill:currentColor;opacity:.45"/>
+          <g id="ixBeam" style="transform-origin:110px 30px; transition:transform .35s cubic-bezier(.3,1.4,.5,1)">
+            <line x1="30" y1="30" x2="190" y2="30" style="stroke:currentColor;stroke-width:3;opacity:.7"/>
+            <rect x="14" y="40" width="80" height="32" rx="10" class="ix-pan"/><rect x="126" y="40" width="80" height="32" rx="10" class="ix-pan"/>
+            <text x="54" y="61" text-anchor="middle" font-size="12.5" font-weight="800" style="fill:currentColor" id="ixLeft"></text>
+            <text x="166" y="61" text-anchor="middle" font-size="14" font-weight="800" style="fill:currentColor">${cfg.right}</text>
+          </g></svg>
+        <div class="ix-param">x = <b id="ixParam">?</b></div>
+        ${lxRangeHtml(cfg.min, cfg.max, 1, cfg.start, cfg.ticks)}</div>`;
+      const r = root.querySelector(".ix-range");
+      const upd = () => { const x = +r.value, left = cfg.a * x + cfg.b;
+        root.querySelector("#ixParam").textContent = lxNum(x);
+        root.querySelector("#ixLeft").textContent = `${cfg.a === 1 ? "" : cfg.a + "·"}${lxNum(x)} + ${cfg.b} = ${left}`;
+        const diff = Math.max(-1, Math.min(1, (left - cfg.right) / Math.max(4, cfg.right * .5)));
+        root.querySelector("#ixBeam").style.transform = `rotate(${(-diff * 14).toFixed(1)}deg)`;
+        root.querySelector(".ix-balance").classList.toggle("even", left === cfg.right); };
+      r.addEventListener("input", () => { upd(); lxSetInteractiveValue(+r.value); });
+      upd();
+    },
+    // Rechteck bauen: Länge und Breite ziehen, Fläche/Umfang live
+    rect(root, cfg){
+      root.innerHTML = `<div class="ix-card"><svg class="ix-rect" viewBox="0 0 220 110" id="ixRectSvg"></svg>
+        <div class="ix-rect-info" id="ixRectInfo"></div>
+        <div class="ix-rect-ctl"><span>Länge</span>${lxRangeHtml(1, cfg.max, 1, 1, [{ v: 1, t: "1" }, { v: cfg.max, t: String(cfg.max) }])}</div>
+        <div class="ix-rect-ctl"><span>Breite</span>${lxRangeHtml(1, cfg.maxH, 1, 1, [{ v: 1, t: "1" }, { v: cfg.maxH, t: String(cfg.maxH) }])}</div></div>`;
+      const [ra, rb] = root.querySelectorAll(".ix-range");
+      const upd = () => { const a = +ra.value, b = +rb.value, s = Math.min(200 / cfg.max, 96 / cfg.maxH);
+        let cells = "";
+        for(let i = 0; i < a; i++) for(let j = 0; j < b; j++) cells += `<rect x="${10 + i * s}" y="${7 + j * s}" width="${s - 1.5}" height="${s - 1.5}" rx="1.5" class="ix-cell"/>`;
+        root.querySelector("#ixRectSvg").innerHTML = cells;
+        const v = cfg.measure === "area" ? a * b : 2 * (a + b);
+        root.querySelector("#ixRectInfo").innerHTML = `${a} × ${b} cm  →  ${cfg.measure === "area" ? "Fläche" : "Umfang"} <b>${v} ${cfg.measure === "area" ? "cm²" : "cm"}</b>`;
+        root.querySelector("#ixRectInfo").classList.toggle("ok", v === cfg.target);
+        return v; };
+      [ra, rb].forEach(r => r.addEventListener("input", () => lxSetInteractiveValue(upd())));
+      upd();
+    }
+  };
+  function lxRenderInteractive(q){
+    const box = $("lxInteractive");
+    if(!box) return;
+    if(!q || !q.interactive){ box.style.display = "none"; box.innerHTML = ""; return; }
+    box.style.display = "flex";
+    LX_WIDGETS[q.interactive.kind](box, q.interactive);
+  }
+
+  // ---- neue interaktive Aufgabentypen je Thema ----
+  const lxPctTicks = [{ v: 0, t: "0 %" }, { v: 25, t: "25 %" }, { v: 50, t: "50 %" }, { v: 75, t: "75 %" }, { v: 100, t: "100 %" }];
+  const LX_INTERACTIVE_TYPES = {
+    percent: [
+      { from: 1, gen: n => { const k = 10 * randInt(1, 9); return { text: `Färbe ${E(k, "So viele Kästchen von 100 sollen gefärbt werden – jedes ist 1 %.")} % der Kästchen ein.`, answer: k, answerLabel: k + " %",
+          interactive: { kind: "gridfill", placeholder: "Wisch über die Kästchen", fmt: v => v + " %" }, hint: "Jede volle Reihe sind 10 Kästchen = 10 %.",
+          steps: [["100 Kästchen = 100 %", "Jedes Kästchen ist 1 %."], [`${k} % = «${k / 10} Reihen»`, "Jede Reihe hat 10 Kästchen."], [`«${k} Kästchen»`, "So viele färbst du ein."]] }; } },
+      { from: 3, gen: n => { const p = [25, 50, 75, 10, 90, 20, 40, 60, 80][randInt(0, n < 6 ? 2 : 8)]; return { text: `Zieh den Regler auf ${E(p, "Das ist der Prozentwert, den du einstellen sollst.")} %.`, answer: p, answerLabel: p + " %",
+          interactive: { kind: "slider", min: 0, max: 100, step: 5, start: 0, ticks: lxPctTicks, placeholder: "Zieh den Regler", fmt: v => v + " %" }, hint: "Die Mitte ist 50 %, ein Viertel ist 25 %.",
+          steps: [["links 0 %,  rechts 100 %", "Der Strahl ist das Ganze."], ["Mitte = 50 %", "Die Hälfte liegt genau in der Mitte."], [`«${p} %»`, `Dahin ziehst du den Regler.`]] }; } },
+      { from: 11, gen: n => { const g = [40, 80, 100, 120, 200][randInt(0, 4)], p = 5 * randInt(1, 19), v = g * p / 100; if(!Number.isInteger(v)) return LX_INTERACTIVE_TYPES.percent[1].gen(n);
+          const step = g / 20;
+          return { text: `Der Strahl geht von 0 bis ${E(g, "Das ist das Ganze (100 %).")}. Zieh auf ${E(p, "Der gesuchte Prozentsatz.")} % davon.`, answer: v,
+          interactive: { kind: "slider", min: 0, max: g, step, start: 0, ticks: [{ v: 0, t: "0" }, { v: g / 2, t: String(g / 2) }, { v: g, t: String(g) }], placeholder: "Zieh den Regler", fmt: x => String(x) },
+          hint: "Erst 1 % ausrechnen (Ganzes : 100), dann mal den Prozentsatz.",
+          steps: [[`1 % = ${g} : 100 = «${lxDec(g / 100)}»`, "Erst ausrechnen, wie viel 1 % ist."], [`${p} % = ${lxDec(g / 100)} · ${p} = «${v}»`, `${p}-mal so viel.`], [`«${v}»`, "Dahin ziehst du den Regler."]] }; } },
+      { from: 15, gen: n => { const k = randInt(3, 97); return { text: `Färbe ${E(k, "So viele Kästchen von 100 sollen gefärbt werden.")} % der Kästchen ein.`, answer: k, answerLabel: k + " %",
+          interactive: { kind: "gridfill", placeholder: "Wisch über die Kästchen", fmt: v => v + " %" }, hint: "Erst volle Reihen (je 10 %), dann einzelne Kästchen.",
+          steps: [[`${k} % = ${Math.floor(k / 10)} Reihen + ${k % 10}`, "Volle Reihen sind je 10 %, der Rest sind einzelne Kästchen."], [`«${k} Kästchen»`, "So viele färbst du ein."]] }; } }
+    ],
+    linfun: [
+      { from: 7, gen: n => { const m = randInt(1, 2), px = randInt(1, 3), b = randInt(-2, 2), py = m * px + b; if(py > 5 || py < -5) return LX_INTERACTIVE_TYPES.linfun[0].gen(n);
+          return { text: `f(x) = ${m === 1 ? "" : m}x + b\nVerschieb die Gerade, bis sie durch P geht.`, answer: b,
+          interactive: { kind: "graph", param: "b", m, px, py, pLabel: `P(${px}|${lxNum(py)})`, min: -5, max: 5, start: 5, ticks: [{ v: -5, t: "−5" }, { v: 0, t: "0" }, { v: 5, t: "5" }], placeholder: "Zieh den Regler", fmt: v => "b = " + lxNum(v) },
+          hint: "b verschiebt die Gerade nach oben oder unten.",
+          steps: [[`P(${px} | ${lxNum(py)}) einsetzen`, "Der Punkt muss auf der Geraden liegen."], [`${lxNum(py)} = ${m} · ${px} + b`, "x und y von P in die Funktion einsetzen."], [`b = ${lxNum(py)} − ${m * px} = «${lxNum(b)}»`, "Nach b auflösen."]] }; } },
+      { from: 12, gen: n => { const m = lxNz(-3, 3), b = randInt(-1, 1), px = randInt(1, 2), py = m * px + b; if(py > 5 || py < -5) return LX_INTERACTIVE_TYPES.linfun[1].gen(n);
+          return { text: `f(x) = m·x ${b < 0 ? M + " " + (-b) : "+ " + b}\nDreh die Gerade, bis sie durch Q geht.`, answer: m,
+          interactive: { kind: "graph", param: "m", b, px, py, pLabel: `Q(${px}|${lxNum(py)})`, min: -3, max: 3, start: 0, ticks: [{ v: -3, t: "−3" }, { v: 0, t: "0" }, { v: 3, t: "3" }], placeholder: "Zieh den Regler", fmt: v => "m = " + lxNum(v) },
+          hint: "m macht die Gerade steiler; negatives m lässt sie nach unten gehen.",
+          steps: [[`Q(${px} | ${lxNum(py)}) einsetzen`, "Q muss auf der Geraden liegen."], [`${lxNum(py)} = m · ${px} ${b < 0 ? M + " " + (-b) : "+ " + b}`, "x und y von Q einsetzen."], [`m = «${lxNum(m)}»`, `${lxNum(py - b)} : ${px} = ${lxNum(m)}`]] }; } }
+    ],
+    algebra: [
+      { from: 2, gen: n => { const x = randInt(1, lxUp(8, 15, n)), b = randInt(1, 9);
+          return { text: `x + ${E(b, "Diese Zahl liegt zusätzlich links auf der Waage.")} = ${E(x + b, "So viel liegt rechts.")}\nBring die Waage ins Gleichgewicht.`, answer: x,
+          interactive: { kind: "balance", a: 1, b, right: x + b, min: 0, max: 20, start: 0, ticks: [{ v: 0, t: "0" }, { v: 10, t: "10" }, { v: 20, t: "20" }], placeholder: "Stell x ein", fmt: v => "x = " + v },
+          hint: "Die Waage ist gerade, wenn links genauso viel ist wie rechts.",
+          steps: [[`x + ${b} = ${x + b}`, "Links und rechts soll gleich viel sein."], [`x = ${x + b} − ${b}`, `Auf beiden Seiten − ${b}.`], [`x = «${x}»`, "Dann ist die Waage gerade."]] }; } },
+      { from: 12, gen: n => { const x = randInt(1, 8), a = randInt(2, 4), b = randInt(1, 9);
+          return { text: `${E(a, "So oft liegt x auf der Waage.")}x + ${E(b, "Zusätzliche Gewichte links.")} = ${E(a * x + b, "So viel liegt rechts.")}\nBring die Waage ins Gleichgewicht.`, answer: x,
+          interactive: { kind: "balance", a, b, right: a * x + b, min: 0, max: 12, start: 0, ticks: [{ v: 0, t: "0" }, { v: 6, t: "6" }, { v: 12, t: "12" }], placeholder: "Stell x ein", fmt: v => "x = " + v },
+          hint: `Erst die ${b} wegdenken, dann durch ${a} teilen.`,
+          steps: [[`${a}x + ${b} = ${a * x + b}`, "Links und rechts soll gleich viel sein."], [`${a}x = «${a * x}»`, `${a * x + b} − ${b} = ${a * x}`], [`x = «${x}»`, `${a * x} : ${a} = ${x}`]] }; } }
+    ],
+    geometry: [
+      { from: 3, gen: n => { const opts = [6, 8, 10, 12, 15, 16, 18, 20, 24]; const t = opts[randInt(0, n < 6 ? 3 : 8)];
+          return { text: `Bau ein Rechteck mit der Fläche ${E(t, "So viele Kästchen soll das Rechteck haben.")} cm².`, answer: t,
+          interactive: { kind: "rect", measure: "area", target: t, max: 10, maxH: 6, placeholder: "Zieh Länge und Breite", fmt: v => v + " cm²" },
+          hint: "Fläche = Länge · Breite. Es gibt mehrere richtige Rechtecke!",
+          steps: [["Fläche = Länge · Breite", "Such zwei Zahlen, die malgenommen das Ziel ergeben."], [`z.B. ${[1, 2, 3, 4, 5, 6].filter(h => t % h === 0 && t / h <= 10).slice(-1).map(h => `${t / h} · ${h}`)[0]} = «${t}»`, "Das ist eine Möglichkeit – es gibt oft mehrere."]] }; } },
+      { from: 9, gen: n => { const t = 2 * randInt(4, 12);
+          return { text: `Bau ein Rechteck mit dem Umfang ${E(t, "So lang soll der Weg einmal außen herum sein.")} cm.`, answer: t,
+          interactive: { kind: "rect", measure: "perimeter", target: t, max: 10, maxH: 6, placeholder: "Zieh Länge und Breite", fmt: v => v + " cm" },
+          hint: "Umfang = 2 · (Länge + Breite). Länge + Breite muss also die Hälfte sein.",
+          steps: [[`Länge + Breite = ${t} : 2 = «${t / 2}»`, "Beim Rechteck zählt jede Seite zweimal."], [`z.B. ${Math.min(10, t / 2 - 1)} + ${t / 2 - Math.min(10, t / 2 - 1)} = ${t / 2}`, "Zwei Zahlen, die zusammen die Hälfte ergeben."], [`«${t} cm»`, "Dann stimmt der Umfang."]] }; } }
+    ]
+  };
+  // interaktive Typen in die Themen einsortieren
+  Object.entries(LX_INTERACTIVE_TYPES).forEach(([topic, types]) => types.forEach(t => LX_TYPES[topic].push(t)));
+
   function lxLevelFor(lessonNo){ return lessonNo <= 10 ? 1 : lessonNo <= 20 ? 2 : 3; }
 
   function lxStartLesson(topicId, lessonNo){
     const topic = lxTopic(topicId);
     const level = lxLevelFor(lessonNo);
     const questions = [];
+    // Bugfix ("gleiche Aufgabe mit meiner Antwort drin, super buggy"): vorher
+    // wurde nur der TEXT verglichen - bei Grafik-Aufgaben ist der aber immer
+    // gleich ("Wie groß ist die Fläche?"), nur Grafik/Zahlen unterscheiden
+    // sich. Dadurch wurde alles als Wiederholung aussortiert und die Lektion
+    // hatte nur 1 Aufgabe -> nach der ersten Antwort stürzte der Wechsel ab.
+    // Jetzt zählt Text + Grafik + Lösung, und es gibt IMMER 10 Aufgaben.
+    const keyOf = q => `${q.text}|${q.svg || ""}|${q.answer}|${q.interactive ? q.interactive.kind : ""}`;
+    const used = new Set();
     let guard = 0;
-    while(questions.length < QUESTIONS_PER_LESSON && guard++ < 200){
+    while(questions.length < QUESTIONS_PER_LESSON && guard++ < 400){
       const q = LX_GEN[topicId](lessonNo); // stufenlos: jede Lektion etwas schwerer
       if(!Number.isInteger(q.answer)) continue;
-      if(questions.length && questions[questions.length - 1].text === q.text) continue;
+      const k = keyOf(q);
+      if(questions.length && keyOf(questions[questions.length - 1]) === k) continue; // nie direkt dieselbe Aufgabe
+      if(used.has(k) && guard < 250) continue; // möglichst keine Wiederholungen
+      used.add(k);
       questions.push(q);
+    }
+    while(questions.length < QUESTIONS_PER_LESSON){ // Sicherheitsnetz: Lektion ist immer vollständig
+      const q = LX_GEN[topicId](lessonNo);
+      if(Number.isInteger(q.answer)) questions.push(q);
     }
     lesson = {
       tier: { id: "topic_" + topicId, name: `${topic.icon} ${topic.name} · ${lessonNo}`, icon: topic.icon, timeMs: level === 1 ? 20000 : 25000, normalAura: 2 + level, editAura: 4 + level * 2,
@@ -18760,10 +18985,12 @@
     if(typeof lxLupeHideUi === "function" && lxLupeActive) lxLupeHideUi();
     if(q && q.svg){ vis.innerHTML = q.svg; vis.style.display = "block"; } else { vis.innerHTML = ""; vis.style.display = "none"; }
     const useChoices = !!(q && q.choices);
+    const useIx = !!(q && q.interactive); // interaktive Aufgabe: Regler/Kästchen/Waage/... statt Tastatur
     ch.style.display = useChoices ? "grid" : "none";
-    $("numpad").style.display = useChoices ? "none" : "";
+    $("numpad").style.display = (useChoices || useIx) ? "none" : "";
     $("answerDisplay").style.display = useChoices ? "none" : "";
     $("submitBtn").style.display = useChoices ? "none" : "";
+    if(typeof lxRenderInteractive === "function") lxRenderInteractive(useIx ? q : null);
     if(!useChoices){ ch.innerHTML = ""; return; }
     ch.innerHTML = q.choices.map((c, i) => `<button class="lx-choice" data-i="${i}">${c}</button>`).join("");
     ch.querySelectorAll(".lx-choice").forEach(btn => btn.addEventListener("click", () => {
@@ -19295,6 +19522,12 @@
   function updateAnswerDisplay(){
     const el = $("answerDisplay");
     el.classList.remove("wrong","right","empty");
+    const cq = lesson && lesson.questions && lesson.questions[lesson.index];
+    if(cq && cq.interactive){ // interaktive Aufgabe: aktuellen Wert schön anzeigen
+      if(lesson.answer === ""){ el.textContent = cq.interactive.placeholder || "Zieh den Regler"; el.classList.add("empty"); }
+      else el.textContent = cq.interactive.fmt(parseInt(lesson.answer, 10));
+      return;
+    }
     if(lesson.answer === ""){
       el.textContent = "Tippe deine Antwort";
       el.classList.add("empty");
@@ -19546,13 +19779,14 @@
     if(!lesson) return;
     const idx = lesson.index;
     const seenTexts = new Set(lesson.questions.map(q => q.text));
+    const seenKeys = new Set(lesson.questions.map(q => q.text + "|" + (q.svg || "") + "|" + q.answer)); // Text + Grafik + Lösung
     let newQ;
     if(lesson.isTimesTablePractice){
       newQ = genTimesTableQuestion(lesson.timesTableN, seenTexts);
     } else if(lesson.tier && typeof lesson.tier.gen === "function"){
       let q = lesson.tier.gen();
       let attempts = 0;
-      while(seenTexts.has(q.text) && attempts < 25){ q = lesson.tier.gen(); attempts++; }
+      while(seenKeys.has(q.text + "|" + (q.svg || "") + "|" + q.answer) && attempts < 25){ q = lesson.tier.gen(); attempts++; }
       newQ = q;
     } else {
       return; // z.B. Duelle - dort wird diese Funktion ohnehin nicht aufgerufen

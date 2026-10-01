@@ -6584,7 +6584,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.81";
+  const APP_VERSION = "3.82";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -7151,8 +7151,8 @@
   // Bugfix (Lesevorgänge): lastActiveAt wird nur noch 1x pro Minute
   // aktualisiert statt alle 10 s - jede Änderung am Nutzer-Dokument löst bei
   // allen Freunden, die es live beobachten, einen Lesevorgang aus.
-  const ONLINE_THRESHOLD_MS = 150 * 1000; // 2,5 Min (passt zum 60-Sekunden-Online-Update)
-  const LAST_ACTIVE_UPDATE_MS = 60 * 1000;
+  const ONLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 Min (passt zum 2-Minuten-Online-Update)
+  const LAST_ACTIVE_UPDATE_MS = 2 * 60 * 1000; // war 1 Min - jede Speicherung kostet auch beim eigenen Live-Abgleich einen Lesevorgang
   let currentFriendProfileUid = null; // für das periodische Online-Punkt-Update im offenen Freundes-Profil
   setInterval(() => {
     if(firebaseInitialized && currentUser && cloudSyncReady){
@@ -7224,7 +7224,7 @@
     if(firebaseInitialized && currentUser && cloudSyncReady && !document.hidden){
       checkForNewlyOnlineFriends();
     }
-  }, 90000);
+  }, 180000); // war 90 s
 
   function isOnline(u){
     return !!(u && u.lastActiveAt && (Date.now() - u.lastActiveAt) < ONLINE_THRESHOLD_MS);
@@ -8715,7 +8715,7 @@
     const btn = $("donateAuraConfirmBtn"); btn.disabled = true; btn.textContent = "Wird gespendet...";
     try{
       // Hat der Freund schon das Maximum (2)? Dann gar nicht erst abziehen.
-      const target = await fetchUserDoc(donateAuraTargetUid);
+      const target = await fetchUserDoc(donateAuraTargetUid, true);
       if(target && ((target.inventory && target.inventory.icecube) || 0) >= 2){
         showToast(`@${donateAuraTargetUsername} hat schon 2 Icecubes (Maximum).`);
         return;
@@ -8953,10 +8953,18 @@
     renderProfile();
   }
 
-  async function fetchFollowers(uid){
+  // Zwischenspeicher (NEU): dieselbe Follower-Abfrage wurde vorher bei
+  // jedem Profil-Öffnen, alle 60 s im Profil und alle 90 s bei der
+  // Online-Prüfung komplett neu gelesen.
+  const SOCIAL_CACHE_MS = 3 * 60 * 1000;
+  let followersCache = { uid: null, ts: 0, data: null };
+  async function fetchFollowers(uid, fresh = false){
+    if(!fresh && followersCache.uid === uid && followersCache.data && Date.now() - followersCache.ts < SOCIAL_CACHE_MS) return followersCache.data;
     try{
       const snap = await db().collection("users").where("following", "array-contains", uid).get();
       const results = snap.docs.map(d => ({ ...d.data(), uid: d.id }));
+      followersCache = { uid, ts: Date.now(), data: results };
+      results.forEach(f => userDocCache.set(f.uid, { ts: Date.now(), data: f })); // Follower-Daten gleich mit merken
       profile.friendUsernameCache = profile.friendUsernameCache || {};
       results.forEach(f => { if(f.username) profile.friendUsernameCache[f.uid] = f.username; });
       return results;
@@ -9025,6 +9033,7 @@
   let cachedFollowersData = null;
   let cachedFollowersAt = 0;
   const FOLLOWERS_CACHE_MS = 5 * 60 * 1000; // 5 Minuten
+  let rescueCheckDoneThisSession = false;
   async function checkForNewlyOnlineFriends(){
     if(!firebaseInitialized || !currentUser) return;
     try{
@@ -9037,17 +9046,20 @@
       const followerUids = cachedFollowersData.map(f => f.uid);
       const mutualUids = following.filter(uid => followerUids.includes(uid));
       if(mutualUids.length === 0) return;
-      // Günstiger Lesevorgang (darf Cache nutzen) statt des teuren
-      // erzwungenen Server-Reads von fetchUserDoc - für die reine
-      // Online-Erkennung reicht das völlig aus.
-      const friendDocs = await Promise.all(mutualUids.map(async uid => {
-        try{
-          const doc = await db().collection("users").doc(uid).get();
-          return doc.exists ? { ...doc.data(), uid } : null;
-        }catch(e){ return null; }
-      }));
-      if(typeof checkFriendsForStreakRescue === "function") checkFriendsForStreakRescue(friendDocs.filter(Boolean)); // Streak-Rettung (ohne Extra-Lesevorgänge)
-      const onlineFriends = friendDocs.filter(u => u && isOnline(u));
+      // Bugfix (Lesevorgänge): vorher wurde JEDES Freundes-Profil einzeln
+      // gelesen (normales .get() geht online immer zum Server). Jetzt nur
+      // eine Abfrage der Nutzer, die gerade online sind - das sind meist
+      // nur wenige, egal wie viele Freunde man hat.
+      const onlineSnap = await db().collection("users").where("lastActiveAt", ">", Date.now() - ONLINE_THRESHOLD_MS).get();
+      const mutualSet = new Set(mutualUids);
+      const onlineFriends = onlineSnap.docs.map(d => ({ ...d.data(), uid: d.id })).filter(u => mutualSet.has(u.uid) && isOnline(u));
+      onlineFriends.forEach(u => userDocCache.set(u.uid, { ts: Date.now(), data: u }));
+      // Streak-Rettung: braucht alle Freunde, aber nur EINMAL pro Sitzung
+      if(!rescueCheckDoneThisSession && typeof checkFriendsForStreakRescue === "function"){
+        rescueCheckDoneThisSession = true;
+        const friendDocs = await Promise.all(mutualUids.map(uid => fetchUserDoc(uid)));
+        checkFriendsForStreakRescue(friendDocs.filter(Boolean));
+      }
       const currentOnlineUids = new Set(onlineFriends.map(u => u.uid));
       const newlyOnline = onlineFriends.filter(u => !knownOnlineFriendUids.has(u.uid));
       knownOnlineFriendUids = currentOnlineUids;
@@ -9076,7 +9088,21 @@
     }
   }
 
-  async function fetchUserDoc(uid){
+  // Zwischenspeicher für Nutzer-Profile (NEU): vorher wurde JEDES Profil
+  // jedes Mal frisch vom Server gelesen - bei 30 Freunden also 30
+  // Lesevorgänge bei jedem Profil-Öffnen, jede Minute im Profil, in der
+  // Nachrichtenliste usw. fresh=true erzwingt frische Daten.
+  var userDocCache = new Map();
+  async function fetchUserDoc(uid, fresh = false){
+    if(!fresh){
+      const c = userDocCache.get(uid);
+      if(c && Date.now() - c.ts < SOCIAL_CACHE_MS) return c.data;
+    }
+    const data = await fetchUserDocServer(uid);
+    if(data) userDocCache.set(uid, { ts: Date.now(), data });
+    return data;
+  }
+  async function fetchUserDocServer(uid){
     try{
       // sonst können hier veraltete Werte (z.B. Aura) auftauchen, wenn die
       // gesuchte Person gerade offline ist und es deshalb keinen aktuellen
@@ -10359,6 +10385,7 @@
     renderLeaderboardRows(filtered, currentUser.uid);
   }
 
+  var globalLeaderboardCache = {};
   async function renderGlobalLeaderboard(){
     $("leaderboardEmptyMsg").style.display = "none";
     $("leaderboardList").innerHTML = "";
@@ -10371,12 +10398,20 @@
     $("leaderboardList").innerHTML = '<div class="lb-loading"><div class="lb-loading-spinner"></div>Rangliste lädt …</div>';
 
     try{
-      const snap = await db().collection("users")
-        .orderBy(leaderboardSortBy === "aura" ? "totalAura" : "level", "desc")
-        .limit(GLOBAL_LEADERBOARD_LIMIT)
-        .get();
-      let entries = snap.docs
-        .map(d => ({ ...d.data(), uid: d.id }))
+      // Zwischenspeicher (NEU): die Top 50 kosten 50 Lesevorgänge - vorher
+      // bei JEDEM Öffnen des Tabs und jede Minute. Jetzt höchstens alle 2 Min
+      // pro Sortierung.
+      const lbKey = leaderboardSortBy === "aura" ? "totalAura" : "level";
+      let rawDocs;
+      const lbc = globalLeaderboardCache[lbKey];
+      if(lbc && Date.now() - lbc.ts < 120000) rawDocs = lbc.docs;
+      else {
+        const snap = await db().collection("users").orderBy(lbKey, "desc").limit(GLOBAL_LEADERBOARD_LIMIT).get();
+        rawDocs = snap.docs.map(d => ({ ...d.data(), uid: d.id }));
+        globalLeaderboardCache[lbKey] = { ts: Date.now(), docs: rawDocs };
+      }
+      let entries = rawDocs
+        .map(d => ({ ...d }))
         .filter(e => !!e.username && (e.level || 0) >= 2) // erst ab Level 2 in der Rangliste
         .map(e => ({ uid: e.uid, username: e.username, level: e.level || 0, totalAura: e.totalAura || 0, avatarData: e.avatarData, activeFont: e.activeFont, lastActiveAt: e.lastActiveAt, lastLessonAt: e.lastLessonAt, lessonInProgressAt: e.lessonInProgressAt }));
 
@@ -11064,7 +11099,7 @@
 
   async function openFriendProfile(uid){
     currentFriendProfileUid = uid;
-    let u = await fetchUserDoc(uid);
+    let u = await fetchUserDoc(uid, true);
     if(!u){
       // Kurzer Retry, falls es nur eine kurzzeitige Verzögerung war
       await new Promise(r => setTimeout(r, 400));
@@ -14853,44 +14888,57 @@
   // Sitzung neu eintreffenden Anfrage ein Banner oben, wie bei Nachrichten.
   let friendRequestUnsubscribe = null;
   let friendRequestInitialSnapshotDone = false;
+  // KRITISCHER BUGFIX (Lesevorgänge): vorher ein LIVE-Listener auf alle
+  // Follower - der feuerte bei JEDEM Speichern eines Followers (mind. 1x pro
+  // Minute wegen der Online-Zeit). 20 Leute online, die je 30 Leuten folgen
+  // = ~36.000 Lesevorgänge pro Stunde. Jetzt: beim Start, alle 5 Minuten
+  // (nur wenn die App sichtbar ist) und beim Zurückkehren in die App.
+  const FRIEND_REQ_POLL_MS = 5 * 60 * 1000;
+  let friendRequestPollTimer = null, prevFollowerUids = null;
+  function handleFollowersUpdate(followers){
+    const following = profile.following || [];
+    const dismissed = profile.dismissedFollowRequests || [];
+    const notFollowedBack = followers.filter(f => !following.includes(f.uid) && !dismissed.includes(f.uid));
+    pendingFriendRequestCount = notFollowedBack.length;
+    inboxFollowers = followers;
+    const reqTabBadge = $("friendRequestsTabBadge");
+    if(reqTabBadge){
+      if(pendingFriendRequestCount > 0){ reqTabBadge.textContent = pendingFriendRequestCount; reqTabBadge.style.display = "flex"; }
+      else reqTabBadge.style.display = "none";
+    }
+    updateMessagesBadge();
+    if(typeof syncNovaDots === "function") syncNovaDots();
+    if($("overlayInbox") && $("overlayInbox").classList.contains("show")) renderInbox();
+    // Neue Anfragen seit der letzten Abfrage -> Banner
+    if(prevFollowerUids){
+      const fresh = followers.filter(f => !prevFollowerUids.has(f.uid) && !(profile.following || []).includes(f.uid));
+      if(fresh.length){
+        $("friendRequestBannerText").innerHTML = `<b>@${fresh[0].username || "Jemand"}</b> möchte dir folgen`;
+        $("friendRequestBanner").classList.add("show");
+      }
+    }
+    prevFollowerUids = new Set(followers.map(f => f.uid));
+  }
+  async function pollFriendRequests(){
+    if(!firebaseInitialized || !currentUser || document.hidden) return;
+    const followers = await fetchFollowers(currentUser.uid, true);
+    handleFollowersUpdate(followers);
+  }
   function watchFriendRequests(){
     if(friendRequestUnsubscribe){ friendRequestUnsubscribe(); friendRequestUnsubscribe = null; }
     if(!firebaseInitialized || !currentUser) return;
-    friendRequestInitialSnapshotDone = false;
-    friendRequestUnsubscribe = db().collection("users")
-      .where("following", "array-contains", currentUser.uid)
-      .onSnapshot((snap) => {
-        const followers = snap.docs.map(d => ({ ...d.data(), uid: d.id }));
-        const following = profile.following || [];
-        const dismissed = profile.dismissedFollowRequests || [];
-        const notFollowedBack = followers.filter(f => !following.includes(f.uid) && !dismissed.includes(f.uid));
-        pendingFriendRequestCount = notFollowedBack.length;
-        inboxFollowers = followers;
-        const reqTabBadge = $("friendRequestsTabBadge");
-        if(reqTabBadge){
-          if(pendingFriendRequestCount > 0){
-            reqTabBadge.textContent = pendingFriendRequestCount;
-            reqTabBadge.style.display = "flex";
-          } else {
-            reqTabBadge.style.display = "none";
-          }
-        }
-        updateMessagesBadge();
-        if(typeof syncNovaDots === "function") syncNovaDots();
-        if($("overlayInbox") && $("overlayInbox").classList.contains("show")) renderInbox();
-
-        if(friendRequestInitialSnapshotDone){
-          snap.docChanges().forEach(change => {
-            if(change.type === "added" && !(profile.following || []).includes(change.doc.id)){
-              const data = change.doc.data();
-              $("friendRequestBannerText").innerHTML = `<b>@${data.username || "Jemand"}</b> möchte dir folgen`;
-              $("friendRequestBanner").classList.add("show");
-            }
-          });
-        }
-        friendRequestInitialSnapshotDone = true;
-      }, (err) => console.error("Freundschaftsanfragen beobachten Fehler:", err));
+    prevFollowerUids = null;
+    pollFriendRequests();
+    if(friendRequestPollTimer) clearInterval(friendRequestPollTimer);
+    friendRequestPollTimer = setInterval(pollFriendRequests, FRIEND_REQ_POLL_MS);
+    // "Abmelden"-Code ruft friendRequestUnsubscribe() auf -> stoppt die Abfragen
+    friendRequestUnsubscribe = () => { if(friendRequestPollTimer){ clearInterval(friendRequestPollTimer); friendRequestPollTimer = null; } };
   }
+  let lastFriendReqVisiblePoll = 0;
+  document.addEventListener("visibilitychange", () => {
+    // Beim Zurückkehren in die App einmal nachsehen (höchstens alle 60 s)
+    if(!document.hidden && currentUser && Date.now() - lastFriendReqVisiblePoll > 60000){ lastFriendReqVisiblePoll = Date.now(); pollFriendRequests(); }
+  });
 
   let ownerRegNotifyUnsubscribe = null;
   let pendingOwnerRegNotify = null;

@@ -3468,7 +3468,7 @@
   @keyframes pf-pop{ from{ opacity:0; transform:scale(.3) translateY(8px); } to{ opacity:1; transform:none; } }
   .pf-tok.flip{ animation:pf-flip .46s ease both; }
   @keyframes pf-flip{ 0%{ transform:rotateX(0); } 50%{ transform:rotateX(90deg); } 100%{ transform:rotateX(0); } }
-  .pf-tok.gone{ opacity:0; transform:scale(.4) translateY(-10px); text-decoration:line-through; }
+  .pf-tok.gone{ animation:none !important; opacity:0; transform:scale(.4) translateY(-10px); text-decoration:line-through; } /* Einblend-Animation darf das Wegstreichen nicht blockieren */
   .pf-tok.final{ color:var(--success) !important; text-shadow:0 0 18px color-mix(in srgb, var(--success) 60%, transparent); }
   .pf-box{ position:absolute; border:2.5px solid var(--accent); border-radius:14px; box-shadow:0 0 18px color-mix(in srgb, var(--accent) 45%, transparent);
     animation:pf-box-in .35s cubic-bezier(.2,.9,.25,1.05) both; }
@@ -6624,7 +6624,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.84";
+  const APP_VERSION = "3.85";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -19984,162 +19984,157 @@
        rewrite = Teil umschreiben       done   = Ergebnis grün markieren
      Programme werden aus dem Aufgabentext erkannt (lxAutoProgram). Gibt es
      keins, läuft die bisherige Teil-für-Teil-Erklärung. */
+  /* ===== COMPUTERPRINZIP: Programme für "Lösen" =====
+     Nur kurze Befehle mit echten Zahlen, keine Erklärungen, was etwas "ist":
+       1. einrahmen, woher ein Wert kommt / was als Nächstes dran ist
+       2. Animation (Pfeil + ersetzen, Rechenteil schrumpft zum Ergebnis)
+       3. am Ende "Ergebnis: …" in Grün
+     Rechnungen werden automatisch zerlegt (cpEval): Punkt vor Strich, sonst
+     von links nach rechts. Gibt es eine Reihenfolge-Entscheidung, wird zuerst
+     eingerahmt ("Rechne zuerst 3 · 5."), dann geschrumpft ("3 · 5 = 15"). */
   function lxProgBuilder(){
     const lines = [], steps = []; let n = 0;
-    const mk = t => (t !== null && typeof t === "object" ? { ...t, t: String(t.t) } : { t: String(t) }); // Zahlen werden zu Text (sonst ging z.B. "2" verloren)
+    const mk = t => (t !== null && typeof t === "object" ? { ...t, t: String(t.t) } : { t: String(t) });
     return {
-      line(toks){ const ids = []; lines.push(toks.map(t => { const o = mk(t); o.id = "k" + (n++); ids.push(o.id); return o; })); return ids; },
+      line(toks){ const ids = []; const arr = toks.map(t => { const o = mk(t); o.id = "k" + (n++); ids.push(o.id); return o; }); lines.push(arr); return ids; },
       tok(t, extra){ return { ...mk(t), ...(extra || {}), id: "k" + (n++) }; },
       step(s){ steps.push(s); },
       out(){ return { lines, steps }; }
     };
   }
   const T = (t, tight) => ({ t: String(t), tight: !!tight });
-  const lxN = v => lxNum(v);
+  const CP_PREC = { "·": 2, ":": 2, "+": 1, [M]: 1 };
+  const cpParse = t => { const s = String(t).replace(/[()]/g, "").replace(M, "-").replace(",", "."); return /^-?\d+(\.\d+)?$/.test(s) ? parseFloat(s) : null; };
+  const cpFmt = v => { const r = Math.round(v * 1000) / 1000; return r < 0 ? M + lxDec(-r) : lxDec(r); };
+  // Rechnet eine flache Kette (Zahl op Zahl op …) Schritt für Schritt aus.
+  // seg = Liste von {id, t}; wird verändert. Gibt das Ergebnis-Token zurück.
+  function cpEval(P, seg){
+    while(seg.length > 1){
+      let best = -1;
+      for(let i = 1; i < seg.length; i += 2) if(best < 0 || CP_PREC[seg[i].t] > CP_PREC[seg[best].t]) best = i;
+      const a = seg[best - 1], op = seg[best], b = seg[best + 1];
+      const va = cpParse(a.t), vb = cpParse(b.t);
+      const r = op.t === "·" ? va * vb : op.t === ":" ? va / vb : op.t === "+" ? va + vb : va - vb;
+      const res = P.tok(cpFmt(r));
+      const expr = `${a.t} ${op.t} ${b.t}`;
+      const choice = seg.some((x, i) => i % 2 === 1 && i !== best);
+      if(choice && seg.some((x, i) => i % 2 === 1 && CP_PREC[x.t] < CP_PREC[op.t])){
+        P.step({ op: "focus", ids: [a.id, op.id, b.id], why: `Rechne zuerst ${expr}.` });
+        P.step({ op: "reduce", ids: [a.id, op.id, b.id], result: res, why: `${expr} = ${res.t}` });
+      } else {
+        P.step({ op: "reduce", ids: [a.id, op.id, b.id], result: res, why: `Rechne ${expr} = ${res.t}.` });
+      }
+      seg.splice(best - 1, 3, res);
+    }
+    return seg[0];
+  }
+  const cpTok = (P, t) => P.tok(t);
 
-  // f(x) = m·x + b ;  f(x0) = ?
+  // ---- f(x) = m·x + b ;  f(x0) = ? ----
   function lxProgFval(m, b, x0){
+    if(m === -1) return null;
     const P = lxProgBuilder();
-    const coef = m === 1 ? null : (m === -1 ? M : String(m));
-    const L1toks = [T("f("), T("x", true), T(")", true), T("=")];
-    if(coef !== null) L1toks.push(T(coef));
-    L1toks.push(T("x", coef !== null));
-    if(b > 0) L1toks.push(T("+"), T(b)); else if(b < 0) L1toks.push(T(M), T(-b));
-    const L1 = P.line(L1toks);
-    const L2 = P.line([T("f("), T(lxN(x0), true), T(")", true), T("="), T("?")]);
-    const fx = L1[1], ci = coef !== null ? 4 : -1, xi = coef !== null ? 5 : 4, xTok = L1[xi];
-    P.step({ op: "focus", ids: L2, why: `Gesucht ist f(${lxN(x0)}): Was kommt heraus, wenn x = ${lxN(x0)} ist?` });
-    P.step({ op: "arrow", from: L2[1], to: [fx, xTok], why: `Die ${lxN(x0)} aus der Klammer kommt überall dorthin, wo ein x steht.` });
-    const subVal = coef !== null && coef !== M ? "· " + lxPar(x0) : (coef === M ? lxPar(x0) : lxPar(x0));
-    P.step({ op: "subst", ids: [fx, xTok], texts: [lxN(x0), subVal], loosen: coef !== null && coef !== M, why: `Alle x werden zur ${lxN(x0)}.` });
-    let cur = xTok;
-    if(coef !== null){
-      const r = P.tok(lxN(m * x0));
-      P.step({ op: "reduce", ids: [L1[ci], xTok], result: r, why: coef === M ? `Minus vor der Zahl: ${lxN(m * x0)}.` : `Zuerst mal rechnen: ${lxN(m)} · ${lxPar(x0)} = ${lxN(m * x0)}.` });
-      cur = r.id;
-    }
-    if(b !== 0){
-      const r2 = P.tok(lxN(m * x0 + b));
-      P.step({ op: "reduce", ids: [cur, L1[L1.length - 2], L1[L1.length - 1]], result: r2, why: `Dann ${b > 0 ? "plus" : "minus"} rechnen: ${lxN(m * x0)} ${b > 0 ? "+" : M} ${Math.abs(b)} = ${lxN(m * x0 + b)}.` });
-    }
-    P.step({ op: "subst", ids: [L2[4]], texts: [lxN(m * x0 + b)], why: `Das Ergebnis kommt an die Stelle vom Fragezeichen.` });
-    P.step({ op: "done", ids: L2, why: `f(${lxN(x0)}) = ${lxN(m * x0 + b)} – fertig!` });
+    const toks = [T("f("), T("x", true), T(")", true), T("=")];
+    if(m !== 1) toks.push(T(m < 0 ? M + (-m) : m));
+    toks.push(T("x", m !== 1));
+    if(b > 0) toks.push(T("+"), T(b)); else if(b < 0) toks.push(T(M), T(-b));
+    const L1 = P.line(toks);
+    const L2 = P.line([T("f("), T(lxNum(x0), true), T(")", true), T("="), T("?")]);
+    const fx = L1[1], xi = m !== 1 ? 5 : 4, xTok = L1[xi];
+    P.step({ op: "focus", ids: L2, why: `Hier steht: x = ${lxNum(x0)}.` });
+    // x ersetzen: bei einer Zahl davor wird aus "2x" -> "2 · 3"
+    const valTok = P.tok(lxPar(x0)), dot = P.tok("·");
+    const repl = m !== 1 ? [dot, valTok] : [valTok];
+    P.step({ op: "arrowsubst", from: L2[1], subs: [{ id: fx, toks: [P.tok(lxNum(x0), { tight: true })] }, { id: xTok, toks: repl }], why: `Ersetze jedes x durch ${lxNum(x0)}.` });
+    // rechte Seite ausrechnen
+    const seg = [];
+    if(m !== 1) seg.push({ id: L1[4], t: String(m < 0 ? M + (-m) : m) }, { id: dot.id, t: "·" });
+    seg.push({ id: valTok.id, t: valTok.t });
+    if(b !== 0) seg.push({ id: L1[xi + 1], t: b > 0 ? "+" : M }, { id: L1[xi + 2], t: String(Math.abs(b)) });
+    const res = cpEval(P, seg);
+    P.step({ op: "result", target: L2[4], value: res.t, ids: L2, why: `Ergebnis: ${res.t}` });
     return P.out();
   }
-  function lxFormulaToks(m, b){
-    const coef = m === 1 ? null : (m === -1 ? M : String(m));
-    const t = [T("f("), T("x", true), T(")", true), T("=")];
-    if(coef !== null) t.push(T(coef));
-    t.push(T("x", coef !== null));
-    if(b > 0) t.push(T("+"), T(b)); else if(b < 0) t.push(T(M), T(-b));
-    return { toks: t, coefIdx: coef !== null ? 4 : -1 };
-  }
-  // f(x) = mx + b ; m = ?  bzw.  b = ?
+  // ---- f(x) = mx + b ; m = ? / b = ? ----
   function lxProgRead(m, b, which){
+    if(which === "m" && (m === 1 || m === -1)) return null;
+    if(which === "b" && b === 0) return null;
     const P = lxProgBuilder();
-    const F = lxFormulaToks(m, b), L1 = P.line(F.toks);
-    const L2 = P.line([T(which), T("="), T("?")]);
-    P.step({ op: "focus", ids: L1.slice(3), why: "So ist jede lineare Funktion gebaut: erst die Zahl vor dem x (m), dann die Zahl ohne x (b)." });
+    const toks = [T("f("), T("x", true), T(")", true), T("=")];
+    toks.push(T(m < 0 ? M + (-m) : m)); toks.push(T("x", true));
+    if(b > 0) toks.push(T("+"), T(b)); else if(b < 0) toks.push(T(M), T(-b));
+    const L1 = P.line(toks), L2 = P.line([T(which), T("="), T("?")]);
     if(which === "m"){
-      if(F.coefIdx === -1) return null;
-      P.step({ op: "focus", ids: [L1[F.coefIdx]], why: "m ist die Zahl DIREKT vor dem x." });
-      P.step({ op: "arrow", from: L1[F.coefIdx], to: [L2[2]], why: "Diese Zahl ist die Steigung m." });
-      P.step({ op: "subst", ids: [L2[2]], texts: [lxN(m)], why: `m = ${lxN(m)}.` });
+      P.step({ op: "focus", ids: [L1[4]], why: "Suche die Zahl direkt vor dem x." });
+      P.step({ op: "arrowresult", from: L1[4], target: L2[2], value: lxNum(m), ids: L2, why: `Ergebnis: m = ${lxNum(m)}` });
     } else {
-      if(b === 0) return null;
-      const bIds = L1.slice(-2);
-      P.step({ op: "focus", ids: bIds, why: b < 0 ? "b ist die Zahl ohne x am Ende – das Minus davor gehört dazu." : "b ist die Zahl ohne x am Ende." });
-      P.step({ op: "arrow", from: bIds[1], to: [L2[2]], why: "Diese Zahl ist der y-Achsenabschnitt b." });
-      P.step({ op: "subst", ids: [L2[2]], texts: [lxN(b)], why: `b = ${lxN(b)}.` });
+      P.step({ op: "focus", ids: [L1[6], L1[7]], why: "Suche die Zahl ohne x am Ende – mit ihrem Vorzeichen." });
+      P.step({ op: "arrowresult", from: L1[7], target: L2[2], value: lxNum(b), ids: L2, why: `Ergebnis: b = ${lxNum(b)}` });
     }
-    P.step({ op: "done", ids: L2, why: "Fertig!" });
     return P.out();
   }
-  // x + a = c  /  x − a = c
-  function lxProgAddEq(a, c, minus){
+  // ---- Gleichungen: [a]x ± b = c  /  a · x = c ----
+  // Rechnet "auf beiden Seiten" und streicht, was sich links aufhebt.
+  function lxProgEquation(a, b, c, sign, mulDot){
     const P = lxProgBuilder();
-    const L = P.line([T("x"), T(minus ? M : "+"), T(a), T("="), T(lxN(c))]);
-    const x = minus ? c + a : c - a, inv = minus ? "+" : M;
-    P.step({ op: "focus", ids: L, why: `Gesucht ist x. x soll am Ende allein auf einer Seite stehen.` });
-    P.step({ op: "focus", ids: [L[1], L[2]], why: `Das „${minus ? M : "+"} ${a}“ stört – es muss weg.` });
-    const i1 = P.tok(inv), i2 = P.tok(a), j1 = P.tok(inv), j2 = P.tok(a);
-    P.step({ op: "insert", after: L[2], toks: [i1, i2], why: `Das Gegenteil von ${minus ? M : "+"} ${a} ist ${inv} ${a} …` });
-    P.step({ op: "insert", after: L[4], toks: [j1, j2], why: `… und zwar auf BEIDEN Seiten, damit es gleich bleibt.` });
-    P.step({ op: "remove", ids: [L[1], L[2], i1.id, i2.id], why: `${minus ? M : "+"} ${a} und ${inv} ${a} heben sich auf – links bleibt nur x.` });
-    const r = P.tok(lxN(x));
-    P.step({ op: "reduce", ids: [L[4], j1.id, j2.id], result: r, why: `Rechts ausrechnen: ${lxN(c)} ${inv} ${a} = ${lxN(x)}.` });
-    P.step({ op: "done", ids: [L[0], L[3], r.id], why: `x = ${lxN(x)} – fertig!` });
+    const left = [];
+    if(a !== 1) left.push(T(a));
+    if(mulDot && a !== 1) left.push(T("·"));
+    left.push(T("x", a !== 1 && !mulDot));
+    if(b) left.push(T(sign), T(b));
+    const L = P.line([...left, T("="), T(lxNum(c))]);
+    const idx = { coef: a !== 1 ? 0 : -1, dot: mulDot && a !== 1 ? 1 : -1 };
+    const xIdx = a === 1 ? 0 : (mulDot ? 2 : 1);
+    const xId = L[xIdx], eqId = L[L.length - 2];
+    let rightSeg = [{ id: L[L.length - 1], t: lxNum(c) }];
+    let lastRight = L[L.length - 1];
+    if(b){
+      const inv = sign === "+" ? M : "+";
+      const li1 = P.tok(inv), li2 = P.tok(b), ri1 = P.tok(inv), ri2 = P.tok(b);
+      P.step({ op: "bothsides", leftAfter: L[xIdx + 2], rightAfter: lastRight, leftToks: [li1, li2], rightToks: [ri1, ri2],
+               cancel: [L[xIdx + 1], L[xIdx + 2], li1.id, li2.id], why: `Rechne auf beiden Seiten ${inv} ${b}.` });
+      rightSeg.push({ id: ri1.id, t: inv }, { id: ri2.id, t: String(b) });
+      const r = cpEval(P, rightSeg); rightSeg = [r]; lastRight = r.id;
+    }
+    if(a !== 1){
+      const li1 = P.tok(":"), li2 = P.tok(a), ri1 = P.tok(":"), ri2 = P.tok(a);
+      const cancel = [L[0], li1.id, li2.id]; if(idx.dot >= 0) cancel.push(L[1]);
+      P.step({ op: "bothsides", leftAfter: xId, rightAfter: lastRight, leftToks: [li1, li2], rightToks: [ri1, ri2], cancel, why: `Teile beide Seiten durch ${a}.` });
+      rightSeg.push({ id: ri1.id, t: ":" }, { id: ri2.id, t: String(a) });
+      const r = cpEval(P, rightSeg); rightSeg = [r]; lastRight = r.id;
+    }
+    P.step({ op: "done", ids: [xId, eqId, lastRight], why: `Ergebnis: x = ${rightSeg[0].t}` });
     return P.out();
   }
-  // a · x = c
-  function lxProgMulEq(a, c){
+  // ---- b² / b³ / a² + b² ----
+  function lxProgPowers(parts){ // parts: [[basis, exp], ...] (mit + verbunden)
     const P = lxProgBuilder();
-    const L = P.line([T(a), T("·"), T("x"), T("="), T(c)]);
-    P.step({ op: "focus", ids: L, why: "Gesucht ist x. x wird hier mit einer Zahl malgenommen." });
-    P.step({ op: "focus", ids: [L[0], L[1]], why: `Das „${a} ·“ stört – es muss weg.` });
-    const i1 = P.tok(":"), i2 = P.tok(a), j1 = P.tok(":"), j2 = P.tok(a);
-    P.step({ op: "insert", after: L[2], toks: [i1, i2], why: `Das Gegenteil von mal ${a} ist geteilt durch ${a} …` });
-    P.step({ op: "insert", after: L[4], toks: [j1, j2], why: "… auf BEIDEN Seiten." });
-    P.step({ op: "remove", ids: [L[0], L[1], i1.id, i2.id], why: `· ${a} und : ${a} heben sich auf – links bleibt nur x.` });
-    const r = P.tok(c / a);
-    P.step({ op: "reduce", ids: [L[4], j1.id, j2.id], result: r, why: `Rechts ausrechnen: ${c} : ${a} = ${c / a}.` });
-    P.step({ op: "done", ids: [L[2], L[3], r.id], why: `x = ${c / a} – fertig!` });
+    const toks = [];
+    parts.forEach(([bs, e], i) => { if(i) toks.push(T("+")); toks.push(T(bs), T(e === 2 ? "²" : "³", true)); });
+    const L = P.line([...toks, T("="), T("?")]);
+    const seg = [];
+    parts.forEach(([bs, e], i) => {
+      const off = i * 3, baseId = L[off], supId = L[off + 1];
+      const outs = [P.tok(bs)]; for(let k = 1; k < e; k++) outs.push(P.tok("·"), P.tok(bs));
+      P.step({ op: "rewrite", ids: [baseId, supId], toks: outs, why: `Schreibe ${bs}${e === 2 ? "²" : "³"} als ${Array(e).fill(bs).join(" · ")}.` });
+      if(i) seg.push({ id: L[off - 1], t: "+" });
+      outs.forEach(o => seg.push({ id: o.id, t: o.t }));
+    });
+    const res = cpEval(P, seg);
+    P.step({ op: "result", target: L[L.length - 1], value: res.t, ids: [res.id, L[L.length - 2], L[L.length - 1]], why: `Ergebnis: ${res.t}` });
     return P.out();
   }
-  // a·x ± b = c
-  function lxProgLinEq(a, b, c, minus){
-    const P = lxProgBuilder();
-    const L = P.line([T(a), T("x", true), T(minus ? M : "+"), T(b), T("="), T(lxN(c))]);
-    const ax = minus ? c + b : c - b, x = ax / a, inv = minus ? "+" : M;
-    P.step({ op: "focus", ids: L, why: "Gesucht ist x. Zwei Schritte: erst das Plus/Minus weg, dann das Mal." });
-    P.step({ op: "focus", ids: [L[2], L[3]], why: `Zuerst muss „${minus ? M : "+"} ${b}“ weg.` });
-    const i1 = P.tok(inv), i2 = P.tok(b), j1 = P.tok(inv), j2 = P.tok(b);
-    P.step({ op: "insert", after: L[3], toks: [i1, i2], why: `Gegenteil: ${inv} ${b} …` });
-    P.step({ op: "insert", after: L[5], toks: [j1, j2], why: "… auf BEIDEN Seiten." });
-    P.step({ op: "remove", ids: [L[2], L[3], i1.id, i2.id], why: "Das hebt sich links auf." });
-    const r = P.tok(lxN(ax));
-    P.step({ op: "reduce", ids: [L[5], j1.id, j2.id], result: r, why: `Rechts: ${lxN(c)} ${inv} ${b} = ${lxN(ax)}.` });
-    P.step({ op: "focus", ids: [L[0], L[1]], why: `${a}x heißt ${a} mal x – jetzt muss das „mal ${a}“ weg.` });
-    const k1 = P.tok(":"), k2 = P.tok(a), q1 = P.tok(":"), q2 = P.tok(a);
-    P.step({ op: "insert", after: L[1], toks: [k1, k2], why: `Gegenteil: geteilt durch ${a} …` });
-    P.step({ op: "insert", after: r.id, toks: [q1, q2], why: "… auf BEIDEN Seiten." });
-    const xl = P.tok("x");
-    P.step({ op: "reduce", ids: [L[0], L[1], k1.id, k2.id], result: xl, why: `${a}x : ${a} = x.` });
-    const r2 = P.tok(lxN(x));
-    P.step({ op: "reduce", ids: [r.id, q1.id, q2.id], result: r2, why: `${lxN(ax)} : ${a} = ${lxN(x)}.` });
-    P.step({ op: "done", ids: [xl.id, L[4], r2.id], why: `x = ${lxN(x)} – fertig!` });
-    return P.out();
-  }
-  // b² / b³
-  function lxProgPow(b, e){
-    const P = lxProgBuilder();
-    const L = P.line([T(b), T(e === 2 ? "²" : "³", true), T("="), T("?")]);
-    P.step({ op: "focus", ids: [L[0], L[1]], why: `Die kleine ${e} oben heißt: die ${b} ${e === 2 ? "zweimal" : "dreimal"} malnehmen.` });
-    P.step({ op: "subst", ids: [L[1]], texts: [e === 2 ? `· ${b}` : `· ${b} · ${b}`], loosen: true, why: `Aus ${b}${e === 2 ? "²" : "³"} wird ${Array(e).fill(b).join(" · ")}.` });
-    const r = P.tok(b ** e);
-    P.step({ op: "reduce", ids: [L[0], L[1]], result: r, why: `Ausrechnen: ${Array(e).fill(b).join(" · ")} = ${b ** e}.` });
-    P.step({ op: "arrow", from: r.id, to: [L[3]], why: "Das Ergebnis kommt an die Stelle vom Fragezeichen." });
-    P.step({ op: "subst", ids: [L[3]], texts: [String(b ** e)], why: "" });
-    P.step({ op: "done", ids: [r.id, L[2], L[3]], why: "Fertig!" });
-    return P.out();
-  }
-  // p % von g  /  k/q von N
+  // ---- p % von g  /  k/q von N ----
   function lxProgPartOf(num, den, whole, isPct){
     const P = lxProgBuilder();
     const L = isPct ? P.line([T(num), T("%", true), T("von"), T(whole), T("="), T("?")]) : P.line([T(`${num}/${den}`), T("von"), T(whole), T("="), T("?")]);
-    const head = isPct ? [L[0], L[1], L[2], L[3]] : [L[0], L[1], L[2]];
-    const res = whole / den * num;
-    P.step({ op: "focus", ids: head, why: isPct ? `${num} % heißt: ${num} von 100 Teilen des Ganzen (${whole}).` : `${num}/${den} heißt: das Ganze (${whole}) in ${den} Teile teilen und ${num} davon nehmen.` });
-    const a = P.tok(whole), b1 = P.tok(":"), c = P.tok(den), d = P.tok("·"), e = P.tok(num);
-    P.step({ op: "rewrite", ids: head, toks: [a, b1, c, d, e], why: `Das rechnet man so: Ganzes : ${den} · ${num}.` });
-    const one = P.tok(lxDec(whole / den));
-    P.step({ op: "reduce", ids: [a.id, b1.id, c.id], result: one, why: `Erst EIN Teil: ${whole} : ${den} = ${lxDec(whole / den)}.` });
-    const r = P.tok(lxDec(res));
-    if(num !== 1) P.step({ op: "reduce", ids: [one.id, d.id, e.id], result: r, why: `Dann ${num} solche Teile: ${lxDec(whole / den)} · ${num} = ${lxDec(res)}.` });
-    else P.step({ op: "remove", ids: [d.id, e.id], why: "Mal 1 ändert nichts." });
-    const resId = num !== 1 ? r.id : one.id;
-    P.step({ op: "subst", ids: [L[L.length - 1]], texts: [lxDec(res)], why: "Das Ergebnis kommt an die Stelle vom Fragezeichen." });
-    P.step({ op: "done", ids: [resId, L[L.length - 2], L[L.length - 1]], why: "Fertig!" });
+    const head = isPct ? L.slice(0, 4) : L.slice(0, 3);
+    const outs = [P.tok(whole), P.tok(":"), P.tok(den)];
+    if(num !== 1) outs.push(P.tok("·"), P.tok(num));
+    const txt = outs.map(o => o.t).join(" ");
+    P.step({ op: "rewrite", ids: head, toks: outs, why: `Schreibe ${isPct ? num + " %" : num + "/" + den} von ${whole} als ${txt}.` });
+    const res = cpEval(P, outs.map(o => ({ id: o.id, t: o.t })));
+    P.step({ op: "result", target: L[L.length - 1], value: res.t, ids: [res.id, L[L.length - 2], L[L.length - 1]], why: `Ergebnis: ${res.t}` });
     return P.out();
   }
   // Erkennt aus dem Aufgabentext, welches Programm passt (sonst null)
@@ -20150,18 +20145,20 @@
     let m;
     const parseLin = f => { const mm = f.match(/^(-?\d*)x(?: ([+-]) (\d+))?$/); if(!mm) return null;
       const k = mm[1] === "" ? 1 : mm[1] === "-" ? -1 : num(mm[1]); const b = mm[2] ? (mm[2] === "+" ? 1 : -1) * num(mm[3]) : 0; return [k, b]; };
+    const ok = (prog, check) => (prog && check) ? prog : null;
     try{
-      if((m = t.match(/^f\(x\) = (.+)\nf\((-?\d+)\) = \?$/))){ const lb = parseLin(m[1]); if(lb && lb[0] * num(m[2]) + lb[1] === q.answer) return lxProgFval(lb[0], lb[1], num(m[2])); }
-      if((m = t.match(/^f\(x\) = (.+)\ny-Achsenabschnitt b = \?$/))){ const lb = parseLin(m[1]); if(lb && lb[1] === q.answer) return lxProgRead(lb[0], lb[1], "b"); }
-      if((m = t.match(/^f\(x\) = (.+)\nSteigung m = \?$/))){ const lb = parseLin(m[1]); if(lb && lb[0] === q.answer) return lxProgRead(lb[0], lb[1], "m"); }
-      if((m = t.match(/^x \+ (\d+) = (-?\d+)\nx = \?$/)) && num(m[2]) - num(m[1]) === q.answer) return lxProgAddEq(num(m[1]), num(m[2]), false);
-      if((m = t.match(/^x - (\d+) = (-?\d+)\nx = \?$/)) && num(m[2]) + num(m[1]) === q.answer) return lxProgAddEq(num(m[1]), num(m[2]), true);
-      if((m = t.match(/^(\d+) · x = (\d+)\nx = \?$/)) && num(m[2]) / num(m[1]) === q.answer) return lxProgMulEq(num(m[1]), num(m[2]));
+      if((m = t.match(/^f\(x\) = (.+)\nf\((-?\d+)\) = \?$/))){ const lb = parseLin(m[1]); if(lb) return ok(lxProgFval(lb[0], lb[1], num(m[2])), lb[0] * num(m[2]) + lb[1] === q.answer); }
+      if((m = t.match(/^f\(x\) = (.+)\ny-Achsenabschnitt b = \?$/))){ const lb = parseLin(m[1]); if(lb) return ok(lxProgRead(lb[0], lb[1], "b"), lb[1] === q.answer); }
+      if((m = t.match(/^f\(x\) = (.+)\nSteigung m = \?$/))){ const lb = parseLin(m[1]); if(lb) return ok(lxProgRead(lb[0], lb[1], "m"), lb[0] === q.answer); }
+      if((m = t.match(/^x \+ (\d+) = (-?\d+)\nx = \?$/))) return ok(lxProgEquation(1, num(m[1]), num(m[2]), "+", false), num(m[2]) - num(m[1]) === q.answer);
+      if((m = t.match(/^x - (\d+) = (-?\d+)\nx = \?$/))) return ok(lxProgEquation(1, num(m[1]), num(m[2]), M, false), num(m[2]) + num(m[1]) === q.answer);
+      if((m = t.match(/^(\d+) · x = (\d+)\nx = \?$/))) return ok(lxProgEquation(num(m[1]), 0, num(m[2]), "+", true), num(m[2]) / num(m[1]) === q.answer);
       if((m = t.match(/^(\d+)x ([+-]) (\d+) = (-?\d+)\nx = \?$/))){ const a = num(m[1]), b = num(m[3]), c = num(m[4]), minus = m[2] === "-";
-        if(((minus ? c + b : c - b) / a) === q.answer) return lxProgLinEq(a, b, c, minus); }
-      if((m = t.match(/^(\d+)([²³]) = \?$/))){ const b = num(m[1]), e = m[2] === "²" ? 2 : 3; if(b ** e === q.answer) return lxProgPow(b, e); }
-      if((m = t.match(/^(\d+) % von (\d+) = \?$/))){ const p = num(m[1]), g = num(m[2]); if(g * p / 100 === q.answer) return lxProgPartOf(p, 100, g, true); }
-      if((m = t.match(/^(\d+)\/(\d+) von (\d+) = \?$/))){ const k = num(m[1]), d = num(m[2]), g = num(m[3]); if(g / d * k === q.answer) return lxProgPartOf(k, d, g, false); }
+        return ok(lxProgEquation(a, b, c, minus ? M : "+", false), ((minus ? c + b : c - b) / a) === q.answer); }
+      if((m = t.match(/^(\d+)([²³]) = \?$/))){ const b = num(m[1]), e = m[2] === "²" ? 2 : 3; return ok(lxProgPowers([[b, e]]), b ** e === q.answer); }
+      if((m = t.match(/^(\d+)² \+ (\d+)² = \?$/))){ const a = num(m[1]), b = num(m[2]); return ok(lxProgPowers([[a, 2], [b, 2]]), a * a + b * b === q.answer); }
+      if((m = t.match(/^(\d+) % von (\d+) = \?$/))){ const p = num(m[1]), g = num(m[2]); return ok(lxProgPartOf(p, 100, g, true), g * p / 100 === q.answer); }
+      if((m = t.match(/^(\d+)\/(\d+) von (\d+) = \?$/))){ const k = num(m[1]), d = num(m[2]), g = num(m[3]); return ok(lxProgPartOf(k, d, g, false), g / d * k === q.answer); }
     }catch(e){ console.error("Programm-Erkennung:", e); }
     return null;
   }
@@ -20241,9 +20238,48 @@
           outs.forEach((tk, i) => { const sp = pfMakeTok(tk, "new hot"); if(i === 0) els[0].before(sp); else anchor.after(sp); anchor = sp; });
           els.forEach(el => el.remove());
           $("pfOverlay").innerHTML = "";
-        }, 650);
+        }, 850);
         break; }
       case "done": s.ids.forEach(id => pfEl(id) && pfEl(id).classList.add("final")); break;
+      // Pfeil von der Quelle zu allen Zielen, dann verwandeln sich die Ziele
+      case "arrowsubst": {
+        pfEl(s.from) && pfEl(s.from).classList.add("src");
+        s.subs.forEach(sb => pfEl(sb.id) && pfEl(sb.id).classList.add("hot"));
+        after(() => { pfBox([s.from], "small"); pfArrows(s.from, s.subs.map(sb => sb.id)); });
+        setTimeout(() => {
+          s.subs.forEach(sb => {
+            const el = pfEl(sb.id); if(!el) return;
+            el.classList.add("flip");
+            setTimeout(() => {
+              let anchor = el;
+              sb.toks.forEach((tk, i) => { const sp = pfMakeTok(tk, "hot changed" + (i ? " new" : "")); if(i === 0){ sp.classList.add("flip"); el.replaceWith(sp); } else anchor.after(sp); anchor = sp; });
+              pfFit();
+            }, 230);
+          });
+          setTimeout(() => { $("pfOverlay").innerHTML = ""; }, 600);
+        }, 900);
+        break; }
+      // Auf beiden Seiten etwas dazuschreiben, dann links Aufhebendes wegstreichen
+      case "bothsides": {
+        let a1 = pfEl(s.leftAfter); s.leftToks.forEach(tk => { const sp = pfMakeTok(tk, "new hot"); a1.after(sp); a1 = sp; });
+        let a2 = pfEl(s.rightAfter); s.rightToks.forEach(tk => { const sp = pfMakeTok(tk, "new hot"); a2.after(sp); a2 = sp; });
+        pfFit();
+        setTimeout(() => {
+          s.cancel.forEach(id => { const el = pfEl(id); if(el){ el.classList.add("gone"); setTimeout(() => { el.remove(); pfFit(); }, 520); } });
+        }, 1000);
+        break; }
+      // Ergebnis an die Stelle vom "?" + grün
+      case "result": {
+        const el = pfEl(s.target);
+        if(el){ el.classList.add("flip"); setTimeout(() => { el.textContent = s.value; }, 230); }
+        setTimeout(() => s.ids.forEach(id => pfEl(id) && pfEl(id).classList.add("final")), 450);
+        break; }
+      case "arrowresult": {
+        pfEl(s.from) && pfEl(s.from).classList.add("src");
+        after(() => { pfBox([s.from], "small"); pfArrows(s.from, [s.target]); });
+        setTimeout(() => { const el = pfEl(s.target); if(el){ el.classList.add("flip"); setTimeout(() => { el.textContent = s.value; }, 230); }
+          s.ids.forEach(id => pfEl(id) && pfEl(id).classList.add("final")); }, 900);
+        break; }
     }
     pfFit(); setTimeout(pfFit, 700); // nach Einfügen/Zusammenrechnen neu anpassen
     $("pfWhy").innerHTML = `<span class="n">${pfPos + 1}/${pfProg.steps.length}</span>${lxEsc(s.why || "")}`;

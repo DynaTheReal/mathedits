@@ -3485,6 +3485,67 @@
     background:color-mix(in srgb, var(--lx-c) 22%, transparent); color:var(--text); border:1px solid color-mix(in srgb, var(--lx-c) 50%, transparent); }
   .lx-topic .crown{ top:40px; }
 
+
+  .pf-svgline{ width:100%; max-width:280px; height:clamp(90px, 18vh, 150px); margin:0 auto; color:var(--text); border-radius:14px; }
+  .pf-svgline svg{ width:100%; height:100%; overflow:visible; }
+  .solve-stage.pf-mode .pf-board{ gap:18px; }
+
+
+  .pf-line.pf-pending{ display:none; }
+  .pf-line.pf-appear{ animation:ss-row-in .4s ease both; }
+
+
+  /* Ponder: Zurück / Nochmal / Weiter */
+  .pf-nav{ display:none; flex:1; gap:8px; }
+  .lupe-panel.pondering .pf-nav{ display:flex; }
+  .lupe-panel.pondering #lupeShowResult{ display:none !important; }
+  .lupe-panel.pondering .lupe-btns{ flex-wrap:wrap; }
+  .lupe-panel.pondering .lupe-btns #lupeClose{ flex:1 1 100%; order:2; }
+  .pf-nav-btn{ width:46px; flex-shrink:0; border-radius:14px; font:inherit; font-size:20px; font-weight:800; cursor:pointer;
+    background:var(--card-2); color:var(--text); border:1px solid var(--border); }
+  .pf-nav-btn:disabled{ opacity:.35; cursor:default; }
+  .pf-nav-btn:active:not(:disabled){ transform:scale(.94); }
+  .pf-nav .pf-next{ flex:1; margin:0 !important; }
+  .pf-nav .pf-next:disabled{ opacity:.6; }
+
+
+  .lx-node.book.optional{ width:66px; height:66px; font-size:28px; border-radius:20px; opacity:.85; }
+  .lx-node.book.optional .stars{ bottom:-19px; font-size:10px; opacity:.6; }
+
+
+  /* ===== Start-Animation "Nova" (NEU) ===== */
+  .intro-nova{ position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; overflow:hidden;
+    background:#07060b; font-family:'Plus Jakarta Sans', system-ui, sans-serif;
+    background-image:radial-gradient(1px 1px at 12% 22%, rgba(255,255,255,.55), transparent 60%), radial-gradient(1px 1px at 78% 14%, rgba(255,255,255,.45), transparent 60%),
+      radial-gradient(1.5px 1.5px at 64% 72%, rgba(255,255,255,.4), transparent 60%), radial-gradient(1px 1px at 28% 80%, rgba(255,255,255,.35), transparent 60%),
+      radial-gradient(1px 1px at 88% 58%, rgba(255,255,255,.4), transparent 60%), radial-gradient(1px 1px at 40% 40%, rgba(255,255,255,.25), transparent 60%);
+    animation:inv-exit .45s cubic-bezier(.4,0,.2,1) 2.2s forwards; }
+  .inv-glow{ position:absolute; width:520px; height:520px; border-radius:50%; background:radial-gradient(circle, rgba(124,58,237,.45), rgba(124,58,237,0) 65%);
+    filter:blur(10px); animation:inv-glow 2.4s ease-out both; }
+  .inv-center{ position:relative; display:flex; flex-direction:column; align-items:center; gap:22px; }
+  .inv-orb{ position:relative; width:58px; height:58px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #e9ddff 0%, #a78bfa 28%, #7c3aed 62%, #4c1d95 100%);
+    box-shadow:0 0 40px rgba(139,92,246,.75), 0 0 90px rgba(124,58,237,.45), inset 0 -6px 14px rgba(0,0,0,.35);
+    animation:inv-orb .75s cubic-bezier(.34,1.56,.64,1) .05s both; }
+  .inv-ring{ position:absolute; inset:-2px; border-radius:50%; border:2px solid rgba(167,139,250,.7); animation:inv-ring 1.3s cubic-bezier(.2,.7,.3,1) .45s both; }
+  .inv-ring.r2{ animation-delay:.75s; border-color:rgba(167,139,250,.45); }
+  .inv-word{ display:flex; font-size:40px; font-weight:800; letter-spacing:-.03em; color:#fff; line-height:1; }
+  .inv-word span{ display:inline-block; animation:inv-letter .55s cubic-bezier(.2,.8,.2,1) both; }
+  .inv-word span.v{ background:linear-gradient(135deg,#c4b5fd,#8b5cf6 55%,#7c3aed); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .inv-bar{ width:120px; height:3px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; animation:inv-fade .4s ease .9s both; }
+  .inv-bar > div{ height:100%; width:0; border-radius:inherit; background:linear-gradient(90deg,#7c3aed,#c4b5fd); box-shadow:0 0 12px rgba(167,139,250,.8);
+    animation:inv-bar 1s cubic-bezier(.65,0,.35,1) 1s forwards; }
+  .inv-ver{ position:absolute; bottom:calc(40px + env(safe-area-inset-bottom)); left:0; right:0; text-align:center; color:rgba(255,255,255,.4);
+    font-size:12px; font-weight:700; letter-spacing:.08em; animation:inv-fade .5s ease 1.1s both; }
+  @keyframes inv-orb{ from{ transform:scale(0); filter:blur(12px); opacity:0; } to{ transform:scale(1); filter:blur(0); opacity:1; } }
+  @keyframes inv-ring{ from{ transform:scale(1); opacity:.9; } to{ transform:scale(3.2); opacity:0; } }
+  @keyframes inv-letter{ from{ transform:translateY(18px); opacity:0; filter:blur(6px); } to{ transform:none; opacity:1; filter:blur(0); } }
+  @keyframes inv-bar{ to{ width:100%; } }
+  @keyframes inv-fade{ from{ opacity:0; } to{ opacity:1; } }
+  @keyframes inv-glow{ from{ transform:scale(.4); opacity:0; } 50%{ opacity:1; } to{ transform:scale(1); opacity:.85; } }
+  @keyframes inv-exit{ to{ opacity:0; transform:scale(1.06); filter:blur(8px); visibility:hidden; } }
+  @media (prefers-reduced-motion: reduce){ .intro-nova *, .intro-nova{ animation-duration:.01s !important; animation-delay:0s !important; } }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -5656,7 +5717,12 @@
       <div class="lupe-hint" id="lupeHint"></div>
       <div class="lupe-sol" id="lupeSolution" style="display:none;"></div>
       <div class="lupe-btns">
-        <button class="btn btn-ghost" id="lupeShowResult">🧩 Lösen</button>
+        <button class="btn btn-ghost" id="lupeShowResult">🧩 Ponder</button>
+        <div class="pf-nav" id="pfNav">
+          <button class="pf-nav-btn" id="pfBackBtn" aria-label="Zurück">‹</button>
+          <button class="pf-nav-btn" id="pfReplayBtn" aria-label="Animation nochmal">↻</button>
+          <button class="btn btn-primary pf-next" id="pfNextBtn">Weiter ›</button>
+        </div>
         <button class="btn btn-primary" id="lupeClose">Lupe schließen</button>
       </div>
     </div>
@@ -5664,7 +5730,7 @@
     <svg class="lupe-arrow" id="lupeArrow" aria-hidden="true"></svg>
     <!-- Lösen-Bühne: die Aufgabe verschwindet, der Lösungsweg erscheint Teil für Teil -->
     <div class="solve-stage" id="solveStage">
-      <div class="ss-top"><span>🧩 Lösen<span class="ss-tap"> · Teile antippbar</span></span><span id="ssCount"></span></div>
+      <div class="ss-top"><span>🧩 Ponder<span class="ss-tap"> · Teile antippbar</span></span><span id="ssCount"></span></div>
       <div class="ss-prev" id="ssPrev"></div>
       <div class="ss-row" id="ssRow"></div>
       <div class="ss-label" id="ssLabel"></div>
@@ -6101,6 +6167,7 @@
       <div class="d" style="font-weight:800; margin-bottom:6px;">App-Intro</div>
       <div class="d" style="margin-bottom:8px;">Welche Animation beim Öffnen der App läuft.</div>
       <select id="appIntroStyleSelect" class="input-field" style="width:100%; margin-bottom:16px;">
+        <option value="nova">Nova (clean)</option>
         <option value="math">Math</option>
         <option value="simple">Simple</option>
       </select>
@@ -6440,6 +6507,16 @@
   <!-- App-Start-Intro: "Math" Variante (NEU) - Mathe-Symbole fliegen rein,
        Text glitcht sich zu "MathEdits" zusammen. Standardmäßig aktiv,
        umstellbar in den Einstellungen. -->
+  <!-- Start-Animation "Nova" (NEU): clean, passend zum Nova-Layout -->
+  <div id="introScreenNova" class="intro-nova" style="display:none;">
+    <div class="inv-glow"></div>
+    <div class="inv-center">
+      <div class="inv-orb"><span class="inv-ring"></span><span class="inv-ring r2"></span></div>
+      <div class="inv-word" id="invWord"></div>
+      <div class="inv-bar"><div></div></div>
+    </div>
+    <div class="inv-ver" id="introVersionTextNova"></div>
+  </div>
   <div id="introScreenMath" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background-color: #0b0f19; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; animation: mathIntroCleanExit 0.3s forwards 2.3s;">
     <div id="mathIntroParticleContainer" style="position: absolute; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none;"></div>
     <div style="display: flex; align-items: center; gap: 20px; z-index: 2;">
@@ -6624,7 +6701,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.86";
+  const APP_VERSION = "3.88";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -16678,7 +16755,7 @@
   function renderSettings(){
     renderNovaSettingsMe();
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
-    $("appIntroStyleSelect").value = profile.appIntroStyle === "simple" ? "simple" : "math";
+    $("appIntroStyleSelect").value = ["simple", "nova"].includes(profile.appIntroStyle) ? profile.appIntroStyle : "math";
     $("layoutStyleSelect").value = ["simpel","clean","nova"].includes(profile.layoutStyle) ? profile.layoutStyle : "clean";
     updateNotificationAndInstallUI();
     const displayName = profile.username
@@ -16760,7 +16837,7 @@
   });
 
   $("appIntroStyleSelect").addEventListener("change", (e) => {
-    profile.appIntroStyle = e.target.value === "simple" ? "simple" : "math";
+    profile.appIntroStyle = ["simple", "nova"].includes(e.target.value) ? e.target.value : "math";
     saveProfile();
   });
 
@@ -19002,12 +19079,13 @@
       const ch = lxChapterOf(n);
       if((n - 1) % 10 === 0){
         html += `<div class="lx-section">${LX_SECTIONS[ch - 1]} · Lektion ${n}–${n + 9}</div>`;
+        // Tutorial ist FREIWILLIG (NEU): kein START, sperrt nichts
         const tDone = !!st.chTut[ch], tOpen = st.done >= n - 1;
-        html += `<button class="lx-node book${tDone ? " done" : tOpen ? " current" : " locked"}" data-book="${ch}" style="--x:0px">
-          ${!tDone && tOpen ? '<span class="start">START</span>' : ""}📖${tDone ? '<span class="stars">✓ Tutorial</span>' : ""}</button>`;
+        html += `<button class="lx-node book optional${tDone ? " done" : tOpen ? "" : " locked"}" data-book="${ch}" style="--x:0px">
+          📖<span class="stars">${tDone ? "✓ Tutorial" : "Tutorial · optional"}</span></button>`;
       }
       const x = xs[(n - 1) % xs.length];
-      const done = n <= st.done, current = n === st.done + 1 && !!st.chTut[ch];
+      const done = n <= st.done, current = n === st.done + 1; // Tutorial nicht mehr Pflicht
       const stars = st.stars[n] || 0;
       html += `<button class="lx-node${done ? " done" : current ? " current" : " locked"}" data-lesson="${n}" style="--x:${x}px">
         ${current ? '<span class="start">START</span>' : ""}${done ? "✓" : current ? n : "🔒"}
@@ -19035,7 +19113,6 @@
     root.querySelectorAll("[data-lesson]").forEach(b => b.addEventListener("click", () => {
       const n = parseInt(b.dataset.lesson, 10);
       if(n > st.done + 1){ showToast("🔒 Schließe erst die Lektion davor ab."); return; }
-      if(!st.chTut[lxChapterOf(n)]){ showToast("📖 Schau dir zuerst das Tutorial zu diesem Kapitel an."); return; }
       lxStartLesson(t.id, n);
     }));
     root.querySelectorAll("[data-chest]").forEach(b => b.addEventListener("click", () => {
@@ -19053,8 +19130,7 @@
     const st = lxState(topicId);
     lxCurrentTopic = topicId;
     renderLessonsScreen();
-    // Erstes Öffnen: direkt das Tutorial zum ersten (einfachsten) Kapitel
-    if(!st.chTut[1]) setTimeout(() => lxOpenTutorial(topicId, 1), 250);
+    // Tutorial öffnet sich nicht mehr automatisch - es ist freiwillig (📖 im Pfad)
   }
 
   /* ---------- Tutorial in Schritten (NEU: ganz einfach + Animationen) ---------- */
@@ -19511,7 +19587,7 @@
   function lxCloseTutorial(){
     const st = lxState(lxTutState.topic);
     $("overlayLxTutorial").classList.remove("show");
-    if(!st.chTut[lxTutState.chapter]) showToast("📖 Schau das Tutorial bis zum Ende an, um das Kapitel freizuschalten.");
+
   }
 
   /* ---------- Leiste & Beta-Schalter ---------- */
@@ -19699,7 +19775,7 @@
     $("lupeHint").textContent = "💡 " + (q.hint || "Lies die Aufgabe in Ruhe genau durch.");
     $("lupeSolution").style.display = "none";
     $("lupeShowResult").style.display = "";
-    $("lupeShowResult").textContent = "🧩 Lösen";
+    $("lupeShowResult").textContent = "🧩 Ponder";
     lxSolveReset();
     $("lupeHint").style.display = "";
     lxSolveIdx = -1;
@@ -20305,6 +20381,231 @@
   ];
   LX_TYPES.linfun.push(...LX_LIN_NEW);
 
+
+  /* ===== COMPUTERPRINZIP FÜR ALLE AUFGABEN =====
+     Kleine Befehls-Sprache: pro Aufgabentyp nur die Befehle beschreiben,
+     die Tafel macht den Rest.
+       { svg: true }                         Grafik der Aufgabe auf die Tafel
+       { note: "Befehl" }                    Befehl, Grafik/letzte Zeile wird eingerahmt
+       { line: "Text", say: "Befehl" }        neue Zeile erscheint, eingerahmt
+       { calc: "3 · 3 + 4", pre: "c² =", say } Rechnung - wird automatisch zerlegt
+       { show: "√25", to: "5", say }          Teil wird umgewandelt
+       { result: "5" }                       "Ergebnis: 5" in Grün */
+  const cpTokens = (P, text) => String(text).split(/\s+/).filter(Boolean).map(t => T(t));
+  function cpRun(q, items){
+    const P0 = lxProgBuilder();
+    // Jede neue Zeile erscheint erst, wenn ihr Schritt dran ist (sonst sieht man die Lösung zu früh)
+    const P = { ...P0, line(toks){ const ids = P0.line(toks); const ls = P0.out().lines; ls[ls.length - 1].appear = true; return ids; } };
+    let svgId = null, lastIds = null;
+    for(const it of items){
+      if(it.svg){
+        svgId = "k_svg" + Math.random().toString(36).slice(2, 7);
+        P.out().lines.push({ svg: q.svg, id: svgId });
+        continue;
+      }
+      if(it.note !== undefined){
+        P.step({ op: "focus", ids: svgId ? [svgId] : (lastIds || []), why: it.note });
+        continue;
+      }
+      if(it.line !== undefined){
+        lastIds = P.line(cpTokens(P, it.line));
+        P.step({ op: "focus", ids: lastIds, why: it.say });
+        continue;
+      }
+      if(it.calc !== undefined){
+        const pre = it.pre ? cpTokens(P, it.pre) : [];
+        const calc = cpTokens(P, it.calc);
+        const ids = P.line([...pre, ...calc]);
+        lastIds = ids;
+        if(it.say) P.step({ op: "focus", ids, why: it.say });
+        const seg = calc.map((t, i) => ({ id: ids[pre.length + i], t: t.t }));
+        if(seg.length > 1) cpEval(P, seg);
+        continue;
+      }
+      if(it.show !== undefined){
+        const pre = it.pre ? cpTokens(P, it.pre) : [];
+        const ids = P.line([...pre, T(it.show)]);
+        lastIds = ids;
+        const r = P.tok(it.to);
+        P.step({ op: "reduce", ids: [ids[ids.length - 1]], result: r, why: it.say });
+        continue;
+      }
+      if(it.result !== undefined){
+        const L = P.line([T("→"), T("?")]);
+        P.step({ op: "result", target: L[1], value: String(it.result), ids: L, why: `Ergebnis: ${it.result}` });
+      }
+    }
+    return P.out();
+  }
+  const cpN = s => parseFloat(String(s).replace(/−/g, "-").replace(",", "."));
+  const cpS = v => lxNum(v);
+  const cpSvgTexts = q => [...String(q.svg || "").matchAll(/>([^<>]+)<\/text>/g)].map(m => m[1].trim());
+  const cpNums = s => (String(s).replace(/−/g, "-").match(/-?\d+(?:[.,]\d+)?/g) || []).map(x => parseFloat(x.replace(",", ".")));
+  const cpLin = f => { const mm = String(f).replace(/−/g, "-").match(/^f\(x\) = (-?\d*)x(?: ([+-]) (\d+))?$/); if(!mm) return null;
+    return [mm[1] === "" ? 1 : mm[1] === "-" ? -1 : parseInt(mm[1], 10), mm[2] ? (mm[2] === "+" ? 1 : -1) * parseInt(mm[3], 10) : 0]; };
+  const cpRoot = (v, pre) => ({ show: `√${v}`, to: cpS(Math.sqrt(v)), pre, say: `Ziehe die Wurzel: √${v} = ${cpS(Math.sqrt(v))}.` });
+
+  // Liefert für JEDE Aufgabe die Befehle (oder null, wenn ein anderes Programm greift)
+  function cpItemsFor(q){
+    const t = lxPlain(q.text), A = q.answer, AL = q.answerLabel;
+    const ix = q.interactive, svgT = cpSvgTexts(q);
+    let m;
+    // ---------- Lineare Funktionen ----------
+    if((m = t.match(/^f\(x\) = (−?)x(.*)\nSteigung m = \?$/))) return [{ line: `f(x) = ${m[1]}x${m[2]}`, say: `Suche die Zahl vor dem x: keine Zahl heißt ${m[1] ? M + "1" : "1"}.` }, { result: `m = ${cpS(A)}` }];
+    if(/^Wo schneidet die Gerade die y-Achse/.test(t)) return [{ svg: true }, { note: "Suche die Stelle, wo die Gerade die senkrechte y-Achse kreuzt." }, { note: `Lies dort die Zahl ab: ${cpS(A)}.` }, { result: `b = ${cpS(A)}` }];
+    if(/^Lies die Steigung m am Graphen ab/.test(t)) return [{ svg: true }, { note: "Suche einen Punkt der Geraden auf einer Gitter-Ecke." }, { note: "Gehe 1 Kästchen nach rechts." },
+      { note: `Zähle bis zur Geraden: ${Math.abs(A)} ${A > 0 ? "hoch" : "runter"}.` }, { result: `m = ${cpS(A)}` }];
+    if((m = t.match(/^(f\(x\) = .+)\nNullstelle x = \?$/))){ const lb = cpLin(m[1]); if(!lb) return null; const [k, b] = lb;
+      const lhs = `${k === 1 ? "" : k === -1 ? M : cpS(k)}x`;
+      const it = [{ line: `${lhs}${b ? (b > 0 ? " + " + b : " " + M + " " + (-b)) : ""} = 0`, say: "Setze f(x) = 0." }];
+      if(b) it.push({ calc: `0 ${b > 0 ? M : "+"} ${Math.abs(b)}`, pre: `${lhs} =`, say: `Rechne auf beiden Seiten ${b > 0 ? M : "+"} ${Math.abs(b)}.` });
+      if(k !== 1) it.push({ calc: `${cpS(-b)} : ${lxPar(k)}`, pre: "x =", say: `Teile beide Seiten durch ${cpS(k)}.` });
+      it.push({ result: `x = ${cpS(A)}` }); return it; }
+    if(/^Welche Funktion gehört zum Graphen/.test(t)){ const lb = cpLin(AL); if(!lb) return null;
+      return [{ svg: true }, { note: `Suche, wo die Gerade die y-Achse kreuzt: b = ${cpS(lb[1])}.` }, { note: `Gehe 1 nach rechts und zähle: m = ${cpS(lb[0])}.` }, { result: AL }]; }
+    if((m = t.match(/^Gerade durch P\((−?\d+) \| (−?\d+)\) und Q\((−?\d+) \| (−?\d+)\)\nSteigung m = \?$/))){
+      const [x1, y1, x2, y2] = m.slice(1).map(cpN);
+      return [{ calc: `${cpS(y2)} − ${lxPar(y1)}`, pre: "hoch:", say: "Rechne y von Q minus y von P." }, { calc: `${cpS(x2)} − ${lxPar(x1)}`, pre: "rechts:", say: "Rechne x von Q minus x von P." },
+        { calc: `${cpS(y2 - y1)} : ${x2 - x1}`, pre: "m =", say: "Teile hoch durch rechts." }, { result: `m = ${cpS(A)}` }]; }
+    if(ix && ix.kind === "graph" && ix.param === "b"){ const { m: k, px, py } = ix;
+      return [{ line: `P(${px}|${cpS(py)})`, say: `Hier steht: x = ${px}, y = ${cpS(py)}.` }, { calc: `${k} · ${px}`, pre: `${cpS(py)} =`, say: `Setze x = ${px} in ${k === 1 ? "" : k}x ein.` },
+        { calc: `${cpS(py)} − ${lxPar(k * px)}`, pre: "b =", say: `Rechne auf beiden Seiten − ${cpS(k * px)}.` }, { result: `b = ${cpS(A)}` }]; }
+    if(ix && ix.kind === "graph" && ix.param === "m"){ const { b, px, py } = ix; const it = [{ line: `Q(${px}|${cpS(py)})`, say: `Hier steht: x = ${px}, y = ${cpS(py)}.` }];
+      if(b) it.push({ calc: `${cpS(py)} ${b > 0 ? M : "+"} ${Math.abs(b)}`, pre: `m · ${px} =`, say: `Rechne auf beiden Seiten ${b > 0 ? M : "+"} ${Math.abs(b)}.` });
+      if(px !== 1) it.push({ calc: `${cpS(py - b)} : ${px}`, pre: "m =", say: `Teile beide Seiten durch ${px}.` });
+      it.push({ result: `m = ${cpS(A)}` }); return it; }
+    // ---------- Algebra ----------
+    if(/^Die Waage ist im Gleichgewicht/.test(t) && svgT.length >= 2){ const L = svgT[0].replace(/−/g, "-"), R = cpN(svgT[1]); const mm = L.match(/^(\d*)x \+ (\d+)$/); if(!mm) return null;
+      return { prog: lxProgEquation(mm[1] ? parseInt(mm[1], 10) : 1, parseInt(mm[2], 10), R, "+", false) }; }
+    if(ix && ix.kind === "balance") return { prog: lxProgEquation(ix.a, ix.b, ix.right, "+", false) };
+    if((m = t.match(/^Erster Schritt für (.+)\?$/))){ const bb = m[1].match(/\+ (\d+) =/); return [{ line: m[1], say: `Suche, was mit Plus bei x steht: + ${bb ? bb[1] : "?"}.` }, { note: "Mach das Gegenteil – auf beiden Seiten." }, { result: AL }]; }
+    if((m = t.match(/^(\d+) · \(x \+ (\d+)\) = (−?\d+)\nx = \?$/))){ const a = cpN(m[1]), b = cpN(m[2]), c = cpN(m[3]);
+      return [{ line: `${a} · (x + ${b}) = ${cpS(c)}`, say: `Teile beide Seiten durch ${a}.` }, { calc: `${cpS(c)} : ${a}`, pre: `x + ${b} =` },
+        { calc: `${cpS(c / a)} − ${b}`, pre: "x =", say: `Rechne auf beiden Seiten − ${b}.` }, { result: `x = ${cpS(A)}` }]; }
+    if((m = t.match(/^(\d+)x \+ (\d+) = (\d*)x \+ (−?\d+)\nx = \?$/))){ const a = cpN(m[1]), b = cpN(m[2]), c = m[3] ? cpN(m[3]) : 1, d = cpN(m[4]); const k = a - c;
+      const it = [{ line: `${a}x + ${b} = ${c === 1 ? "" : c}x + ${cpS(d)}`, say: `Rechne auf beiden Seiten − ${c === 1 ? "" : c}x.` },
+        { calc: `${cpS(d)} − ${b}`, pre: `${k === 1 ? "" : k}x =`, say: `Rechne auf beiden Seiten − ${b}.` }];
+      if(k !== 1) it.push({ calc: `${cpS(d - b)} : ${k}`, pre: "x =", say: `Teile beide Seiten durch ${k}.` });
+      it.push({ result: `x = ${cpS(A)}` }); return it; }
+    // ---------- Prozent ----------
+    if(/^Wie viel Prozent sind gefärbt/.test(t)){ const r = Math.floor(A / 10), e = A % 10;
+      const it = [{ svg: true }, { note: `Zähle die vollen Reihen: ${r}.` }];
+      if(e) it.push({ note: `Zähle die einzelnen Kästchen: ${e}.` }, { calc: `${r} · 10 + ${e}` }); else it.push({ calc: `${r} · 10` });
+      it.push({ result: `${A} %` }); return it; }
+    if(/^Welcher Anteil ist gefärbt/.test(t)){ const p = cpN(AL); return [{ svg: true }, { note: `Zähle die gefärbten Viertel: ${p / 25}.` }, { calc: `${p / 25} · 25`, say: "Jedes Viertel sind 25 %." }, { result: AL }]; }
+    if((m = t.match(/^(\d+) % sind (\d+)\.\nGrundwert \(100 %\) = \?$/))){ const p = cpN(m[1]), v = cpN(m[2]);
+      return [{ line: `${p} % = ${v}`, say: `Hier steht: ${p} % sind ${v}.` }, { calc: `${v} : ${p}`, pre: "1 % =", say: "Rechne auf 1 % zurück." },
+        { calc: `${cpFmt(v / p)} · 100`, pre: "100 % =", say: "Rechne hoch auf 100 %." }, { result: cpS(A) }]; }
+    if((m = t.match(/^(\d+) von (\d+)\nsind wie viel Prozent\?$/))){ const a = cpN(m[1]), g = cpN(m[2]);
+      return [{ calc: `${a} : ${g}`, say: "Teile den Teil durch das Ganze." }, { calc: `${cpFmt(a / g)} · 100`, say: "Nimm das Ergebnis mal 100." }, { result: `${A} %` }]; }
+    if(ix && ix.kind === "gridfill"){ const r = Math.floor(A / 10), e = A % 10;
+      return [{ line: `${A} % = ${A} Kästchen`, say: "Nimm für jedes Prozent ein Kästchen." }, { line: `${r} Reihen${e ? " + " + e : ""}`, say: `Färbe ${r} volle Reihen${e ? " und " + e + " einzelne Kästchen" : ""}.` }, { result: `${A} Kästchen` }]; }
+    if(ix && ix.kind === "slider" && ix.max === 100) return [{ line: `${A} %`, say: `Hier steht: ${A} %.` }, { line: "0 %   50 %   100 %", say: `Suche ${A} % auf dem Strahl.` }, { result: `${A} %` }];
+    if(ix && ix.kind === "slider"){ const p = cpNums(t)[1]; return [{ calc: `${ix.max} : 100 · ${p}`, say: `Rechne ${p} % von ${ix.max}.` }, { result: cpS(A) }]; }
+    // ---------- Geometrie ----------
+    if(/^Wie groß ist die Fläche\? \(cm²\)$/.test(t) && svgT.length >= 2){ const a = cpN(svgT[0]), b = cpN(svgT[1]);
+      return [{ svg: true }, { calc: `${a} · ${b}`, say: a === b ? "Rechne Seite mal Seite." : "Rechne Länge mal Breite." }, { result: `${A} cm²` }]; }
+    if(/^Wie groß ist der Umfang\? \(cm\)$/.test(t) && svgT.length >= 2){ const a = cpN(svgT[0]), b = cpN(svgT[1]);
+      return [{ svg: true }, { calc: `${a} + ${b} + ${a} + ${b}`, say: "Zähle alle 4 Seiten zusammen." }, { result: `${A} cm` }]; }
+    if((m = t.match(/^Quadrat: a = (\d+) cm\nUmfang = \? cm$/))) return [{ calc: `4 · ${m[1]}`, say: "Nimm die Seite 4-mal." }, { result: `${A} cm` }];
+    if(/^Wie groß ist die Fläche des Dreiecks/.test(t)){ const g = cpNums(svgT[0])[0], h = cpNums(svgT[1])[0];
+      return [{ svg: true }, { calc: `${g} · ${h} : 2`, say: "Rechne g mal h, dann durch 2." }, { result: `${A} cm²` }]; }
+    if(/^Welche Formel gilt für die Dreiecksfläche/.test(t)) return [{ svg: true }, { line: "Rechteck: g · h", say: "Schreibe die Fläche vom Rechteck um das Dreieck: g · h." }, { line: "Dreieck: g · h : 2", say: "Teile durch 2 für das halbe Rechteck." }, { result: AL }];
+    if((m = t.match(/^Fläche = (\d+) cm²\. Wie lang ist die fehlende Seite/))){ const F = cpN(m[1]), a = cpNums(svgT[0])[0];
+      return [{ svg: true }, { calc: `${F} : ${a}`, say: "Teile die Fläche durch die bekannte Seite." }, { result: `${A} cm` }]; }
+    if((m = t.match(/^Würfel: a = (\d+) cm\nVolumen = \? cm³$/))) return [{ calc: `${m[1]} · ${m[1]} · ${m[1]}`, say: "Rechne a mal a mal a." }, { result: `${A} cm³` }];
+    if(/^Wie groß ist das Volumen\? \(cm³\)$/.test(t) && svgT.length >= 3){ const [a, b, c] = svgT.map(x => cpNums(x)[0]);
+      return [{ svg: true }, { calc: `${a} · ${b} · ${c}`, say: "Rechne Länge mal Breite mal Höhe." }, { result: `${A} cm³` }]; }
+    if(ix && ix.kind === "rect" && ix.measure === "area"){ const T0 = ix.target; let w = 1, h = T0; for(let k = 1; k <= ix.maxH; k++) if(T0 % k === 0 && T0 / k <= ix.max){ w = T0 / k; h = k; }
+      return [{ line: `Fläche = ${T0}`, say: `Suche zwei Zahlen, die mal genommen ${T0} ergeben.` }, { calc: `${w} · ${h}`, say: `Probiere Länge ${w} und Breite ${h}.` }, { result: `${w} × ${h} cm` }]; }
+    if(ix && ix.kind === "rect"){ const T0 = ix.target, half = T0 / 2, a = Math.min(ix.max, half - 1), b = half - a;
+      return [{ calc: `${T0} : 2`, pre: "Länge + Breite =", say: "Teile den Umfang durch 2." }, { calc: `${a} + ${b}`, say: `Probiere Länge ${a} und Breite ${b}.` }, { result: `${a} × ${b} cm` }]; }
+    // ---------- Brüche ----------
+    if(/^Welcher Bruch ist gefärbt/.test(t)){ const [k, qq] = String(AL).split("/"); return [{ svg: true }, { note: `Zähle alle Stücke: ${qq} → unten.` }, { note: `Zähle die gefärbten Stücke: ${k} → oben.` }, { result: AL }]; }
+    if(/^Welcher Bruch ist größer/.test(t)){ const [f1, f2] = q.choices; const [a1, b1] = f1.split("/").map(Number), [a2, b2] = f2.split("/").map(Number);
+      return b1 === b2 ? [{ line: `${f1}   ${f2}`, say: `Gleicher Nenner: Vergleiche die Zähler ${a1} und ${a2}.` }, { result: AL }]
+                       : [{ line: `${f1}   ${f2}`, say: `Gleicher Zähler: Nimm den kleineren Nenner (${Math.min(b1, b2)}).` }, { result: AL }]; }
+    if((m = t.match(/^Kürze: (\d+)\/(\d+) = \?\/(\d+)$/))){ const [z, n, n2] = m.slice(1).map(cpN);
+      return [{ calc: `${n} : ${n2}`, say: "Rechne, durch was der Nenner geteilt wurde." }, { calc: `${z} : ${n / n2}`, say: "Teile den Zähler durch dieselbe Zahl." }, { result: `${A}/${n2}` }]; }
+    if((m = t.match(/^Erweitere: (\d+)\/(\d+) = \?\/(\d+)$/))){ const [z, n, n2] = m.slice(1).map(cpN);
+      return [{ calc: `${n2} : ${n}`, say: "Rechne, mit was der Nenner malgenommen wurde." }, { calc: `${z} · ${n2 / n}`, say: "Nimm den Zähler mit derselben Zahl mal." }, { result: `${A}/${n2}` }]; }
+    if((m = t.match(/^(\d+)\/(\d+) \+ (\d+)\/(\d+) = \?\/(\d+)$/))){ const [a, n1, b, n2, n3] = m.slice(1).map(cpN); const it = [];
+      if(n1 !== n3){ it.push({ calc: `${n3} : ${n1}`, say: `Rechne, womit du ${a}/${n1} erweitern musst.` }, { calc: `${a} · ${n3 / n1}`, say: "Erweitere den Zähler." }); }
+      else it.push({ line: `Nenner bleibt ${n3}`, say: "Lass den Nenner gleich." });
+      it.push({ calc: `${a * n3 / n1} + ${b}`, say: "Zähle die Zähler zusammen." }, { result: `${A}/${n3}` }); return it; }
+    if((m = t.match(/^(\d+)\/(\d+) − (\d+)\/(\d+) = \?\/(\d+)$/))){ const [a, n1, b, n2, n3] = m.slice(1).map(cpN);
+      return [{ calc: `${n3} : ${n2}`, say: `Rechne, womit du ${b}/${n2} erweitern musst.` }, { calc: `${b} · ${n3 / n2}`, say: "Erweitere den Zähler." },
+        { calc: `${a} − ${b * n3 / n2}`, say: "Ziehe die Zähler ab." }, { result: `${A}/${n3}` }]; }
+    if((m = t.match(/^(\d+)\/(\d+) = \? %$/))){ const [p, n] = m.slice(1).map(cpN);
+      return [{ calc: `100 : ${n}`, say: "Rechne, womit du erweitern musst, damit unten 100 steht." }, { calc: `${p} · ${100 / n}`, say: "Nimm den Zähler genauso mal." }, { result: `${A} %` }]; }
+    if((m = t.match(/^(\d+)\/(\d+) · (\d+) = \?$/))){ const [p, n, N] = m.slice(1).map(cpN);
+      return [{ calc: `${N} : ${n} · ${p}`, say: "Teile durch den Nenner, nimm mal den Zähler." }, { result: cpS(A) }]; }
+    if((m = t.match(/^Wie viele Ganze stecken in (\d+)\/(\d+)\?$/))){ const [z, n] = m.slice(1).map(cpN);
+      return [{ calc: `${n} · ${A}`, say: `Suche, wie oft ${n} in ${z} passt: ${A}-mal.` }, { calc: `${z} − ${n * A}`, pre: "Rest:", say: "Rechne den Rest." }, { result: `${A}` }]; }
+    // ---------- Potenzen & Wurzeln ----------
+    if(/^Wie viele Kästchen hat ein Quadrat/.test(t)){ const s = cpNums(t)[0]; return [{ svg: true }, { calc: `${s} · ${s}`, say: "Rechne Seite mal Seite." }, { result: cpS(A) }]; }
+    if((m = t.match(/^√(\d+) = \?$/))) return [{ line: `? · ? = ${m[1]}`, say: `Suche die Zahl, die mit sich selbst mal ${m[1]} ergibt.` }, { calc: `${A} · ${A}`, say: `Probiere ${A}.` }, { result: cpS(A) }];
+    if((m = t.match(/^\?² = (\d+)$/))) return [{ line: `? · ? = ${m[1]}`, say: `Suche die Zahl, die mit sich selbst mal ${m[1]} ergibt.` }, { calc: `${A} · ${A}`, say: `Probiere ${A}.` }, { result: cpS(A) }];
+    if((m = t.match(/^(\d+)([⁰¹²³⁴⁵⁶⁷⁸⁹]+) = \?$/))){ const b = cpN(m[1]), e = parseInt(m[2].split("").map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹".indexOf(c)).join(""), 10);
+      return [{ calc: Array(e).fill(b).join(" · "), say: `Schreibe ${b}${m[2]} als ${e}-mal ${b} malgenommen.` }, { result: cpS(A) }]; }
+    if((m = t.match(/^√(\d+) \+ √(\d+) = \?$/))){ const a = cpN(m[1]), b = cpN(m[2]); return [cpRoot(a), cpRoot(b), { calc: `${Math.sqrt(a)} + ${Math.sqrt(b)}`, say: "Zähle beide zusammen." }, { result: cpS(A) }]; }
+    if((m = t.match(/^(\d+)([⁰-⁹¹²³]+) · \d+([⁰-⁹¹²³]+) = (\d+) hoch \?$/))){ const sup = s => parseInt(s.split("").map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹".indexOf(c)).join(""), 10);
+      return [{ calc: `${sup(m[2])} + ${sup(m[3])}`, pre: "Hochzahl:", say: "Addiere die Hochzahlen." }, { result: `${m[4]} hoch ${A}` }]; }
+    if((m = t.match(/^(\d+)([⁰-⁹¹²³]+) : \d+([⁰-⁹¹²³]+) = (\d+) hoch \?$/))){ const sup = s => parseInt(s.split("").map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹".indexOf(c)).join(""), 10);
+      return [{ calc: `${sup(m[2])} − ${sup(m[3])}`, pre: "Hochzahl:", say: "Ziehe die Hochzahlen ab." }, { result: `${m[4]} hoch ${A}` }]; }
+    if((m = t.match(/^\((\d+)([⁰-⁹¹²³]+)\)([⁰-⁹¹²³]+) = (\d+) hoch \?$/))){ const sup = s => parseInt(s.split("").map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹".indexOf(c)).join(""), 10);
+      return [{ calc: `${sup(m[2])} · ${sup(m[3])}`, pre: "Hochzahl:", say: "Nimm die Hochzahlen mal." }, { result: `${m[4]} hoch ${A}` }]; }
+    if((m = t.match(/^\(−(\d+)\)([²³]) = \?$/))){ const b = m[1], e = m[2] === "²" ? 2 : 3;
+      return [{ calc: Array(e).fill(`(${M}${b})`).join(" · "), say: `Schreibe als ${e}-mal (${M}${b}) malgenommen.` }, { result: cpS(A) }]; }
+    // ---------- Dreisatz ----------
+    if((m = t.match(/^1 (\S+) kostet (\d+) €\. Wie viel kosten (\d+) /))) return [{ calc: `${m[3]} · ${m[2]}`, say: "Nimm den Preis für 1 Stück mal die Anzahl." }, { result: `${A} €` }];
+    if((m = t.match(/^(\d+) \S+ kosten (\d+) €\. Wie viel kostet 1 /))) return [{ calc: `${m[2]} : ${m[1]}`, say: "Teile den Preis durch die Anzahl." }, { result: `${A} €` }];
+    if((m = t.match(/^(\d+) (\S+) kosten (\d+) €\. Wie viel kosten (\d+) /))){ const [c1, , T1, c2] = [cpN(m[1]), m[2], cpN(m[3]), cpN(m[4])];
+      return [{ calc: `${T1} : ${c1}`, pre: "1 Stück:", say: "Rechne auf 1 Stück runter." }, { calc: `${T1 / c1} · ${c2}`, pre: `${c2} Stück:`, say: "Rechne hoch auf die neue Anzahl." }, { result: `${A} €` }]; }
+    if(/ Hefte kosten …$/.test(t)) return [{ line: t.replace(" kosten …", ""), say: "Ändere den Preis genauso wie die Menge." }, { result: AL }];
+    if((m = t.match(/^Ein Auto fährt (\d+) km in 1 Stunde\. Wie weit kommt es in (\d+) /))) return [{ calc: `${m[1]} · ${m[2]}`, say: "Nimm die km pro Stunde mal die Stunden." }, { result: `${A} km` }];
+    if((m = t.match(/^Für (\d+) Personen braucht man (\d+) g Mehl\. Wie viel für (\d+) /))){ const [p, g, q2] = m.slice(1).map(cpN);
+      return [{ calc: `${g} : ${p}`, pre: "1 Person:", say: "Rechne auf 1 Person runter." }, { calc: `${g / p} · ${q2}`, pre: `${q2} Personen:`, say: "Rechne hoch auf die neue Anzahl." }, { result: `${A} g` }]; }
+    if((m = t.match(/^(\d+) (Arbeiter|Pumpen) .*? (\d+) Stunden\. Wie lange brauchen (\d+) /))){ const [w1, , tt, w2] = [cpN(m[1]), m[2], cpN(m[3]), cpN(m[4])]; const one = m[2] === "Arbeiter" ? "1 Arbeiter" : "1 Pumpe";
+      return [{ calc: `${w1} · ${tt}`, pre: `${one}:`, say: `Rechne für ${one}: mal nehmen – allein dauert es länger.` }, { calc: `${w1 * tt} : ${w2}`, pre: `${w2} ${m[2]}:`, say: "Teile durch die neue Anzahl." }, { result: `${A} Std.` }]; }
+    if(/Proportional oder antiproportional\?$/.test(t)){ const sc = t.split("\n")[0]; return [{ line: sc, say: "Prüfe: mehr → mehr oder mehr → weniger?" }, { result: AL }]; }
+    if((m = t.match(/^Bei (\d+) Personen bekommt jeder (\d+) Stücke\. Wie viele bekommt jeder bei (\d+) /))){ const [s1, per, s2] = m.slice(1).map(cpN);
+      return [{ calc: `${s1} · ${per}`, pre: "alle Stücke:", say: "Rechne alle Stücke zusammen." }, { calc: `${s1 * per} : ${s2}`, pre: "pro Person:", say: "Teile durch die neue Personenzahl." }, { result: cpS(A) }]; }
+    // ---------- Pythagoras ----------
+    if(/^Wie groß ist das Quadrat über einer Seite/.test(t)){ const s = cpNums(t)[0]; return [{ calc: `${s} · ${s}`, say: "Rechne Seite mal Seite." }, { result: `${A} cm²` }]; }
+    if(/^Welche Seite ist die Hypotenuse/.test(t)) return [{ svg: true }, { note: "Suche den rechten Winkel (das Eck-Zeichen)." }, { note: `Nimm die Seite gegenüber: ${AL}.` }, { result: AL }];
+    if((m = t.match(/^√\((\d+)² \+ (\d+)²\) = \?$/))){ const a = cpN(m[1]), b = cpN(m[2]);
+      return [{ calc: `${a} · ${a} + ${b} · ${b}`, say: "Rechne zuerst, was in der Klammer steht." }, cpRoot(a * a + b * b), { result: cpS(A) }]; }
+    if(/^Wie lang ist die Hypotenuse c/.test(t)){ const [a, b] = [cpNums(svgT[0])[0], cpNums(svgT[1])[0]];
+      return [{ svg: true }, { calc: `${a} · ${a} + ${b} · ${b}`, pre: "c² =", say: "Rechne a² + b²." }, cpRoot(a * a + b * b, "c ="), { result: `c = ${A}` }]; }
+    if(/^Wie lang ist die Seite a/.test(t)){ const b = cpNums(svgT[1])[0], c = cpNums(svgT[2])[0];
+      return [{ svg: true }, { calc: `${c} · ${c} − ${b} · ${b}`, pre: "a² =", say: "Rechne c² − b²." }, cpRoot(c * c - b * b, "a ="), { result: `a = ${A}` }]; }
+    if((m = t.match(/^Ist ein Dreieck mit den Seiten (\d+), (\d+) und (\d+) rechtwinklig\?$/))){ const [x, y, z] = m.slice(1).map(cpN);
+      return [{ calc: `${x} · ${x} + ${y} · ${y}`, pre: "a² + b² =", say: "Rechne die zwei kurzen Seiten im Quadrat zusammen." }, { calc: `${z} · ${z}`, pre: "c² =", say: "Rechne die längste Seite im Quadrat." },
+        { line: `${x * x + y * y} ${x * x + y * y === z * z ? "=" : "≠"} ${z * z}`, say: "Vergleiche beide Ergebnisse." }, { result: AL }]; }
+    if((m = t.match(/^Eine Leiter ist (\d+) m lang und steht (\d+) m /))){ const c = cpN(m[1]), a = cpN(m[2]);
+      return [{ calc: `${c} · ${c} − ${a} · ${a}`, pre: "Höhe² =", say: "Rechne Leiter² − Abstand²." }, cpRoot(c * c - a * a, "Höhe ="), { result: `${A} m` }]; }
+    if((m = t.match(/^Ein Rechteck ist (\d+) cm lang und (\d+) cm breit\. Wie lang ist die Diagonale/))){ const a = cpN(m[1]), b = cpN(m[2]);
+      return [{ calc: `${a} · ${a} + ${b} · ${b}`, pre: "d² =", say: "Rechne Länge² + Breite²." }, cpRoot(a * a + b * b, "d ="), { result: `${A} cm` }]; }
+    if((m = t.match(/^a = (\d+) cm, b = (\d+) cm\. c = \? \(cm\)$/))){ const a = cpN(m[1]), b = cpN(m[2]);
+      return [{ calc: `${a} · ${a} + ${b} · ${b}`, pre: "c² =", say: "Rechne a² + b²." }, cpRoot(a * a + b * b, "c ="), { result: `c = ${A}` }]; }
+    if((m = t.match(/^c = (\d+) cm, a = (\d+) cm\. b = \? \(cm\)$/))){ const c = cpN(m[1]), a = cpN(m[2]);
+      return [{ calc: `${c} · ${c} − ${a} · ${a}`, pre: "b² =", say: "Rechne c² − a²." }, cpRoot(c * c - a * a, "b ="), { result: `b = ${A}` }]; }
+    return null;
+  }
+  // Für JEDE Aufgabe ein Computerprinzip-Programm
+  function cpProgramFor(q){
+    if(!q) return null;
+    if(typeof q.prog === "function"){ const p = q.prog(); if(p) return p; }
+    const auto = lxAutoProgram(q); if(auto) return auto;
+    try{
+      const items = cpItemsFor(q);
+      if(!items) return null;
+      if(items.prog) return items.prog;
+      return cpRun(q, items);
+    }catch(e){ console.error("Computerprinzip:", e); return null; }
+  }
+
   // ---------- Ausführung auf der Tafel ----------
   let pfProg = null, pfPos = -1;
   const pfEl = id => $("pfBoard").querySelector(`[data-id="${id}"]`);
@@ -20314,11 +20615,60 @@
     sp.dataset.id = tok.id; sp.textContent = tok.t;
     return sp;
   }
+  // ===== PONDER: Zurück / Nochmal (NEU) =====
+  // Bei Zurück/Nochmal wird die Tafel neu aufgebaut, alle Schritte davor
+  // werden OHNE Animation abgespult, dann läuft der gewünschte Schritt animiert.
+  // pfGen verhindert, dass verspätete Animationen eines alten Schritts die
+  // neu aufgebaute Tafel verändern.
+  let pfGen = 0;
+  function pfApplyInstant(s){
+    pfRevealFor(s);
+    const mkAfter = (anchorId, toks) => { let a = pfEl(anchorId); if(!a) return; toks.forEach(tk => { const sp = pfMakeTok(tk); a.after(sp); a = sp; }); };
+    const replace = (ids, outs) => { const els = ids.map(pfEl).filter(Boolean); if(!els.length) return; let a = null;
+      outs.forEach((tk, i) => { const sp = pfMakeTok(tk); if(i === 0) els[0].before(sp); else a.after(sp); a = sp; }); els.forEach(e => e.remove()); };
+    switch(s.op){
+      case "subst": s.ids.forEach((id, i) => { const el = pfEl(id); if(el){ el.textContent = s.texts[i]; if(s.loosen) el.classList.remove("tight"); } }); break;
+      case "insert": case "focusinsert": mkAfter(s.after, s.toks); break;
+      case "remove": s.ids.forEach(id => pfEl(id) && pfEl(id).remove()); break;
+      case "reduce": replace(s.ids, [s.result]); break;
+      case "rewrite": replace(s.ids, s.toks); break;
+      case "done": s.ids.forEach(id => pfEl(id) && pfEl(id).classList.add("final")); break;
+      case "arrowsubst": s.subs.forEach(sb => replace([sb.id], sb.toks)); break;
+      case "bothsides": mkAfter(s.leftAfter, s.leftToks); mkAfter(s.rightAfter, s.rightToks); s.cancel.forEach(id => pfEl(id) && pfEl(id).remove()); break;
+      case "result": case "arrowresult": { const el = pfEl(s.target); if(el) el.textContent = s.value; s.ids.forEach(id => pfEl(id) && pfEl(id).classList.add("final")); break; }
+    }
+  }
+  function pfRevealFor(s){
+    [...(s.ids || []), s.from, s.target, s.after, s.leftAfter, s.rightAfter, ...((s.subs || []).map(x => x.id))].filter(Boolean).forEach(id => {
+      const el = pfEl(id); const ln = el && el.closest(".pf-line.pf-pending");
+      if(ln){ ln.classList.remove("pf-pending"); ln.classList.add("pf-appear"); }
+    });
+  }
+  function pfGoto(k){
+    if(!pfProg) return;
+    k = Math.max(0, Math.min(pfProg.steps.length - 1, k));
+    pfGen++;
+    $("pfOverlay").innerHTML = "";
+    pfRender(pfProg);
+    for(let i = 0; i < k; i++) pfApplyInstant(pfProg.steps[i]);
+    $("pfBoard").querySelectorAll(".pf-appear").forEach(l => l.classList.remove("pf-appear"));
+    pfPos = k - 1;
+    pfNext();
+  }
+  function pfRender(prog){
+    const board = $("pfBoard"); board.innerHTML = "";
+    prog.lines.forEach(line => {
+      if(!Array.isArray(line)){ // Grafik der Aufgabe auf der Tafel
+        const div = document.createElement("div"); div.className = "pf-svgline"; div.dataset.id = line.id; div.innerHTML = line.svg; board.appendChild(div); return;
+      }
+      const div = document.createElement("div"); div.className = "pf-line" + (line.appear ? " pf-pending" : ""); line.forEach(tk => div.appendChild(pfMakeTok(tk))); board.appendChild(div);
+    });
+  }
   function pfStart(prog){
     pfProg = prog; pfPos = -1;
     $("solveStage").classList.add("pf-mode");
-    const board = $("pfBoard"); board.innerHTML = "";
-    prog.lines.forEach(line => { const div = document.createElement("div"); div.className = "pf-line"; line.forEach(tk => div.appendChild(pfMakeTok(tk))); board.appendChild(div); });
+    $("lupePanel").classList.add("pondering");
+    pfRender(prog);
     pfNext();
   }
   function pfClearMarks(){
@@ -20352,14 +20702,18 @@
   function pfFit(){
     const board = $("pfBoard"); if(!board) return;
     let size = 34; board.style.setProperty("--pf-size", size + "px");
-    const fits = () => [...board.children].every(l => l.scrollWidth <= board.clientWidth - 4);
+    const fits = () => [...board.children].filter(l => l.classList.contains("pf-line")).every(l => l.scrollWidth <= board.clientWidth - 4);
     while(!fits() && size > 15){ size -= 2; board.style.setProperty("--pf-size", size + "px"); }
   }
   function pfNext(){
     if(!pfProg) return;
+    // Verspätete Animationen eines alten Schritts ignorieren (Zurück/Nochmal)
+    const myGen = ++pfGen;
+    const setTimeout = (fn, ms) => window.setTimeout(() => { if(myGen === pfGen) fn(); }, ms);
     pfPos++;
     const s = pfProg.steps[pfPos]; if(!s) return;
     pfClearMarks();
+    pfRevealFor(s); // Zeilen, die in diesem Schritt vorkommen, jetzt einblenden
     const last = pfPos === pfProg.steps.length - 1;
     const after = fn => setTimeout(() => requestAnimationFrame(fn), 0);
     switch(s.op){
@@ -20432,11 +20786,14 @@
     $("pfWhy").innerHTML = `<span class="n">${pfPos + 1}/${pfProg.steps.length}</span>${lxEsc(s.why || "")}`;
     $("pfWhy").classList.remove("pop"); void $("pfWhy").offsetWidth; $("pfWhy").classList.add("pop");
     triggerHaptic(8);
-    const btn = $("lupeShowResult");
-    if(last) btn.style.display = "none"; else btn.textContent = "Weiter ›";
+    $("lupeShowResult").style.display = "none";
+    $("pfBackBtn").disabled = pfPos === 0;
+    $("pfNextBtn").disabled = last;
+    $("pfNextBtn").textContent = last ? "Fertig ✓" : "Weiter ›";
   }
   function pfReset(){
-    pfProg = null; pfPos = -1;
+    pfProg = null; pfPos = -1; pfGen++;
+    if($("lupePanel")) $("lupePanel").classList.remove("pondering");
     if($("solveStage")) $("solveStage").classList.remove("pf-mode");
     if($("pfOverlay")) $("pfOverlay").innerHTML = "";
   }
@@ -20474,11 +20831,14 @@
   }
   $("lupeBtn").addEventListener("click", lxLupeOpen);
   $("lupeClose").addEventListener("click", lxLupeClose);
+  $("pfNextBtn").addEventListener("click", () => { if(pfProg && pfPos < pfProg.steps.length - 1) pfNext(); });
+  $("pfBackBtn").addEventListener("click", () => { if(pfProg && pfPos > 0) pfGoto(pfPos - 1); });
+  $("pfReplayBtn").addEventListener("click", () => { if(pfProg) pfGoto(pfPos); });
   $("lupeShowResult").addEventListener("click", () => {
     if(pfProg){ pfNext(); return; }
     if(lxSolvePlan){ lxSolveNext(); return; }
     const q = lesson && lesson.questions[lesson.index];
-    const prog = (q && typeof q.prog === "function" ? q.prog() : null) || lxAutoProgram(q); // Computerprinzip
+    const prog = cpProgramFor(q); // Computerprinzip - für ALLE Aufgaben
     if(prog){
       $("screen-lesson").classList.add("solving");
       $("lupeBubble").style.display = "none"; $("lupeArrow").innerHTML = ""; $("lupeHint").style.display = "none";
@@ -21686,7 +22046,18 @@
   // 0.2s Pause, dann blendet ab 2.4s+0.4s=2.8s alles aus) - hier wird nur
   // noch passend zu dieser Dauer gewartet, bevor es weitergeht.
   function playStartupIntro(callback){
-    const style = profile.appIntroStyle === "simple" ? "simple" : "math"; // Math ist Standard
+    const style = ["simple", "nova"].includes(profile.appIntroStyle) ? profile.appIntroStyle : "math"; // Math ist Standard
+    if(style === "nova"){
+      // Nova-Intro (NEU): Kugel, Licht-Ringe, Schriftzug Buchstabe für Buchstabe, Ladebalken
+      $("introScreenSimple").style.display = "none"; $("introScreenMath").style.display = "none";
+      $("invWord").innerHTML = "MathEdits".split("").map((c, i) => `<span class="${i >= 4 ? "v" : ""}" style="animation-delay:${(0.55 + i * 0.045).toFixed(3)}s">${c}</span>`).join("");
+      $("introVersionTextNova").textContent = "v" + APP_VERSION;
+      $("introScreenNova").style.display = "flex";
+      setTimeout(() => triggerHaptic(12), 450); // wenn die Kugel erscheint
+      setTimeout(() => { callback(); setTimeout(() => { $("introScreenNova").style.display = "none"; }, 50); }, 2650);
+      return;
+    }
+    $("introScreenNova").style.display = "none";
     if(style === "simple"){
       $("introScreenSimple").style.display = "flex";
       $("introScreenMath").style.display = "none";

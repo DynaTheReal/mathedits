@@ -6624,7 +6624,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.85";
+  const APP_VERSION = "3.86";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -18511,10 +18511,13 @@
     return s;
   }
   function lxPick(types, n){
+    // Gewichtete Auswahl: frisch freigeschaltete Typen x3, einzelne Typen
+    // können seltener sein (t.weight, z.B. die Gerade-Verschiebe-Aufgaben).
     const open = types.filter(t => n >= t.from);
-    const bag = [];
-    open.forEach(t => { const w = (n - t.from < 4) ? 3 : 1; for(let i = 0; i < w; i++) bag.push(t); });
-    return bag[randInt(0, bag.length - 1)].gen(n);
+    const ws = open.map(t => ((n - t.from < 4) ? 3 : 1) * (t.weight === undefined ? 1 : t.weight));
+    let r = Math.random() * ws.reduce((a, b) => a + b, 0);
+    for(let i = 0; i < open.length; i++){ r -= ws[i]; if(r <= 0) return open[i].gen(n); }
+    return open[open.length - 1].gen(n);
   }
   const lxPar = v => v < 0 ? `(${lxNum(v)})` : String(v);            // negative Zahlen in Klammern
   const lxDec = v => String(Math.round(v * 1000) / 1000).replace(".", ","); // Kommazahl deutsch
@@ -18775,15 +18778,15 @@
           <line x1="0" y1="${Y(0)}" x2="220" y2="${Y(0)}" style="stroke:currentColor;opacity:.6;stroke-width:1.5"/>
           <line x1="${X(0)}" y1="0" x2="${X(0)}" y2="130" style="stroke:currentColor;opacity:.6;stroke-width:1.5"/>${nums}
           <line id="ixLine" style="stroke:var(--accent);stroke-width:3.5;stroke-linecap:round"/>
-          <circle cx="${X(cfg.px)}" cy="${Y(cfg.py)}" r="6" class="ix-target"/>
-          <text x="${X(cfg.px) + 8}" y="${Y(cfg.py) - 8}" font-size="10" font-weight="800" style="fill:currentColor">${cfg.pLabel}</text></svg>
+          ${cfg.hideTarget ? "" : `<circle cx="${X(cfg.px)}" cy="${Y(cfg.py)}" r="6" class="ix-target"/>
+          <text x="${X(cfg.px) + 8}" y="${Y(cfg.py) - 8}" font-size="10" font-weight="800" style="fill:currentColor">${cfg.pLabel}</text>`}</svg>
         <div class="ix-param">${cfg.param} = <b id="ixParam">?</b></div>
         ${lxRangeHtml(cfg.min, cfg.max, 1, cfg.start, cfg.ticks)}</div>`;
       const r = root.querySelector(".ix-range"), line = root.querySelector("#ixLine");
       const upd = () => { const v = +r.value, m = cfg.param === "m" ? v : cfg.m, b = cfg.param === "b" ? v : cfg.b;
         line.setAttribute("x1", X(-9)); line.setAttribute("y1", Y(m * -9 + b)); line.setAttribute("x2", X(9)); line.setAttribute("y2", Y(m * 9 + b));
         root.querySelector("#ixParam").textContent = lxNum(v);
-        root.querySelector(".ix-target").classList.toggle("hit", m * cfg.px + b === cfg.py); };
+        const tg = root.querySelector(".ix-target"); if(tg && !cfg.hideTarget) tg.classList.toggle("hit", m * cfg.px + b === cfg.py); };
       r.addEventListener("input", () => { upd(); lxSetInteractiveValue(+r.value); });
       upd();
     },
@@ -18858,14 +18861,16 @@
           steps: [[`${k} % = ${Math.floor(k / 10)} Reihen + ${k % 10}`, "Volle Reihen sind je 10 %, der Rest sind einzelne Kästchen."], [`«${k} Kästchen»`, "So viele färbst du ein."]] }; } }
     ],
     linfun: [
-      { from: 7, gen: n => { const m = randInt(1, 2), px = randInt(1, 3), b = randInt(-2, 2), py = m * px + b; if(py > 5 || py < -5) return LX_INTERACTIVE_TYPES.linfun[0].gen(n);
-          return { text: `f(x) = ${m === 1 ? "" : m}x + b\nVerschieb die Gerade, bis sie durch P geht.`, answer: b,
-          interactive: { kind: "graph", param: "b", m, px, py, pLabel: `P(${px}|${lxNum(py)})`, min: -5, max: 5, start: 5, ticks: [{ v: -5, t: "−5" }, { v: 0, t: "0" }, { v: 5, t: "5" }], placeholder: "Zieh den Regler", fmt: v => "b = " + lxNum(v) },
+      { from: 7, weight: 0.35, gen: n => { const m = randInt(1, 2), px = randInt(1, 3), b = randInt(-2, 2), py = m * px + b; if(py > 5 || py < -5) return LX_INTERACTIVE_TYPES.linfun[0].gen(n);
+          // Schwerer (NEU): Punkt wird NICHT eingezeichnet und es gibt kein
+          // Treffer-Signal - man muss P selbst im Gitter finden.
+          return { text: `f(x) = ${m === 1 ? "" : m}x + b\nVerschieb die Gerade, bis sie durch P(${px}|${lxNum(py)}) geht.`, answer: b,
+          interactive: { kind: "graph", param: "b", m, px, py, hideTarget: true, pLabel: `P(${px}|${lxNum(py)})`, min: -5, max: 5, start: 5, ticks: [{ v: -5, t: "−5" }, { v: 0, t: "0" }, { v: 5, t: "5" }], placeholder: "Zieh den Regler", fmt: v => "b = " + lxNum(v) },
           hint: "b verschiebt die Gerade nach oben oder unten.",
           steps: [[`P(${px} | ${lxNum(py)}) einsetzen`, "Der Punkt muss auf der Geraden liegen."], [`${lxNum(py)} = ${m} · ${px} + b`, "x und y von P in die Funktion einsetzen."], [`b = ${lxNum(py)} − ${m * px} = «${lxNum(b)}»`, "Nach b auflösen."]] }; } },
-      { from: 12, gen: n => { const m = lxNz(-3, 3), b = randInt(-1, 1), px = randInt(1, 2), py = m * px + b; if(py > 5 || py < -5) return LX_INTERACTIVE_TYPES.linfun[1].gen(n);
-          return { text: `f(x) = m·x ${b < 0 ? M + " " + (-b) : "+ " + b}\nDreh die Gerade, bis sie durch Q geht.`, answer: m,
-          interactive: { kind: "graph", param: "m", b, px, py, pLabel: `Q(${px}|${lxNum(py)})`, min: -3, max: 3, start: 0, ticks: [{ v: -3, t: "−3" }, { v: 0, t: "0" }, { v: 3, t: "3" }], placeholder: "Zieh den Regler", fmt: v => "m = " + lxNum(v) },
+      { from: 12, weight: 0.35, gen: n => { const m = lxNz(-3, 3), b = randInt(-1, 1), px = randInt(1, 2), py = m * px + b; if(py > 5 || py < -5) return LX_INTERACTIVE_TYPES.linfun[1].gen(n);
+          return { text: `f(x) = m·x ${b < 0 ? M + " " + (-b) : "+ " + b}\nDreh die Gerade, bis sie durch Q(${px}|${lxNum(py)}) geht.`, answer: m,
+          interactive: { kind: "graph", param: "m", b, px, py, hideTarget: true, pLabel: `Q(${px}|${lxNum(py)})`, min: -3, max: 3, start: 0, ticks: [{ v: -3, t: "−3" }, { v: 0, t: "0" }, { v: 3, t: "3" }], placeholder: "Zieh den Regler", fmt: v => "m = " + lxNum(v) },
           hint: "m macht die Gerade steiler; negatives m lässt sie nach unten gehen.",
           steps: [[`Q(${px} | ${lxNum(py)}) einsetzen`, "Q muss auf der Geraden liegen."], [`${lxNum(py)} = m · ${px} ${b < 0 ? M + " " + (-b) : "+ " + b}`, "x und y von Q einsetzen."], [`m = «${lxNum(m)}»`, `${lxNum(py - b)} : ${px} = ${lxNum(m)}`]] }; } }
     ],
@@ -20163,6 +20168,143 @@
     return null;
   }
 
+
+  /* ===== Neue Aufgaben: Lineare Funktionen (mit Computerprinzip-Lösen) ===== */
+  // Liegt P(x|y) auf f(x) = mx + b?  (auch: welcher Punkt liegt drauf)
+  function lxProgPointOn(m, b, px, py, finalText){
+    const P = lxProgBuilder();
+    const toks = [T("f("), T("x", true), T(")", true), T("=")];
+    if(m !== 1) toks.push(T(m < 0 ? M + (-m) : m));
+    toks.push(T("x", m !== 1));
+    if(b > 0) toks.push(T("+"), T(b)); else if(b < 0) toks.push(T(M), T(-b));
+    const L1 = P.line(toks);
+    const L2 = P.line([T("P("), T(lxNum(px), true), T("|", true), T(lxNum(py), true), T(")", true)]);
+    const L3 = P.line([T("→"), T("?")]);
+    const xi = m !== 1 ? 5 : 4;
+    P.step({ op: "focus", ids: L2, why: `Hier steht: x = ${lxNum(px)}, y = ${lxNum(py)}.` });
+    const valTok = P.tok(lxPar(px)), dot = P.tok("·");
+    P.step({ op: "arrowsubst", from: L2[1], subs: [{ id: L1[1], toks: [P.tok(lxNum(px), { tight: true })] }, { id: L1[xi], toks: m !== 1 ? [dot, valTok] : [valTok] }], why: `Ersetze jedes x durch ${lxNum(px)}.` });
+    const seg = [];
+    if(m !== 1) seg.push({ id: L1[4], t: String(m < 0 ? M + (-m) : m) }, { id: dot.id, t: "·" });
+    seg.push({ id: valTok.id, t: valTok.t });
+    if(b !== 0) seg.push({ id: L1[xi + 1], t: b > 0 ? "+" : M }, { id: L1[xi + 2], t: String(Math.abs(b)) });
+    const res = cpEval(P, seg);
+    const on = m * px + b === py;
+    P.step({ op: "focus", ids: [res.id, L2[3]], why: `Vergleiche ${res.t} mit ${lxNum(py)}.` });
+    P.step({ op: "result", target: L3[1], value: finalText(on), ids: L3, why: `Ergebnis: ${finalText(on)}` });
+    return P.out();
+  }
+  // Steigt oder fällt?
+  function lxProgRiseFall(m, b){
+    const P = lxProgBuilder();
+    const toks = [T("f("), T("x", true), T(")", true), T("="), T(m < 0 ? M + (-m) : m), T("x", true)];
+    if(b > 0) toks.push(T("+"), T(b)); else if(b < 0) toks.push(T(M), T(-b));
+    const L1 = P.line(toks), L2 = P.line([T("→"), T("?")]);
+    P.step({ op: "focus", ids: [L1[4]], why: `Suche die Zahl vor dem x: ${lxNum(m)}.` });
+    P.step({ op: "focus", ids: [L1[4]], why: `Vergleiche ${lxNum(m)} mit 0: ${m > 0 ? "größer" : "kleiner"}.` });
+    const r = m > 0 ? "steigt" : "fällt";
+    P.step({ op: "result", target: L2[1], value: r, ids: L2, why: `Ergebnis: ${r}` });
+    return P.out();
+  }
+  // Ist die Wertetabelle linear? (gleiche Abstände)
+  function lxProgTable(ys){
+    const P = lxProgBuilder();
+    const L1 = P.line([T("y:"), ...ys.map(v => T(lxNum(v)))]);
+    const L2 = P.line([T("Abstand:")]);
+    const diffs = [];
+    let last = L2[0];
+    for(let i = 1; i < ys.length; i++){
+      const d = ys[i] - ys[i - 1]; diffs.push(d);
+      const tk = P.tok(lxNum(d));
+      P.step({ op: "focusinsert", ids: [L1[i], L1[i + 1]], after: last, toks: [tk], why: `Rechne ${lxNum(ys[i])} − ${lxPar(ys[i - 1])} = ${lxNum(d)}.` });
+      last = tk.id;
+    }
+    const same = diffs.every(d => d === diffs[0]);
+    const L3 = P.line([T("→"), T("?")]);
+    P.step({ op: "focus", ids: L2.concat([]), why: `Vergleiche die Abstände: ${same ? "alle gleich" : "nicht alle gleich"}.` });
+    P.step({ op: "result", target: L3[1], value: same ? "Ja" : "Nein", ids: L3, why: `Ergebnis: ${same ? "Ja" : "Nein"}` });
+    return P.out();
+  }
+  // Ist das eine lineare Funktion?
+  function lxProgIsLinear(formulaToks, xPartIdx, linear){
+    const P = lxProgBuilder();
+    const L1 = P.line(formulaToks), L2 = P.line([T("→"), T("?")]);
+    P.step({ op: "focus", ids: xPartIdx.map(i => L1[i]), why: `Suche das x: ${xPartIdx.map(i => formulaToks[i].t).join("")}.` });
+    P.step({ op: "focus", ids: xPartIdx.map(i => L1[i]), why: linear ? "Prüfe: nur Zahl · x – kein Hoch, kein Bruch, keine Wurzel. Passt." : "Prüfe: nur Zahl · x? Nein – hier ist x hoch, im Bruch oder in der Wurzel." });
+    P.step({ op: "result", target: L2[1], value: linear ? "Ja" : "Nein", ids: L2, why: `Ergebnis: ${linear ? "Ja" : "Nein"}` });
+    return P.out();
+  }
+  // Parallel: gleiche Zahl vor dem x
+  function lxProgParallel(m, b, answerLabel){
+    const P = lxProgBuilder();
+    const toks = [T("f("), T("x", true), T(")", true), T("="), T(m < 0 ? M + (-m) : m), T("x", true)];
+    if(b > 0) toks.push(T("+"), T(b)); else if(b < 0) toks.push(T(M), T(-b));
+    const L1 = P.line(toks), L2 = P.line([T("→"), T("?")]);
+    P.step({ op: "focus", ids: [L1[4]], why: `Suche die Zahl vor dem x: ${lxNum(m)}.` });
+    P.step({ op: "focus", ids: [L1[4]], why: `Suche die Antwort mit derselben Zahl ${lxNum(m)} vor dem x.` });
+    P.step({ op: "result", target: L2[1], value: answerLabel, ids: L2, why: `Ergebnis: ${answerLabel}` });
+    return P.out();
+  }
+  // Textaufgaben -> Funktion aufstellen, dann einsetzen
+  function lxProgWord(m, b, x0){
+    const prog = lxProgFval(m, b, x0);
+    if(!prog) return null;
+    const L1ids = prog.lines[0].map(t => t.id);
+    prog.steps.unshift({ op: "focus", ids: L1ids.slice(3), why: `Schreibe als Funktion: f(x) = ${lxLin(m, b)}.` });
+    return prog;
+  }
+  const lxLinStr = (m, b) => "f(x) = " + lxLin(m, b);
+  const LX_LIN_NEW = [
+    { from: 8, gen: n => { const m = randInt(1, 4), b = randInt(0, 6), px = randInt(1, 4), on = randInt(0, 1) === 1, py = m * px + b + (on ? 0 : lxPick1([-2, -1, 1, 2]));
+        return { text: `Liegt ${E(`P(${px}|${lxNum(py)})`, "Der Punkt mit x- und y-Wert.")} auf ${E(lxLinStr(m, b), "Die Funktion.")}?`, choices: ["Ja", "Nein"], answer: on ? 0 : 1, answerLabel: on ? "Ja" : "Nein",
+          hint: "Setze x ein und vergleiche mit y.", steps: [[`f(${px}) = «${m * px + b}»`, "x einsetzen."], [`«${on ? "Ja" : "Nein"}»`, "Vergleichen."]],
+          prog: () => lxProgPointOn(m, b, px, py, on2 => on2 ? "Ja" : "Nein") }; } },
+    { from: 9, gen: n => { const fee = randInt(2, lxUp(8, 15, n)), per = randInt(1, lxUp(4, 9, n)), gb = randInt(2, lxUp(6, 12, n));
+        return { text: `Ein Handyvertrag kostet ${E(fee, "Grundgebühr – kommt immer dazu (das ist b).")} € Grundgebühr und ${E(per, "Kosten pro GB (das ist m).")} € pro GB. Was kostet er bei ${E(gb, "So viele GB (das ist x).")} GB? (€)`, answer: per * gb + fee,
+          hint: `Funktion: f(x) = ${per}x + ${fee}`, steps: [[`f(x) = ${per}x + ${fee}`, "Als Funktion schreiben."], [`${per} · ${gb} + ${fee} = «${per * gb + fee}»`, "Einsetzen und rechnen."]],
+          prog: () => lxProgWord(per, fee, gb) }; } },
+    { from: 11, gen: n => { const opts = [
+          { toks: [T("f("), T("x", true), T(")", true), T("="), T(randInt(2, 6)), T("x", true), T("+"), T(randInt(1, 9))], xi: [4, 5], lin: true },
+          { toks: [T("f("), T("x", true), T(")", true), T("="), T("x"), T("²", true), T("+"), T(randInt(1, 9))], xi: [4, 5], lin: false },
+          { toks: [T("f("), T("x", true), T(")", true), T("="), T(randInt(2, 9)), T(":"), T("x")], xi: [4, 5, 6], lin: false },
+          { toks: [T("f("), T("x", true), T(")", true), T("="), T("√x"), T("+"), T(randInt(1, 9))], xi: [4], lin: false },
+          { toks: [T("f("), T("x", true), T(")", true), T("="), T(M + randInt(2, 6)), T("x", true), T(M), T(randInt(1, 9))], xi: [4, 5], lin: true },
+          { toks: [T("f("), T("x", true), T(")", true), T("="), T(randInt(2, 4)), T("x", true), T("³", true)], xi: [4, 5, 6], lin: false } ];
+        const o = lxPick1(opts);
+        const shown = o.toks.map((t, i) => (i && !t.tight ? " " : "") + t.t).join("");
+        return { text: `Ist ${E(shown, "Die Funktion, die du prüfen sollst.")} eine lineare Funktion?`, choices: ["Ja", "Nein"], answer: o.lin ? 0 : 1, answerLabel: o.lin ? "Ja" : "Nein",
+          hint: "Linear heißt: x kommt nur als „Zahl · x“ vor – kein x², kein x im Bruch, keine Wurzel.", steps: [[shown, "Prüfen."], [`«${o.lin ? "Ja" : "Nein"}»`, "Ergebnis."]],
+          prog: () => lxProgIsLinear(o.toks, o.xi, o.lin) }; } },
+    { from: 12, gen: n => { const m = lxNz(-6, 6), b = randInt(-9, 9);
+        return { text: `Steigt oder fällt ${E(lxLinStr(m, b), "Die Funktion.")}?`, choices: ["steigt", "fällt"], answer: m > 0 ? 0 : 1, answerLabel: m > 0 ? "steigt" : "fällt",
+          hint: "Schau auf die Zahl vor dem x: größer als 0 → steigt, kleiner als 0 → fällt.", steps: [[`m = ${lxNum(m)}`, "Zahl vor dem x."], [`«${m > 0 ? "steigt" : "fällt"}»`, "Vergleichen mit 0."]],
+          prog: () => lxProgRiseFall(m, b) }; } },
+    { from: 16, gen: n => { const lin = randInt(0, 1) === 1, start = randInt(-3, 6), d = lxNz(-4, 5);
+        const ys = [0, 1, 2, 3].map(i => start + d * i); if(!lin){ const k = randInt(2, 3); ys[k] += lxPick1([-2, -1, 1, 2]); }
+        return { text: `x: 0 · 1 · 2 · 3\ny: ${ys.map(lxNum).join(" · ")}\nIst die Wertetabelle linear?`, choices: ["Ja", "Nein"], answer: lin ? 0 : 1, answerLabel: lin ? "Ja" : "Nein",
+          hint: "Linear: Der Abstand zwischen den y-Werten ist immer gleich.", steps: [["Abstände rechnen", "y-Werte voneinander abziehen."], [`«${lin ? "Ja" : "Nein"}»`, "Vergleichen."]],
+          prog: () => lxProgTable(ys) }; } },
+    { from: 19, gen: n => { const m = lxNz(-5, 5), b = randInt(-6, 6), b2 = lxPick1([-7, -4, -2, 3, 5, 8].filter(x => x !== b));
+        const correct = lxLinStr(m, b2);
+        const wrongs = [lxLinStr(-m, b2), lxLinStr(m + (m > 0 ? 1 : -1), b), lxLinStr(b2 === 0 ? 1 : b2 > 0 ? Math.min(9, b2) : Math.max(-9, b2), m)].filter(w => w !== correct);
+        const ch = lxShuffleChoices(correct, wrongs);
+        return { text: `Welche Gerade ist parallel zu ${E(lxLinStr(m, b), "Die gegebene Funktion.")}?`, ...ch,
+          hint: "Parallel heißt: gleiche Zahl vor dem x (gleiche Steigung).", steps: [[`m = ${lxNum(m)}`, "Zahl vor dem x."], [`«${correct}»`, "Gleiche Zahl suchen."]],
+          prog: () => lxProgParallel(m, b, correct) }; } },
+    { from: 22, gen: n => { const m = lxNz(-4, 5), b = randInt(-6, 8), px = randInt(-3, 4), py = m * px + b;
+        const pt = (x, y) => `P(${lxNum(x)}|${lxNum(y)})`;
+        const correct = pt(px, py);
+        const ch = lxShuffleChoices(correct, [pt(px, py + 1), pt(px + 1, py), pt(px, py - 2), pt(-px || 2, py)]);
+        return { text: `Welcher Punkt liegt auf ${E(lxLinStr(m, b), "Die Funktion.")}?`, ...ch,
+          hint: "Setze den x-Wert ein und schau, ob der y-Wert stimmt.", steps: [[`f(${lxNum(px)}) = «${lxNum(py)}»`, "Einsetzen."], [`«${correct}»`, "Passender Punkt."]],
+          prog: () => lxProgPointOn(m, b, px, py, () => correct) }; } },
+    { from: 24, gen: n => { const L0 = 2 * randInt(8, 15), per = randInt(2, 3), h = randInt(2, Math.floor((L0 - 1) / per));
+        return { text: `Eine Kerze ist ${E(L0, "Startlänge (das ist b).")} cm lang und brennt ${E(per, "So viel wird pro Stunde kürzer (das ist m, mit Minus).")} cm pro Stunde ab. Wie lang ist sie nach ${E(h, "So viele Stunden (das ist x).")} Stunden? (cm)`, answer: L0 - per * h,
+          hint: `Funktion: f(x) = −${per}x + ${L0}`, steps: [[`f(x) = ${M}${per}x + ${L0}`, "Als Funktion schreiben."], [`${M}${per} · ${h} + ${L0} = «${L0 - per * h}»`, "Einsetzen und rechnen."]],
+          prog: () => lxProgWord(-per, L0, h) }; } }
+  ];
+  LX_TYPES.linfun.push(...LX_LIN_NEW);
+
   // ---------- Ausführung auf der Tafel ----------
   let pfProg = null, pfPos = -1;
   const pfEl = id => $("pfBoard").querySelector(`[data-id="${id}"]`);
@@ -20241,6 +20383,11 @@
         }, 850);
         break; }
       case "done": s.ids.forEach(id => pfEl(id) && pfEl(id).classList.add("final")); break;
+      case "focusinsert": {
+        s.ids.forEach(id => pfEl(id) && pfEl(id).classList.add("hot"));
+        after(() => pfBox(s.ids));
+        setTimeout(() => { let anchor = pfEl(s.after); s.toks.forEach(tk => { const sp = pfMakeTok(tk, "new hot"); anchor.after(sp); anchor = sp; }); pfFit(); }, 500);
+        break; }
       // Pfeil von der Quelle zu allen Zielen, dann verwandeln sich die Ziele
       case "arrowsubst": {
         pfEl(s.from) && pfEl(s.from).classList.add("src");
@@ -20331,7 +20478,7 @@
     if(pfProg){ pfNext(); return; }
     if(lxSolvePlan){ lxSolveNext(); return; }
     const q = lesson && lesson.questions[lesson.index];
-    const prog = lxAutoProgram(q); // "wie ein Computer" - wenn es für diesen Aufgabentyp ein Programm gibt
+    const prog = (q && typeof q.prog === "function" ? q.prog() : null) || lxAutoProgram(q); // Computerprinzip
     if(prog){
       $("screen-lesson").classList.add("solving");
       $("lupeBubble").style.display = "none"; $("lupeArrow").innerHTML = ""; $("lupeHint").style.display = "none";

@@ -3449,6 +3449,42 @@
   .rescue-card p{ font-size:14px; line-height:1.5; opacity:.85; }
   .rescued .rescue-hero{ color:var(--accent); font-size:17px; }
 
+
+  /* ===== Lösen "wie ein Computer" (NEU) ===== */
+  .pf-board, .pf-why, .pf-overlay{ display:none; }
+  .solve-stage.pf-mode .ss-tap{ display:none; }
+  .solve-stage.pf-mode .ss-prev, .solve-stage.pf-mode .ss-row, .solve-stage.pf-mode .ss-label, .solve-stage.pf-mode .ss-arrows{ display:none !important; }
+  .solve-stage.pf-mode .pf-board{ display:flex; flex-direction:column; gap:26px; margin:auto 0; padding:26px 4px 10px; }
+  .solve-stage.pf-mode .pf-why{ display:block; }
+  .solve-stage.pf-mode .pf-overlay{ display:block; position:absolute; inset:0; pointer-events:none; z-index:3; }
+  .pf-line{ display:flex; flex-wrap:nowrap; justify-content:center; align-items:center; white-space:nowrap; }
+  .pf-tok{ font-size:var(--pf-size, 34px); font-weight:800; line-height:1.15; padding:2px 1px; margin-left:9px; border-radius:10px;
+    transition:color .3s, background .3s, opacity .35s, transform .35s; display:inline-block; }
+  .pf-tok:first-child, .pf-tok.tight{ margin-left:0; }
+  .pf-tok.hot{ color:var(--accent); }
+  .pf-tok.src{ color:var(--accent); background:color-mix(in srgb, var(--accent) 18%, transparent); }
+  .pf-tok.changed{ color:var(--accent); }
+  .pf-tok.new{ animation:pf-pop .45s cubic-bezier(.34,1.7,.5,1) both; }
+  @keyframes pf-pop{ from{ opacity:0; transform:scale(.3) translateY(8px); } to{ opacity:1; transform:none; } }
+  .pf-tok.flip{ animation:pf-flip .46s ease both; }
+  @keyframes pf-flip{ 0%{ transform:rotateX(0); } 50%{ transform:rotateX(90deg); } 100%{ transform:rotateX(0); } }
+  .pf-tok.gone{ opacity:0; transform:scale(.4) translateY(-10px); text-decoration:line-through; }
+  .pf-tok.final{ color:var(--success) !important; text-shadow:0 0 18px color-mix(in srgb, var(--success) 60%, transparent); }
+  .pf-box{ position:absolute; border:2.5px solid var(--accent); border-radius:14px; box-shadow:0 0 18px color-mix(in srgb, var(--accent) 45%, transparent);
+    animation:pf-box-in .35s cubic-bezier(.2,.9,.25,1.05) both; }
+  .pf-box.small{ border-width:2px; }
+  @keyframes pf-box-in{ from{ opacity:0; transform:scale(1.15); } to{ opacity:1; transform:none; } }
+  .pf-svg{ position:absolute; left:0; top:0; overflow:visible; }
+  .pf-arrow{ fill:none; stroke:var(--accent); stroke-width:3; stroke-linecap:round; stroke-dasharray:400; stroke-dashoffset:400; animation:lupe-arrow-draw .6s cubic-bezier(.4,0,.2,1) forwards; }
+  .pf-why{ margin-top:auto; padding:12px 14px; border-radius:16px; font-size:14.5px; font-weight:700; line-height:1.4;
+    background:color-mix(in srgb, var(--accent) 12%, transparent); border:1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+  .pf-why .n{ display:inline-block; margin-right:8px; padding:1px 8px; border-radius:999px; font-size:11.5px; background:var(--accent); color:var(--accent-text); }
+  .pf-why.pop{ animation:lxa-fade .35s ease both; }
+  /* Klassenstufe auf den Themen-Karten */
+  .lx-grade{ position:absolute; top:12px; right:12px; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:800;
+    background:color-mix(in srgb, var(--lx-c) 22%, transparent); color:var(--text); border:1px solid color-mix(in srgb, var(--lx-c) 50%, transparent); }
+  .lx-topic .crown{ top:40px; }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -5628,11 +5664,15 @@
     <svg class="lupe-arrow" id="lupeArrow" aria-hidden="true"></svg>
     <!-- Lösen-Bühne: die Aufgabe verschwindet, der Lösungsweg erscheint Teil für Teil -->
     <div class="solve-stage" id="solveStage">
-      <div class="ss-top"><span>🧩 Lösen · Teile antippbar</span><span id="ssCount"></span></div>
+      <div class="ss-top"><span>🧩 Lösen<span class="ss-tap"> · Teile antippbar</span></span><span id="ssCount"></span></div>
       <div class="ss-prev" id="ssPrev"></div>
       <div class="ss-row" id="ssRow"></div>
       <div class="ss-label" id="ssLabel"></div>
       <svg class="ss-arrows" id="ssArrows" aria-hidden="true"></svg>
+      <!-- "Wie ein Computer": Tafel mit der Aufgabe + Erklärung -->
+      <div class="pf-board" id="pfBoard"></div>
+      <div class="pf-why" id="pfWhy"></div>
+      <div class="pf-overlay" id="pfOverlay"></div>
     </div>
 
     <div id="duelOpponentProgress" style="display:none; text-align:center; font-size:12.5px; color:var(--text-dim); margin-top:8px; min-height:16px;"></div>
@@ -6584,7 +6624,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.82";
+  const APP_VERSION = "3.84";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -18420,10 +18460,10 @@
   const LX_CHEST_AT = { 10: "rare", 20: "epic", 30: "legendary" };
   const LX_SECTIONS = ["Einstieg", "Fortgeschritten", "Profi"];
   const LX_TOPICS = [
-    { id: "linfun",   name: "Lineare Funktionen", icon: "📈", color: "#8b5cf6", sub: "f(x) = mx + b" },
-    { id: "algebra",  name: "Algebra",            icon: "🧮", color: "#22c55e", sub: "Gleichungen lösen" },
-    { id: "percent",  name: "Prozentrechnung",    icon: "💯", color: "#f59e0b", sub: "Prozent, Grundwert" },
-    { id: "geometry", name: "Geometrie",          icon: "📐", color: "#38bdf8", sub: "Fläche, Umfang, Volumen" }
+    { grade: "8", id: "linfun", name: "Lineare Funktionen", icon: "📈", color: "#8b5cf6", sub: "f(x) = mx + b" },
+    { grade: "7", id: "algebra", name: "Algebra",            icon: "🧮", color: "#22c55e", sub: "Gleichungen lösen" },
+    { grade: "7", id: "percent", name: "Prozentrechnung",    icon: "💯", color: "#f59e0b", sub: "Prozent, Grundwert" },
+    { grade: "5–6", id: "geometry", name: "Geometrie",          icon: "📐", color: "#38bdf8", sub: "Fläche, Umfang, Volumen" }
   ];
   let lxCurrentTopic = null;     // null = Themen-Übersicht, sonst Themen-ID (Pfad)
   var lxLastFinishedTopic = null; // nach der Lektion zurück zum Pfad statt Home
@@ -18942,6 +18982,7 @@
           const pct = Math.round(st.done / LX_LESSONS_PER_TOPIC * 100);
           return `<button class="lx-topic" data-topic="${t.id}" style="--lx-c:${t.color}">
             ${st.done >= LX_LESSONS_PER_TOPIC ? '<span class="crown">👑</span>' : ""}
+            <span class="lx-grade">Klasse ${t.grade}</span>
             <div class="ic">${t.icon}</div><b>${t.name}</b><small>${st.done}/${LX_LESSONS_PER_TOPIC} · ${t.sub}</small>
             <div class="bar"><div style="width:${pct}%"></div></div></button>`;
         }).join("")}</div>`;
@@ -18975,7 +19016,7 @@
     root.innerHTML = `
       <div class="lx-path-head" style="--lx-c:${t.color}">
         <button class="lx-round" id="lxBack" aria-label="Zurück">‹</button>
-        <div class="t"><b>${t.icon} ${t.name}</b><small>${st.done}/${LX_LESSONS_PER_TOPIC} Lektionen</small></div>
+        <div class="t"><b>${t.icon} ${t.name}</b><small>Klasse ${t.grade} · ${st.done}/${LX_LESSONS_PER_TOPIC} Lektionen</small></div>
         <button class="lx-round" id="lxTutBtn" aria-label="Tutorial">📖</button>
       </div>
       <div class="lx-path" style="--lx-c:${t.color}">${html}</div>`;
@@ -19184,10 +19225,10 @@
 
   /* ===================== NEUE THEMEN (Brüche, Potenzen, Dreisatz, Pythagoras) ===================== */
   LX_TOPICS.push(
-    { id: "fractions", name: "Brüche",              icon: "🍕", color: "#ec4899", sub: "Teilen, kürzen, rechnen" },
-    { id: "powers",    name: "Potenzen & Wurzeln",  icon: "⚡", color: "#f97316", sub: "Hoch 2, Wurzel, Gesetze" },
-    { id: "ratio",     name: "Dreisatz",            icon: "⚖️", color: "#14b8a6", sub: "Mehr, weniger, umgekehrt" },
-    { id: "pythagoras",name: "Pythagoras",          icon: "🔺", color: "#eab308", sub: "a² + b² = c²" }
+    { grade: "6", id: "fractions", name: "Brüche",              icon: "🍕", color: "#ec4899", sub: "Teilen, kürzen, rechnen" },
+    { grade: "8–9", id: "powers", name: "Potenzen & Wurzeln",  icon: "⚡", color: "#f97316", sub: "Hoch 2, Wurzel, Gesetze" },
+    { grade: "7", id: "ratio", name: "Dreisatz",            icon: "⚖️", color: "#14b8a6", sub: "Mehr, weniger, umgekehrt" },
+    { grade: "9", id: "pythagoras", name: "Pythagoras",          icon: "🔺", color: "#eab308", sub: "a² + b² = c²" }
   );
   const LX_SUP = { "0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹" };
   const lxSup = n => String(n).split("").map(c => LX_SUP[c] || c).join("");
@@ -19928,8 +19969,293 @@
   }
   function lxSolveReset(){
     lxSolvePlan = null; lxSolvePos = -1;
+    if(typeof pfReset === "function") pfReset();
     $("screen-lesson").classList.remove("solving");
     if($("ssArrows")) $("ssArrows").innerHTML = "";
+  }
+
+
+  /* ===== LEKTIONEN-SYSTEM: "Lösen" wie ein Computer (NEU) =====
+     Die Aufgabe steht auf einer Tafel. Jeder Tipp auf "Weiter" führt EINE
+     Bewegung aus - wie ein Computer, der rechnet:
+       focus   = Teil umranden          arrow  = Pfeil von A nach B
+       subst   = Teile verwandeln       insert = Teile einfügen
+       remove  = Teile wegstreichen     reduce = Teil zu Ergebnis zusammenrechnen
+       rewrite = Teil umschreiben       done   = Ergebnis grün markieren
+     Programme werden aus dem Aufgabentext erkannt (lxAutoProgram). Gibt es
+     keins, läuft die bisherige Teil-für-Teil-Erklärung. */
+  function lxProgBuilder(){
+    const lines = [], steps = []; let n = 0;
+    const mk = t => (t !== null && typeof t === "object" ? { ...t, t: String(t.t) } : { t: String(t) }); // Zahlen werden zu Text (sonst ging z.B. "2" verloren)
+    return {
+      line(toks){ const ids = []; lines.push(toks.map(t => { const o = mk(t); o.id = "k" + (n++); ids.push(o.id); return o; })); return ids; },
+      tok(t, extra){ return { ...mk(t), ...(extra || {}), id: "k" + (n++) }; },
+      step(s){ steps.push(s); },
+      out(){ return { lines, steps }; }
+    };
+  }
+  const T = (t, tight) => ({ t: String(t), tight: !!tight });
+  const lxN = v => lxNum(v);
+
+  // f(x) = m·x + b ;  f(x0) = ?
+  function lxProgFval(m, b, x0){
+    const P = lxProgBuilder();
+    const coef = m === 1 ? null : (m === -1 ? M : String(m));
+    const L1toks = [T("f("), T("x", true), T(")", true), T("=")];
+    if(coef !== null) L1toks.push(T(coef));
+    L1toks.push(T("x", coef !== null));
+    if(b > 0) L1toks.push(T("+"), T(b)); else if(b < 0) L1toks.push(T(M), T(-b));
+    const L1 = P.line(L1toks);
+    const L2 = P.line([T("f("), T(lxN(x0), true), T(")", true), T("="), T("?")]);
+    const fx = L1[1], ci = coef !== null ? 4 : -1, xi = coef !== null ? 5 : 4, xTok = L1[xi];
+    P.step({ op: "focus", ids: L2, why: `Gesucht ist f(${lxN(x0)}): Was kommt heraus, wenn x = ${lxN(x0)} ist?` });
+    P.step({ op: "arrow", from: L2[1], to: [fx, xTok], why: `Die ${lxN(x0)} aus der Klammer kommt überall dorthin, wo ein x steht.` });
+    const subVal = coef !== null && coef !== M ? "· " + lxPar(x0) : (coef === M ? lxPar(x0) : lxPar(x0));
+    P.step({ op: "subst", ids: [fx, xTok], texts: [lxN(x0), subVal], loosen: coef !== null && coef !== M, why: `Alle x werden zur ${lxN(x0)}.` });
+    let cur = xTok;
+    if(coef !== null){
+      const r = P.tok(lxN(m * x0));
+      P.step({ op: "reduce", ids: [L1[ci], xTok], result: r, why: coef === M ? `Minus vor der Zahl: ${lxN(m * x0)}.` : `Zuerst mal rechnen: ${lxN(m)} · ${lxPar(x0)} = ${lxN(m * x0)}.` });
+      cur = r.id;
+    }
+    if(b !== 0){
+      const r2 = P.tok(lxN(m * x0 + b));
+      P.step({ op: "reduce", ids: [cur, L1[L1.length - 2], L1[L1.length - 1]], result: r2, why: `Dann ${b > 0 ? "plus" : "minus"} rechnen: ${lxN(m * x0)} ${b > 0 ? "+" : M} ${Math.abs(b)} = ${lxN(m * x0 + b)}.` });
+    }
+    P.step({ op: "subst", ids: [L2[4]], texts: [lxN(m * x0 + b)], why: `Das Ergebnis kommt an die Stelle vom Fragezeichen.` });
+    P.step({ op: "done", ids: L2, why: `f(${lxN(x0)}) = ${lxN(m * x0 + b)} – fertig!` });
+    return P.out();
+  }
+  function lxFormulaToks(m, b){
+    const coef = m === 1 ? null : (m === -1 ? M : String(m));
+    const t = [T("f("), T("x", true), T(")", true), T("=")];
+    if(coef !== null) t.push(T(coef));
+    t.push(T("x", coef !== null));
+    if(b > 0) t.push(T("+"), T(b)); else if(b < 0) t.push(T(M), T(-b));
+    return { toks: t, coefIdx: coef !== null ? 4 : -1 };
+  }
+  // f(x) = mx + b ; m = ?  bzw.  b = ?
+  function lxProgRead(m, b, which){
+    const P = lxProgBuilder();
+    const F = lxFormulaToks(m, b), L1 = P.line(F.toks);
+    const L2 = P.line([T(which), T("="), T("?")]);
+    P.step({ op: "focus", ids: L1.slice(3), why: "So ist jede lineare Funktion gebaut: erst die Zahl vor dem x (m), dann die Zahl ohne x (b)." });
+    if(which === "m"){
+      if(F.coefIdx === -1) return null;
+      P.step({ op: "focus", ids: [L1[F.coefIdx]], why: "m ist die Zahl DIREKT vor dem x." });
+      P.step({ op: "arrow", from: L1[F.coefIdx], to: [L2[2]], why: "Diese Zahl ist die Steigung m." });
+      P.step({ op: "subst", ids: [L2[2]], texts: [lxN(m)], why: `m = ${lxN(m)}.` });
+    } else {
+      if(b === 0) return null;
+      const bIds = L1.slice(-2);
+      P.step({ op: "focus", ids: bIds, why: b < 0 ? "b ist die Zahl ohne x am Ende – das Minus davor gehört dazu." : "b ist die Zahl ohne x am Ende." });
+      P.step({ op: "arrow", from: bIds[1], to: [L2[2]], why: "Diese Zahl ist der y-Achsenabschnitt b." });
+      P.step({ op: "subst", ids: [L2[2]], texts: [lxN(b)], why: `b = ${lxN(b)}.` });
+    }
+    P.step({ op: "done", ids: L2, why: "Fertig!" });
+    return P.out();
+  }
+  // x + a = c  /  x − a = c
+  function lxProgAddEq(a, c, minus){
+    const P = lxProgBuilder();
+    const L = P.line([T("x"), T(minus ? M : "+"), T(a), T("="), T(lxN(c))]);
+    const x = minus ? c + a : c - a, inv = minus ? "+" : M;
+    P.step({ op: "focus", ids: L, why: `Gesucht ist x. x soll am Ende allein auf einer Seite stehen.` });
+    P.step({ op: "focus", ids: [L[1], L[2]], why: `Das „${minus ? M : "+"} ${a}“ stört – es muss weg.` });
+    const i1 = P.tok(inv), i2 = P.tok(a), j1 = P.tok(inv), j2 = P.tok(a);
+    P.step({ op: "insert", after: L[2], toks: [i1, i2], why: `Das Gegenteil von ${minus ? M : "+"} ${a} ist ${inv} ${a} …` });
+    P.step({ op: "insert", after: L[4], toks: [j1, j2], why: `… und zwar auf BEIDEN Seiten, damit es gleich bleibt.` });
+    P.step({ op: "remove", ids: [L[1], L[2], i1.id, i2.id], why: `${minus ? M : "+"} ${a} und ${inv} ${a} heben sich auf – links bleibt nur x.` });
+    const r = P.tok(lxN(x));
+    P.step({ op: "reduce", ids: [L[4], j1.id, j2.id], result: r, why: `Rechts ausrechnen: ${lxN(c)} ${inv} ${a} = ${lxN(x)}.` });
+    P.step({ op: "done", ids: [L[0], L[3], r.id], why: `x = ${lxN(x)} – fertig!` });
+    return P.out();
+  }
+  // a · x = c
+  function lxProgMulEq(a, c){
+    const P = lxProgBuilder();
+    const L = P.line([T(a), T("·"), T("x"), T("="), T(c)]);
+    P.step({ op: "focus", ids: L, why: "Gesucht ist x. x wird hier mit einer Zahl malgenommen." });
+    P.step({ op: "focus", ids: [L[0], L[1]], why: `Das „${a} ·“ stört – es muss weg.` });
+    const i1 = P.tok(":"), i2 = P.tok(a), j1 = P.tok(":"), j2 = P.tok(a);
+    P.step({ op: "insert", after: L[2], toks: [i1, i2], why: `Das Gegenteil von mal ${a} ist geteilt durch ${a} …` });
+    P.step({ op: "insert", after: L[4], toks: [j1, j2], why: "… auf BEIDEN Seiten." });
+    P.step({ op: "remove", ids: [L[0], L[1], i1.id, i2.id], why: `· ${a} und : ${a} heben sich auf – links bleibt nur x.` });
+    const r = P.tok(c / a);
+    P.step({ op: "reduce", ids: [L[4], j1.id, j2.id], result: r, why: `Rechts ausrechnen: ${c} : ${a} = ${c / a}.` });
+    P.step({ op: "done", ids: [L[2], L[3], r.id], why: `x = ${c / a} – fertig!` });
+    return P.out();
+  }
+  // a·x ± b = c
+  function lxProgLinEq(a, b, c, minus){
+    const P = lxProgBuilder();
+    const L = P.line([T(a), T("x", true), T(minus ? M : "+"), T(b), T("="), T(lxN(c))]);
+    const ax = minus ? c + b : c - b, x = ax / a, inv = minus ? "+" : M;
+    P.step({ op: "focus", ids: L, why: "Gesucht ist x. Zwei Schritte: erst das Plus/Minus weg, dann das Mal." });
+    P.step({ op: "focus", ids: [L[2], L[3]], why: `Zuerst muss „${minus ? M : "+"} ${b}“ weg.` });
+    const i1 = P.tok(inv), i2 = P.tok(b), j1 = P.tok(inv), j2 = P.tok(b);
+    P.step({ op: "insert", after: L[3], toks: [i1, i2], why: `Gegenteil: ${inv} ${b} …` });
+    P.step({ op: "insert", after: L[5], toks: [j1, j2], why: "… auf BEIDEN Seiten." });
+    P.step({ op: "remove", ids: [L[2], L[3], i1.id, i2.id], why: "Das hebt sich links auf." });
+    const r = P.tok(lxN(ax));
+    P.step({ op: "reduce", ids: [L[5], j1.id, j2.id], result: r, why: `Rechts: ${lxN(c)} ${inv} ${b} = ${lxN(ax)}.` });
+    P.step({ op: "focus", ids: [L[0], L[1]], why: `${a}x heißt ${a} mal x – jetzt muss das „mal ${a}“ weg.` });
+    const k1 = P.tok(":"), k2 = P.tok(a), q1 = P.tok(":"), q2 = P.tok(a);
+    P.step({ op: "insert", after: L[1], toks: [k1, k2], why: `Gegenteil: geteilt durch ${a} …` });
+    P.step({ op: "insert", after: r.id, toks: [q1, q2], why: "… auf BEIDEN Seiten." });
+    const xl = P.tok("x");
+    P.step({ op: "reduce", ids: [L[0], L[1], k1.id, k2.id], result: xl, why: `${a}x : ${a} = x.` });
+    const r2 = P.tok(lxN(x));
+    P.step({ op: "reduce", ids: [r.id, q1.id, q2.id], result: r2, why: `${lxN(ax)} : ${a} = ${lxN(x)}.` });
+    P.step({ op: "done", ids: [xl.id, L[4], r2.id], why: `x = ${lxN(x)} – fertig!` });
+    return P.out();
+  }
+  // b² / b³
+  function lxProgPow(b, e){
+    const P = lxProgBuilder();
+    const L = P.line([T(b), T(e === 2 ? "²" : "³", true), T("="), T("?")]);
+    P.step({ op: "focus", ids: [L[0], L[1]], why: `Die kleine ${e} oben heißt: die ${b} ${e === 2 ? "zweimal" : "dreimal"} malnehmen.` });
+    P.step({ op: "subst", ids: [L[1]], texts: [e === 2 ? `· ${b}` : `· ${b} · ${b}`], loosen: true, why: `Aus ${b}${e === 2 ? "²" : "³"} wird ${Array(e).fill(b).join(" · ")}.` });
+    const r = P.tok(b ** e);
+    P.step({ op: "reduce", ids: [L[0], L[1]], result: r, why: `Ausrechnen: ${Array(e).fill(b).join(" · ")} = ${b ** e}.` });
+    P.step({ op: "arrow", from: r.id, to: [L[3]], why: "Das Ergebnis kommt an die Stelle vom Fragezeichen." });
+    P.step({ op: "subst", ids: [L[3]], texts: [String(b ** e)], why: "" });
+    P.step({ op: "done", ids: [r.id, L[2], L[3]], why: "Fertig!" });
+    return P.out();
+  }
+  // p % von g  /  k/q von N
+  function lxProgPartOf(num, den, whole, isPct){
+    const P = lxProgBuilder();
+    const L = isPct ? P.line([T(num), T("%", true), T("von"), T(whole), T("="), T("?")]) : P.line([T(`${num}/${den}`), T("von"), T(whole), T("="), T("?")]);
+    const head = isPct ? [L[0], L[1], L[2], L[3]] : [L[0], L[1], L[2]];
+    const res = whole / den * num;
+    P.step({ op: "focus", ids: head, why: isPct ? `${num} % heißt: ${num} von 100 Teilen des Ganzen (${whole}).` : `${num}/${den} heißt: das Ganze (${whole}) in ${den} Teile teilen und ${num} davon nehmen.` });
+    const a = P.tok(whole), b1 = P.tok(":"), c = P.tok(den), d = P.tok("·"), e = P.tok(num);
+    P.step({ op: "rewrite", ids: head, toks: [a, b1, c, d, e], why: `Das rechnet man so: Ganzes : ${den} · ${num}.` });
+    const one = P.tok(lxDec(whole / den));
+    P.step({ op: "reduce", ids: [a.id, b1.id, c.id], result: one, why: `Erst EIN Teil: ${whole} : ${den} = ${lxDec(whole / den)}.` });
+    const r = P.tok(lxDec(res));
+    if(num !== 1) P.step({ op: "reduce", ids: [one.id, d.id, e.id], result: r, why: `Dann ${num} solche Teile: ${lxDec(whole / den)} · ${num} = ${lxDec(res)}.` });
+    else P.step({ op: "remove", ids: [d.id, e.id], why: "Mal 1 ändert nichts." });
+    const resId = num !== 1 ? r.id : one.id;
+    P.step({ op: "subst", ids: [L[L.length - 1]], texts: [lxDec(res)], why: "Das Ergebnis kommt an die Stelle vom Fragezeichen." });
+    P.step({ op: "done", ids: [resId, L[L.length - 2], L[L.length - 1]], why: "Fertig!" });
+    return P.out();
+  }
+  // Erkennt aus dem Aufgabentext, welches Programm passt (sonst null)
+  function lxAutoProgram(q){
+    if(!q || q.choices || q.interactive) return null;
+    const t = lxPlain(q.text).replace(/−/g, "-");
+    const num = s => parseInt(s, 10);
+    let m;
+    const parseLin = f => { const mm = f.match(/^(-?\d*)x(?: ([+-]) (\d+))?$/); if(!mm) return null;
+      const k = mm[1] === "" ? 1 : mm[1] === "-" ? -1 : num(mm[1]); const b = mm[2] ? (mm[2] === "+" ? 1 : -1) * num(mm[3]) : 0; return [k, b]; };
+    try{
+      if((m = t.match(/^f\(x\) = (.+)\nf\((-?\d+)\) = \?$/))){ const lb = parseLin(m[1]); if(lb && lb[0] * num(m[2]) + lb[1] === q.answer) return lxProgFval(lb[0], lb[1], num(m[2])); }
+      if((m = t.match(/^f\(x\) = (.+)\ny-Achsenabschnitt b = \?$/))){ const lb = parseLin(m[1]); if(lb && lb[1] === q.answer) return lxProgRead(lb[0], lb[1], "b"); }
+      if((m = t.match(/^f\(x\) = (.+)\nSteigung m = \?$/))){ const lb = parseLin(m[1]); if(lb && lb[0] === q.answer) return lxProgRead(lb[0], lb[1], "m"); }
+      if((m = t.match(/^x \+ (\d+) = (-?\d+)\nx = \?$/)) && num(m[2]) - num(m[1]) === q.answer) return lxProgAddEq(num(m[1]), num(m[2]), false);
+      if((m = t.match(/^x - (\d+) = (-?\d+)\nx = \?$/)) && num(m[2]) + num(m[1]) === q.answer) return lxProgAddEq(num(m[1]), num(m[2]), true);
+      if((m = t.match(/^(\d+) · x = (\d+)\nx = \?$/)) && num(m[2]) / num(m[1]) === q.answer) return lxProgMulEq(num(m[1]), num(m[2]));
+      if((m = t.match(/^(\d+)x ([+-]) (\d+) = (-?\d+)\nx = \?$/))){ const a = num(m[1]), b = num(m[3]), c = num(m[4]), minus = m[2] === "-";
+        if(((minus ? c + b : c - b) / a) === q.answer) return lxProgLinEq(a, b, c, minus); }
+      if((m = t.match(/^(\d+)([²³]) = \?$/))){ const b = num(m[1]), e = m[2] === "²" ? 2 : 3; if(b ** e === q.answer) return lxProgPow(b, e); }
+      if((m = t.match(/^(\d+) % von (\d+) = \?$/))){ const p = num(m[1]), g = num(m[2]); if(g * p / 100 === q.answer) return lxProgPartOf(p, 100, g, true); }
+      if((m = t.match(/^(\d+)\/(\d+) von (\d+) = \?$/))){ const k = num(m[1]), d = num(m[2]), g = num(m[3]); if(g / d * k === q.answer) return lxProgPartOf(k, d, g, false); }
+    }catch(e){ console.error("Programm-Erkennung:", e); }
+    return null;
+  }
+
+  // ---------- Ausführung auf der Tafel ----------
+  let pfProg = null, pfPos = -1;
+  const pfEl = id => $("pfBoard").querySelector(`[data-id="${id}"]`);
+  function pfMakeTok(tok, extraCls){
+    const sp = document.createElement("span");
+    sp.className = "pf-tok" + (tok.tight ? " tight" : "") + (extraCls ? " " + extraCls : "");
+    sp.dataset.id = tok.id; sp.textContent = tok.t;
+    return sp;
+  }
+  function pfStart(prog){
+    pfProg = prog; pfPos = -1;
+    $("solveStage").classList.add("pf-mode");
+    const board = $("pfBoard"); board.innerHTML = "";
+    prog.lines.forEach(line => { const div = document.createElement("div"); div.className = "pf-line"; line.forEach(tk => div.appendChild(pfMakeTok(tk))); board.appendChild(div); });
+    pfNext();
+  }
+  function pfClearMarks(){
+    $("pfBoard").querySelectorAll(".pf-tok.hot, .pf-tok.src").forEach(e => e.classList.remove("hot", "src"));
+    $("pfOverlay").innerHTML = "";
+  }
+  function pfRectUnion(ids){
+    const st = $("solveStage").getBoundingClientRect(); let L = 1e9, Tp = 1e9, R = -1e9, B = -1e9;
+    ids.map(pfEl).filter(Boolean).forEach(el => { const r = el.getBoundingClientRect(); L = Math.min(L, r.left); Tp = Math.min(Tp, r.top); R = Math.max(R, r.right); B = Math.max(B, r.bottom); });
+    return { x: L - st.left, y: Tp - st.top, w: R - L, h: B - Tp };
+  }
+  function pfBox(ids, cls){
+    const u = pfRectUnion(ids); if(u.w < 0) return;
+    const pad = 7;
+    $("pfOverlay").insertAdjacentHTML("beforeend", `<div class="pf-box ${cls || ""}" style="left:${u.x - pad}px; top:${u.y - pad}px; width:${u.w + pad * 2}px; height:${u.h + pad * 2}px"></div>`);
+  }
+  function pfArrows(fromId, toIds){
+    const st = $("solveStage").getBoundingClientRect(), a = pfEl(fromId); if(!a) return;
+    const ra = a.getBoundingClientRect(); const ax = ra.left + ra.width / 2 - st.left, ay = ra.top - st.top - 2;
+    let paths = "";
+    toIds.forEach((id, i) => {
+      const b = pfEl(id); if(!b) return;
+      const rb = b.getBoundingClientRect(); const bx = rb.left + rb.width / 2 - st.left;
+      const above = rb.bottom < ra.top; const by = above ? rb.bottom - st.top + 4 : rb.top - st.top - 4;
+      const cy = above ? Math.min(ay, by) - 10 : Math.min(ay, by) - 34;
+      paths += `<path class="pf-arrow" style="animation-delay:${(i * .15).toFixed(2)}s" d="M${ax},${ay} C${ax},${cy} ${bx},${cy} ${bx},${by}" marker-end="url(#pfHead)"/>`;
+    });
+    $("pfOverlay").insertAdjacentHTML("beforeend", `<svg class="pf-svg" width="${st.width}" height="${st.height}"><defs><marker id="pfHead" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--accent)"/></marker></defs>${paths}</svg>`);
+  }
+  // Schrift so verkleinern, dass jede Zeile in EINE Reihe passt (kein Umbruch mitten in der Rechnung)
+  function pfFit(){
+    const board = $("pfBoard"); if(!board) return;
+    let size = 34; board.style.setProperty("--pf-size", size + "px");
+    const fits = () => [...board.children].every(l => l.scrollWidth <= board.clientWidth - 4);
+    while(!fits() && size > 15){ size -= 2; board.style.setProperty("--pf-size", size + "px"); }
+  }
+  function pfNext(){
+    if(!pfProg) return;
+    pfPos++;
+    const s = pfProg.steps[pfPos]; if(!s) return;
+    pfClearMarks();
+    const last = pfPos === pfProg.steps.length - 1;
+    const after = fn => setTimeout(() => requestAnimationFrame(fn), 0);
+    switch(s.op){
+      case "focus": s.ids.forEach(id => pfEl(id) && pfEl(id).classList.add("hot")); after(() => pfBox(s.ids)); break;
+      case "arrow": pfEl(s.from) && pfEl(s.from).classList.add("src"); s.to.forEach(id => pfEl(id) && pfEl(id).classList.add("hot")); after(() => { pfBox([s.from], "small"); pfArrows(s.from, s.to); }); break;
+      case "subst": s.ids.forEach((id, i) => { const el = pfEl(id); if(!el) return; el.classList.add("flip", "hot");
+          setTimeout(() => { el.textContent = s.texts[i]; if(s.loosen) el.classList.remove("tight"); el.classList.add("changed"); }, 230);
+          setTimeout(() => el.classList.remove("flip"), 480); }); break;
+      case "insert": { let anchor = pfEl(s.after); s.toks.forEach(tk => { const sp = pfMakeTok(tk, "new hot"); anchor.after(sp); anchor = sp; }); break; }
+      case "remove": s.ids.forEach(id => { const el = pfEl(id); if(el){ el.classList.add("gone"); setTimeout(() => el.remove(), 520); } }); break;
+      case "reduce": case "rewrite": {
+        s.ids.forEach(id => pfEl(id) && pfEl(id).classList.add("hot"));
+        after(() => pfBox(s.ids));
+        setTimeout(() => {
+          const els = s.ids.map(pfEl).filter(Boolean); if(!els.length) return;
+          const outs = s.op === "reduce" ? [s.result] : s.toks;
+          let anchor = null;
+          outs.forEach((tk, i) => { const sp = pfMakeTok(tk, "new hot"); if(i === 0) els[0].before(sp); else anchor.after(sp); anchor = sp; });
+          els.forEach(el => el.remove());
+          $("pfOverlay").innerHTML = "";
+        }, 650);
+        break; }
+      case "done": s.ids.forEach(id => pfEl(id) && pfEl(id).classList.add("final")); break;
+    }
+    pfFit(); setTimeout(pfFit, 700); // nach Einfügen/Zusammenrechnen neu anpassen
+    $("pfWhy").innerHTML = `<span class="n">${pfPos + 1}/${pfProg.steps.length}</span>${lxEsc(s.why || "")}`;
+    $("pfWhy").classList.remove("pop"); void $("pfWhy").offsetWidth; $("pfWhy").classList.add("pop");
+    triggerHaptic(8);
+    const btn = $("lupeShowResult");
+    if(last) btn.style.display = "none"; else btn.textContent = "Weiter ›";
+  }
+  function pfReset(){
+    pfProg = null; pfPos = -1;
+    if($("solveStage")) $("solveStage").classList.remove("pf-mode");
+    if($("pfOverlay")) $("pfOverlay").innerHTML = "";
   }
 
   function lxLupeHideUi(){
@@ -19965,7 +20291,18 @@
   }
   $("lupeBtn").addEventListener("click", lxLupeOpen);
   $("lupeClose").addEventListener("click", lxLupeClose);
-  $("lupeShowResult").addEventListener("click", () => { if(!lxSolvePlan) lxSolveStart(); else lxSolveNext(); });
+  $("lupeShowResult").addEventListener("click", () => {
+    if(pfProg){ pfNext(); return; }
+    if(lxSolvePlan){ lxSolveNext(); return; }
+    const q = lesson && lesson.questions[lesson.index];
+    const prog = lxAutoProgram(q); // "wie ein Computer" - wenn es für diesen Aufgabentyp ein Programm gibt
+    if(prog){
+      $("screen-lesson").classList.add("solving");
+      $("lupeBubble").style.display = "none"; $("lupeArrow").innerHTML = ""; $("lupeHint").style.display = "none";
+      $("ssCount").textContent = "";
+      pfStart(prog);
+    } else lxSolveStart();
+  });
   $("screen-lesson").addEventListener("click", (e) => {
     if(lxLupeActive && !e.target.closest(".lupe-num") && !e.target.closest("#lupeBubble")){ $("lupeBubble").style.display = "none"; $("lupeArrow").innerHTML = ""; }
   });

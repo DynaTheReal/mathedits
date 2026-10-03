@@ -3509,7 +3509,8 @@
   .pf-nav .pf-next:disabled{ opacity:.6; }
 
 
-  .lx-node.book.optional{ width:66px; height:66px; font-size:28px; border-radius:20px; opacity:.85; }
+  .lx-node.book.optional{ width:66px; height:66px; font-size:28px; border-radius:20px; opacity:.85; margin-bottom:30px; }
+  .lx-node.exam{ margin-bottom:26px; }
   .lx-node.book.optional .stars{ bottom:-19px; font-size:10px; opacity:.6; }
 
 
@@ -3545,6 +3546,35 @@
   @keyframes inv-glow{ from{ transform:scale(.4); opacity:0; } 50%{ opacity:1; } to{ transform:scale(1); opacity:.85; } }
   @keyframes inv-exit{ to{ opacity:0; transform:scale(1.06); filter:blur(8px); visibility:hidden; } }
   @media (prefers-reduced-motion: reduce){ .intro-nova *, .intro-nova{ animation-duration:.01s !important; animation-delay:0s !important; } }
+
+
+  /* ===== Klassenarbeit (NEU) ===== */
+  #screen-lesson.exam-mode .lupe-btn{ display:none !important; }
+  #screen-lesson.exam-mode .timer-num{ font-size:12.5px; letter-spacing:-.02em; }
+  .lx-choice.picked{ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 16%, var(--card)); }
+  .lx-node.exam{ width:76px; height:76px; font-size:32px; border-radius:22px; background:linear-gradient(145deg,#334155,#0f172a);
+    box-shadow:0 7px 0 #020617, 0 0 0 2px color-mix(in srgb, var(--lx-c) 70%, transparent), 0 0 22px color-mix(in srgb, var(--lx-c) 35%, transparent); }
+  .lx-node.exam.locked{ filter:grayscale(1); opacity:.5; box-shadow:0 7px 0 #020617; }
+  .lx-node.exam .stars{ color:var(--text); font-size:10.5px; letter-spacing:0; opacity:.8; }
+  .lx-node.exam.g1 .stars, .lx-node.exam.g2 .stars{ color:var(--success); opacity:1; }
+  .exam-card{ max-width:380px; text-align:center; max-height:88vh; overflow-y:auto; }
+  .exam-title{ font-size:14px; font-weight:800; opacity:.7; }
+  #confirmPopupText{ white-space:pre-line; }
+  .exam-grade{ width:112px; height:112px; margin:14px auto 4px; border-radius:50%; display:grid; place-items:center; font-size:64px; font-weight:900; line-height:1;
+    color:#fff; animation:rescue-pop .7s cubic-bezier(.34,1.7,.5,1) both; }
+  .exam-grade.g-good{ background:radial-gradient(circle at 35% 30%, #86efac, #16a34a); box-shadow:0 0 40px rgba(34,197,94,.55); }
+  .exam-grade.g-mid{ background:radial-gradient(circle at 35% 30%, #fdba74, #ea580c); box-shadow:0 0 40px rgba(249,115,22,.5); }
+  .exam-grade.g-bad{ background:radial-gradient(circle at 35% 30%, #fca5a5, #dc2626); box-shadow:0 0 40px rgba(239,68,68,.5); }
+  .exam-grade-word{ font-size:16px; font-weight:800; margin-bottom:12px; }
+  .exam-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .exam-stats > div{ padding:10px 4px; border-radius:14px; background:var(--card-2); border:1px solid var(--border); }
+  .exam-stats b{ display:block; font-size:18px; font-weight:800; }
+  .exam-stats small{ font-size:11px; opacity:.6; font-weight:700; }
+  .exam-list{ margin-top:12px; text-align:left; display:flex; flex-direction:column; gap:5px; max-height:30vh; overflow-y:auto; }
+  .exam-row{ display:flex; gap:8px; align-items:flex-start; padding:7px 10px; border-radius:12px; font-size:12.5px; line-height:1.35; background:color-mix(in srgb, var(--text) 4%, transparent); }
+  .exam-row span{ font-weight:900; }
+  .exam-row.ok span{ color:var(--success); }
+  .exam-row.no span{ color:var(--danger); }
 
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
@@ -5717,7 +5747,7 @@
       <div class="lupe-hint" id="lupeHint"></div>
       <div class="lupe-sol" id="lupeSolution" style="display:none;"></div>
       <div class="lupe-btns">
-        <button class="btn btn-ghost" id="lupeShowResult">🧩 Ponder</button>
+        <button class="btn btn-ghost" id="lupeShowResult">🧩 Lösung</button>
         <div class="pf-nav" id="pfNav">
           <button class="pf-nav-btn" id="pfBackBtn" aria-label="Zurück">‹</button>
           <button class="pf-nav-btn" id="pfReplayBtn" aria-label="Animation nochmal">↻</button>
@@ -5730,7 +5760,7 @@
     <svg class="lupe-arrow" id="lupeArrow" aria-hidden="true"></svg>
     <!-- Lösen-Bühne: die Aufgabe verschwindet, der Lösungsweg erscheint Teil für Teil -->
     <div class="solve-stage" id="solveStage">
-      <div class="ss-top"><span>🧩 Ponder<span class="ss-tap"> · Teile antippbar</span></span><span id="ssCount"></span></div>
+      <div class="ss-top"><span>🧩 Lösung<span class="ss-tap"> · Teile antippbar</span></span><span id="ssCount"></span></div>
       <div class="ss-prev" id="ssPrev"></div>
       <div class="ss-row" id="ssRow"></div>
       <div class="ss-label" id="ssLabel"></div>
@@ -6584,6 +6614,19 @@
     </div>
   </div>
 
+  <!-- Klassenarbeit: Ergebnis -->
+  <div class="overlay" id="overlayExamResult">
+    <div class="modal-card exam-card">
+      <div class="exam-title" id="examTitle">📝 Klassenarbeit</div>
+      <div class="exam-grade" id="examGrade">1</div>
+      <div class="exam-grade-word" id="examGradeWord">sehr gut</div>
+      <div class="exam-stats" id="examStats"></div>
+      <div class="exam-list" id="examList"></div>
+      <button class="btn btn-primary" id="examReviewBtn" style="width:100%; margin-top:12px;">🧩 Fehler mit Lösung ansehen</button>
+      <button class="btn btn-ghost" id="examBackBtn" style="width:100%; margin-top:8px;">Zurück zum Pfad</button>
+    </div>
+  </div>
+
   <!-- Posteingang (NEU, Nova-Glocke) -->
   <div class="overlay" id="overlayInbox">
     <div class="modal-card inbox-card" style="max-width:380px; text-align:left;">
@@ -6701,7 +6744,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.88";
+  const APP_VERSION = "3.91";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -11266,7 +11309,20 @@
     { id: "p_keepgoing", label: "🏃 Weiter geht's", unit: "Aufgaben", metric: "tasksToday", target: 20, rewardType: "aura", auraAmount: 80 },
     { id: "p_champion", label: "👑 Tages-Champion", unit: "Aufgaben", metric: "tasksToday", target: 30, rewardType: "chest" }
   ];
-  const ALL_MISSION_DEFS = [...DAILY_MISSION_DEFS, ...MISSION_POOL];
+  // Lektionen-Missionen (NEU): jeden Tag kommt GENAU EINE davon zusätzlich
+  // dazu - so macht man auch Themen-Lektionen, die anderen Missionen bleiben.
+  const TOPIC_MISSION_POOL = [
+    { id: "t_one", label: "📖 Themen-Lektion", unit: "Themen-Lektion(en)", metric: "topicLessonsToday", target: 1, rewardType: "chest" },
+    { id: "t_three", label: "📚 Themen-Profi", unit: "Themen-Lektion(en)", metric: "topicLessonsToday", target: 3, rewardType: "chest" },
+    { id: "t_stars", label: "⭐ Drei Sterne", unit: "Themen-Lektion mit 3 Sternen", metric: "topicPerfectToday", target: 1, rewardType: "aura", auraAmount: 100 },
+    { id: "t_explorer", label: "🧭 Entdecker", unit: "verschiedene Lektionen-Themen", metric: "topicDistinctToday", target: 2, rewardType: "chest" }
+  ];
+  function pickDailyTopicMission(dateSeed){
+    let seed = 7;
+    for(let i = 0; i < dateSeed.length; i++) seed = (seed * 37 + dateSeed.charCodeAt(i)) >>> 0;
+    return TOPIC_MISSION_POOL[seed % TOPIC_MISSION_POOL.length];
+  }
+  const ALL_MISSION_DEFS = [...DAILY_MISSION_DEFS, ...MISSION_POOL, ...TOPIC_MISSION_POOL];
 
   // Aura-Belohnung je Truhen-Stufe (statt Euro, wie besprochen).
   const CHEST_REWARDS = { standard: 50, rare: 100, epic: 200, legendary: 500, ultra: 1000 };
@@ -11302,6 +11358,7 @@
   function missionProgressValue(m){
     if(!profile.dailyMissions) return 0;
     if(m.metric === "topicsCountToday") return (profile.dailyMissions.topicsToday || []).length;
+    if(m.metric === "topicDistinctToday") return (profile.dailyMissions.topicIdsToday || []).length;
     return profile.dailyMissions[m.metric] || 0;
   }
 
@@ -11310,9 +11367,10 @@
     const today = todayStr();
     if(!profile.dailyMissions || profile.dailyMissions.date !== today){
       const poolPicks = pickDailyPoolMissions(today, 2);
-      const activeMissionIds = [...DAILY_MISSION_DEFS.map(m => m.id), ...poolPicks.map(m => m.id)];
+      const topicPick = pickDailyTopicMission(today);
+      const activeMissionIds = [...DAILY_MISSION_DEFS.map(m => m.id), ...poolPicks.map(m => m.id), topicPick.id];
       const chests = {};
-      [...DAILY_MISSION_DEFS, ...poolPicks].forEach(m => {
+      [...DAILY_MISSION_DEFS, ...poolPicks, topicPick].forEach(m => {
         if(m.rewardType !== "aura") chests[m.id] = freshChest();
       });
       profile.dailyMissions = {
@@ -11333,6 +11391,15 @@
       const poolPicks = pickDailyPoolMissions(today, 2);
       dm.activeMissionIds = [...DAILY_MISSION_DEFS.map(m => m.id), ...poolPicks.map(m => m.id)];
     }
+    // Bestehender Tag ohne Lektionen-Mission: eine dazunehmen (NEU)
+    if(dm.activeMissionIds && !dm.activeMissionIds.some(id => TOPIC_MISSION_POOL.some(t => t.id === id))){
+      const tp = pickDailyTopicMission(today);
+      dm.activeMissionIds.push(tp.id);
+      if(tp.rewardType !== "aura" && !dm.chests[tp.id]) dm.chests[tp.id] = freshChest();
+    }
+    if(dm.topicLessonsToday === undefined) dm.topicLessonsToday = 0;
+    if(dm.topicPerfectToday === undefined) dm.topicPerfectToday = 0;
+    if(!dm.topicIdsToday) dm.topicIdsToday = [];
     if(!dm.auraClaimedIds) dm.auraClaimedIds = [];
     if(!dm.notifiedCompleteIds) dm.notifiedCompleteIds = [];
     if(dm.tasksToday === undefined) dm.tasksToday = 0;
@@ -12749,7 +12816,10 @@
                                    attemptsUsed: Math.max(x.attemptsUsed || 0, y.attemptsUsed || 0), claimed: !!(x.claimed || y.claimed) };
           else chests[n] = { ...(x || y) };
         });
-        out[id] = { done: Math.max(a.done || 0, b.done || 0), stars, chTut, chests, tutorialSeen: !!(a.tutorialSeen || b.tutorialSeen) };
+        const exams = { ...(a.exams || {}) };
+        Object.entries(b.exams || {}).forEach(([c, e]) => { const x = exams[c];
+          exams[c] = !x ? e : { best: Math.min(x.best, e.best), last: (e.at || 0) > (x.at || 0) ? e.last : x.last, count: Math.max(x.count || 0, e.count || 0), at: Math.max(x.at || 0, e.at || 0) }; });
+        out[id] = { done: Math.max(a.done || 0, b.done || 0), stars, chTut, chests, exams, tutorialSeen: !!(a.tutorialSeen || b.tutorialSeen) };
       });
       merged.lessonTopics = out;
     }
@@ -14214,6 +14284,7 @@
     document.body.classList.toggle("nova-home-active", name === "home");
     if(name === "result" && typeof animateResultScreen === "function") animateResultScreen();
     if(name === "lesson") screens.lesson.classList.toggle("lx-topic-lesson", !!(lesson && lesson.topicId)); // LEKTIONEN-SYSTEM
+    if(name === "lesson") screens.lesson.classList.toggle("exam-mode", !!(lesson && lesson.isExam));
     if(name !== "lesson" && typeof lxLupeCancel === "function") lxLupeCancel(); // Lupe beim Verlassen sauber schließen
 
     // Neue Lektionen / Lektions-Hintergrund (NEU, Beta-Einstellungen)
@@ -18552,6 +18623,7 @@
     if(!st.stars) st.stars = {};
     if(!st.chests) st.chests = {};
     if(!st.chTut) st.chTut = {};
+    if(!st.exams) st.exams = {};
     // Wer schon weiter ist, muss erreichte Kapitel-Tutorials nicht nachholen
     if(st.done >= 1 || st.tutorialSeen) st.chTut[1] = true;
     if(st.done >= 11) st.chTut[2] = true;
@@ -19029,6 +19101,12 @@
     const st = lxState(lesson.topicId);
     const n = lesson.topicLessonNo;
     const stars = lesson.correct >= QUESTIONS_PER_LESSON ? 3 : lesson.correct >= 8 ? 2 : 1;
+    // Lektionen-Missionen zählen (NEU)
+    ensureDailyMissions();
+    const dmT = profile.dailyMissions;
+    dmT.topicLessonsToday = (dmT.topicLessonsToday || 0) + 1;
+    if(stars === 3) dmT.topicPerfectToday = (dmT.topicPerfectToday || 0) + 1;
+    if(!(dmT.topicIdsToday || []).includes(lesson.topicId)) dmT.topicIdsToday = [...(dmT.topicIdsToday || []), lesson.topicId];
     st.stars[n] = Math.max(st.stars[n] || 0, stars);
     if(n === st.done + 1){
       st.done = n;
@@ -19049,6 +19127,7 @@
   function lxChestTitle(sourceId){
     const [topicId, n] = String(sourceId).split(":");
     const t = lxTopic(topicId);
+    if(String(n).startsWith("x")) return `${t ? t.icon + " " + t.name : "Lektionen"} · Klassenarbeit Kapitel ${String(n).slice(1)}`;
     return `${t ? t.icon + " " + t.name : "Lektionen"} · ${n} Lektionen`;
   }
 
@@ -19090,6 +19169,10 @@
       html += `<button class="lx-node${done ? " done" : current ? " current" : " locked"}" data-lesson="${n}" style="--x:${x}px">
         ${current ? '<span class="start">START</span>' : ""}${done ? "✓" : current ? n : "🔒"}
         ${done ? `<span class="stars">${"★".repeat(stars)}${"☆".repeat(3 - stars)}</span>` : ""}</button>`;
+      if(n % 10 === 0){ // Klassenarbeit am Ende des Kapitels (NEU)
+        const ex = (st.exams || {})[ch], exOpen = st.done >= n;
+        html += `<button class="lx-node exam${exOpen ? "" : " locked"}${ex ? " g" + ex.best : ""}" data-exam="${ch}" style="--x:0px">📝<span class="stars">${ex ? "Beste Note: " + ex.best : "Klassenarbeit"}</span></button>`;
+      }
       if(LX_CHEST_AT[n]){
         const chest = st.chests[n];
         const cls = !chest ? "locked" : chest.claimed ? "claimed" : "ready";
@@ -19105,6 +19188,12 @@
       <div class="lx-path" style="--lx-c:${t.color}">${html}</div>`;
     $("lxBack").addEventListener("click", () => { lxCurrentTopic = null; renderLessonsScreen(); });
     $("lxTutBtn").addEventListener("click", () => lxOpenTutorial(t.id, Math.min(3, lxChapterOf(Math.max(1, st.done + 1)))));
+    root.querySelectorAll("[data-exam]").forEach(b => b.addEventListener("click", async () => {
+      const ch = parseInt(b.dataset.exam, 10);
+      if(st.done < ch * 10){ showToast("📝 Schließe erst alle Lektionen dieses Kapitels ab."); return; }
+      const ok = await showConfirmPopup(`📝 Klassenarbeit · Kapitel ${ch}\n\n${EXAM_TASKS} Aufgaben · 10 Minuten · keine Hilfe.\nBereit?`);
+      if(ok) lxStartExam(t.id, ch);
+    }));
     root.querySelectorAll("[data-book]").forEach(b => b.addEventListener("click", () => {
       const ch = parseInt(b.dataset.book, 10);
       if(st.done < (ch - 1) * 10){ showToast("🔒 Schließe erst das Kapitel davor ab."); return; }
@@ -19737,6 +19826,7 @@
       const chosen = parseInt(btn.dataset.i, 10);
       ch.querySelectorAll(".lx-choice").forEach((b, i) => {
         b.disabled = true;
+        if(lesson.isExam){ if(i === chosen) b.classList.add("picked"); return; } // Klassenarbeit: nicht verraten
         if(i === q.answer) b.classList.add("right");
         else if(i === chosen) b.classList.add("wrong");
       });
@@ -19775,7 +19865,7 @@
     $("lupeHint").textContent = "💡 " + (q.hint || "Lies die Aufgabe in Ruhe genau durch.");
     $("lupeSolution").style.display = "none";
     $("lupeShowResult").style.display = "";
-    $("lupeShowResult").textContent = "🧩 Ponder";
+    $("lupeShowResult").textContent = "🧩 Lösung";
     lxSolveReset();
     $("lupeHint").style.display = "";
     lxSolveIdx = -1;
@@ -20451,6 +20541,9 @@
     const ix = q.interactive, svgT = cpSvgTexts(q);
     let m;
     // ---------- Lineare Funktionen ----------
+    if((m = t.match(/^(f\(x\) = .+)\nf\((−?\d+)\) = \?$/))){ const lb = cpLin(m[1]); if(!lb) return null; const [k, b] = lb, x0 = cpN(m[2]);
+      return [{ line: `f(${cpS(x0)}) = ?`, say: `Hier steht: x = ${cpS(x0)}.` }, { line: m[1], say: `Ersetze jedes x durch ${cpS(x0)}.` },
+        { calc: `${cpS(k)} · ${lxPar(x0)}${b ? (b > 0 ? " + " + b : " " + M + " " + (-b)) : ""}`, pre: `f(${cpS(x0)}) =` }, { result: cpS(A) }]; }
     if((m = t.match(/^f\(x\) = (−?)x(.*)\nSteigung m = \?$/))) return [{ line: `f(x) = ${m[1]}x${m[2]}`, say: `Suche die Zahl vor dem x: keine Zahl heißt ${m[1] ? M + "1" : "1"}.` }, { result: `m = ${cpS(A)}` }];
     if(/^Wo schneidet die Gerade die y-Achse/.test(t)) return [{ svg: true }, { note: "Suche die Stelle, wo die Gerade die senkrechte y-Achse kreuzt." }, { note: `Lies dort die Zahl ab: ${cpS(A)}.` }, { result: `b = ${cpS(A)}` }];
     if(/^Lies die Steigung m am Graphen ab/.test(t)) return [{ svg: true }, { note: "Suche einen Punkt der Geraden auf einer Gitter-Ecke." }, { note: "Gehe 1 Kästchen nach rechts." },
@@ -20809,6 +20902,7 @@
   // Lupe schließen = Aufgabe verloren (zählt als falsch, neue Aufgabe kommt)
   function lxLupeClose(){
     if(!lxLupeActive) return;
+    if(lesson && lesson.isExamReview){ lxLupeHideUi(); resumeLessonTimerAfterOwnerEvent(); examReviewNext(); return; }
     const q = lesson && lesson.questions[lesson.index];
     lxLupeHideUi();
     if(!lesson || !q){ resumeLessonTimerAfterOwnerEvent(); return; }
@@ -20918,6 +21012,152 @@
   $("rescueLaterBtn").addEventListener("click", () => $("overlayStreakRescue").classList.remove("show"));
   $("rescuedOkBtn").addEventListener("click", () => $("overlayStreakRescued").classList.remove("show"));
 
+
+  /* ===================== KLASSENARBEIT (NEU) =====================
+     Am Ende jedes Kapitels: 15 Aufgaben, 10 Minuten für ALLES (Timer oben
+     zählt herunter), die schwierigsten Aufgaben des Kapitels - nicht
+     gemischt, sondern nach Aufgabentyp geordnet wie in einer echten
+     Arbeit. Keine Lupe, keine Lösung während der Arbeit, keine
+     Wiederholung - am Ende Note 1-6, Belohnung und Fehler mit Lösung. */
+  const EXAM_MS = 10 * 60 * 1000, EXAM_TASKS = 15;
+  const EXAM_AURA = { 1: 200, 2: 120, 3: 70, 4: 40, 5: 15, 6: 5 };
+  function examGrade(pct){ return pct >= 0.92 ? 1 : pct >= 0.81 ? 2 : pct >= 0.67 ? 3 : pct >= 0.5 ? 4 : pct >= 0.3 ? 5 : 6; }
+  function lxBuildExam(topicId, ch){
+    const n = ch * 10;
+    const all = LX_TYPES[topicId].filter(t => t.from <= n).sort((a, b) => a.from - b.from); // Reihenfolge wie im Kapitelverlauf
+    // die schwierigsten: neueste Aufgabentypen zuerst auswählen ...
+    const byHard = [...all].sort((a, b) => b.from - a.from);
+    const chosen = byHard.slice(0, Math.min(byHard.length, EXAM_TASKS));
+    const qs = [], keys = new Set();
+    const add = t => { for(let k = 0; k < 20; k++){ const q = t.gen(n); const key = lxPlain(q.text) + "|" + (q.svg || "") + "|" + q.answer;
+        if(!Number.isInteger(q.answer) || keys.has(key)) continue; keys.add(key); q._order = all.indexOf(t); q._from = t.from; qs.push(q); return; } };
+    chosen.forEach(add);
+    // ... auffüllen mit Aufgaben dieses Kapitels (höchste Stufe)
+    const chapterTypes = all.filter(t => t.from > n - 10);
+    const pool = chapterTypes.length ? chapterTypes : byHard;
+    for(let i = 0; qs.length < EXAM_TASKS && i < 200; i++) add(pool[i % pool.length]);
+    // ... und dann NICHT gemischt: geordnet nach Aufgabentyp wie in einer echten Arbeit
+    return qs.sort((a, b) => a._order - b._order).slice(0, EXAM_TASKS);
+  }
+  function lxStartExam(topicId, ch){
+    const topic = lxTopic(topicId);
+    lesson = {
+      tier: { id: "exam_" + topicId, name: `📝 Klassenarbeit · Kapitel ${ch}`, icon: "📝", timeMs: EXAM_MS, normalAura: 0, editAura: 0 },
+      isMainProgression: false, noLifeLoss: true, isExam: true, examCh: ch, topicId,
+      questions: lxBuildExam(topicId, ch), index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false,
+      examStart: Date.now(), examResults: []
+    };
+    lesson.startedAt = performance.now();
+    showScreen("lesson");
+    renderQuestion();
+  }
+  // Gesamt-Timer: mm:ss
+  function examTimerTick(){
+    if(!lesson || !lesson.isExam) return;
+    const remaining = Math.max(0, EXAM_MS - (Date.now() - lesson.examStart));
+    const frac = remaining / EXAM_MS;
+    $("timerCircle").setAttribute("stroke-dashoffset", TIMER_CIRCUMFERENCE * (1 - frac));
+    $("timerCircle").style.stroke = remaining < 60000 ? "var(--danger)" : "var(--accent)";
+    const s = Math.ceil(remaining / 1000);
+    $("timerNum").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+    if(remaining <= 0){ examTimeUp(); return; }
+    timerRAF = requestAnimationFrame(examTimerTick);
+  }
+  function examHandleAnswer(isTimeout){
+    if(!lesson || lesson.locked) return;
+    lesson.locked = true;
+    const q = lesson.questions[lesson.index];
+    const given = isTimeout ? null : parseInt(lesson.answer, 10);
+    const ok = !isTimeout && given === q.answer;
+    if(ok) lesson.correct++;
+    lesson.examResults.push({ q, ok, given: lesson.answer });
+    // nichts verraten - nur "gespeichert", dann weiter
+    const el = $("answerDisplay"); el.classList.remove("wrong", "right", "empty"); el.textContent = "✓ gespeichert";
+    triggerHaptic(10);
+    setTimeout(() => {
+      if(!lesson || !lesson.isExam) return;
+      lesson.index++;
+      if(lesson.index >= lesson.questions.length){ finishExam(false); return; }
+      lesson.locked = false; lesson.answer = "";
+      renderQuestion();
+    }, 380);
+  }
+  function examTimeUp(){
+    if(!lesson || !lesson.isExam) return;
+    cancelAnimationFrame(timerRAF);
+    lesson.locked = true;
+    for(let i = lesson.examResults.length; i < lesson.questions.length; i++) lesson.examResults.push({ q: lesson.questions[i], ok: false, given: "", timeUp: true });
+    finishExam(true);
+  }
+  let examLast = null;
+  function finishExam(timeUp){
+    cancelAnimationFrame(timerRAF);
+    const L = lesson, total = L.questions.length, pts = L.examResults.filter(r => r.ok).length;
+    const grade = examGrade(pts / total), usedMs = Math.min(EXAM_MS, Date.now() - L.examStart);
+    const st = lxState(L.topicId);
+    if(!st.exams) st.exams = {};
+    const prev = st.exams[L.examCh];
+    st.exams[L.examCh] = { best: prev ? Math.min(prev.best, grade) : grade, last: grade, count: (prev ? prev.count : 0) + 1, at: Date.now() };
+    const aura = EXAM_AURA[grade];
+    profile.totalAura += aura; logAuraTransaction(aura, `Klassenarbeit Note ${grade}`);
+    let chestMsg = "";
+    if(grade === 1 && !st.chests["x" + L.examCh]){ // erste 1 im Kapitel: epische Truhe
+      st.chests["x" + L.examCh] = { tier: "epic", attemptsUsed: 0, claimed: false };
+      chestMsg = " + 💜 Epische Truhe";
+    }
+    pushInboxEvent("📝", `Klassenarbeit ${lxTopic(L.topicId).name} Kapitel ${L.examCh}: Note ${grade}`);
+    saveProfile();
+    examLast = { topicId: L.topicId, ch: L.examCh, wrong: L.examResults.filter(r => !r.ok).map(r => r.q) };
+    // Ergebnis-Fenster
+    const gc = grade <= 2 ? "g-good" : grade <= 4 ? "g-mid" : "g-bad";
+    $("examGrade").className = "exam-grade " + gc; $("examGrade").textContent = grade;
+    $("examGradeWord").textContent = ["", "sehr gut", "gut", "befriedigend", "ausreichend", "mangelhaft", "ungenügend"][grade];
+    $("examTitle").textContent = timeUp ? "⏰ Zeit abgelaufen!" : `📝 ${lxTopic(L.topicId).name} · Kapitel ${L.examCh}`;
+    const sec = Math.round(usedMs / 1000);
+    $("examStats").innerHTML = `<div><b>${pts}/${total}</b><small>Punkte</small></div><div><b>${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}</b><small>Zeit</small></div><div><b>+${aura}</b><small>Aura${chestMsg ? " + Truhe" : ""}</small></div>`;
+    $("examList").innerHTML = L.examResults.map((r, i) => `<div class="exam-row ${r.ok ? "ok" : "no"}"><span>${r.ok ? "✓" : "✗"}</span><div>${i + 1}. ${lxEsc(lxPlain(r.q.text).replace(/\n/g, " · ")).slice(0, 70)}</div></div>`).join("");
+    $("examReviewBtn").style.display = examLast.wrong.length ? "" : "none";
+    $("examReviewBtn").textContent = `🧩 ${examLast.wrong.length} Fehler mit Lösung ansehen`;
+    lesson = null;
+    $("overlayExamResult").classList.add("show");
+    if(grade <= 2 && typeof spawnConfetti === "function") spawnConfetti();
+  }
+  // Fehler durchgehen: jede falsche Aufgabe mit der Lösung (Computerprinzip)
+  function startExamReview(){
+    if(!examLast || !examLast.wrong.length) return;
+    $("overlayExamResult").classList.remove("show");
+    lesson = {
+      tier: { id: "examreview", name: "🧩 Fehler durchgehen", icon: "🧩", timeMs: EXAM_MS, normalAura: 0, editAura: 0 },
+      isMainProgression: false, noLifeLoss: true, isExamReview: true, topicId: examLast.topicId,
+      questions: examLast.wrong, index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false
+    };
+    showScreen("lesson");
+    examReviewShow();
+  }
+  function examReviewShow(){
+    renderQuestion();
+    $("timerNum").textContent = `${lesson.index + 1}/${lesson.questions.length}`;
+    setTimeout(() => {
+      lxLupeOpen();
+      $("lupeClose").textContent = lesson.index < lesson.questions.length - 1 ? "Nächster Fehler ›" : "Fertig – zurück zum Pfad";
+      $("lupeShowResult").click();
+    }, 250);
+  }
+  function examReviewNext(){
+    $("lupeClose").textContent = "Lupe schließen";
+    if(lesson && lesson.index < lesson.questions.length - 1){ lesson.index++; lesson.locked = false; examReviewShow(); return; }
+    lesson = null;
+    lxCurrentTopic = examLast ? examLast.topicId : lxCurrentTopic;
+    showScreen("lessons"); renderLessonsScreen();
+  }
+  $("examReviewBtn").addEventListener("click", startExamReview);
+  $("examBackBtn").addEventListener("click", () => {
+    $("overlayExamResult").classList.remove("show");
+    lxCurrentTopic = examLast ? examLast.topicId : lxCurrentTopic;
+    showScreen("lessons"); renderLessonsScreen();
+  });
+  /* =================== KLASSENARBEIT ENDE =================== */
+
   $("backHomeFromLocked").addEventListener("click", () => {
     clearInterval(lockedInterval);
     showScreen("home");
@@ -20925,6 +21165,16 @@
   });
 
   $("exitLesson").addEventListener("click", () => {
+    if(lesson && (lesson.isExam || lesson.isExamReview)){ // Klassenarbeit: ohne Strafe, wird nicht gewertet
+      stopTimer(); pendingAdvanceAt = null;
+      const tid = lesson.topicId, wasExam = lesson.isExam;
+      if(typeof lxLupeCancel === "function") lxLupeCancel();
+      lesson = null;
+      $("lupeClose").textContent = "Lupe schließen";
+      lxCurrentTopic = tid; showScreen("lessons"); renderLessonsScreen();
+      if(wasExam) showToast("📝 Klassenarbeit abgebrochen – sie wird nicht gewertet.");
+      return;
+    }
     stopTimer();
     pendingAdvanceAt = null;
     const wasNormalLesson = lesson && !lesson.isLiveDuel && !lesson.isTimesTablePractice;
@@ -21118,6 +21368,12 @@
     timerRAF = requestAnimationFrame(timerTick);
   }
   function startTimer(){
+    if(lesson && (lesson.isExam || lesson.isExamReview)){ // Klassenarbeit: EIN Timer für alles
+      $("timerCircle").setAttribute("stroke-dasharray", TIMER_CIRCUMFERENCE);
+      cancelAnimationFrame(timerRAF);
+      if(lesson.isExam) examTimerTick();
+      return;
+    }
     questionStartedAt = performance.now();
     lessonTimeLimitMs = lesson.tier.timeMs || 8000;
     $("timerCircle").setAttribute("stroke-dasharray", TIMER_CIRCUMFERENCE);
@@ -21359,6 +21615,7 @@
 
   function handleAnswer(isTimeout){
     if(!lesson || lesson.locked) return;
+    if(lesson.isExam){ examHandleAnswer(isTimeout); return; } // Klassenarbeit: nichts verraten, weiter
     lesson.locked = true;
     stopTimer();
     pendingComboScare = false;
@@ -21659,7 +21916,7 @@
     if(passed){
       const pick = COMPLETE_LINES[randInt(0, COMPLETE_LINES.length-1)];
       title = pick.title; sub = pick.sub; emoji = pick.emoji;
-      if(lesson.isMainProgression){
+      if(lesson.isMainProgression || lesson.topicId){ // Themen-Lektionen bringen jetzt auch Level (NEU)
         profile.levelProgress = (profile.levelProgress || 0) + 1;
         lastLessonGainedProgress = true;
         if(profile.levelProgress >= LESSONS_PER_LEVEL){

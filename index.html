@@ -1282,6 +1282,33 @@
   }
 
   /* ---------- Online-Freunde-Popup (NEU): sauberere Animation ---------- */
+  /* ===== Online-Popup (Redesign) ===== */
+  .ofp{ position:fixed; top:calc(12px + env(safe-area-inset-top)); left:50%; z-index:96000; display:flex; align-items:center; gap:11px;
+    padding:7px 12px 7px 7px; border-radius:999px; max-width:calc(100% - 28px); cursor:pointer;
+    background:color-mix(in srgb, var(--card, #15141b) 88%, transparent); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+    border:1px solid color-mix(in srgb, var(--text, #fff) 10%, transparent); box-shadow:0 14px 36px rgba(0,0,0,.4), 0 0 0 1px rgba(34,197,94,.12);
+    transform:translate(-50%, -140%); opacity:0; visibility:hidden; font-family:inherit; }
+  .ofp.show{ visibility:visible; animation:ofp-in .6s cubic-bezier(.34,1.56,.64,1) both; }
+  .ofp.hide{ animation:ofp-out .42s cubic-bezier(.5,0,.75,0) both; }
+  @keyframes ofp-in{ 0%{ transform:translate(-50%, -140%) scale(.92); opacity:0; } 100%{ transform:translate(-50%, 0) scale(1); opacity:1; } }
+  @keyframes ofp-out{ from{ transform:translate(-50%, 0); opacity:1; } to{ transform:translate(-50%, -140%) scale(.95); opacity:0; } }
+  .ofp-avs{ position:relative; display:flex; flex-shrink:0; }
+  .ofp-av{ width:34px; height:34px; border-radius:50%; display:grid; place-items:center; overflow:hidden; font-weight:800; font-size:14px; color:#fff;
+    background:linear-gradient(145deg, var(--accent, #8b5cf6), color-mix(in srgb, var(--accent, #8b5cf6) 45%, #000)); border:2px solid var(--card, #15141b);
+    margin-left:calc(var(--i) * -12px); animation:ofp-av .45s cubic-bezier(.34,1.7,.5,1) both; animation-delay:calc(.25s + var(--i) * .08s); }
+  .ofp-av:first-child{ margin-left:0; }
+  .ofp-av img{ width:100%; height:100%; object-fit:cover; }
+  @keyframes ofp-av{ from{ transform:scale(0); } to{ transform:scale(1); } }
+  .ofp-dot{ position:absolute; right:-1px; bottom:-1px; width:12px; height:12px; border-radius:50%; background:#22c55e; border:2px solid var(--card, #15141b); }
+  .ofp-dot::after{ content:""; position:absolute; inset:-2px; border-radius:50%; border:2px solid #22c55e; animation:ofp-pulse 1.6s ease-out infinite .6s; }
+  @keyframes ofp-pulse{ from{ transform:scale(1); opacity:.9; } to{ transform:scale(2.4); opacity:0; } }
+  .ofp-txt{ display:flex; flex-direction:column; min-width:0; line-height:1.15; }
+  .ofp-txt b{ font-size:14px; font-weight:800; color:var(--text, #fff); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ofp-txt small{ font-size:11.5px; font-weight:600; color:var(--text, #fff); opacity:.6; }
+  .ofp-live{ display:flex; align-items:center; gap:5px; flex-shrink:0; margin-left:4px; padding:3px 9px; border-radius:999px; font-size:10.5px; font-weight:800;
+    letter-spacing:.06em; text-transform:uppercase; color:#22c55e; background:rgba(34,197,94,.12); }
+  .ofp-live i{ width:6px; height:6px; border-radius:50%; background:#22c55e; animation:ofp-blink 1.2s ease-in-out infinite; }
+  @keyframes ofp-blink{ 50%{ opacity:.25; } }
   .online-friends-popup{
     opacity:0; visibility:hidden; pointer-events:none;
     transform:translate(-50%, -14px) scale(.92);
@@ -2784,7 +2811,7 @@
      Nova-Ansicht nutzt dieselben Daten und Funktionen.
      ============================================================ */
   body.layout-nova #screen-missions > :not(#novaMissions):not(.tm-switch),
-  body.layout-nova #screen-trends > :not(#novaTrends):not(.tm-switch){ display:none !important; }
+  body.layout-nova #screen-trends > :not(#novaTrends):not(.tm-switch):not(#lxTrends){ display:none !important; }
   body.layout-nova #screen-missions,
   body.layout-nova #screen-trends{ padding-bottom:calc(env(safe-area-inset-bottom,0px) + 120px); }
   .nova-screen{
@@ -3576,6 +3603,109 @@
   .exam-row.ok span{ color:var(--success); }
   .exam-row.no span{ color:var(--danger); }
 
+
+  /* ===== Klassenarbeit: cleanes Design (Redesign) ===== */
+  .exam-head{ display:none; }
+  #screen-lesson.exam-mode .progress-track-wrap, #screen-lesson.exam-mode .lesson-hearts, #screen-lesson.exam-mode .timer-wrap{ display:none !important; }
+  #screen-lesson.exam-mode .exam-head{ display:flex; flex:1; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
+  .exam-head-t{ display:flex; flex-direction:column; min-width:0; line-height:1.15; }
+  .exam-head-t b{ font-size:15px; font-weight:800; }
+  .exam-head-t span{ font-size:11.5px; font-weight:700; opacity:.55; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .exam-timer{ flex-shrink:0; padding:7px 13px; border-radius:999px; font-weight:800; font-size:15px; font-variant-numeric:tabular-nums;
+    background:color-mix(in srgb, var(--text) 7%, transparent); border:1px solid var(--border); transition:background .3s, color .3s; }
+  .exam-timer.low{ color:#fff; background:var(--danger); border-color:var(--danger); animation:exam-low 1s ease-in-out infinite; }
+  @keyframes exam-low{ 50%{ transform:scale(1.05); } }
+  .exam-dots{ display:none; }
+  #screen-lesson.exam-mode .exam-dots{ display:flex; gap:4px; justify-content:center; margin:10px 0 4px; }
+  .exam-dots i{ flex:1; max-width:18px; height:5px; border-radius:999px; background:color-mix(in srgb, var(--text) 12%, transparent); transition:background .3s; }
+  .exam-dots i.done{ background:color-mix(in srgb, var(--text) 45%, transparent); }
+  .exam-dots i.cur{ background:var(--accent); }
+  #screen-lesson.exam-mode .question-card{ background:var(--card); border:1px solid var(--border); box-shadow:0 10px 30px rgba(0,0,0,.18);
+    background-image:repeating-linear-gradient(to bottom, transparent 0 27px, color-mix(in srgb, var(--text) 5%, transparent) 27px 28px); }
+  #screen-lesson.exam-mode .q-tier{ letter-spacing:.06em; text-transform:uppercase; font-size:11px; opacity:.6; color:var(--text) !important; }
+  /* Ergebnis: Korrektur-Animation + Noten-Stempel */
+  .exam-grading{ padding:18px 4px 8px; }
+  .exam-card.revealed .exam-grading{ display:none; }
+  .exam-done{ display:none; }
+  .exam-card.revealed .exam-done{ display:block; animation:lxa-fade .35s ease both; }
+  .exam-pen{ font-size:44px; display:inline-block; animation:exam-pen .9s ease-in-out infinite; }
+  @keyframes exam-pen{ 0%,100%{ transform:translate(-14px, 0) rotate(-8deg); } 50%{ transform:translate(14px, -4px) rotate(6deg); } }
+  .exam-grading-t{ font-size:17px; font-weight:800; margin:6px 0 14px; }
+  .exam-ticks{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px; max-width:300px; margin:0 auto; }
+  .exam-ticks span{ width:28px; height:28px; border-radius:9px; display:grid; place-items:center; font-weight:900; font-size:15px;
+    background:color-mix(in srgb, var(--text) 6%, transparent); animation:exam-tick .35s cubic-bezier(.34,1.7,.5,1) both; }
+  .exam-ticks span.ok{ color:var(--success); }
+  .exam-ticks span.no{ color:var(--danger); }
+  @keyframes exam-tick{ from{ transform:scale(0) rotate(-20deg); opacity:0; } to{ transform:none; opacity:1; } }
+  .exam-points{ margin-top:16px; font-size:30px; font-weight:900; font-variant-numeric:tabular-nums; }
+  .exam-stamp-wrap{ height:128px; display:grid; place-items:center; }
+  .exam-card .exam-grade{ animation:none; opacity:0; border:5px solid rgba(255,255,255,.85); box-shadow:none; }
+  .exam-card.stamped .exam-grade{ animation:exam-stamp .5s cubic-bezier(.2,1.6,.4,1) both; }
+  @keyframes exam-stamp{ 0%{ transform:scale(3) rotate(-25deg); opacity:0; } 60%{ transform:scale(.92) rotate(-10deg); opacity:1; } 100%{ transform:scale(1) rotate(-10deg); opacity:1; } }
+  .exam-card.stamped{ animation:exam-shake .35s ease .3s both; }
+  @keyframes exam-shake{ 0%,100%{ transform:none; } 25%{ transform:translate(-4px, 2px); } 50%{ transform:translate(3px, -2px); } 75%{ transform:translate(-2px, 1px); } }
+  .exam-card .exam-grade-word{ opacity:0; }
+  .exam-card.stamped .exam-grade-word{ animation:lxa-fade .4s ease .35s both; }
+  .exam-card .exam-stats, .exam-card .exam-list, .exam-card #examReviewBtn, .exam-card #examBackBtn{ opacity:0; }
+  .exam-card.stamped .exam-stats{ animation:lxa-fade .4s ease .55s both; }
+  .exam-card.stamped .exam-list{ animation:lxa-fade .4s ease .7s both; }
+  .exam-card.stamped #examReviewBtn, .exam-card.stamped #examBackBtn{ animation:lxa-fade .4s ease .85s both; }
+
+
+  /* ===== Kapitel-Übersicht & Themen-Trends (NEU) ===== */
+  .ov-card{ max-width:400px; text-align:left; max-height:88vh; overflow-y:auto; position:relative; }
+  .ov-ch{ display:block; width:100%; text-align:left; font:inherit; color:var(--text); cursor:pointer; margin-bottom:10px; padding:12px; border-radius:18px;
+    background:var(--card-2); border:1px solid var(--border); transition:transform .15s; }
+  .ov-ch:active{ transform:scale(.98); }
+  .ov-ch-top{ display:flex; align-items:center; gap:12px; }
+  .ov-ring{ --p:0; flex-shrink:0; width:52px; height:52px; border-radius:50%; display:grid; place-items:center;
+    background:conic-gradient(var(--lx-c, var(--accent)) calc(var(--p) * 1%), color-mix(in srgb, var(--text) 12%, transparent) 0); position:relative; }
+  .ov-ring::before{ content:""; position:absolute; inset:5px; border-radius:50%; background:var(--card-2); }
+  .ov-ring b{ position:relative; font-size:12.5px; font-weight:800; }
+  .ov-ring.big{ width:70px; height:70px; } .ov-ring.big::before{ inset:6px; background:var(--card); } .ov-ring.big b{ font-size:16px; }
+  .ov-ch-t{ flex:1; min-width:0; display:flex; flex-direction:column; line-height:1.25; }
+  .ov-ch-t small{ font-size:11px; font-weight:800; opacity:.55; text-transform:uppercase; letter-spacing:.05em; }
+  .ov-ch-t b{ font-size:15.5px; font-weight:800; }
+  .ov-ch-t span{ font-size:12px; opacity:.65; margin-top:2px; }
+  .ov-go{ font-size:22px; opacity:.4; }
+  .ov-chips{ display:flex; flex-wrap:wrap; gap:5px; margin-top:10px; }
+  .ov-chip{ display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:999px; font-size:11px; font-weight:700;
+    background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .ov-chip i{ width:7px; height:7px; border-radius:50%; }
+  .lx-trends{ margin-bottom:16px; }
+  body.layout-nova .lx-trends{ margin:0 2px 8px; }
+  .lt-head{ display:flex; flex-direction:column; margin:4px 2px 10px; }
+  .lt-head b{ font-size:18px; font-weight:800; }
+  .lt-head span{ font-size:12.5px; opacity:.6; }
+  .lt-tchips{ display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px; scrollbar-width:none; }
+  .lt-tchip{ flex-shrink:0; width:44px; height:44px; border-radius:14px; font-size:21px; cursor:pointer; background:var(--card); border:1.5px solid var(--border); opacity:.6; }
+  .lt-tchip.on{ opacity:1; border-color:var(--lx-c); background:color-mix(in srgb, var(--lx-c) 18%, var(--card)); box-shadow:0 0 14px color-mix(in srgb, var(--lx-c) 35%, transparent); }
+  .lt-card{ padding:14px; border-radius:22px; background:var(--card); border:1px solid var(--border); }
+  .lt-top{ display:flex; align-items:center; gap:14px; }
+  .lt-top-t{ display:flex; flex-direction:column; min-width:0; }
+  .lt-top-t b{ font-size:17px; font-weight:800; }
+  .lt-top-t span{ font-size:12px; opacity:.6; }
+  .lt-ctabs{ display:flex; gap:5px; margin:12px 0 10px; }
+  .lt-ctab{ flex:1; height:32px; border-radius:999px; font:inherit; font-size:12.5px; font-weight:800; cursor:pointer; color:var(--text);
+    background:color-mix(in srgb, var(--text) 6%, transparent); border:0; }
+  .lt-ctab.on{ background:var(--lx-c); color:#fff; }
+  .lt-bw{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+  .lt-bw > div{ padding:10px; border-radius:14px; display:flex; flex-direction:column; line-height:1.25; }
+  .lt-best{ background:color-mix(in srgb, var(--success) 14%, transparent); }
+  .lt-worst{ background:color-mix(in srgb, #f59e0b 14%, transparent); }
+  .lt-bw small{ font-size:11px; font-weight:800; opacity:.7; }
+  .lt-bw b{ font-size:13.5px; margin:2px 0; }
+  .lt-bw span{ font-size:12px; font-weight:800; opacity:.8; }
+  .lt-empty{ font-size:13px; opacity:.65; padding:8px 2px 12px; }
+  .lt-rows{ display:flex; flex-direction:column; gap:7px; }
+  .lt-row{ display:grid; grid-template-columns:minmax(0, 1.4fr) 1fr 40px; align-items:center; gap:8px; font-size:12.5px; }
+  .lt-row.none{ opacity:.45; }
+  .lt-name{ font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lt-name small{ margin-left:5px; font-size:10px; opacity:.55; font-weight:800; }
+  .lt-bar{ height:7px; border-radius:999px; background:color-mix(in srgb, var(--text) 10%, transparent); overflow:hidden; }
+  .lt-bar i{ display:block; height:100%; border-radius:inherit; }
+  .lt-pct{ text-align:right; font-weight:800; font-variant-numeric:tabular-nums; }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -4260,9 +4390,11 @@
 
   <!-- Online-Freunde-Popup (NEU): kurz beim App-Start, nur falls gerade
        Freunde online sind. -->
-  <div id="onlineFriendsPopup" class="online-friends-popup" style="position:fixed; top:calc(14px + env(safe-area-inset-top)); left:50%; z-index:96000; background:var(--card, #1a1a1a); border:1.5px solid var(--border, #333); border-radius:14px; padding:10px 16px; max-width:calc(100% - 32px); box-shadow:0 10px 30px rgba(0,0,0,.35); display:flex; align-items:center; gap:8px;">
-    <span style="font-size:16px;">🟢</span>
-    <span id="onlineFriendsPopupText" style="font-size:12.5px; color:var(--text, #fff); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
+  <!-- Redesign (NEU): Avatare, Live-Punkt, Federanimation -->
+  <div id="onlineFriendsPopup" class="ofp">
+    <div class="ofp-avs" id="ofpAvs"></div>
+    <div class="ofp-txt"><b id="onlineFriendsPopupText"></b><small id="ofpSub">ist jetzt online</small></div>
+    <span class="ofp-live"><i></i>Live</span>
   </div>
 
   <!-- Icecube-Stand-Popup (NEU): erscheint kurz in der unteren Bildschirm-
@@ -4910,6 +5042,7 @@
   <!-- ============ TRENDS (NEU) ============ -->
   <section class="screen" id="screen-trends">
     <div class="tm-switch beta-lessons-only"><button id="tmSwitchMissions2">🎯 Missionen</button><button id="tmSwitchTrends2" class="on">📈 Trends</button></div>
+    <div id="lxTrends" class="lx-trends"></div>
     <div class="nova-screen layout-nova-only" id="novaTrends"></div>
     <div class="topbar">
       <div class="brand"><span class="dot"></span>MathEdits</div>
@@ -5696,6 +5829,11 @@
     <div id="lessonBgVignette"></div>
     <div class="lesson-top">
       <div class="exit-x" id="exitLesson">✕</div>
+      <!-- Klassenarbeit: schlichte Kopfzeile (nur im Klassenarbeits-Modus sichtbar) -->
+      <div class="exam-head" id="examHead">
+        <div class="exam-head-t"><b>📝 Klassenarbeit</b><span id="examHeadSub">Kapitel 1</span></div>
+        <div class="exam-timer" id="examTimer">⏱ 10:00</div>
+      </div>
       <div class="progress-track-wrap">
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
         <div class="combo-counter" id="comboCounter"></div>
@@ -6617,13 +6755,34 @@
   <!-- Klassenarbeit: Ergebnis -->
   <div class="overlay" id="overlayExamResult">
     <div class="modal-card exam-card">
+      <!-- Phase 1: "Wird korrigiert ..." -->
+      <div class="exam-grading" id="examGrading">
+        <div class="exam-pen">✍️</div>
+        <div class="exam-grading-t">Wird korrigiert …</div>
+        <div class="exam-ticks" id="examTicks"></div>
+        <div class="exam-points" id="examPoints">0 / 15</div>
+      </div>
+      <!-- Phase 2: Note als Stempel + Auswertung -->
+      <div class="exam-done" id="examDone">
       <div class="exam-title" id="examTitle">📝 Klassenarbeit</div>
-      <div class="exam-grade" id="examGrade">1</div>
+      <div class="exam-stamp-wrap"><div class="exam-grade" id="examGrade">1</div></div>
       <div class="exam-grade-word" id="examGradeWord">sehr gut</div>
       <div class="exam-stats" id="examStats"></div>
       <div class="exam-list" id="examList"></div>
       <button class="btn btn-primary" id="examReviewBtn" style="width:100%; margin-top:12px;">🧩 Fehler mit Lösung ansehen</button>
       <button class="btn btn-ghost" id="examBackBtn" style="width:100%; margin-top:8px;">Zurück zum Pfad</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kapitel-Übersicht (NEU) -->
+  <div class="overlay" id="overlayLxOverview">
+    <div class="modal-card ov-card" id="lxOvCard">
+      <button class="inbox-x" id="lxOvClose" aria-label="Schließen">✕</button>
+      <h2 id="lxOvTitle" style="margin:0 0 2px;">Thema</h2>
+      <p id="lxOvSub" style="margin:0 0 14px; font-size:13px; opacity:.65;"></p>
+      <div id="lxOvBody"></div>
+      <button class="btn btn-primary" id="lxOvTrendsBtn" style="width:100%; margin-top:12px;">📈 Alle Aufgabenarten in Trends ansehen</button>
     </div>
   </div>
 
@@ -6744,7 +6903,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.91";
+  const APP_VERSION = "3.95";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -7124,8 +7283,14 @@
     // saveProfile() setzen - direkt nach dem Laden, damit der ERSTE
     // saveProfile()-Aufruf (z.B. in init()) nicht fälschlich denkt, gerade
     // sei etwas Neues passiert, nur weil zuvor noch nichts verglichen wurde.
-    const { lastActiveAt: _la, lastLocalSaveAt: _ls, ...meaningfulAtLoad } = profile;
-    lastMeaningfulProfileJSON = JSON.stringify(meaningfulAtLoad);
+    // KRITISCHER BUGFIX: muss GENAU wie in saveProfile() berechnet werden.
+    // Vorher wurden hier weniger Felder ausgelassen (Nutzungszeit,
+    // Einstellungen) - dadurch hielt der ERSTE saveProfile()-Aufruf nach
+    // jedem App-Start den alten lokalen Stand für "gerade geändert" und
+    // markierte ihn als neuer als die Cloud. Ein Gerät mit veraltetem Stand
+    // konnte so beim Öffnen neuere Änderungen eines anderen Geräts
+    // überschreiben (gemeldet: gekaufte/benutzte Icecubes, auch Aura).
+    lastMeaningfulProfileJSON = meaningfulProfileJSON(profile);
   }
   
   // Merkt sich den zuletzt tatsächlich in die Cloud geschriebenen Stand.
@@ -7166,6 +7331,14 @@
     }
   }
 
+  // EINE gemeinsame Berechnung für "hat sich inhaltlich etwas geändert" -
+  // beim Laden UND beim Speichern (siehe Bugfix in loadProfile()).
+  var startupNoBumpUntil = Date.now() + 15000;
+  function meaningfulProfileJSON(p){
+    const { lastActiveAt, lastLocalSaveAt, todayActiveMs, lifetimeActiveMs, dailyActiveMs, settingsUpdatedAt, ...meaningful } = p;
+    (SETTINGS_SYNC_KEYS || ["theme", "layoutStyle", "appIntroStyle", "auraOverlayMotif", "longMode", "betaNewShopEnabled", "betaCleanLessons", "betaLessonBackground", "betaLessonBackgroundKeyboard", "betaButtonParticles"]).forEach(k => { delete meaningful[k]; });
+    return JSON.stringify(meaningful);
+  }
   function saveProfile(){
     trackSettingsChange();
     try{
@@ -7194,12 +7367,17 @@
       // ausführliche Erklärung weiter unten). "lifetimeActiveMs" zählt aus
       // demselben Grund jede 10 Sekunden mit hoch und wird deshalb genauso
       // ausgenommen.
-      const { lastActiveAt, lastLocalSaveAt, todayActiveMs: _todayActiveMsExcluded, lifetimeActiveMs: _lifetimeActiveMsExcluded, dailyActiveMs: _dailyActiveMsExcluded, settingsUpdatedAt: _settingsUpdExcluded, ...meaningful } = profile;
-      (SETTINGS_SYNC_KEYS || []).forEach(k => { delete meaningful[k]; }); // Einstellungen haben ihren eigenen Zeitstempel
-      const meaningfulJSON = JSON.stringify(meaningful);
+      const meaningfulJSON = meaningfulProfileJSON(profile);
       if(meaningfulJSON !== lastMeaningfulProfileJSON){
         lastMeaningfulProfileJSON = meaningfulJSON;
-        profile.lastLocalSaveAt = Date.now();
+        // KRITISCHER BUGFIX: Automatische Start-Änderungen (neue Tagesmissionen,
+        // Leben auffüllen, ...) VOR dem ersten Cloud-Abgleich dürfen einen
+        // veralteten lokalen Stand NICHT "neuer" machen als die Cloud - sonst
+        // überschreibt ein Gerät mit altem Stand beim Öffnen die neueren
+        // Änderungen eines anderen Geräts (gemeldet: Icecubes, auch Aura).
+        // Nur in den ersten 15 s (danach normal, damit Offline-Spielen zählt).
+        const holdBump = profile.lastFirebaseUid && !cloudSyncReady && Date.now() < startupNoBumpUntil;
+        if(!holdBump) profile.lastLocalSaveAt = Date.now();
       }
       const json = JSON.stringify(profile);
       localStorage.setItem(PROFILE_KEY, json);
@@ -9138,14 +9316,22 @@
   // Fenster oben, welche Freunde gerade online sind - erscheint NUR, wenn
   // wirklich mindestens einer online ist, sonst gar nichts.
   let onlineFriendsPopupHideTimer = null;
-  function displayOnlineFriendsPopup(text){
-    $("onlineFriendsPopupText").textContent = text;
+  // Online-Popup (Redesign): Avatare + Name + "ist jetzt online", fällt
+  // federnd von oben herein und gleitet danach wieder hoch.
+  let ofpUsers = [];
+  function displayOnlineFriendsPopup(text, users){
+    ofpUsers = users || [];
+    const list = ofpUsers.slice(0, 3);
+    const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+    $("ofpAvs").innerHTML = (list.length ? list : [{ username: "?" }]).map((u, i) => `<span class="ofp-av" style="--i:${i}">${u.avatarData ? `<img src="${esc(u.avatarData)}" alt="">` : esc((u.username || "?").charAt(0).toUpperCase())}</span>`).join("") + '<span class="ofp-dot"></span>';
+    const names = ofpUsers.map(u => "@" + u.username);
+    if(ofpUsers.length === 1){ $("onlineFriendsPopupText").textContent = names[0]; $("ofpSub").textContent = "ist jetzt online"; }
+    else if(ofpUsers.length > 1){ $("onlineFriendsPopupText").textContent = ofpUsers.length <= 2 ? names.join(" & ") : `${names[0]} +${ofpUsers.length - 1}`; $("ofpSub").textContent = "sind jetzt online"; }
+    else { $("onlineFriendsPopupText").textContent = text; $("ofpSub").textContent = "Freunde online"; }
     const popup = $("onlineFriendsPopup");
     clearTimeout(onlineFriendsPopupHideTimer);
-    popup.classList.add("show");
-    onlineFriendsPopupHideTimer = setTimeout(() => {
-      popup.classList.remove("show");
-    }, 3000);
+    popup.classList.remove("show", "hide"); void popup.offsetWidth; popup.classList.add("show");
+    onlineFriendsPopupHideTimer = setTimeout(() => { popup.classList.add("hide"); setTimeout(() => popup.classList.remove("show", "hide"), 450); }, 3600);
   }
 
   // Beim App-Start: zeigt einmalig, wer gerade schon online ist.
@@ -9169,7 +9355,7 @@
       const text = names.length <= 3
         ? names.join(", ") + (names.length === 1 ? " ist online" : " sind online")
         : `${names.slice(0, 2).join(", ")} und ${names.length - 2} weitere sind online`;
-      displayOnlineFriendsPopup(text);
+      displayOnlineFriendsPopup(text, onlineFriends);
     }catch(err){
       console.error("Online-Freunde-Popup Fehler:", err);
     }
@@ -9229,7 +9415,7 @@
       const text = names.length === 1
         ? `${names[0]} ist jetzt online`
         : `${names.join(", ")} sind jetzt online`;
-      displayOnlineFriendsPopup(text);
+      displayOnlineFriendsPopup(text, newlyOnline);
     }catch(err){
       console.error("Live-Online-Erkennung Fehler:", err);
     }
@@ -12297,6 +12483,7 @@
   }
 
   function renderTrends(){
+    setTimeout(() => { if(typeof renderLxTrends === "function") renderLxTrends(); }, 0); // Lektionen-Themen pro Aufgabenart
     renderTrendsTierCarousel();
     const grid = $("trendsGrid");
     const placeholder = $("trendsPlaceholder");
@@ -13039,6 +13226,11 @@
       ...(cloudP.dismissedRegistrationEventIds || [])
     ]));
     merged.lastSeenBroadcastAt = Math.max(localP.lastSeenBroadcastAt || 0, cloudP.lastSeenBroadcastAt || 0);
+    { const a = localP.topicTypeStats || {}, b = cloudP.topicTypeStats || {}, out = {};
+      new Set([...Object.keys(a), ...Object.keys(b)]).forEach(tid => { const x = a[tid] || {}, y = b[tid] || {}; out[tid] = {};
+        new Set([...Object.keys(x), ...Object.keys(y)]).forEach(ti => { out[tid][ti] = { c: Math.max((x[ti] || {}).c || 0, (y[ti] || {}).c || 0), w: Math.max((x[ti] || {}).w || 0, (y[ti] || {}).w || 0) }; }); });
+      merged.topicTypeStats = out; }
+    merged.claimedStreakRescueIds = Array.from(new Set([...(localP.claimedStreakRescueIds || []), ...(cloudP.claimedStreakRescueIds || [])]));
     merged.claimedAuraDonationIds = Array.from(new Set([
       ...(localP.claimedAuraDonationIds || []),
       ...(cloudP.claimedAuraDonationIds || [])
@@ -18665,8 +18857,10 @@
     const open = types.filter(t => n >= t.from);
     const ws = open.map(t => ((n - t.from < 4) ? 3 : 1) * (t.weight === undefined ? 1 : t.weight));
     let r = Math.random() * ws.reduce((a, b) => a + b, 0);
-    for(let i = 0; i < open.length; i++){ r -= ws[i]; if(r <= 0) return open[i].gen(n); }
-    return open[open.length - 1].gen(n);
+    // q._ti = welche Aufgabenart (für die Trends pro Aufgabenart)
+    const make = t => { const q = t.gen(n); q._ti = types.indexOf(t); return q; };
+    for(let i = 0; i < open.length; i++){ r -= ws[i]; if(r <= 0) return make(open[i]); }
+    return make(open[open.length - 1]);
   }
   const lxPar = v => v < 0 ? `(${lxNum(v)})` : String(v);            // negative Zahlen in Klammern
   const lxDec = v => String(Math.round(v * 1000) / 1000).replace(".", ","); // Kommazahl deutsch
@@ -19169,24 +19363,26 @@
       html += `<button class="lx-node${done ? " done" : current ? " current" : " locked"}" data-lesson="${n}" style="--x:${x}px">
         ${current ? '<span class="start">START</span>' : ""}${done ? "✓" : current ? n : "🔒"}
         ${done ? `<span class="stars">${"★".repeat(stars)}${"☆".repeat(3 - stars)}</span>` : ""}</button>`;
-      if(n % 10 === 0){ // Klassenarbeit am Ende des Kapitels (NEU)
-        const ex = (st.exams || {})[ch], exOpen = st.done >= n;
-        html += `<button class="lx-node exam${exOpen ? "" : " locked"}${ex ? " g" + ex.best : ""}" data-exam="${ch}" style="--x:0px">📝<span class="stars">${ex ? "Beste Note: " + ex.best : "Klassenarbeit"}</span></button>`;
-      }
       if(LX_CHEST_AT[n]){
         const chest = st.chests[n];
         const cls = !chest ? "locked" : chest.claimed ? "claimed" : "ready";
         html += `<button class="lx-node chest ${cls}" data-chest="${n}" style="--x:0px">${chest && chest.claimed ? "✅" : "🎁"}</button>`;
       }
+      if(n % 10 === 0){ // Klassenarbeit GANZ am Ende des Kapitels (nach der Truhe)
+        const ex = (st.exams || {})[ch], exOpen = st.done >= n;
+        html += `<button class="lx-node exam${exOpen ? "" : " locked"}${ex ? " g" + ex.best : ""}" data-exam="${ch}" style="--x:0px">📝<span class="stars">${ex ? "Beste Note: " + ex.best : "Klassenarbeit"}</span></button>`;
+      }
     }
     root.innerHTML = `
       <div class="lx-path-head" style="--lx-c:${t.color}">
         <button class="lx-round" id="lxBack" aria-label="Zurück">‹</button>
+        <button class="lx-round" id="lxOvBtn" aria-label="Kapitel-Übersicht">📊</button>
         <div class="t"><b>${t.icon} ${t.name}</b><small>Klasse ${t.grade} · ${st.done}/${LX_LESSONS_PER_TOPIC} Lektionen</small></div>
         <button class="lx-round" id="lxTutBtn" aria-label="Tutorial">📖</button>
       </div>
       <div class="lx-path" style="--lx-c:${t.color}">${html}</div>`;
     $("lxBack").addEventListener("click", () => { lxCurrentTopic = null; renderLessonsScreen(); });
+    $("lxOvBtn").addEventListener("click", () => lxOpenOverview(t.id));
     $("lxTutBtn").addEventListener("click", () => lxOpenTutorial(t.id, Math.min(3, lxChapterOf(Math.max(1, st.done + 1)))));
     root.querySelectorAll("[data-exam]").forEach(b => b.addEventListener("click", async () => {
       const ch = parseInt(b.dataset.exam, 10);
@@ -19510,7 +19706,7 @@
       { from: 3, gen: n => { const [it, pl] = lxPick1([["Heft", "Hefte"], ["Stift", "Stifte"], ["Apfel", "Äpfel"], ["Ticket", "Tickets"]]), u = randInt(1, lxUp(5, 12, n)), c = randInt(2, lxUp(6, 10, n));
           return { steps: [[`${c} ${pl} = ${u * c} €`, "Das ist der Preis für alle zusammen."], [`${u * c} : ${c} = «${u}»`, "Auf 1 Stück runterrechnen: durch die Anzahl teilen."]],
             text: `${E(c, "So viele Stück.")} ${pl} kosten ${E(u * c, "Der Preis für alle zusammen.")} €. Wie viel kostet 1 ${it}? (€)`, answer: u, hint: "Auf 1 Stück runterrechnen = durch die Anzahl teilen.", solution: `${u * c} : ${c} = ${u}` }; } },
-      { from: 6, gen: n => { const u = randInt(2, lxUp(5, 9, n)), c1 = randInt(2, 6), c2 = randInt(2, lxUp(8, 12, n));
+      { from: 6, gen: n => { const u = randInt(2, lxUp(5, 9, n)), c1 = randInt(2, 6); let c2 = randInt(2, lxUp(8, 12, n)); if(c2 === c1) c2 = c1 + randInt(1, 4); // nie dieselbe Anzahl
           return { steps: [[`${u * c1} : ${c1} = «${u}»`, "Erst: Was kostet 1 Stück?"], [`${u} · ${c2} = «${u * c2}»`, "Dann auf die neue Anzahl hochrechnen."]],
             text: `${E(c1, "So viele Stifte im ersten Satz.")} Stifte kosten ${E(u * c1, "Ihr gemeinsamer Preis.")} €. Wie viel kosten ${E(c2, "Die neue Anzahl.")} Stifte? (€)`, answer: u * c2, hint: "Dreisatz: erst auf 1 runter, dann auf die neue Menge hoch.", solution: `${u * c1} : ${c1} · ${c2} = ${u * c2}` }; } },
       { from: 8, gen: n => { const k = lxPick1([["doppelt", "Doppelt so viele", "doppelt so viel"], ["dreimal", "Dreimal so viele", "dreimal so viel"], ["halb", "Halb so viele", "halb so viel"]]);
@@ -19642,6 +19838,114 @@
     }
   });
   /* ===================== NEUE THEMEN ENDE ===================== */
+
+
+  /* ===================== NEUES THEMA: Terme & Rechengesetze ===================== */
+  LX_TOPICS.push({ grade: "6–8", id: "terms", name: "Terme & Rechengesetze", icon: "🧱", color: "#6366f1", sub: "Gesetze, vereinfachen, ausklammern" });
+  // 3x, −x, x ...
+  const tmX = (c, v = "x") => c === 1 ? v : c === -1 ? M + v : lxNum(c) + v;
+  const tmP = (P, items) => cpRun({}, items);
+  const LX_TERM_TYPES = [
+    // ---------- Kapitel 1: Rechengesetze ----------
+    { from: 1, gen: n => { const a = randInt(2, lxUp(9, 40, n)), b = randInt(2, lxUp(9, 40, n)), mul = n >= 4 && randInt(0, 1) === 1, op = mul ? "·" : "+";
+        const correct = `${b} ${op} ${a}`, wrongs = [`${a} ${M} ${b}`, `${b} ${M} ${a}`, `${a} ${mul ? "+" : "·"} ${b}`, `${a} : ${b}`];
+        return { text: `Welche Rechnung hat dasselbe Ergebnis wie ${E(`${a} ${op} ${b}`, "Die Rechnung aus der Aufgabe.")}?`, ...lxShuffleChoices(correct, wrongs),
+          hint: `Bei ${mul ? "mal" : "plus"} darf man die Zahlen tauschen (Kommutativgesetz).`,
+          prog: () => tmP(null, [{ line: `${a} ${op} ${b}`, say: `Tausche die beiden Zahlen – bei ${mul ? "·" : "+"} ist das erlaubt.` }, { line: correct, say: "Vergleiche mit den Antworten." }, { result: correct }]) }; } },
+    { from: 2, gen: n => { const a = randInt(2, lxUp(9, 89, n)), r = 10 * Math.ceil((a + 1) / 10), c = r - a, b = randInt(5, lxUp(40, 90, n));
+        return { text: `Rechne geschickt: ${E(a, "Erste Zahl.")} + ${E(b, "Diese Zahl kommt erst am Schluss dran.")} + ${E(c, `Zusammen mit ${a} ergibt sie eine runde Zahl.`)} = ?`, answer: a + b + c,
+          hint: `Tausche: ${a} + ${c} ergibt eine runde Zahl.`,
+          prog: () => tmP(null, [{ line: `${a} + ${b} + ${c}`, say: `Suche zwei Zahlen, die zusammen rund sind: ${a} und ${c}.` }, { calc: `${a} + ${c} + ${b}`, say: `Tausche ${b} und ${c}.` }, { result: a + b + c }]) }; } },
+    { from: 4, gen: n => { const pr = lxPick1([[25, 4], [20, 5], [50, 2], [125, 8], [4, 25]]), k = randInt(2, lxUp(9, 19, n));
+        return { text: `Rechne geschickt: ${E(pr[0], "Erste Zahl.")} · ${E(k, "Diese Zahl kommt erst am Schluss dran.")} · ${E(pr[1], `Zusammen mit ${pr[0]} ergibt sie eine runde Zahl.`)} = ?`, answer: pr[0] * pr[1] * k,
+          hint: `Tausche: ${pr[0]} · ${pr[1]} = ${pr[0] * pr[1]}.`,
+          prog: () => tmP(null, [{ line: `${pr[0]} · ${k} · ${pr[1]}`, say: `Suche zwei Zahlen, die zusammen rund sind: ${pr[0]} und ${pr[1]}.` }, { calc: `${pr[0]} · ${pr[1]} · ${k}`, say: `Tausche ${k} und ${pr[1]}.` }, { result: pr[0] * pr[1] * k }]) }; } },
+    { from: 6, gen: n => { const a = randInt(2, 9), b = randInt(2, 9), c = randInt(2, 9);
+        const ex = lxPick1([
+          [`${a} + ${b} = ${b} + ${a}`, "Kommutativgesetz", "Die Zahlen werden getauscht."],
+          [`${a} · ${b} = ${b} · ${a}`, "Kommutativgesetz", "Die Zahlen werden getauscht."],
+          [`(${a} + ${b}) + ${c} = ${a} + (${b} + ${c})`, "Assoziativgesetz", "Die Klammern werden verschoben."],
+          [`(${a} · ${b}) · ${c} = ${a} · (${b} · ${c})`, "Assoziativgesetz", "Die Klammern werden verschoben."],
+          [`${a} · (${b} + ${c}) = ${a} · ${b} + ${a} · ${c}`, "Distributivgesetz", "Die Zahl vor der Klammer wird mit jedem Teil malgenommen."]]);
+        return { text: `Welches Gesetz ist das?\n${E(ex[0], "Vergleiche die linke und die rechte Seite.")}`, ...lxShuffleChoices(ex[1], ["Kommutativgesetz", "Assoziativgesetz", "Distributivgesetz"]),
+          hint: "Tauschen = Kommutativ · Klammern verschieben = Assoziativ · Ausmultiplizieren = Distributiv.",
+          prog: () => tmP(null, [{ line: ex[0], say: `Vergleiche links und rechts: ${ex[2]}` }, { result: ex[1] }]) }; } },
+    { from: 7, gen: n => { const k = randInt(2, lxUp(6, 9, n)), minus = n >= 9 && randInt(0, 1) === 1, t = minus ? 100 : 10 * randInt(1, 5), u = randInt(1, minus ? 4 : 9);
+        const expr = `${k} · (${t} ${minus ? M : "+"} ${u})`, res = k * (minus ? t - u : t + u);
+        return { text: `${E(expr, "Die Zahl vor der Klammer wird mit jedem Teil malgenommen.")} = ?`, answer: res, hint: `Distributivgesetz: ${k} · ${t} ${minus ? M : "+"} ${k} · ${u}.`,
+          prog: () => tmP(null, [{ line: expr, say: `Nimm ${k} mal jede Zahl in der Klammer.` }, { calc: `${k} · ${t} ${minus ? M : "+"} ${k} · ${u}` }, { result: res }]) }; } },
+    { from: 9, gen: n => { const a = randInt(2, 9), b = randInt(2, 12), c = randInt(2, 12);
+        return { text: `${a} · (${b} + ${E(c, "Diese Zahl steht in der Klammer.")}) = ${a} · ${b} + ${a} · ?`, answer: c, hint: "Distributivgesetz: Die Zahl vor der Klammer mal JEDE Zahl in der Klammer.",
+          prog: () => tmP(null, [{ line: `${a} · (${b} + ${c})`, say: `Nimm ${a} mal jede Zahl in der Klammer: mal ${b} und mal ${c}.` }, { line: `${a} · ${b} + ${a} · ${c}`, say: `Vergleiche: Das Fragezeichen steht an der Stelle von ${c}.` }, { result: c }]) }; } },
+    // ---------- Kapitel 2: Terme vereinfachen ----------
+    { from: 11, gen: n => { const a = randInt(1, lxUp(6, 12, n)), b = randInt(1, lxUp(6, 12, n)), v = lxPick1(["x", "a", "y"]);
+        return { text: `${E(tmX(a, v), `${a} mal ${v}.`)} + ${E(tmX(b, v), `${b} mal ${v}.`)} = ?${v}`, answer: a + b, hint: `Gleiche Buchstaben: Zähle nur die Zahlen davor zusammen.`,
+          prog: () => tmP(null, [{ line: `${tmX(a, v)} + ${tmX(b, v)}`, say: `Zähle die Zahlen vor ${v} zusammen.` }, { calc: `${a} + ${b}` }, { result: `${a + b}${v}` }]) }; } },
+    { from: 12, gen: n => { const a = randInt(4, lxUp(9, 15, n)), b = randInt(1, a - 1), c = randInt(1, 6), v = lxPick1(["x", "a", "b"]);
+        return { text: `${E(tmX(a, v), `${a} mal ${v}.`)} ${M} ${E(tmX(b, v), `${b} mal ${v} wird abgezogen.`)} + ${E(tmX(c, v), c === 1 ? `Nur ${v} heißt 1 · ${v}.` : `${c} mal ${v}.`)} = ?${v}`, answer: a - b + c,
+          hint: `Nur ${v} heißt 1${v}.`,
+          prog: () => tmP(null, [{ line: `${tmX(a, v)} ${M} ${tmX(b, v)} + ${tmX(c, v)}`, say: `Rechne nur mit den Zahlen vor ${v}${c === 1 ? ` (${v} = 1${v})` : ""}.` }, { calc: `${a} ${M} ${b} + ${c}` }, { result: `${a - b + c}${v}` }]) }; } },
+    { from: 13, gen: n => { const a = randInt(2, lxUp(6, 9, n)), b = randInt(1, 12), x = randInt(1, lxUp(5, 9, n)) * (n >= 16 && randInt(0, 1) ? -1 : 1);
+        return { text: `Setze ${E(`x = ${lxNum(x)}`, "Diese Zahl kommt überall dorthin, wo x steht.")} in ${E(`${a}x + ${b}`, "Der Term.")} ein.`, answer: a * x + b, hint: `Ersetze x durch ${lxNum(x)} und rechne aus.`,
+          prog: () => tmP(null, [{ line: `${a}x + ${b}`, say: `Ersetze x durch ${lxNum(x)}.` }, { calc: `${a} · ${lxPar(x)} + ${b}` }, { result: lxNum(a * x + b) }]) }; } },
+    { from: 14, gen: n => { const a = randInt(1, 8), c = randInt(1, 8), b = randInt(1, 9), d = randInt(1, 9);
+        return { text: `${E(tmX(a), "x-Teil.")} + ${E(b, "Zahl ohne x.")} + ${E(tmX(c), "x-Teil.")} + ${E(d, "Zahl ohne x.")} = ${tmX(a + c)} + ?`, answer: b + d,
+          hint: "Sortiere: x-Teile zu x-Teilen, Zahlen zu Zahlen.",
+          prog: () => tmP(null, [{ line: `${tmX(a)} + ${b} + ${tmX(c)} + ${d}`, say: "Sortiere: x-Teile zusammen, Zahlen zusammen." }, { calc: `${a} + ${c}`, pre: "x-Teile:" }, { calc: `${b} + ${d}`, pre: "Zahlen:" }, { result: `${tmX(a + c)} + ${b + d}` }]) }; } },
+    { from: 16, gen: n => { const a = randInt(1, 9), b = randInt(a + 1, 15);
+        return { text: `${E(tmX(a), `${a} mal x.`)} ${M} ${E(tmX(b), `${b} mal x wird abgezogen.`)} = ?x`, answer: a - b, hint: "Es kann auch etwas Negatives herauskommen – nutze die −-Taste.",
+          prog: () => tmP(null, [{ line: `${tmX(a)} ${M} ${tmX(b)}`, say: "Rechne nur mit den Zahlen vor x." }, { calc: `${a} ${M} ${b}` }, { result: `${lxNum(a - b)}x` }]) }; } }, // 1 bzw. −1 ausdrücklich zeigen (das wird eingetippt)
+    { from: 17, gen: n => { const a = randInt(2, 9), b = randInt(2, lxUp(6, 12, n));
+        return { text: `${E(a, "Diese Zahl wird mit dem Term malgenommen.")} · ${E(tmX(b), `${b} mal x.`)} = ?x`, answer: a * b, hint: "Nimm die Zahlen mal, das x bleibt.",
+          prog: () => tmP(null, [{ line: `${a} · ${tmX(b)}`, say: "Nimm die Zahlen mal, das x bleibt stehen." }, { calc: `${a} · ${b}` }, { result: `${a * b}x` }]) }; } },
+    { from: 19, gen: n => { const a = randInt(1, 6), b = randInt(2, 7), c = randInt(1, 6);
+        const correct = `${tmX(a + c)} + ${tmX(b, "y")}`, wrongs = [`${a + b + c}xy`, `${tmX(a + c)} + ${b}`, `${tmX(a)} + ${tmX(b + c, "y")}`, `${tmX(a + b + c)}`];
+        return { text: `Vereinfache: ${E(`${tmX(a)} + ${tmX(b, "y")} + ${tmX(c)}`, "x und y sind verschiedene Teile – nicht zusammenzählen!")}`, ...lxShuffleChoices(correct, wrongs),
+          hint: "Nur GLEICHE Buchstaben darf man zusammenfassen.",
+          prog: () => tmP(null, [{ line: `${tmX(a)} + ${tmX(b, "y")} + ${tmX(c)}`, say: "Sortiere: x zu x, y zu y." }, { calc: `${a} + ${c}`, pre: "x-Teile:" }, { result: correct }]) }; } },
+    // ---------- Kapitel 3: Ausmultiplizieren & Ausklammern ----------
+    { from: 21, gen: n => { const k = randInt(2, lxUp(6, 9, n)), b = randInt(1, lxUp(9, 12, n));
+        return { text: `${E(k, "Diese Zahl wird mit jedem Teil in der Klammer malgenommen.")} · (x + ${E(b, "Zweiter Teil in der Klammer.")}) = ${k}x + ?`, answer: k * b, hint: `${k} mal x UND ${k} mal ${b}.`,
+          prog: () => tmP(null, [{ line: `${k} · (x + ${b})`, say: `Nimm ${k} mal jeden Teil in der Klammer.` }, { calc: `${k} · ${b}`, pre: `${k}x +` }, { result: `${k}x + ${k * b}` }]) }; } },
+    { from: 22, gen: n => { const k = randInt(2, 9), a = randInt(2, 6), b = randInt(1, 9);
+        return { text: `${E(k, "Diese Zahl wird mit jedem Teil malgenommen.")} · (${E(tmX(a), `${a} mal x.`)} ${M} ${b}) = ?x ${M} ${k * b}`, answer: k * a, hint: `${k} mal ${a}x – Zahlen malnehmen, x bleibt.`,
+          prog: () => tmP(null, [{ line: `${k} · (${tmX(a)} ${M} ${b})`, say: `Nimm ${k} mal jeden Teil in der Klammer.` }, { calc: `${k} · ${a}`, pre: "x-Teil:" }, { calc: `${k} · ${b}`, pre: "Zahl:" }, { result: `${tmX(k * a)} ${M} ${k * b}` }]) }; } },
+    { from: 24, gen: n => { const k = randInt(2, 6), a = randInt(1, 6), b = randInt(1, 9);
+        return { text: `Klammere ${E(k, "Diese Zahl wird ausgeklammert – jeder Teil wird durch sie geteilt.")} aus: ${tmX(k * a)} + ${k * b} = ${k}(?x + ${b})`, answer: a,
+          hint: `Teile jeden Teil durch ${k}.`,
+          prog: () => tmP(null, [{ line: `${tmX(k * a)} + ${k * b}`, say: `Teile jeden Teil durch ${k}.` }, { calc: `${k * a} : ${k}`, pre: "x-Teil:" }, { calc: `${k * b} : ${k}`, pre: "Zahl:" }, { result: `${k}(${a}x + ${b})` }]) }; } },
+    { from: 25, gen: n => { const pairs = [[2, 3], [3, 4], [2, 5], [3, 5], [4, 5], [1, 2], [1, 3], [3, 2]]; const [p, q] = lxPick1(pairs), k = randInt(2, 9);
+        return { text: `${E(tmX(k * p), "Erster Teil.")} + ${E(k * q, "Zweiter Teil.")} = ?(${tmX(p)} + ${q})`, answer: k,
+          hint: `Suche die größte Zahl, die ${k * p} und ${k * q} teilt.`,
+          prog: () => tmP(null, [{ line: `${k * p} = ${k} · ${p},  ${k * q} = ${k} · ${q}`, say: `Zerlege ${k * p} und ${k * q} mit dem gleichen Faktor.` }, { result: `${k}(${tmX(p)} + ${q})` }]) }; } },
+    { from: 27, gen: n => { const k = randInt(2, 6), b = randInt(1, 9);
+        return { text: `${E(`${M}${k}`, "Negative Zahl vor der Klammer.")} · (x ${M} ${E(b, "Wird abgezogen.")}) = ${M}${k}x + ?`, answer: k * b, hint: "Minus mal Minus ergibt Plus.",
+          prog: () => tmP(null, [{ line: `${M}${k} · (x ${M} ${b})`, say: `Nimm ${M}${k} mal jeden Teil in der Klammer.` }, { calc: `(${M}${k}) · (${M}${b})`, pre: "Zahl:" }, { result: `${M}${k}x + ${k * b}` }]) }; } },
+    { from: 28, gen: n => { const k = lxPick1([2, 3, 4, 5, 6]), a = randInt(1, 5), b = lxPick1([1, 2, 3, 5, 7].filter(v => v !== a));
+        const correct = `${k}(${tmX(a)} + ${b})`;
+        const wrongs = [`${k}(${tmX(a)} + ${k * b})`, `${k * b}(${tmX(a)} + 1)`, `${k}(${tmX(k * a)} + ${b})`, `${k + 1}(${tmX(a)} + ${b})`];
+        return { text: `Klammere aus: ${E(`${tmX(k * a)} + ${k * b}`, "Suche die größte Zahl, die beide Teile teilt.")}`, ...lxShuffleChoices(correct, wrongs),
+          hint: `Größte Zahl, die ${k * a} und ${k * b} teilt, kommt vor die Klammer.`,
+          prog: () => tmP(null, [{ line: `${tmX(k * a)} + ${k * b}`, say: `Suche die größte Zahl, die ${k * a} und ${k * b} teilt: ${k}.` }, { calc: `${k * a} : ${k}`, pre: "x-Teil:" }, { calc: `${k * b} : ${k}`, pre: "Zahl:" }, { result: correct }]) }; } }
+  ];
+  LX_TYPES.terms = LX_TERM_TYPES;
+  LX_GEN.terms = n => lxPick(LX_TYPES.terms, n);
+  LX_TUTORIALS.terms = {
+    1: [ { v: () => lxSeq(["3 + 5 = 8", ["5 + 3 = 8", 20, true]]), t: "Kommutativgesetz: Tauschen", p: "Bei Plus und Mal darfst du die Zahlen tauschen – das Ergebnis bleibt gleich.", ex: "a + b = b + a" },
+         { v: () => lxSeq(["(2 + 3) + 4", ["2 + (3 + 4)", 18, true], ["= 9", 22]]), t: "Assoziativgesetz: Klammern verschieben", p: "Bei nur Plus oder nur Mal ist egal, was du zuerst rechnest.", ex: "(a + b) + c = a + (b + c)" },
+         { v: () => lxSeq(["17 + 38 + 3", ["17 + 3 + 38", 16], ["20 + 38 = 58", 20, true]]), t: "Geschickt rechnen", p: "Tausche so, dass zuerst runde Zahlen entstehen. Das geht viel schneller.", ex: "25 · 7 · 4 = 25 · 4 · 7 = 700" },
+         { v: () => lxSeq(["7 · (10 + 3)", ["7 · 10 + 7 · 3", 16], ["70 + 21 = 91", 20, true]]), t: "Distributivgesetz", p: "Die Zahl vor der Klammer wird mit JEDEM Teil in der Klammer malgenommen.", ex: "a · (b + c) = a · b + a · c" } ],
+    2: [ { v: () => lxSeq(["3x + 5x", ["(3 + 5)x", 16], ["= 8x", 22, true]]), t: "Gleiche Teile zusammenfassen", p: "Gleiche Buchstaben darfst du zusammenzählen – rechne nur mit den Zahlen davor.", ex: "3x + 5x = 8x" },
+         { v: () => lxSeq(["x = 1x", ["4x − x = 3x", 18, true]]), t: "Unsichtbare 1", p: "Steht vor dem Buchstaben keine Zahl, ist es eine 1.", ex: "x + x = 2x" },
+         { v: () => lxSeq(["4x + 3 + 2x + 5", ["x-Teile: 4x + 2x = 6x", 14], ["Zahlen: 3 + 5 = 8", 14], ["6x + 8", 20, true]], .3, .65), t: "Sortieren", p: "x-Teile zu x-Teilen, Zahlen zu Zahlen. x und Zahlen darf man nicht zusammenzählen.", ex: "6x + 8" },
+         { v: () => lxSeq(["2x + 3y + 4x", ["6x + 3y", 22, true]]), t: "Verschiedene Buchstaben", p: "x und y sind verschiedene Dinge – die bleiben getrennt.", ex: "nicht 9xy!" },
+         { v: () => lxSeq(["3x + 4,  x = 2", ["3 · 2 + 4", 18], ["= 10", 22, true]]), t: "Zahl einsetzen", p: "Ersetze jedes x durch die Zahl und rechne aus.", ex: "Termwert = 10" } ],
+    3: [ { v: () => lxSeq(["3 · (x + 4)", ["3 · x + 3 · 4", 16], ["3x + 12", 22, true]]), t: "Ausmultiplizieren", p: "Die Zahl vor der Klammer mal JEDEN Teil in der Klammer.", ex: "3(x + 4) = 3x + 12" },
+         { v: () => lxSeq(["6x + 9", [": 3      : 3", 14, true], ["3 · (2x + 3)", 20]]), t: "Ausklammern", p: "Das Gegenteil: Suche eine Zahl, die jeden Teil teilt, und schreibe sie vor die Klammer.", ex: "6x + 9 = 3(2x + 3)" },
+         { v: () => lxSeq(["12x + 18", ["größte Zahl: 6", 16, true], ["6 · (2x + 3)", 20]]), t: "Größter Faktor", p: "Am besten klammerst du die größte Zahl aus, die alle Teile teilt.", ex: "12x + 18 = 6(2x + 3)" },
+         { v: () => lxSeq(["−2 · (x − 5)", ["−2x + 10", 22, true]]), t: "Minus vor der Klammer", p: "Minus mal Minus ergibt Plus. Pass bei jedem Teil auf das Vorzeichen auf.", ex: "−2 · (−5) = +10" } ]
+  };
+  /* =================== Terme & Rechengesetze ENDE =================== */
 
   let lxTutState = { topic: null, chapter: 1, step: 0 };
   function lxOpenTutorial(topicId, chapter = 1){
@@ -20422,7 +20726,7 @@
   const lxLinStr = (m, b) => "f(x) = " + lxLin(m, b);
   const LX_LIN_NEW = [
     { from: 8, gen: n => { const m = randInt(1, 4), b = randInt(0, 6), px = randInt(1, 4), on = randInt(0, 1) === 1, py = m * px + b + (on ? 0 : lxPick1([-2, -1, 1, 2]));
-        return { text: `Liegt ${E(`P(${px}|${lxNum(py)})`, "Der Punkt mit x- und y-Wert.")} auf ${E(lxLinStr(m, b), "Die Funktion.")}?`, choices: ["Ja", "Nein"], answer: on ? 0 : 1, answerLabel: on ? "Ja" : "Nein",
+        return { text: `Liegt P(${E(px, "x-Wert des Punkts.")}|${E(lxNum(py), "y-Wert des Punkts.")}) auf ${E(lxLinStr(m, b), "Die Funktion.")}?`, choices: ["Ja", "Nein"], answer: on ? 0 : 1, answerLabel: on ? "Ja" : "Nein",
           hint: "Setze x ein und vergleiche mit y.", steps: [[`f(${px}) = «${m * px + b}»`, "x einsetzen."], [`«${on ? "Ja" : "Nein"}»`, "Vergleichen."]],
           prog: () => lxProgPointOn(m, b, px, py, on2 => on2 ? "Ja" : "Nein") }; } },
     { from: 9, gen: n => { const fee = randInt(2, lxUp(8, 15, n)), per = randInt(1, lxUp(4, 9, n)), gb = randInt(2, lxUp(6, 12, n));
@@ -21030,7 +21334,7 @@
     const chosen = byHard.slice(0, Math.min(byHard.length, EXAM_TASKS));
     const qs = [], keys = new Set();
     const add = t => { for(let k = 0; k < 20; k++){ const q = t.gen(n); const key = lxPlain(q.text) + "|" + (q.svg || "") + "|" + q.answer;
-        if(!Number.isInteger(q.answer) || keys.has(key)) continue; keys.add(key); q._order = all.indexOf(t); q._from = t.from; qs.push(q); return; } };
+        if(!Number.isInteger(q.answer) || keys.has(key)) continue; keys.add(key); q._order = all.indexOf(t); q._from = t.from; q._ti = LX_TYPES[topicId].indexOf(t); qs.push(q); return; } };
     chosen.forEach(add);
     // ... auffüllen mit Aufgaben dieses Kapitels (höchste Stufe)
     const chapterTypes = all.filter(t => t.from > n - 10);
@@ -21052,9 +21356,20 @@
     renderQuestion();
   }
   // Gesamt-Timer: mm:ss
+  function examRenderHead(){
+    if(!lesson || !lesson.isExam) return;
+    $("examHeadSub").textContent = `${lxTopic(lesson.topicId).name} · Kapitel ${lesson.examCh}`;
+    $("qTier").textContent = `Aufgabe ${lesson.index + 1} von ${lesson.questions.length}`;
+    let dots = $("examDots");
+    if(!dots){ dots = document.createElement("div"); dots.id = "examDots"; dots.className = "exam-dots"; $("examHead").closest(".lesson-top").after(dots); }
+    dots.innerHTML = lesson.questions.map((_, i) => `<i class="${i < lesson.index ? "done" : i === lesson.index ? "cur" : ""}"></i>`).join("");
+  }
   function examTimerTick(){
     if(!lesson || !lesson.isExam) return;
     const remaining = Math.max(0, EXAM_MS - (Date.now() - lesson.examStart));
+    const s2 = Math.ceil(remaining / 1000);
+    $("examTimer").textContent = `⏱ ${Math.floor(s2 / 60)}:${String(s2 % 60).padStart(2, "0")}`;
+    $("examTimer").classList.toggle("low", remaining < 60000);
     const frac = remaining / EXAM_MS;
     $("timerCircle").setAttribute("stroke-dashoffset", TIMER_CIRCUMFERENCE * (1 - frac));
     $("timerCircle").style.stroke = remaining < 60000 ? "var(--danger)" : "var(--accent)";
@@ -21070,6 +21385,7 @@
     const given = isTimeout ? null : parseInt(lesson.answer, 10);
     const ok = !isTimeout && given === q.answer;
     if(ok) lesson.correct++;
+    lxRecordTypeStat(lesson.topicId, q._ti, ok);
     lesson.examResults.push({ q, ok, given: lesson.answer });
     // nichts verraten - nur "gespeichert", dann weiter
     const el = $("answerDisplay"); el.classList.remove("wrong", "right", "empty"); el.textContent = "✓ gespeichert";
@@ -21107,7 +21423,7 @@
     }
     pushInboxEvent("📝", `Klassenarbeit ${lxTopic(L.topicId).name} Kapitel ${L.examCh}: Note ${grade}`);
     saveProfile();
-    examLast = { topicId: L.topicId, ch: L.examCh, wrong: L.examResults.filter(r => !r.ok).map(r => r.q) };
+    examLast = { topicId: L.topicId, ch: L.examCh, wrong: L.examResults.filter(r => !r.ok).map(r => r.q), all: L.examResults.map(r => r.ok) };
     // Ergebnis-Fenster
     const gc = grade <= 2 ? "g-good" : grade <= 4 ? "g-mid" : "g-bad";
     $("examGrade").className = "exam-grade " + gc; $("examGrade").textContent = grade;
@@ -21119,8 +21435,20 @@
     $("examReviewBtn").style.display = examLast.wrong.length ? "" : "none";
     $("examReviewBtn").textContent = `🧩 ${examLast.wrong.length} Fehler mit Lösung ansehen`;
     lesson = null;
+    // Ablauf: korrigieren (Haken nacheinander) -> Punkte zählen hoch -> Note-Stempel
+    const card = $("overlayExamResult").querySelector(".exam-card");
+    card.classList.remove("revealed", "stamped");
+    $("examTicks").innerHTML = examLast.all.map((ok, i) => `<span class="${ok ? "ok" : "no"}" style="animation-delay:${(0.35 + i * 0.09).toFixed(2)}s">${ok ? "✓" : "✗"}</span>`).join("");
+    $("examPoints").textContent = `0 / ${total}`;
     $("overlayExamResult").classList.add("show");
-    if(grade <= 2 && typeof spawnConfetti === "function") spawnConfetti();
+    const tickEnd = 350 + total * 90;
+    setTimeout(() => { // Punkte hochzählen
+      const t0 = performance.now(), dur = 650;
+      const step = now => { const k = Math.min(1, (now - t0) / dur); $("examPoints").textContent = `${Math.round(pts * (1 - Math.pow(1 - k, 3)))} / ${total}`; if(k < 1) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    }, tickEnd);
+    setTimeout(() => { card.classList.add("revealed"); }, tickEnd + 1000);
+    setTimeout(() => { card.classList.add("stamped"); triggerHaptic([30, 40, 80]); if(grade <= 2 && typeof spawnConfetti === "function") spawnConfetti(); }, tickEnd + 1350);
   }
   // Fehler durchgehen: jede falsche Aufgabe mit der Lösung (Computerprinzip)
   function startExamReview(){
@@ -21157,6 +21485,126 @@
     showScreen("lessons"); renderLessonsScreen();
   });
   /* =================== KLASSENARBEIT ENDE =================== */
+
+  $("onlineFriendsPopup").addEventListener("click", () => {
+    const u = ofpUsers[0]; $("onlineFriendsPopup").classList.remove("show", "hide");
+    if(u && u.uid && typeof openFriendProfile === "function") openFriendProfile(u.uid);
+  });
+
+  /* ===== KAPITEL-ÜBERSICHT & THEMEN-TRENDS (NEU) =====
+     📊 links oben im Pfad: Kapitel mit Prozent, Sternen, Klassenarbeit und
+     Aufgabenarten. Antippen -> Trends: Trefferquote pro Aufgabenart. */
+  const LX_CHAPTER_TITLES = {
+    linfun: ["Grundlagen", "Minus & Nullstellen", "Zwei Punkte & Profi"],
+    algebra: ["Einfache Gleichungen", "Zwei Schritte", "Klammern & x beidseitig"],
+    percent: ["Prozent verstehen", "Prozentwert", "Grundwert & Prozentsatz"],
+    geometry: ["Fläche & Umfang", "Dreieck & fehlende Seite", "Volumen"],
+    fractions: ["Brüche verstehen", "Kürzen & Erweitern", "Rechnen mit Brüchen"],
+    powers: ["Quadrat & Wurzel", "Größere Potenzen", "Potenzgesetze"],
+    ratio: ["Proportional", "Anwenden & umgekehrt", "Antiproportional"],
+    pythagoras: ["Quadrate & Hypotenuse", "Seiten berechnen", "Anwendungen"],
+    terms: ["Rechengesetze", "Terme vereinfachen", "Ausmultiplizieren & Ausklammern"]
+  };
+  const LX_TYPE_NAMES = {
+    linfun: ["f(x) ausrechnen", "b aus der Formel", "m aus der Formel", "b am Graphen", "m am Graphen", "Nullstelle", "Funktion zum Graphen", "Steigung aus 2 Punkten",
+      "Gerade verschieben", "Gerade drehen", "Liegt der Punkt drauf?", "Textaufgabe Handyvertrag", "Ist es linear?", "Steigt oder fällt?", "Wertetabelle linear?",
+      "Parallele Gerade", "Punkt auf der Geraden", "Textaufgabe Kerze"],
+    algebra: ["x + a = b", "Waage (x + a)", "a · x = b", "x − a = b", "Erster Schritt", "ax + b = c", "ax − b = c", "Waage (ax + b)", "Klammer-Gleichung",
+      "x auf beiden Seiten", "Waage einstellen (x + a)", "Waage einstellen (ax + b)"],
+    percent: ["Kästchen-Prozent (Zehner)", "50 % von …", "Anteil im Kreis", "10 % / 25 % von …", "Kästchen-Prozent", "p % von …", "p % von … (schwer)",
+      "Grundwert", "Prozentsatz", "Kästchen färben", "Prozent-Regler", "Regler mit Werten", "Kästchen färben (genau)"],
+    geometry: ["Fläche Quadrat", "Fläche Rechteck", "Umfang Rechteck", "Umfang Quadrat", "Fläche Dreieck", "Dreiecks-Formel", "Fehlende Seite", "Volumen Würfel",
+      "Volumen Quader", "Rechteck bauen (Fläche)", "Rechteck bauen (Umfang)"],
+    fractions: ["Bruch erkennen", "1/q von …", "k/q von …", "Größerer Bruch", "Kürzen", "Erweitern", "Plus (gleicher Nenner)", "Bruch in Prozent",
+      "Plus (ungleicher Nenner)", "Bruch mal Zahl", "Ganze herausziehen", "Minus (ungleicher Nenner)"],
+    powers: ["Hoch 2", "Hoch 3", "Quadrat-Kästchen", "Wurzel", "2ⁿ und 10ⁿ", "?² = …", "Quadrate addieren", "Wurzeln addieren", "Potenzen malnehmen",
+      "Potenzen teilen", "Potenz hoch Potenz", "Negative Basis"],
+    ratio: ["Von 1 hochrechnen", "Auf 1 runterrechnen", "Dreisatz", "Proportional erkennen", "Dreisatz (Liter)", "Geschwindigkeit", "Rezept",
+      "Antiproportional (Arbeiter)", "Antiproportional (Pumpen)", "Proportional oder anti?", "Dreisatz (große Zahlen)", "Antiproportional (Stücke)"],
+    pythagoras: ["Quadrat über Seite", "a² + b²", "Hypotenuse finden", "√(a² + b²)", "Hypotenuse berechnen", "Kathete berechnen", "Rechtwinklig?",
+      "Leiter", "Diagonale", "Große Dreiecke"],
+    terms: ["Tauschen (Kommutativ)", "Geschickt addieren", "Geschickt malnehmen", "Welches Gesetz?", "Distributiv rechnen", "Distributiv: fehlende Zahl",
+      "Gleiche Teile addieren", "Zusammenfassen mit 1x", "Termwert einsetzen", "Sortieren x & Zahlen", "Negative Ergebnisse", "Zahl mal Term",
+      "x und y trennen", "Ausmultiplizieren", "Ausmultiplizieren (ax − b)", "Ausklammern", "Größter Faktor", "Minus vor der Klammer", "Ausklammern (Auswahl)"]
+  };
+  const lxTypeName = (tid, ti) => (LX_TYPE_NAMES[tid] && LX_TYPE_NAMES[tid][ti]) || `Aufgabenart ${ti + 1}`;
+  function lxRecordTypeStat(tid, ti, ok){
+    if(tid === undefined || ti === undefined || ti < 0) return;
+    if(!profile.topicTypeStats) profile.topicTypeStats = {};
+    const t = profile.topicTypeStats[tid] = profile.topicTypeStats[tid] || {};
+    const s = t[ti] = t[ti] || { c: 0, w: 0 };
+    if(ok) s.c++; else s.w++;
+  }
+  const lxAcc = s => s && (s.c + s.w) ? s.c / (s.c + s.w) : null;
+  const lxAccColor = a => a === null ? "var(--border)" : a >= .85 ? "var(--success)" : a >= .6 ? "#f59e0b" : "var(--danger)";
+
+  // ---- Kapitel-Übersicht ----
+  function lxOpenOverview(tid){
+    const t = lxTopic(tid), st = lxState(tid), stats = (profile.topicTypeStats || {})[tid] || {};
+    const titles = LX_CHAPTER_TITLES[tid] || ["Einstieg", "Fortgeschritten", "Profi"];
+    const total = Math.round(Math.min(st.done, 30) / 30 * 100);
+    $("lxOvCard").style.setProperty("--lx-c", t.color);
+    $("lxOvTitle").textContent = `${t.icon} ${t.name}`;
+    $("lxOvSub").textContent = `Klasse ${t.grade} · ${total} % geschafft`;
+    $("lxOvBody").innerHTML = [1, 2, 3].map(ch => {
+      const lo = (ch - 1) * 10, done = Math.max(0, Math.min(10, st.done - lo)), pct = done * 10;
+      let stars = 0; for(let n = lo + 1; n <= lo + 10; n++) stars += st.stars[n] || 0;
+      const ex = (st.exams || {})[ch];
+      const types = LX_TYPES[tid].map((ty, ti) => ({ ty, ti })).filter(o => o.ty.from > lo && o.ty.from <= lo + 10);
+      const chips = types.map(o => { const a = lxAcc(stats[o.ti]); return `<span class="ov-chip"><i style="background:${lxAccColor(a)}"></i>${lxEsc(lxTypeName(tid, o.ti))}${a === null ? "" : ` · ${Math.round(a * 100)} %`}</span>`; }).join("");
+      return `<button class="ov-ch" data-ovch="${ch}">
+        <div class="ov-ch-top"><div class="ov-ring" style="--p:${pct}"><b>${pct}%</b></div>
+          <div class="ov-ch-t"><small>Kapitel ${ch}</small><b>${titles[ch - 1]}</b>
+            <span>${done}/10 Lektionen · ⭐ ${stars}/30${ex ? ` · 📝 Note ${ex.best}` : ""}</span></div><span class="ov-go">›</span></div>
+        <div class="ov-chips">${chips || '<span class="ov-chip">–</span>'}</div></button>`;
+    }).join("");
+    $("lxOvBody").querySelectorAll("[data-ovch]").forEach(b => b.addEventListener("click", () => lxGoTrends(tid, parseInt(b.dataset.ovch, 10))));
+    $("overlayLxOverview").classList.add("show");
+  }
+  // ---- Trends: Auswertung pro Aufgabenart ----
+  let lxTrendsTopic = null, lxTrendsChapter = 0;
+  function lxGoTrends(tid, ch){
+    $("overlayLxOverview").classList.remove("show");
+    lxTrendsTopic = tid; lxTrendsChapter = ch || 0;
+    showScreen("trends"); renderTrends();
+    setTimeout(() => { const el = $("lxTrends"); if(el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 80);
+  }
+  function renderLxTrends(){
+    const box = $("lxTrends"); if(!box) return;
+    const all = profile.topicTypeStats || {};
+    const tid = lxTrendsTopic || lxCurrentTopic || (LX_TOPICS.find(t => all[t.id]) || LX_TOPICS[0]).id;
+    lxTrendsTopic = tid;
+    const t = lxTopic(tid), stats = all[tid] || {};
+    const chips = LX_TOPICS.map(x => `<button class="lt-tchip${x.id === tid ? " on" : ""}" data-lt="${x.id}" style="--lx-c:${x.color}">${x.icon}</button>`).join("");
+    const chTabs = ["Alle", "Kap. 1", "Kap. 2", "Kap. 3"].map((l, i) => `<button class="lt-ctab${i === lxTrendsChapter ? " on" : ""}" data-lc="${i}">${l}</button>`).join("");
+    const rows = LX_TYPES[tid].map((ty, ti) => ({ ty, ti, s: stats[ti], a: lxAcc(stats[ti]), ch: Math.ceil(ty.from / 10) }))
+      .filter(o => !lxTrendsChapter || o.ch === lxTrendsChapter);
+    const played = rows.filter(o => o.a !== null);
+    const sumC = played.reduce((a, o) => a + o.s.c, 0), sumW = played.reduce((a, o) => a + o.s.w, 0);
+    const overall = (sumC + sumW) ? sumC / (sumC + sumW) : null;
+    const best = [...played].sort((a, b) => b.a - a.a || (b.s.c + b.s.w) - (a.s.c + a.s.w))[0];
+    const worst = [...played].filter(o => o.s.c + o.s.w >= 2 && o.a < 0.85).sort((a, b) => a.a - b.a)[0]; // nur vorschlagen, wenn es wirklich hakt
+    const sorted = [...rows].sort((a, b) => (b.a === null ? -1 : b.a) - (a.a === null ? -1 : a.a));
+    box.innerHTML = `
+      <div class="lt-head"><b>📚 Lektionen-Themen</b><span>Wie gut bist du pro Aufgabenart?</span></div>
+      <div class="lt-tchips">${chips}</div>
+      <div class="lt-card" style="--lx-c:${t.color}">
+        <div class="lt-top"><div class="ov-ring big" style="--p:${overall === null ? 0 : Math.round(overall * 100)}"><b>${overall === null ? "–" : Math.round(overall * 100) + "%"}</b></div>
+          <div class="lt-top-t"><b>${t.icon} ${t.name}</b><span>${sumC + sumW} Aufgaben gelöst · Klasse ${t.grade}</span></div></div>
+        <div class="lt-ctabs">${chTabs}</div>
+        ${played.length ? `<div class="lt-bw">
+          ${best ? `<div class="lt-best"><small>💪 Am besten</small><b>${lxEsc(lxTypeName(tid, best.ti))}</b><span>${Math.round(best.a * 100)} %</span></div>` : ""}
+          ${worst && worst !== best ? `<div class="lt-worst"><small>🎯 Üben</small><b>${lxEsc(lxTypeName(tid, worst.ti))}</b><span>${Math.round(worst.a * 100)} %</span></div>` : ""}
+        </div>` : `<div class="lt-empty">Noch keine Aufgaben in diesem Bereich gelöst – mach eine Lektion! 🚀</div>`}
+        <div class="lt-rows">${sorted.map(o => `<div class="lt-row${o.a === null ? " none" : ""}"><span class="lt-name">${lxEsc(lxTypeName(tid, o.ti))}<small>Kap. ${o.ch}</small></span>
+          <span class="lt-bar"><i style="width:${o.a === null ? 0 : Math.round(o.a * 100)}%; background:${lxAccColor(o.a)}"></i></span>
+          <span class="lt-pct">${o.a === null ? "–" : Math.round(o.a * 100) + "%"}</span></div>`).join("")}</div>
+      </div>`;
+    box.querySelectorAll("[data-lt]").forEach(b => b.addEventListener("click", () => { lxTrendsTopic = b.dataset.lt; lxTrendsChapter = 0; renderLxTrends(); }));
+    box.querySelectorAll("[data-lc]").forEach(b => b.addEventListener("click", () => { lxTrendsChapter = parseInt(b.dataset.lc, 10); renderLxTrends(); }));
+  }
+  $("lxOvClose").addEventListener("click", () => $("overlayLxOverview").classList.remove("show"));
+  $("lxOvTrendsBtn").addEventListener("click", () => lxGoTrends(lxCurrentTopic, 0));
 
   $("backHomeFromLocked").addEventListener("click", () => {
     clearInterval(lockedInterval);
@@ -21371,7 +21819,7 @@
     if(lesson && (lesson.isExam || lesson.isExamReview)){ // Klassenarbeit: EIN Timer für alles
       $("timerCircle").setAttribute("stroke-dasharray", TIMER_CIRCUMFERENCE);
       cancelAnimationFrame(timerRAF);
-      if(lesson.isExam) examTimerTick();
+      if(lesson.isExam){ examRenderHead(); examTimerTick(); }
       return;
     }
     questionStartedAt = performance.now();
@@ -21627,6 +22075,7 @@
     const given = isTimeout ? null : parseInt(lesson.answer, 10);
     const isCorrect = !isTimeout && given === q.answer;
     recordFactStat(q, isCorrect);
+    if(lesson.topicId && !lesson.isExamReview && typeof lxRecordTypeStat === "function") lxRecordTypeStat(lesson.topicId, q._ti, isCorrect); // Trends pro Aufgabenart
     const isSlow = lesson.lupeForfeit ? false : (isTimeout || elapsed > slowThresholdMs);
     const isFastCorrect = isCorrect && elapsed <= AURA_THRESHOLD_MS;
 

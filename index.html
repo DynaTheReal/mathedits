@@ -3706,6 +3706,46 @@
   .lt-bar i{ display:block; height:100%; border-radius:inherit; }
   .lt-pct{ text-align:right; font-weight:800; font-variant-numeric:tabular-nums; }
 
+
+  /* ===================== HARD MODE (NEU) ===================== */
+  .hm-fx{ position:fixed; inset:0; z-index:99000; display:none; place-items:center; align-content:center; pointer-events:none; overflow:hidden; }
+  .hm-fx.show{ display:grid; justify-items:center; text-align:center; animation:hm-shake .5s steps(2) .1s 3; }
+  .hm-flash{ position:absolute; inset:0; background:radial-gradient(circle at 50% 45%, rgba(239,68,68,.55), rgba(127,29,29,.85) 60%, rgba(0,0,0,.92));
+    animation:hm-flash 2.1s ease both; }
+  @keyframes hm-flash{ 0%{ opacity:0; } 6%{ opacity:1; background-color:#fff; } 12%{ opacity:.6; } 18%{ opacity:1; } 85%{ opacity:1; } 100%{ opacity:0; } }
+  @keyframes hm-shake{ 0%,100%{ transform:none; } 50%{ transform:translate(6px, -4px) rotate(.4deg); } }
+  .hm-bolt{ position:absolute; width:70px; fill:#fde68a; filter:drop-shadow(0 0 18px #fbbf24) drop-shadow(0 0 40px #ef4444); opacity:0; }
+  .hm-bolt.b1{ left:8%; top:10%; transform:rotate(-12deg); animation:hm-bolt .5s ease .15s both, hm-bolt .4s ease 1s both; }
+  .hm-bolt.b2{ right:10%; top:22%; width:56px; transform:rotate(14deg); animation:hm-bolt .5s ease .35s both, hm-bolt .4s ease 1.25s both; }
+  .hm-bolt.b3{ left:42%; bottom:8%; width:48px; transform:rotate(-4deg); animation:hm-bolt .5s ease .55s both; }
+  @keyframes hm-bolt{ 0%{ opacity:0; } 20%{ opacity:1; } 40%{ opacity:.2; } 60%{ opacity:1; } 100%{ opacity:0; } }
+  .hm-title{ position:relative; display:flex; align-items:center; justify-content:center; gap:8px; white-space:nowrap; font-size:clamp(30px, 9.5vw, 60px); font-weight:900; letter-spacing:-.02em; color:#fff;
+    text-shadow:0 0 18px #ef4444, 0 0 46px #ef4444, 3px 3px 0 #7f1d1d; animation:hm-slam .55s cubic-bezier(.2,1.7,.4,1) .1s both, hm-glitch 1.6s steps(1) .7s both; }
+  .hm-title span{ font-size:.6em; animation:hm-bolt .6s ease .4s infinite; }
+  @keyframes hm-slam{ from{ transform:scale(3); opacity:0; filter:blur(8px); } to{ transform:none; opacity:1; filter:none; } }
+  @keyframes hm-glitch{ 0%,100%{ transform:none; } 10%{ transform:translate(-3px, 1px) skewX(-6deg); } 20%{ transform:none; } 55%{ transform:translate(3px, -1px) skewX(5deg); } 60%{ transform:none; } }
+  .hm-sub{ position:relative; margin-top:8px; text-align:center; font-weight:800; font-size:15px; color:#fecaca; letter-spacing:.04em; animation:lxa-fade .4s ease .55s both; }
+  /* Lektion im Hard Mode: alles rot */
+  #screen-lesson.hard-mode{ --accent:#ef4444; --accent-text:#fff; }
+  #screen-lesson.hard-mode::after{ content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
+    box-shadow:inset 0 0 90px rgba(239,68,68,.45); animation:hm-pulse 1.4s ease-in-out infinite; }
+  @keyframes hm-pulse{ 50%{ box-shadow:inset 0 0 130px rgba(239,68,68,.7); } }
+  #screen-lesson.hard-mode .progress-track{ background:rgba(127,29,29,.5); box-shadow:0 0 12px rgba(239,68,68,.7); }
+  #screen-lesson.hard-mode .progress-fill{ background:linear-gradient(90deg, #7f1d1d, #ef4444, #fca5a5, #ef4444, #7f1d1d) !important; background-size:200% 100% !important;
+    animation:hm-flow 1s linear infinite; box-shadow:0 0 16px #ef4444; }
+  @keyframes hm-flow{ to{ background-position:-200% 0; } }
+  .progress-track-wrap{ position:relative; }
+  .hm-bolts{ display:none; }
+  #screen-lesson.hard-mode .hm-bolts{ display:block; position:absolute; left:0; right:0; top:-14px; height:30px; pointer-events:none; z-index:2; }
+  .hm-bolts span{ position:absolute; font-size:15px; filter:drop-shadow(0 0 6px #ef4444); animation:hm-bolt 1.1s ease-in-out infinite; }
+  #screen-lesson.hard-mode .question-card{ border-color:#ef4444 !important; box-shadow:0 0 0 1.5px #ef4444, 0 0 34px rgba(239,68,68,.4) !important; }
+  #screen-lesson.hard-mode .q-tier{ color:#fca5a5 !important; font-weight:900; letter-spacing:.03em; }
+  #screen-lesson.hard-mode .key, #screen-lesson.hard-mode .lx-choice{ border-color:rgba(239,68,68,.55) !important; box-shadow:inset 0 0 14px rgba(239,68,68,.22) !important; }
+  #screen-lesson.hard-mode .submit-btn{ background:linear-gradient(135deg, #ef4444, #991b1b) !important; color:#fff !important; box-shadow:0 8px 24px rgba(239,68,68,.45) !important; }
+  #screen-lesson.hard-mode #timerCircle{ stroke:#ef4444 !important; }
+  #screen-lesson.hard-mode .answer-display{ color:#fecaca; }
+  @media (prefers-reduced-motion: reduce){ .hm-fx.show, .hm-title, #screen-lesson.hard-mode::after, .hm-bolts span{ animation:none !important; } }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -5835,6 +5875,7 @@
         <div class="exam-timer" id="examTimer">⏱ 10:00</div>
       </div>
       <div class="progress-track-wrap">
+        <div class="hm-bolts" id="hmBolts"></div>
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
         <div class="combo-counter" id="comboCounter"></div>
       </div>
@@ -6786,6 +6827,16 @@
     </div>
   </div>
 
+  <!-- Hard Mode: Start-Animation -->
+  <div class="hm-fx" id="hardModeFx" aria-hidden="true">
+    <div class="hm-flash"></div>
+    <svg class="hm-bolt b1" viewBox="0 0 40 100"><polygon points="22,0 4,56 18,56 10,100 36,38 21,38 30,0"/></svg>
+    <svg class="hm-bolt b2" viewBox="0 0 40 100"><polygon points="22,0 4,56 18,56 10,100 36,38 21,38 30,0"/></svg>
+    <svg class="hm-bolt b3" viewBox="0 0 40 100"><polygon points="22,0 4,56 18,56 10,100 36,38 21,38 30,0"/></svg>
+    <div class="hm-title"><span>⚡</span>HARD MODE<span>⚡</span></div>
+    <div class="hm-sub">2 Bonus-Aufgaben · doppelte Aura</div>
+  </div>
+
   <!-- Posteingang (NEU, Nova-Glocke) -->
   <div class="overlay" id="overlayInbox">
     <div class="modal-card inbox-card" style="max-width:380px; text-align:left;">
@@ -6903,7 +6954,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.95";
+  const APP_VERSION = "3.96";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -14477,6 +14528,7 @@
     if(name === "result" && typeof animateResultScreen === "function") animateResultScreen();
     if(name === "lesson") screens.lesson.classList.toggle("lx-topic-lesson", !!(lesson && lesson.topicId)); // LEKTIONEN-SYSTEM
     if(name === "lesson") screens.lesson.classList.toggle("exam-mode", !!(lesson && lesson.isExam));
+    if(name === "lesson") screens.lesson.classList.toggle("hard-mode", !!(lesson && lesson.hardMode));
     if(name !== "lesson" && typeof lxLupeCancel === "function") lxLupeCancel(); // Lupe beim Verlassen sauber schließen
 
     // Neue Lektionen / Lektions-Hintergrund (NEU, Beta-Einstellungen)
@@ -19295,6 +19347,7 @@
     const st = lxState(lesson.topicId);
     const n = lesson.topicLessonNo;
     const stars = lesson.correct >= QUESTIONS_PER_LESSON ? 3 : lesson.correct >= 8 ? 2 : 1;
+    if(lesson.hardMode && lesson.correct >= QUESTIONS_PER_LESSON && !lesson.hadMistake) setTimeout(() => showToast("⚡ Hard Mode gemeistert!"), 1200);
     // Lektionen-Missionen zählen (NEU)
     ensureDailyMissions();
     const dmT = profile.dailyMissions;
@@ -20111,6 +20164,7 @@
   function lxRenderQuestionExtras(q){
     const vis = $("qVisual"), ch = $("lxChoices");
     if(!vis || !ch) return;
+    if(lesson && lesson.hardMode && q && q.hard) setTimeout(() => { $("qTier").textContent = lesson.index === 8 ? "⚡ HARD MODE · nächstes Kapitel · 2× Aura" : "⚡ HARD MODE · sehr schwer · 2× Aura"; }, 0);
     if(q && q.text && q.text.indexOf("{{") !== -1) $("qText").textContent = lxPlain(q.text); // Lupe-Markierungen ausblenden
     if(typeof lxLupeHideUi === "function" && lxLupeActive) lxLupeHideUi();
     if(q && q.svg){ vis.innerHTML = q.svg; vis.style.display = "block"; } else { vis.innerHTML = ""; vis.style.display = "none"; }
@@ -21606,6 +21660,58 @@
   $("lxOvClose").addEventListener("click", () => $("overlayLxOverview").classList.remove("show"));
   $("lxOvTrendsBtn").addEventListener("click", () => lxGoTrends(lxCurrentTopic, 0));
 
+
+  /* ===================== HARD MODE (NEU) =====================
+     Nur in Themen-Lektionen: Wer die ersten 8 Aufgaben OHNE Fehler löst,
+     bekommt für die letzten 2 den Hard Mode - Animation, alles wird rot,
+     Aufgabe 9 aus dem NÄCHSTEN Kapitel, Aufgabe 10 sehr schwer (höchste
+     Stufe), doppelte Aura. */
+  const HARD_FROM_INDEX = 8;
+  function lxHardEligible(){
+    return !!(lesson && lesson.topicId && !lesson.isExam && !lesson.isExamReview && !lesson.isDuel && !lesson.hardMode
+      && lesson.index === HARD_FROM_INDEX && !lesson.hadMistake);
+  }
+  function lxHardQuestions(tid, n){
+    const types = LX_TYPES[tid], ch = Math.min(3, Math.ceil(n / 10));
+    const fair = t => !(t.weight !== undefined && t.weight < 1); // keine "zu leichten" Verschiebe-Aufgaben
+    const gen = (list, lvl, avoid) => {
+      for(let k = 0; k < 30; k++){
+        const t = list[randInt(0, list.length - 1)], q = t.gen(lvl);
+        if(!Number.isInteger(q.answer) || (avoid && lxPlain(q.text) === lxPlain(avoid.text))) continue;
+        q._ti = types.indexOf(t); q.hard = true; return q;
+      }
+      return null;
+    };
+    // Aufgabe 9: aus dem nächsten Kapitel (im letzten Kapitel: neueste Typen auf höchster Stufe)
+    let nextList = ch < 3 ? types.filter(t => t.from > ch * 10 && t.from <= ch * 10 + 10 && fair(t)) : [];
+    if(!nextList.length) nextList = types.filter(t => t.from > 20 && fair(t));
+    const q1 = gen(nextList, Math.min(30, ch * 10 + 10));
+    // Aufgabe 10: sehr schwer - Typen bis zum aktuellen Kapitel, aber auf höchster Stufe (30)
+    const open = types.filter(t => t.from <= ch * 10 && fair(t)).sort((a, b) => b.from - a.from);
+    const q2 = gen(open.slice(0, Math.max(3, Math.ceil(open.length / 2))), 30, q1);
+    return [q1, q2].filter(Boolean);
+  }
+  function lxStartHardMode(){
+    const L = lesson;
+    const hq = lxHardQuestions(L.topicId, L.topicLessonNo || 1);
+    if(hq.length < 2){ renderQuestion(); return; }
+    L.questions[HARD_FROM_INDEX] = hq[0];
+    L.questions[HARD_FROM_INDEX + 1] = hq[1];
+    L.hardMode = true;
+    // Animation
+    const fx = $("hardModeFx");
+    fx.classList.remove("show"); void fx.offsetWidth; fx.classList.add("show");
+    triggerHaptic([60, 40, 120, 40, 200]);
+    setTimeout(() => {
+      screens.lesson.classList.add("hard-mode");
+      $("hmBolts").innerHTML = Array.from({ length: 6 }, (_, i) => `<span style="left:${8 + i * 17}%; animation-delay:${(i * 0.37).toFixed(2)}s">⚡</span>`).join("");
+    }, 900);
+    setTimeout(() => {
+      fx.classList.remove("show");
+      if(lesson === L) renderQuestion();
+    }, 2100);
+  }
+
   $("backHomeFromLocked").addEventListener("click", () => {
     clearInterval(lockedInterval);
     showScreen("home");
@@ -22175,7 +22281,7 @@
 
       // Multiplikator für 2x Aura Prüfen
       const hasDoubleAura = profile.inventory && profile.inventory.doubleAuraUntil > Date.now();
-      const multiplier = hasDoubleAura ? 2 : 1;
+      const multiplier = (hasDoubleAura ? 2 : 1) * (lesson.hardMode && lesson.index >= 8 ? 2 : 1); // Hard Mode: doppelte Aura
 
       let currentNormalAura = (lesson.tier.normalAura ?? 2) * multiplier;
       let currentEditAura = (lesson.tier.editAura ?? 5) * multiplier;
@@ -22231,6 +22337,7 @@
         if(profile.lives <= 0 && !isSuperUser()) pendingGameOverScare = true;
       }
       lesson.missedCurrentQuestion = true;
+      lesson.hadMistake = true; // Hard Mode nur bei 8 von 8 ohne Fehler
       pendingRetry = true;
       regenerateCurrentQuestion();
       const showMs = profile.longMode ? 2800 : 1100;
@@ -22244,6 +22351,7 @@
         if(profile.lives <= 0 && !isSuperUser()) pendingGameOverScare = true;
       }
       lesson.missedCurrentQuestion = true;
+      lesson.hadMistake = true; // Hard Mode nur bei 8 von 8 ohne Fehler
       pendingRetry = true;
       regenerateCurrentQuestion();
       flashScreen();
@@ -22334,6 +22442,7 @@
       finishLesson(true);
       return;
     }
+    if(typeof lxHardEligible === "function" && lxHardEligible()){ lxStartHardMode(); return; } // 8 von 8 ohne Fehler -> Hard Mode
     renderQuestion();
   }
 

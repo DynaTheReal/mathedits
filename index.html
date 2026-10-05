@@ -3778,6 +3778,22 @@
   .skip-icon.no{ background:radial-gradient(circle at 35% 30%, #fca5a5, #dc2626); box-shadow:0 0 34px rgba(239,68,68,.5); }
   .skip-card p{ font-size:14px; line-height:1.5; opacity:.85; }
 
+
+  .lx-node.skipto{ width:62px; height:62px; font-size:26px; border-radius:50%; margin-bottom:28px;
+    background:linear-gradient(145deg, color-mix(in srgb, var(--lx-c) 55%, #fff 0%), color-mix(in srgb, var(--lx-c) 70%, #000));
+    box-shadow:0 6px 0 color-mix(in srgb, var(--lx-c) 45%, #000), 0 0 18px color-mix(in srgb, var(--lx-c) 40%, transparent); }
+  .lx-node.skipto .stars{ bottom:-20px; font-size:10.5px; opacity:.75; white-space:nowrap; }
+
+
+  /* Lexikon in der Lösung (NEU) */
+  .pf-gl{ text-decoration:underline dotted; text-decoration-thickness:2px; text-underline-offset:3px; text-decoration-color:var(--accent); cursor:pointer; }
+  .pf-gl::after{ content:"ⓘ"; font-size:.7em; margin-left:2px; vertical-align:super; color:var(--accent); }
+  .pf-gloss{ display:none; }
+  .solve-stage.pf-mode .pf-gloss.show{ display:block; margin-top:auto; margin-bottom:8px; padding:10px 12px; border-radius:14px; font-size:13px; line-height:1.45; font-weight:600;
+    background:var(--card); border:1.5px solid var(--accent); box-shadow:0 10px 26px rgba(0,0,0,.3); animation:lxa-fade .25s ease both; }
+  .pf-gloss b{ display:block; color:var(--accent); font-size:13.5px; margin-bottom:2px; }
+  .solve-stage.pf-mode .pf-gloss.show + .pf-why{ margin-top:0; }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -5978,6 +5994,7 @@
       <svg class="ss-arrows" id="ssArrows" aria-hidden="true"></svg>
       <!-- "Wie ein Computer": Tafel mit der Aufgabe + Erklärung -->
       <div class="pf-board" id="pfBoard"></div>
+      <div class="pf-gloss" id="pfGlossBox"></div>
       <div class="pf-why" id="pfWhy"></div>
       <div class="pf-overlay" id="pfOverlay"></div>
     </div>
@@ -6997,7 +7014,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.98";
+  const APP_VERSION = "4.00";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -18967,9 +18984,29 @@
       return 2;
     };
     const ws = open.map(t => ((n - t.from < 4) ? 3 : 1) * (t.weight === undefined ? 1 : t.weight) * skill(t));
+    // Leichtere ZAHLEN, wenn das Rechnen selbst schwerfällt (NEU): die
+    // Aufgabenart (= die Regel) bleibt gleich, nur die Zahlen werden kleiner -
+    // so kann man sich auf die Regel konzentrieren statt auf große Rechnungen.
+    const ease = t => {
+      let drop = 0;
+      const st = stats[types.indexOf(t)], tries = st ? (st.c || 0) + (st.w || 0) : 0;
+      if(tries >= 3){ const acc = st.c / tries; if(acc < 0.6) drop += 8; else if(acc < 0.8) drop += 4; }
+      const recent = profile.topicRecent || [];
+      if(recent.length >= 15 && recent.filter(Boolean).length / recent.length < 0.6) drop += 4;
+      if(lesson && lesson.topicId && !lesson.isExam) drop += Math.min(9, (lesson.mistakeCount || 0) * 3);
+      return drop;
+    };
     let r = Math.random() * ws.reduce((a, b) => a + b, 0);
     // q._ti = welche Aufgabenart (für die Trends pro Aufgabenart)
-    const make = t => { const q = t.gen(n); q._ti = types.indexOf(t); return q; };
+    const make = t => {
+      const drop = ease(t), nEff = Math.max(1, n - drop);
+      const q = t.gen(nEff); q._ti = types.indexOf(t);
+      if(drop >= 3 && lesson && lesson.topicId && !lesson.easeHintShown){ // einmal pro Lektion erklären
+        lesson.easeHintShown = true;
+        setTimeout(() => showToast("🧩 Die Zahlen werden etwas kleiner – so kannst du dich auf die Regel konzentrieren."), 300);
+      }
+      return q;
+    };
     for(let i = 0; i < open.length; i++){ r -= ws[i]; if(r <= 0) return make(open[i]); }
     return make(open[open.length - 1]);
   }
@@ -19463,9 +19500,12 @@
     for(let n = 1; n <= LX_LESSONS_PER_TOPIC; n++){
       const ch = lxChapterOf(n);
       if((n - 1) % 10 === 0){
-        const skippable = st.done >= n - 1 && st.done < n + 9; // aktuelles, noch offenes Kapitel
         const skipped = st.skipped && st.skipped[ch];
-        html += `<div class="lx-section">${LX_SECTIONS[ch - 1]} · Lektion ${n}–${n + 9}${skippable ? `<button class="lx-skip" data-skip="${ch}">⏭ Überspringen</button>` : ""}${skipped ? `<span class="lx-skipped">⏭ übersprungen</span>` : ""}</div>`;
+        html += `<div class="lx-section">${LX_SECTIONS[ch - 1]} · Lektion ${n}–${n + 9}${skipped ? `<span class="lx-skipped">⏭ übersprungen</span>` : ""}</div>`;
+        // Überspringen (NEU): am ANFANG eines neuen Kapitels - "hierher springen"
+        if(ch >= 2 && st.done < n - 1){
+          html += `<button class="lx-node skipto" data-skipto="${ch}" style="--x:0px">⏭<span class="stars">Hierher springen</span></button>`;
+        }
         // Tutorial ist FREIWILLIG (NEU): kein START, sperrt nichts
         const tDone = !!st.chTut[ch], tOpen = st.done >= n - 1;
         html += `<button class="lx-node book optional${tDone ? " done" : tOpen ? "" : " locked"}" data-book="${ch}" style="--x:0px">
@@ -19498,10 +19538,11 @@
     $("lxBack").addEventListener("click", () => { lxCurrentTopic = null; renderLessonsScreen(); });
     $("lxOvBtn").addEventListener("click", () => lxOpenOverview(t.id));
     $("lxTutBtn").addEventListener("click", () => lxOpenTutorial(t.id, Math.min(3, lxChapterOf(Math.max(1, st.done + 1)))));
-    root.querySelectorAll("[data-skip]").forEach(b => b.addEventListener("click", async () => {
-      const ch = parseInt(b.dataset.skip, 10);
-      const ok = await showConfirmPopup(`⏭ Kapitel ${ch} überspringen?\n\nTest mit den schwierigsten Aufgaben: ${SKIP_TASKS} Aufgaben · 5 Minuten.\nKEIN Fehler erlaubt!\n\nGeschafft = alle Lektionen erledigt, aber ohne Aura, Sterne und Truhe.`);
-      if(ok) lxStartSkipTest(t.id, ch);
+    root.querySelectorAll("[data-skipto]").forEach(b => b.addEventListener("click", async () => {
+      const to = parseInt(b.dataset.skipto, 10), from = lxChapterOf(Math.min(st.done + 1, 30));
+      const span = from === to - 1 ? `Kapitel ${from}` : `Kapitel ${from}–${to - 1}`;
+      const ok = await showConfirmPopup(`⏭ Zu Kapitel ${to} springen?\n\nTest über ${span} mit den schwierigsten Aufgaben: ${SKIP_TASKS} Aufgaben · 5 Minuten.\nKEIN Fehler erlaubt!\n\nGeschafft = übersprungene Lektionen erledigt, aber ohne Aura, Sterne und Truhen.`);
+      if(ok) lxStartSkipTest(t.id, from, to - 1);
     }));
     root.querySelectorAll("[data-exam]").forEach(b => b.addEventListener("click", async () => {
       const ch = parseInt(b.dataset.exam, 10);
@@ -19973,12 +20014,12 @@
           prog: () => tmP(null, [{ line: `${a} ${op} ${b}`, say: `Tausche die beiden Zahlen – bei ${mul ? "·" : "+"} ist das erlaubt.` }, { line: correct, say: "Vergleiche mit den Antworten." }, { result: correct }]) }; } },
     { from: 2, gen: n => { const a = randInt(2, lxUp(9, 89, n)), r = 10 * Math.ceil((a + 1) / 10), c = r - a, b = randInt(5, lxUp(40, 90, n));
         return { text: `Rechne geschickt: ${E(a, "Erste Zahl.")} + ${E(b, "Diese Zahl kommt erst am Schluss dran.")} + ${E(c, `Zusammen mit ${a} ergibt sie eine runde Zahl.`)} = ?`, answer: a + b + c,
-          hint: `Tausche: ${a} + ${c} ergibt eine runde Zahl.`,
-          prog: () => tmP(null, [{ line: `${a} + ${b} + ${c}`, say: `Suche zwei Zahlen, die zusammen rund sind: ${a} und ${c}.` }, { calc: `${a} + ${c} + ${b}`, say: `Tausche ${b} und ${c}.` }, { result: a + b + c }]) }; } },
+          hint: `Tausche: ${a} + ${c} ergibt eine runde Zahl (endet auf 0).`,
+          prog: () => tmP(null, [{ line: `${a} + ${b} + ${c}`, say: `Suche zwei Zahlen, die zusammen eine runde Zahl ergeben: ${a} + ${c} = ${a + c}.` }, { calc: `${a} + ${c} + ${b}`, say: `Tausche, damit die beiden Zahlen für die runde Zahl nebeneinander stehen: ${a} und ${c}.` }, { result: a + b + c }]) }; } },
     { from: 4, gen: n => { const pr = lxPick1([[25, 4], [20, 5], [50, 2], [125, 8], [4, 25]]), k = randInt(2, lxUp(9, 19, n));
         return { text: `Rechne geschickt: ${E(pr[0], "Erste Zahl.")} · ${E(k, "Diese Zahl kommt erst am Schluss dran.")} · ${E(pr[1], `Zusammen mit ${pr[0]} ergibt sie eine runde Zahl.`)} = ?`, answer: pr[0] * pr[1] * k,
           hint: `Tausche: ${pr[0]} · ${pr[1]} = ${pr[0] * pr[1]}.`,
-          prog: () => tmP(null, [{ line: `${pr[0]} · ${k} · ${pr[1]}`, say: `Suche zwei Zahlen, die zusammen rund sind: ${pr[0]} und ${pr[1]}.` }, { calc: `${pr[0]} · ${pr[1]} · ${k}`, say: `Tausche ${k} und ${pr[1]}.` }, { result: pr[0] * pr[1] * k }]) }; } },
+          prog: () => tmP(null, [{ line: `${pr[0]} · ${k} · ${pr[1]}`, say: `Suche zwei Zahlen, die malgenommen eine runde Zahl ergeben: ${pr[0]} · ${pr[1]} = ${pr[0] * pr[1]}.` }, { calc: `${pr[0]} · ${pr[1]} · ${k}`, say: `Tausche, damit die beiden Zahlen für die runde Zahl nebeneinander stehen: ${pr[0]} und ${pr[1]}.` }, { result: pr[0] * pr[1] * k }]) }; } },
     { from: 6, gen: n => { const a = randInt(2, 9), b = randInt(2, 9), c = randInt(2, 9);
         const ex = lxPick1([
           [`${a} + ${b} = ${b} + ${a}`, "Kommutativgesetz", "Die Zahlen werden getauscht."],
@@ -20295,6 +20336,8 @@
     lxSolveIdx = -1;
     $("lupePanel").classList.add("show");
     $("screen-lesson").classList.add("lupe-on");
+    // Die Lösung (Computerprinzip) startet direkt (NEU)
+    if(!lesson.isExamReview) setTimeout(() => { if(lxLupeActive && !pfProg && !lxSolvePlan) $("lupeShowResult").click(); }, 120);
   }
   function lxLupeExplain(sp){
     const scr = $("screen-lesson"), bub = $("lupeBubble");
@@ -21123,6 +21166,58 @@
     }catch(e){ console.error("Computerprinzip:", e); return null; }
   }
 
+
+  /* ===== Lexikon für die Lösung (NEU): Fachwörter antippen = Erklärung ===== */
+  const PF_GLOSSARY = [
+    [/runden?|rund/i, "rund", "Eine runde Zahl endet auf 0, zum Beispiel 10, 20, 50 oder 100. Mit ihr rechnet man ganz leicht weiter."],
+    [/Nenner/i, "Nenner", "Die Zahl UNTER dem Bruchstrich: in wie viele gleiche Teile das Ganze geteilt ist."],
+    [/Zähler/i, "Zähler", "Die Zahl ÜBER dem Bruchstrich: wie viele dieser Teile man hat."],
+    [/Hypotenuse/i, "Hypotenuse", "Die längste Seite im rechtwinkligen Dreieck. Sie liegt dem rechten Winkel gegenüber."],
+    [/Katheten?/i, "Kathete", "Die zwei kürzeren Seiten, die am rechten Winkel anliegen."],
+    [/rechten Winkel/i, "rechter Winkel", "Ein Winkel wie bei einer Zimmerecke (90°). Er wird mit einem kleinen Eck-Zeichen markiert."],
+    [/Wurzel/i, "Wurzel", "Die Wurzel von 25 ist die Zahl, die mit sich selbst malgenommen 25 ergibt – also 5."],
+    [/Hochzahlen?|Exponenten?/i, "Hochzahl", "Die kleine Zahl oben (z. B. bei 5²). Sie sagt, wie oft die Zahl mit sich selbst malgenommen wird."],
+    [/Basis/i, "Basis", "Die große Zahl bei einer Potenz (z. B. die 5 bei 5²). Sie wird mit sich selbst malgenommen."],
+    [/Quadrate?n?/i, "Quadrat", "„Im Quadrat“ oder „hoch 2“ heißt: eine Zahl mit sich selbst malnehmen, z. B. 4² = 4 · 4 = 16."],
+    [/Steigung/i, "Steigung", "Wie steil eine Gerade ist: so viele Kästchen geht sie hoch (oder runter), wenn man 1 Kästchen nach rechts geht."],
+    [/y-Achse/i, "y-Achse", "Die senkrechte Linie im Koordinatensystem (von unten nach oben)."],
+    [/Nullstelle/i, "Nullstelle", "Die Stelle, an der die Gerade die waagerechte x-Achse schneidet – dort ist f(x) = 0."],
+    [/Vorzeichen/i, "Vorzeichen", "Das Plus oder Minus direkt vor einer Zahl. Es gehört zur Zahl dazu."],
+    [/Grundwert/i, "Grundwert", "Das Ganze – das sind 100 %."],
+    [/ausklammern|Klammere/i, "ausklammern", "Eine Zahl, die in jedem Teil steckt, vor eine Klammer schreiben: 6x + 9 = 3 · (2x + 3)."],
+    [/ausmultiplizieren/i, "ausmultiplizieren", "Die Zahl vor der Klammer mit JEDEM Teil in der Klammer malnehmen."],
+    [/erweitern|Erweitere/i, "erweitern", "Zähler und Nenner mit derselben Zahl malnehmen. Der Bruch bleibt genauso groß."],
+    [/kürzen|Kürze/i, "kürzen", "Zähler und Nenner durch dieselbe Zahl teilen. Der Bruch bleibt genauso groß."],
+    [/antiproportional/i, "antiproportional", "Je mehr vom einen, desto WENIGER vom anderen – z. B. mehr Arbeiter, weniger Zeit."],
+    [/proportional/i, "proportional", "Je mehr vom einen, desto MEHR vom anderen – z. B. mehr Hefte, mehr Preis."],
+    [/Kommutativgesetz/i, "Kommutativgesetz", "Bei Plus und Mal darf man die Zahlen tauschen: 3 + 5 = 5 + 3."],
+    [/Assoziativgesetz/i, "Assoziativgesetz", "Bei nur Plus (oder nur Mal) darf man die Klammern verschieben: (2 + 3) + 4 = 2 + (3 + 4)."],
+    [/Distributivgesetz/i, "Distributivgesetz", "Die Zahl vor der Klammer wird mit jedem Teil in der Klammer malgenommen: 3 · (4 + 5) = 3 · 4 + 3 · 5."],
+    [/Diagonale/i, "Diagonale", "Die schräge Linie von einer Ecke zur gegenüberliegenden Ecke."],
+    [/Faktor/i, "Faktor", "Eine Zahl, die malgenommen wird."],
+    [/gleichen Nenner|gleichnamig/i, "gleicher Nenner", "Beide Brüche haben unten dieselbe Zahl – dann kann man oben einfach rechnen."]
+  ];
+  function pfGlossaryHtml(text){
+    let html = lxEsc(text);
+    const used = new Set();
+    PF_GLOSSARY.forEach(([re, key]) => {
+      if(used.has(key)) return;
+      const rx = new RegExp(`(^|[^A-Za-zÄÖÜäöüß-])(${re.source})(?=[^A-Za-zÄÖÜäöüß]|$)`, "i");
+      if(!rx.test(html)) return;
+      // nicht innerhalb eines schon markierten Wortes ersetzen
+      if(/<span class="pf-gl"/.test(html) && new RegExp(`<span[^>]*>[^<]*${re.source}[^<]*</span>`, "i").test(html)) return;
+      html = html.replace(rx, (m0, pre, word) => `${pre}<span class="pf-gl" data-gl="${key}">${word}</span>`);
+      used.add(key);
+    });
+    return html;
+  }
+  function pfShowGlossary(el){
+    const entry = PF_GLOSSARY.find(g => g[1] === el.dataset.gl); if(!entry) return;
+    const box = $("pfGlossBox");
+    box.innerHTML = `<b>${lxEsc(entry[1])}</b>${lxEsc(entry[2])}`;
+    box.classList.remove("show"); void box.offsetWidth; box.classList.add("show");
+    triggerHaptic(8);
+  }
   // ---------- Ausführung auf der Tafel ----------
   let pfProg = null, pfPos = -1;
   const pfEl = id => $("pfBoard").querySelector(`[data-id="${id}"]`);
@@ -21324,7 +21419,9 @@
         break; }
     }
     pfFit(); setTimeout(pfFit, 700); // nach Einfügen/Zusammenrechnen neu anpassen
-    $("pfWhy").innerHTML = `<span class="n">${pfPos + 1}/${pfProg.steps.length}</span>${lxEsc(s.why || "")}`;
+    $("pfWhy").innerHTML = `<span class="n">${pfPos + 1}/${pfProg.steps.length}</span>${pfGlossaryHtml(s.why || "")}`;
+    $("pfGlossBox").classList.remove("show");
+    $("pfWhy").querySelectorAll(".pf-gl").forEach(g => g.addEventListener("click", e => { e.stopPropagation(); pfShowGlossary(g); }));
     $("pfWhy").classList.remove("pop"); void $("pfWhy").offsetWidth; $("pfWhy").classList.add("pop");
     triggerHaptic(8);
     $("lupeShowResult").style.display = "none";
@@ -21503,7 +21600,7 @@
   function examRenderHead(){
     if(!lesson || !lesson.isExam) return;
     $("examHeadTitle").textContent = lesson.isSkip ? "⏭ Überspringen-Test" : "📝 Klassenarbeit";
-    $("examHeadSub").textContent = `${lxTopic(lesson.topicId).name} · Kapitel ${lesson.examCh}${lesson.isSkip ? " · kein Fehler!" : ""}`;
+    $("examHeadSub").textContent = `${lxTopic(lesson.topicId).name} · Kapitel ${lesson.examCh}${lesson.isSkip && lesson.skipToCh > lesson.examCh ? "–" + lesson.skipToCh : ""}${lesson.isSkip ? " · kein Fehler!" : ""}`;
     $("qTier").textContent = `Aufgabe ${lesson.index + 1} von ${lesson.questions.length}`;
     let dots = $("examDots");
     if(!dots){ dots = document.createElement("div"); dots.id = "examDots"; dots.className = "exam-dots"; $("examHead").closest(".lesson-top").after(dots); }
@@ -21682,6 +21779,7 @@
     const t = profile.topicTypeStats[tid] = profile.topicTypeStats[tid] || {};
     const s = t[ti] = t[ti] || { c: 0, w: 0 };
     if(ok) s.c++; else s.w++;
+    profile.topicRecent = [...(profile.topicRecent || []), !!ok].slice(-30); // letzte 30 Antworten (allgemeine Form)
   }
   const lxAcc = s => s && (s.c + s.w) ? s.c / (s.c + s.w) : null;
   const lxAccColor = a => a === null ? "var(--border)" : a >= .85 ? "var(--success)" : a >= .6 ? "#f59e0b" : "var(--danger)";
@@ -21813,24 +21911,26 @@
      Geschafft -> alle Lektionen des Kapitels erledigt, aber ohne Aura,
      Sterne und Truhe. */
   const SKIP_TASKS = 8, SKIP_MS = 5 * 60 * 1000;
-  function lxBuildSkip(topicId, ch){
-    const n = ch * 10, types = LX_TYPES[topicId];
-    const chTypes = types.filter(t => t.from > n - 10 && t.from <= n && !(t.weight !== undefined && t.weight < 1)).sort((a, b) => a.from - b.from);
-    const pool = chTypes.length ? chTypes : types.filter(t => t.from <= n);
+  function lxBuildSkip(topicId, fromCh, toCh){
+    toCh = toCh || fromCh;
+    const types = LX_TYPES[topicId], lo = (fromCh - 1) * 10, hi = toCh * 10;
+    const chTypes = types.filter(t => t.from > lo && t.from <= hi && !(t.weight !== undefined && t.weight < 1)).sort((a, b) => a.from - b.from);
+    const pool = chTypes.length ? chTypes : types.filter(t => t.from <= hi);
     const qs = [], keys = new Set();
     for(let i = 0; qs.length < SKIP_TASKS && i < 300; i++){
-      const t = pool[i % pool.length], q = t.gen(n);
+      const t = pool[i % pool.length], q = t.gen(Math.min(30, Math.ceil(t.from / 10) * 10)); // schwerste Stufe des jeweiligen Kapitels
       const key = lxPlain(q.text) + "|" + (q.svg || "") + "|" + q.answer;
       if(!Number.isInteger(q.answer) || keys.has(key)) continue;
       keys.add(key); q._ti = types.indexOf(t); q._order = pool.indexOf(t); qs.push(q);
     }
     return qs.sort((a, b) => a._order - b._order);
   }
-  function lxStartSkipTest(topicId, ch){
+  function lxStartSkipTest(topicId, ch, toCh){
+    toCh = toCh || ch;
     lesson = {
       tier: { id: "skip_" + topicId, name: `⏭ Überspringen · Kapitel ${ch}`, icon: "⏭", timeMs: SKIP_MS, normalAura: 0, editAura: 0 },
-      isMainProgression: false, noLifeLoss: true, isExam: true, isSkip: true, examCh: ch, topicId, examMs: SKIP_MS,
-      questions: lxBuildSkip(topicId, ch), index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false,
+      isMainProgression: false, noLifeLoss: true, isExam: true, isSkip: true, examCh: ch, skipToCh: toCh, topicId, examMs: SKIP_MS,
+      questions: lxBuildSkip(topicId, ch, toCh), index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false,
       examStart: Date.now(), examResults: []
     };
     lesson.startedAt = performance.now();
@@ -21842,20 +21942,25 @@
     cancelAnimationFrame(timerRAF);
     const L = lesson, ch = L.examCh, st = lxState(L.topicId);
     skipLast = { topicId: L.topicId, ch, failedQ };
+    const toCh = L.skipToCh || ch;
     if(success){
-      st.done = Math.max(st.done, ch * 10);
-      if(!st.chests[ch * 10]) st.chests[ch * 10] = { tier: LX_CHEST_AT[ch * 10] || "rare", attemptsUsed: 0, claimed: true, skipped: true }; // keine Truhe
+      st.done = Math.max(st.done, toCh * 10);
       if(!st.skipped) st.skipped = {};
-      st.skipped[ch] = true;
-      pushInboxEvent("⏭", `${lxTopic(L.topicId).name}: Kapitel ${ch} übersprungen`);
+      for(let c = ch; c <= toCh; c++){
+        // Truhen übersprungener Kapitel lassen sich NICHT einlösen
+        const k = c * 10, ex = st.chests[k];
+        if(!ex || !ex.claimed) st.chests[k] = { tier: (ex && ex.tier) || LX_CHEST_AT[k] || "rare", attemptsUsed: 0, claimed: true, skipped: true };
+        st.skipped[c] = true;
+      }
+      pushInboxEvent("⏭", `${lxTopic(L.topicId).name}: zu Kapitel ${Math.min(3, toCh + 1)} gesprungen`);
       saveProfile();
     }
     lesson = null;
     $("skipIcon").textContent = success ? "⏭" : timeUp ? "⏰" : "❌";
     $("skipIcon").className = "skip-icon " + (success ? "ok" : "no");
-    $("skipTitle").textContent = success ? `Kapitel ${ch} übersprungen!` : "Nicht geschafft";
+    $("skipTitle").textContent = success ? (toCh < 3 ? `Willkommen in Kapitel ${toCh + 1}!` : "Thema übersprungen!") : "Nicht geschafft";
     $("skipText").textContent = success
-      ? `Alle 10 Lektionen sind jetzt erledigt – ohne Aura, Sterne und Truhe. ${ch < 3 ? `Weiter geht's mit Kapitel ${ch + 1}.` : "Damit ist das ganze Thema geschafft!"}`
+      ? `Die übersprungenen Lektionen sind erledigt – ohne Aura, Sterne und Truhen. ${toCh < 3 ? `Weiter geht's mit Kapitel ${toCh + 1}.` : "Damit ist das ganze Thema geschafft!"}`
       : timeUp ? "Die Zeit ist abgelaufen. Beim Überspringen-Test muss alles sitzen."
                : `Aufgabe ${L.examResults.length} war falsch. Beim Überspringen-Test ist kein Fehler erlaubt.`;
     $("skipReviewBtn").style.display = !success && failedQ ? "" : "none";
@@ -22500,6 +22605,7 @@
       }
       lesson.missedCurrentQuestion = true;
       lesson.hadMistake = true; // Hard Mode nur bei 8 von 8 ohne Fehler
+      lesson.mistakeCount = (lesson.mistakeCount || 0) + 1; // -> nächste Aufgaben mit kleineren Zahlen
       pendingRetry = true;
       regenerateCurrentQuestion();
       const showMs = profile.longMode ? 2800 : 1100;
@@ -22514,6 +22620,7 @@
       }
       lesson.missedCurrentQuestion = true;
       lesson.hadMistake = true; // Hard Mode nur bei 8 von 8 ohne Fehler
+      lesson.mistakeCount = (lesson.mistakeCount || 0) + 1; // -> nächste Aufgaben mit kleineren Zahlen
       pendingRetry = true;
       regenerateCurrentQuestion();
       flashScreen();

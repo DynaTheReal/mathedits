@@ -18,6 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 
 <!-- Firebase SDKs (Compat Version) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -3794,6 +3795,67 @@
   .pf-gloss b{ display:block; color:var(--accent); font-size:13.5px; margin-bottom:2px; }
   .solve-stage.pf-mode .pf-gloss.show + .pf-why{ margin-top:0; }
 
+
+  /* ===== Klassenarbeit: Lösung direkt + Papier-Auswertung (NEU) ===== */
+  .exam-pts{ flex-shrink:0; padding:7px 11px; border-radius:999px; font-weight:800; font-size:14px; color:var(--success);
+    background:color-mix(in srgb, var(--success) 14%, transparent); }
+  .exam-fb{ display:none; }
+  #screen-lesson.exam-mode .exam-fb.show{ display:flex; position:fixed; left:12px; right:12px; bottom:calc(14px + env(safe-area-inset-bottom)); z-index:60;
+    align-items:center; gap:12px; padding:14px; border-radius:20px; background:var(--card); border:2px solid; box-shadow:0 16px 40px rgba(0,0,0,.45);
+    animation:exam-fb-in .35s cubic-bezier(.2,1.3,.4,1) both; }
+  @keyframes exam-fb-in{ from{ transform:translateY(40px); opacity:0; } to{ transform:none; opacity:1; } }
+  .exam-fb.ok{ border-color:var(--success); } .exam-fb.no{ border-color:var(--danger); }
+  .exam-fb-ic{ width:42px; height:42px; flex-shrink:0; border-radius:50%; display:grid; place-items:center; font-size:22px; font-weight:900; color:#fff; }
+  .exam-fb.ok .exam-fb-ic{ background:var(--success); } .exam-fb.no .exam-fb-ic{ background:var(--danger); }
+  .exam-fb-t{ flex:1; min-width:0; display:flex; flex-direction:column; line-height:1.3; }
+  .exam-fb-t b{ font-size:16px; }
+  .exam-fb.ok .exam-fb-t b{ color:var(--success); } .exam-fb.no .exam-fb-t b{ color:var(--danger); }
+  .exam-fb-t span{ font-size:13.5px; font-weight:700; opacity:.85; }
+  .exam-fb-next{ flex-shrink:0; padding:12px 16px; border-radius:14px; border:0; font:inherit; font-weight:800; font-size:14.5px; cursor:pointer; color:#fff; background:var(--accent); }
+  /* Papier-Arbeitsblatt */
+  #overlayExamResult{ overflow-y:auto; align-items:flex-start; }
+  .ep-wrap{ width:100%; max-width:420px; margin:calc(18px + env(safe-area-inset-top)) auto 30px; padding:0 12px; }
+  .ep-paper{ position:relative; color:#1e293b; border-radius:6px; padding:22px 16px 20px 46px; font-family:'Inter', sans-serif;
+    background-color:#fdfbf3; background-image:linear-gradient(90deg, transparent 34px, rgba(239,68,68,.55) 34px, rgba(239,68,68,.55) 36px, transparent 36px),
+      repeating-linear-gradient(to bottom, transparent 0 27px, rgba(59,130,246,.22) 27px 28px);
+    box-shadow:0 1px 0 #e7e2d2, 0 18px 50px rgba(0,0,0,.45); transform:rotate(-.6deg); animation:ep-in .5s cubic-bezier(.2,1,.3,1) both; }
+  @keyframes ep-in{ from{ transform:translateY(40px) rotate(-3deg); opacity:0; } to{ transform:rotate(-.6deg); opacity:1; } }
+  .ep-hand{ font-family:'Caveat', 'Comic Sans MS', cursive; }
+  .ep-head{ border-bottom:2px solid #1e293b; padding-bottom:8px; margin-bottom:8px; }
+  .ep-title{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+  .ep-title b{ font-size:21px; font-weight:800; letter-spacing:-.01em; }
+  .ep-title span{ font-size:12.5px; font-weight:700; color:#475569; }
+  .ep-meta{ display:flex; justify-content:space-between; gap:8px; margin-top:6px; font-size:12px; color:#475569; }
+  .ep-meta i{ font-style:normal; font-family:'Caveat', cursive; font-size:18px; color:#1d4ed8; }
+  .ep-row{ display:grid; grid-template-columns:22px 1fr 22px 34px; align-items:start; gap:6px; padding:5px 0; font-size:12.5px; line-height:1.35; min-height:28px; }
+  .ep-no{ font-weight:800; color:#334155; }
+  .ep-q{ color:#1e293b; }
+  .ep-q em{ display:block; font-style:normal; font-size:17px; line-height:1; color:#dc2626; margin-top:1px; opacity:0; }
+  .ep-mark{ font-size:24px; line-height:.9; font-weight:700; text-align:center; opacity:0; transform:scale(2) rotate(-15deg); }
+  .ep-mark.ok{ color:#dc2626; } .ep-mark.no{ color:#dc2626; }
+  .ep-p{ font-size:18px; line-height:1; color:#dc2626; text-align:right; opacity:0; }
+  .ep-paper.marked .ep-mark{ animation:ep-mark .35s cubic-bezier(.2,1.5,.4,1) both; animation-delay:var(--d); }
+  .ep-paper.marked .ep-row .ep-p, .ep-paper.marked .ep-row .ep-q em{ animation:lxa-fade .3s ease both; animation-delay:calc(var(--d) + .15s); }
+  .ep-row{ --d:0s; }
+  .ep-row .ep-mark, .ep-row .ep-p, .ep-row em{ animation-delay:var(--d) !important; }
+  @keyframes ep-mark{ from{ opacity:0; transform:scale(2.2) rotate(-25deg); } to{ opacity:1; transform:rotate(-8deg); } }
+  .ep-sum{ display:flex; justify-content:space-between; align-items:baseline; border-top:2px solid #1e293b; margin-top:8px; padding-top:8px; font-weight:800; font-size:14px; }
+  .ep-sum b{ font-size:28px; color:#dc2626; opacity:0; }
+  .ep-paper.stamped .ep-sum b{ animation:lxa-fade .4s ease both; }
+  .ep-bottom{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px; min-height:96px; }
+  .ep-comment{ font-size:26px; color:#dc2626; line-height:1.05; transform:rotate(-4deg); opacity:0; }
+  .ep-paper.stamped .ep-comment{ animation:lxa-fade .5s ease .35s both; }
+  .ep-stamp{ flex-shrink:0; width:92px; height:92px; border-radius:50%; border:4px solid #dc2626; color:#dc2626; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transform:rotate(-12deg); opacity:0; }
+  .ep-stamp small{ font-size:18px; line-height:1; }
+  .ep-stamp b{ font-size:52px; line-height:.85; }
+  .ep-paper.stamped .ep-stamp{ animation:ep-stamp .5s cubic-bezier(.2,1.6,.4,1) .15s both; }
+  @keyframes ep-stamp{ 0%{ opacity:0; transform:scale(2.6) rotate(-30deg); } 100%{ opacity:1; transform:rotate(-12deg); } }
+  .ep-sign{ margin-top:10px; font-size:11.5px; color:#64748b; }
+  .ep-sign span{ font-size:20px; color:#1d4ed8; margin-left:4px; }
+  .ep-reward{ margin-top:14px; text-align:center; font-weight:800; font-size:16px; color:var(--text); opacity:0; }
+  #overlayExamResult.show .ep-reward{ animation:lxa-fade .4s ease 3.4s both; }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -5918,8 +5980,14 @@
     <div class="lesson-top">
       <div class="exit-x" id="exitLesson">✕</div>
       <!-- Klassenarbeit: schlichte Kopfzeile (nur im Klassenarbeits-Modus sichtbar) -->
+      <div class="exam-fb" id="examFb">
+        <div class="exam-fb-ic" id="examFbIcon">✓</div>
+        <div class="exam-fb-t"><b id="examFbTitle">Richtig!</b><span id="examFbText"></span></div>
+        <button class="exam-fb-next" id="examFbNext">Weiter ›</button>
+      </div>
       <div class="exam-head" id="examHead">
         <div class="exam-head-t"><b id="examHeadTitle">📝 Klassenarbeit</b><span id="examHeadSub">Kapitel 1</span></div>
+        <div class="exam-pts" id="examPts">0 P.</div>
         <div class="exam-timer" id="examTimer">⏱ 10:00</div>
       </div>
       <div class="progress-track-wrap">
@@ -6842,26 +6910,25 @@
     </div>
   </div>
 
-  <!-- Klassenarbeit: Ergebnis -->
+  <!-- Klassenarbeit: Auswertung als Papier-Arbeitsblatt (NEU) -->
   <div class="overlay" id="overlayExamResult">
-    <div class="modal-card exam-card">
-      <!-- Phase 1: "Wird korrigiert ..." -->
-      <div class="exam-grading" id="examGrading">
-        <div class="exam-pen">✍️</div>
-        <div class="exam-grading-t">Wird korrigiert …</div>
-        <div class="exam-ticks" id="examTicks"></div>
-        <div class="exam-points" id="examPoints">0 / 15</div>
+    <div class="ep-wrap">
+      <div class="ep-paper" id="examPaper">
+        <div class="ep-head">
+          <div class="ep-title"><b>Klassenarbeit</b><span id="epTopic">Thema · Kapitel 1</span></div>
+          <div class="ep-meta"><span>Name: <i id="epName">@du</i></span><span>Datum: <i id="epDate"></i></span></div>
+        </div>
+        <div class="ep-rows" id="epRows"></div>
+        <div class="ep-sum"><span>Gesamt</span><b class="ep-hand" id="epPoints">0 / 0 P.</b></div>
+        <div class="ep-bottom">
+          <div class="ep-comment ep-hand" id="epComment">Gut gemacht!</div>
+          <div class="ep-stamp ep-hand" id="epStamp"><small>Note</small><b>2</b></div>
+        </div>
+        <div class="ep-sign">Unterschrift Lehrkraft: <span class="ep-hand">MathEdits</span></div>
       </div>
-      <!-- Phase 2: Note als Stempel + Auswertung -->
-      <div class="exam-done" id="examDone">
-      <div class="exam-title" id="examTitle">📝 Klassenarbeit</div>
-      <div class="exam-stamp-wrap"><div class="exam-grade" id="examGrade">1</div></div>
-      <div class="exam-grade-word" id="examGradeWord">sehr gut</div>
-      <div class="exam-stats" id="examStats"></div>
-      <div class="exam-list" id="examList"></div>
-      <button class="btn btn-primary" id="examReviewBtn" style="width:100%; margin-top:12px;">🧩 Fehler mit Lösung ansehen</button>
+      <div class="ep-reward" id="epReward">+120 Aura</div>
+      <button class="btn btn-primary" id="examReviewBtn" style="width:100%; margin-top:10px;">🧩 Fehler mit Lösung ansehen</button>
       <button class="btn btn-ghost" id="examBackBtn" style="width:100%; margin-top:8px;">Zurück zum Pfad</button>
-      </div>
     </div>
   </div>
 
@@ -7014,7 +7081,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.00";
+  const APP_VERSION = "4.01";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -19547,7 +19614,7 @@
     root.querySelectorAll("[data-exam]").forEach(b => b.addEventListener("click", async () => {
       const ch = parseInt(b.dataset.exam, 10);
       if(st.done < ch * 10){ showToast("📝 Schließe erst alle Lektionen dieses Kapitels ab."); return; }
-      const ok = await showConfirmPopup(`📝 Klassenarbeit · Kapitel ${ch}\n\n${EXAM_TASKS} Aufgaben · 10 Minuten · keine Hilfe.\nBereit?`);
+      const ok = await showConfirmPopup(`📝 Klassenarbeit · Kapitel ${ch}\n\n${EXAM_TASKS} Aufgaben · 10 Minuten · keine Lupe.\nNach jeder Aufgabe siehst du sofort die Lösung und deine Punkte.\nBereit?`);
       if(ok) lxStartExam(t.id, ch);
     }));
     root.querySelectorAll("[data-book]").forEach(b => b.addEventListener("click", () => {
@@ -20011,7 +20078,7 @@
         const correct = `${b} ${op} ${a}`, wrongs = [`${a} ${M} ${b}`, `${b} ${M} ${a}`, `${a} ${mul ? "+" : "·"} ${b}`, `${a} : ${b}`];
         return { text: `Welche Rechnung hat dasselbe Ergebnis wie ${E(`${a} ${op} ${b}`, "Die Rechnung aus der Aufgabe.")}?`, ...lxShuffleChoices(correct, wrongs),
           hint: `Bei ${mul ? "mal" : "plus"} darf man die Zahlen tauschen (Kommutativgesetz).`,
-          prog: () => tmP(null, [{ line: `${a} ${op} ${b}`, say: `Tausche die beiden Zahlen – bei ${mul ? "·" : "+"} ist das erlaubt.` }, { line: correct, say: "Vergleiche mit den Antworten." }, { result: correct }]) }; } },
+          prog: () => tmP(null, [{ line: `${a} ${op} ${b}`, say: `Tausche die beiden Zahlen: ${a} ${op} ${b} wird ${correct}.` }, { line: correct, say: `Suche diese Rechnung bei den Antworten: ${correct}.` }, { result: correct }]) }; } },
     { from: 2, gen: n => { const a = randInt(2, lxUp(9, 89, n)), r = 10 * Math.ceil((a + 1) / 10), c = r - a, b = randInt(5, lxUp(40, 90, n));
         return { text: `Rechne geschickt: ${E(a, "Erste Zahl.")} + ${E(b, "Diese Zahl kommt erst am Schluss dran.")} + ${E(c, `Zusammen mit ${a} ergibt sie eine runde Zahl.`)} = ?`, answer: a + b + c,
           hint: `Tausche: ${a} + ${c} ergibt eine runde Zahl (endet auf 0).`,
@@ -20033,54 +20100,54 @@
     { from: 7, gen: n => { const k = randInt(2, lxUp(6, 9, n)), minus = n >= 9 && randInt(0, 1) === 1, t = minus ? 100 : 10 * randInt(1, 5), u = randInt(1, minus ? 4 : 9);
         const expr = `${k} · (${t} ${minus ? M : "+"} ${u})`, res = k * (minus ? t - u : t + u);
         return { text: `${E(expr, "Die Zahl vor der Klammer wird mit jedem Teil malgenommen.")} = ?`, answer: res, hint: `Distributivgesetz: ${k} · ${t} ${minus ? M : "+"} ${k} · ${u}.`,
-          prog: () => tmP(null, [{ line: expr, say: `Nimm ${k} mal jede Zahl in der Klammer.` }, { calc: `${k} · ${t} ${minus ? M : "+"} ${k} · ${u}` }, { result: res }]) }; } },
+          prog: () => tmP(null, [{ line: expr, say: `Nimm ${k} mal jede Zahl in der Klammer: ${k} · ${t} und ${k} · ${u}.` }, { calc: `${k} · ${t} ${minus ? M : "+"} ${k} · ${u}` }, { result: res }]) }; } },
     { from: 9, gen: n => { const a = randInt(2, 9), b = randInt(2, 12), c = randInt(2, 12);
         return { text: `${a} · (${b} + ${E(c, "Diese Zahl steht in der Klammer.")}) = ${a} · ${b} + ${a} · ?`, answer: c, hint: "Distributivgesetz: Die Zahl vor der Klammer mal JEDE Zahl in der Klammer.",
           prog: () => tmP(null, [{ line: `${a} · (${b} + ${c})`, say: `Nimm ${a} mal jede Zahl in der Klammer: mal ${b} und mal ${c}.` }, { line: `${a} · ${b} + ${a} · ${c}`, say: `Vergleiche: Das Fragezeichen steht an der Stelle von ${c}.` }, { result: c }]) }; } },
     // ---------- Kapitel 2: Terme vereinfachen ----------
     { from: 11, gen: n => { const a = randInt(1, lxUp(6, 12, n)), b = randInt(1, lxUp(6, 12, n)), v = lxPick1(["x", "a", "y"]);
         return { text: `${E(tmX(a, v), `${a} mal ${v}.`)} + ${E(tmX(b, v), `${b} mal ${v}.`)} = ?${v}`, answer: a + b, hint: `Gleiche Buchstaben: Zähle nur die Zahlen davor zusammen.`,
-          prog: () => tmP(null, [{ line: `${tmX(a, v)} + ${tmX(b, v)}`, say: `Zähle die Zahlen vor ${v} zusammen.` }, { calc: `${a} + ${b}` }, { result: `${a + b}${v}` }]) }; } },
+          prog: () => tmP(null, [{ line: `${tmX(a, v)} + ${tmX(b, v)}`, say: `Zähle die Zahlen vor dem ${v} zusammen: ${a} und ${b}.` }, { calc: `${a} + ${b}` }, { result: `${a + b}${v}` }]) }; } },
     { from: 12, gen: n => { const a = randInt(4, lxUp(9, 15, n)), b = randInt(1, a - 1), c = randInt(1, 6), v = lxPick1(["x", "a", "b"]);
         return { text: `${E(tmX(a, v), `${a} mal ${v}.`)} ${M} ${E(tmX(b, v), `${b} mal ${v} wird abgezogen.`)} + ${E(tmX(c, v), c === 1 ? `Nur ${v} heißt 1 · ${v}.` : `${c} mal ${v}.`)} = ?${v}`, answer: a - b + c,
           hint: `Nur ${v} heißt 1${v}.`,
-          prog: () => tmP(null, [{ line: `${tmX(a, v)} ${M} ${tmX(b, v)} + ${tmX(c, v)}`, say: `Rechne nur mit den Zahlen vor ${v}${c === 1 ? ` (${v} = 1${v})` : ""}.` }, { calc: `${a} ${M} ${b} + ${c}` }, { result: `${a - b + c}${v}` }]) }; } },
+          prog: () => tmP(null, [{ line: `${tmX(a, v)} ${M} ${tmX(b, v)} + ${tmX(c, v)}`, say: `Rechne nur mit den Zahlen vor dem ${v}: ${a}, ${b} und ${c}${c === 1 ? ` (${v} allein heißt 1${v})` : ""}.` }, { calc: `${a} ${M} ${b} + ${c}` }, { result: `${a - b + c}${v}` }]) }; } },
     { from: 13, gen: n => { const a = randInt(2, lxUp(6, 9, n)), b = randInt(1, 12), x = randInt(1, lxUp(5, 9, n)) * (n >= 16 && randInt(0, 1) ? -1 : 1);
         return { text: `Setze ${E(`x = ${lxNum(x)}`, "Diese Zahl kommt überall dorthin, wo x steht.")} in ${E(`${a}x + ${b}`, "Der Term.")} ein.`, answer: a * x + b, hint: `Ersetze x durch ${lxNum(x)} und rechne aus.`,
           prog: () => tmP(null, [{ line: `${a}x + ${b}`, say: `Ersetze x durch ${lxNum(x)}.` }, { calc: `${a} · ${lxPar(x)} + ${b}` }, { result: lxNum(a * x + b) }]) }; } },
     { from: 14, gen: n => { const a = randInt(1, 8), c = randInt(1, 8), b = randInt(1, 9), d = randInt(1, 9);
         return { text: `${E(tmX(a), "x-Teil.")} + ${E(b, "Zahl ohne x.")} + ${E(tmX(c), "x-Teil.")} + ${E(d, "Zahl ohne x.")} = ${tmX(a + c)} + ?`, answer: b + d,
           hint: "Sortiere: x-Teile zu x-Teilen, Zahlen zu Zahlen.",
-          prog: () => tmP(null, [{ line: `${tmX(a)} + ${b} + ${tmX(c)} + ${d}`, say: "Sortiere: x-Teile zusammen, Zahlen zusammen." }, { calc: `${a} + ${c}`, pre: "x-Teile:" }, { calc: `${b} + ${d}`, pre: "Zahlen:" }, { result: `${tmX(a + c)} + ${b + d}` }]) }; } },
+          prog: () => tmP(null, [{ line: `${tmX(a)} + ${b} + ${tmX(c)} + ${d}`, say: `Schreibe die Teile mit x zusammen und die Zahlen ohne x zusammen: ${tmX(a)} + ${tmX(c)} und ${b} + ${d}.` }, { calc: `${a} + ${c}`, pre: "x-Teile:" }, { calc: `${b} + ${d}`, pre: "Zahlen:" }, { result: `${tmX(a + c)} + ${b + d}` }]) }; } },
     { from: 16, gen: n => { const a = randInt(1, 9), b = randInt(a + 1, 15);
         return { text: `${E(tmX(a), `${a} mal x.`)} ${M} ${E(tmX(b), `${b} mal x wird abgezogen.`)} = ?x`, answer: a - b, hint: "Es kann auch etwas Negatives herauskommen – nutze die −-Taste.",
-          prog: () => tmP(null, [{ line: `${tmX(a)} ${M} ${tmX(b)}`, say: "Rechne nur mit den Zahlen vor x." }, { calc: `${a} ${M} ${b}` }, { result: `${lxNum(a - b)}x` }]) }; } }, // 1 bzw. −1 ausdrücklich zeigen (das wird eingetippt)
+          prog: () => tmP(null, [{ line: `${tmX(a)} ${M} ${tmX(b)}`, say: `Rechne nur mit den Zahlen vor dem x: ${a} und ${b}.` }, { calc: `${a} ${M} ${b}` }, { result: `${lxNum(a - b)}x` }]) }; } }, // 1 bzw. −1 ausdrücklich zeigen (das wird eingetippt)
     { from: 17, gen: n => { const a = randInt(2, 9), b = randInt(2, lxUp(6, 12, n));
         return { text: `${E(a, "Diese Zahl wird mit dem Term malgenommen.")} · ${E(tmX(b), `${b} mal x.`)} = ?x`, answer: a * b, hint: "Nimm die Zahlen mal, das x bleibt.",
-          prog: () => tmP(null, [{ line: `${a} · ${tmX(b)}`, say: "Nimm die Zahlen mal, das x bleibt stehen." }, { calc: `${a} · ${b}` }, { result: `${a * b}x` }]) }; } },
+          prog: () => tmP(null, [{ line: `${a} · ${tmX(b)}`, say: `Nimm die Zahlen mal (${a} · ${b}), das x bleibt stehen.` }, { calc: `${a} · ${b}` }, { result: `${a * b}x` }]) }; } },
     { from: 19, gen: n => { const a = randInt(1, 6), b = randInt(2, 7), c = randInt(1, 6);
         const correct = `${tmX(a + c)} + ${tmX(b, "y")}`, wrongs = [`${a + b + c}xy`, `${tmX(a + c)} + ${b}`, `${tmX(a)} + ${tmX(b + c, "y")}`, `${tmX(a + b + c)}`];
         return { text: `Vereinfache: ${E(`${tmX(a)} + ${tmX(b, "y")} + ${tmX(c)}`, "x und y sind verschiedene Teile – nicht zusammenzählen!")}`, ...lxShuffleChoices(correct, wrongs),
           hint: "Nur GLEICHE Buchstaben darf man zusammenfassen.",
-          prog: () => tmP(null, [{ line: `${tmX(a)} + ${tmX(b, "y")} + ${tmX(c)}`, say: "Sortiere: x zu x, y zu y." }, { calc: `${a} + ${c}`, pre: "x-Teile:" }, { result: correct }]) }; } },
+          prog: () => tmP(null, [{ line: `${tmX(a)} + ${tmX(b, "y")} + ${tmX(c)}`, say: `Schreibe die Teile mit x zusammen und die Teile mit y zusammen: ${tmX(a)} + ${tmX(c)} und ${tmX(b, "y")}.` }, { calc: `${a} + ${c}`, pre: "x-Teile:" }, { result: correct }]) }; } },
     // ---------- Kapitel 3: Ausmultiplizieren & Ausklammern ----------
     { from: 21, gen: n => { const k = randInt(2, lxUp(6, 9, n)), b = randInt(1, lxUp(9, 12, n));
         return { text: `${E(k, "Diese Zahl wird mit jedem Teil in der Klammer malgenommen.")} · (x + ${E(b, "Zweiter Teil in der Klammer.")}) = ${k}x + ?`, answer: k * b, hint: `${k} mal x UND ${k} mal ${b}.`,
-          prog: () => tmP(null, [{ line: `${k} · (x + ${b})`, say: `Nimm ${k} mal jeden Teil in der Klammer.` }, { calc: `${k} · ${b}`, pre: `${k}x +` }, { result: `${k}x + ${k * b}` }]) }; } },
+          prog: () => tmP(null, [{ line: `${k} · (x + ${b})`, say: `Nimm ${k} mal jeden Teil in der Klammer: ${k} · x und ${k} · ${b}.` }, { calc: `${k} · ${b}`, pre: `${k}x +` }, { result: `${k}x + ${k * b}` }]) }; } },
     { from: 22, gen: n => { const k = randInt(2, 9), a = randInt(2, 6), b = randInt(1, 9);
         return { text: `${E(k, "Diese Zahl wird mit jedem Teil malgenommen.")} · (${E(tmX(a), `${a} mal x.`)} ${M} ${b}) = ?x ${M} ${k * b}`, answer: k * a, hint: `${k} mal ${a}x – Zahlen malnehmen, x bleibt.`,
-          prog: () => tmP(null, [{ line: `${k} · (${tmX(a)} ${M} ${b})`, say: `Nimm ${k} mal jeden Teil in der Klammer.` }, { calc: `${k} · ${a}`, pre: "x-Teil:" }, { calc: `${k} · ${b}`, pre: "Zahl:" }, { result: `${tmX(k * a)} ${M} ${k * b}` }]) }; } },
+          prog: () => tmP(null, [{ line: `${k} · (${tmX(a)} ${M} ${b})`, say: `Nimm ${k} mal jeden Teil in der Klammer: ${k} · ${tmX(a)} und ${k} · ${b}.` }, { calc: `${k} · ${a}`, pre: "x-Teil:" }, { calc: `${k} · ${b}`, pre: "Zahl:" }, { result: `${tmX(k * a)} ${M} ${k * b}` }]) }; } },
     { from: 24, gen: n => { const k = randInt(2, 6), a = randInt(1, 6), b = randInt(1, 9);
         return { text: `Klammere ${E(k, "Diese Zahl wird ausgeklammert – jeder Teil wird durch sie geteilt.")} aus: ${tmX(k * a)} + ${k * b} = ${k}(?x + ${b})`, answer: a,
           hint: `Teile jeden Teil durch ${k}.`,
-          prog: () => tmP(null, [{ line: `${tmX(k * a)} + ${k * b}`, say: `Teile jeden Teil durch ${k}.` }, { calc: `${k * a} : ${k}`, pre: "x-Teil:" }, { calc: `${k * b} : ${k}`, pre: "Zahl:" }, { result: `${k}(${a}x + ${b})` }]) }; } },
+          prog: () => tmP(null, [{ line: `${tmX(k * a)} + ${k * b}`, say: `Teile jeden Teil durch ${k}: ${tmX(k * a)} : ${k} und ${k * b} : ${k}.` }, { calc: `${k * a} : ${k}`, pre: "x-Teil:" }, { calc: `${k * b} : ${k}`, pre: "Zahl:" }, { result: `${k}(${a}x + ${b})` }]) }; } },
     { from: 25, gen: n => { const pairs = [[2, 3], [3, 4], [2, 5], [3, 5], [4, 5], [1, 2], [1, 3], [3, 2]]; const [p, q] = lxPick1(pairs), k = randInt(2, 9);
         return { text: `${E(tmX(k * p), "Erster Teil.")} + ${E(k * q, "Zweiter Teil.")} = ?(${tmX(p)} + ${q})`, answer: k,
           hint: `Suche die größte Zahl, die ${k * p} und ${k * q} teilt.`,
-          prog: () => tmP(null, [{ line: `${k * p} = ${k} · ${p},  ${k * q} = ${k} · ${q}`, say: `Zerlege ${k * p} und ${k * q} mit dem gleichen Faktor.` }, { result: `${k}(${tmX(p)} + ${q})` }]) }; } },
+          prog: () => tmP(null, [{ line: `${k * p} = ${k} · ${p},  ${k * q} = ${k} · ${q}`, say: `Suche die größte Zahl, die ${k * p} und ${k * q} teilt: ${k}. Schreibe beide als ${k} mal etwas.` }, { result: `${k}(${tmX(p)} + ${q})` }]) }; } },
     { from: 27, gen: n => { const k = randInt(2, 6), b = randInt(1, 9);
         return { text: `${E(`${M}${k}`, "Negative Zahl vor der Klammer.")} · (x ${M} ${E(b, "Wird abgezogen.")}) = ${M}${k}x + ?`, answer: k * b, hint: "Minus mal Minus ergibt Plus.",
-          prog: () => tmP(null, [{ line: `${M}${k} · (x ${M} ${b})`, say: `Nimm ${M}${k} mal jeden Teil in der Klammer.` }, { calc: `(${M}${k}) · (${M}${b})`, pre: "Zahl:" }, { result: `${M}${k}x + ${k * b}` }]) }; } },
+          prog: () => tmP(null, [{ line: `${M}${k} · (x ${M} ${b})`, say: `Nimm ${M}${k} mal jeden Teil in der Klammer: (${M}${k}) · x und (${M}${k}) · (${M}${b}).` }, { calc: `(${M}${k}) · (${M}${b})`, pre: "Zahl:" }, { result: `${M}${k}x + ${k * b}` }]) }; } },
     { from: 28, gen: n => { const k = lxPick1([2, 3, 4, 5, 6]), a = randInt(1, 5), b = lxPick1([1, 2, 3, 5, 7].filter(v => v !== a));
         const correct = `${k}(${tmX(a)} + ${b})`;
         const wrongs = [`${k}(${tmX(a)} + ${k * b})`, `${k * b}(${tmX(a)} + 1)`, `${k}(${tmX(k * a)} + ${b})`, `${k + 1}(${tmX(a)} + ${b})`];
@@ -20679,7 +20746,7 @@
     const L1 = P.line(toks);
     const L2 = P.line([T("f("), T(lxNum(x0), true), T(")", true), T("="), T("?")]);
     const fx = L1[1], xi = m !== 1 ? 5 : 4, xTok = L1[xi];
-    P.step({ op: "focus", ids: L2, why: `Hier steht: x = ${lxNum(x0)}.` });
+    P.step({ op: "focus", ids: L2, why: `Lies den Wert in der Klammer: x = ${lxNum(x0)}.` });
     // x ersetzen: bei einer Zahl davor wird aus "2x" -> "2 · 3"
     const valTok = P.tok(lxPar(x0)), dot = P.tok("·");
     const repl = m !== 1 ? [dot, valTok] : [valTok];
@@ -20703,10 +20770,10 @@
     if(b > 0) toks.push(T("+"), T(b)); else if(b < 0) toks.push(T(M), T(-b));
     const L1 = P.line(toks), L2 = P.line([T(which), T("="), T("?")]);
     if(which === "m"){
-      P.step({ op: "focus", ids: [L1[4]], why: "Suche die Zahl direkt vor dem x." });
+      P.step({ op: "focus", ids: [L1[4]], why: `Suche die Zahl direkt vor dem x: ${lxNum(m)}.` });
       P.step({ op: "arrowresult", from: L1[4], target: L2[2], value: lxNum(m), ids: L2, why: `Ergebnis: m = ${lxNum(m)}` });
     } else {
-      P.step({ op: "focus", ids: [L1[6], L1[7]], why: "Suche die Zahl ohne x am Ende – mit ihrem Vorzeichen." });
+      P.step({ op: "focus", ids: [L1[6], L1[7]], why: `Suche die Zahl ohne x – mit ihrem Vorzeichen: ${lxNum(b)}.` });
       P.step({ op: "arrowresult", from: L1[7], target: L2[2], value: lxNum(b), ids: L2, why: `Ergebnis: b = ${lxNum(b)}` });
     }
     return P.out();
@@ -20730,14 +20797,14 @@
       const inv = sign === "+" ? M : "+";
       const li1 = P.tok(inv), li2 = P.tok(b), ri1 = P.tok(inv), ri2 = P.tok(b);
       P.step({ op: "bothsides", leftAfter: L[xIdx + 2], rightAfter: lastRight, leftToks: [li1, li2], rightToks: [ri1, ri2],
-               cancel: [L[xIdx + 1], L[xIdx + 2], li1.id, li2.id], why: `Rechne auf beiden Seiten ${inv} ${b}.` });
+               cancel: [L[xIdx + 1], L[xIdx + 2], li1.id, li2.id], why: `Rechne auf beiden Seiten ${inv} ${b}, damit links nur ${a === 1 ? "x" : a + (mulDot ? " · x" : "x")} steht.` });
       rightSeg.push({ id: ri1.id, t: inv }, { id: ri2.id, t: String(b) });
       const r = cpEval(P, rightSeg); rightSeg = [r]; lastRight = r.id;
     }
     if(a !== 1){
       const li1 = P.tok(":"), li2 = P.tok(a), ri1 = P.tok(":"), ri2 = P.tok(a);
       const cancel = [L[0], li1.id, li2.id]; if(idx.dot >= 0) cancel.push(L[1]);
-      P.step({ op: "bothsides", leftAfter: xId, rightAfter: lastRight, leftToks: [li1, li2], rightToks: [ri1, ri2], cancel, why: `Teile beide Seiten durch ${a}.` });
+      P.step({ op: "bothsides", leftAfter: xId, rightAfter: lastRight, leftToks: [li1, li2], rightToks: [ri1, ri2], cancel, why: `Teile beide Seiten durch die Zahl vor dem x: ${a}.` });
       rightSeg.push({ id: ri1.id, t: ":" }, { id: ri2.id, t: String(a) });
       const r = cpEval(P, rightSeg); rightSeg = [r]; lastRight = r.id;
     }
@@ -20770,7 +20837,7 @@
     const outs = [P.tok(whole), P.tok(":"), P.tok(den)];
     if(num !== 1) outs.push(P.tok("·"), P.tok(num));
     const txt = outs.map(o => o.t).join(" ");
-    P.step({ op: "rewrite", ids: head, toks: outs, why: `Schreibe ${isPct ? num + " %" : num + "/" + den} von ${whole} als ${txt}.` });
+    P.step({ op: "rewrite", ids: head, toks: outs, why: `Rechne erst ${isPct ? "1 %" : "1/" + den} aus (${whole} : ${den})${num !== 1 ? `, dann mal ${num}` : ""}: ${txt}.` });
     const res = cpEval(P, outs.map(o => ({ id: o.id, t: o.t })));
     P.step({ op: "result", target: L[L.length - 1], value: res.t, ids: [res.id, L[L.length - 2], L[L.length - 1]], why: `Ergebnis: ${res.t}` });
     return P.out();
@@ -20814,7 +20881,7 @@
     const L2 = P.line([T("P("), T(lxNum(px), true), T("|", true), T(lxNum(py), true), T(")", true)]);
     const L3 = P.line([T("→"), T("?")]);
     const xi = m !== 1 ? 5 : 4;
-    P.step({ op: "focus", ids: L2, why: `Hier steht: x = ${lxNum(px)}, y = ${lxNum(py)}.` });
+    P.step({ op: "focus", ids: L2, why: `Lies den Punkt: x = ${lxNum(px)}, y = ${lxNum(py)}.` });
     const valTok = P.tok(lxPar(px)), dot = P.tok("·");
     P.step({ op: "arrowsubst", from: L2[1], subs: [{ id: L1[1], toks: [P.tok(lxNum(px), { tight: true })] }, { id: L1[xi], toks: m !== 1 ? [dot, valTok] : [valTok] }], why: `Ersetze jedes x durch ${lxNum(px)}.` });
     const seg = [];
@@ -20862,8 +20929,13 @@
   function lxProgIsLinear(formulaToks, xPartIdx, linear){
     const P = lxProgBuilder();
     const L1 = P.line(formulaToks), L2 = P.line([T("→"), T("?")]);
-    P.step({ op: "focus", ids: xPartIdx.map(i => L1[i]), why: `Suche das x: ${xPartIdx.map(i => formulaToks[i].t).join("")}.` });
-    P.step({ op: "focus", ids: xPartIdx.map(i => L1[i]), why: linear ? "Prüfe: nur Zahl · x – kein Hoch, kein Bruch, keine Wurzel. Passt." : "Prüfe: nur Zahl · x? Nein – hier ist x hoch, im Bruch oder in der Wurzel." });
+    P.step({ op: "focus", ids: xPartIdx.map(i => L1[i]), why: `Suche den Teil mit x: ${xPartIdx.map(i => formulaToks[i].t).join("")}.` });
+    const part = xPartIdx.map(i => formulaToks[i].t).join("");
+    const why2 = linear ? `Prüfe den Teil mit x: ${part} ist nur Zahl · x – kein Hoch, kein Bruch, keine Wurzel.`
+      : /[²³]/.test(part) ? `Prüfe den Teil mit x: ${part} heißt x hoch ${/²/.test(part) ? 2 : 3} – das ist nicht nur Zahl · x.`
+      : /:/.test(part) ? `Prüfe den Teil mit x: ${part} heißt „geteilt durch x“ – das ist nicht nur Zahl · x.`
+      : `Prüfe den Teil mit x: ${part} heißt „Wurzel aus x“ – das ist nicht nur Zahl · x.`;
+    P.step({ op: "focus", ids: xPartIdx.map(i => L1[i]), why: why2 });
     P.step({ op: "result", target: L2[1], value: linear ? "Ja" : "Nein", ids: L2, why: `Ergebnis: ${linear ? "Ja" : "Nein"}` });
     return P.out();
   }
@@ -21009,148 +21081,149 @@
     let m;
     // ---------- Lineare Funktionen ----------
     if((m = t.match(/^(f\(x\) = .+)\nf\((−?\d+)\) = \?$/))){ const lb = cpLin(m[1]); if(!lb) return null; const [k, b] = lb, x0 = cpN(m[2]);
-      return [{ line: `f(${cpS(x0)}) = ?`, say: `Hier steht: x = ${cpS(x0)}.` }, { line: m[1], say: `Ersetze jedes x durch ${cpS(x0)}.` },
+      return [{ line: `f(${cpS(x0)}) = ?`, say: `Lies den Wert in der Klammer: x = ${cpS(x0)}.` }, { line: m[1], say: `Ersetze jedes x durch ${cpS(x0)}.` },
         { calc: `${cpS(k)} · ${lxPar(x0)}${b ? (b > 0 ? " + " + b : " " + M + " " + (-b)) : ""}`, pre: `f(${cpS(x0)}) =` }, { result: cpS(A) }]; }
-    if((m = t.match(/^f\(x\) = (−?)x(.*)\nSteigung m = \?$/))) return [{ line: `f(x) = ${m[1]}x${m[2]}`, say: `Suche die Zahl vor dem x: keine Zahl heißt ${m[1] ? M + "1" : "1"}.` }, { result: `m = ${cpS(A)}` }];
-    if(/^Wo schneidet die Gerade die y-Achse/.test(t)) return [{ svg: true }, { note: "Suche die Stelle, wo die Gerade die senkrechte y-Achse kreuzt." }, { note: `Lies dort die Zahl ab: ${cpS(A)}.` }, { result: `b = ${cpS(A)}` }];
+    if((m = t.match(/^f\(x\) = (−?)x(.*)\nSteigung m = \?$/))) return [{ line: `f(x) = ${m[1]}x${m[2]}`, say: `Suche die Zahl vor dem x: ${m[1] ? "nur ein Minus, das heißt " + M + "1" : "keine Zahl, das heißt 1"}.` }, { result: `m = ${cpS(A)}` }];
+    if(/^Wo schneidet die Gerade die y-Achse/.test(t)) return [{ svg: true }, { note: "Suche die Stelle, wo die Gerade die senkrechte y-Achse kreuzt." }, { note: `Lies dort den y-Wert ab: ${cpS(A)}.` }, { result: `b = ${cpS(A)}` }];
     if(/^Lies die Steigung m am Graphen ab/.test(t)) return [{ svg: true }, { note: "Suche einen Punkt der Geraden auf einer Gitter-Ecke." }, { note: "Gehe 1 Kästchen nach rechts." },
-      { note: `Zähle bis zur Geraden: ${Math.abs(A)} ${A > 0 ? "hoch" : "runter"}.` }, { result: `m = ${cpS(A)}` }];
+      { note: `Zähle die Kästchen ${A > 0 ? "nach oben" : "nach unten"} bis zur Geraden: ${Math.abs(A)}.` }, { result: `m = ${cpS(A)}` }];
     if((m = t.match(/^(f\(x\) = .+)\nNullstelle x = \?$/))){ const lb = cpLin(m[1]); if(!lb) return null; const [k, b] = lb;
       const lhs = `${k === 1 ? "" : k === -1 ? M : cpS(k)}x`;
-      const it = [{ line: `${lhs}${b ? (b > 0 ? " + " + b : " " + M + " " + (-b)) : ""} = 0`, say: "Setze f(x) = 0." }];
-      if(b) it.push({ calc: `0 ${b > 0 ? M : "+"} ${Math.abs(b)}`, pre: `${lhs} =`, say: `Rechne auf beiden Seiten ${b > 0 ? M : "+"} ${Math.abs(b)}.` });
-      if(k !== 1) it.push({ calc: `${cpS(-b)} : ${lxPar(k)}`, pre: "x =", say: `Teile beide Seiten durch ${cpS(k)}.` });
+      const eq0 = `${lhs}${b ? (b > 0 ? " + " + b : " " + M + " " + (-b)) : ""} = 0`;
+      const it = [{ line: eq0, say: `Die Nullstelle ist dort, wo f(x) = 0 ist. Schreibe: ${eq0}.` }];
+      if(b) it.push({ calc: `0 ${b > 0 ? M : "+"} ${Math.abs(b)}`, pre: `${lhs} =`, say: `Rechne auf beiden Seiten ${b > 0 ? M : "+"} ${Math.abs(b)}, damit links nur ${lhs} steht.` });
+      if(k !== 1) it.push({ calc: `${cpS(-b)} : ${lxPar(k)}`, pre: "x =", say: `Teile beide Seiten durch die Zahl vor dem x: ${cpS(k)}.` });
       it.push({ result: `x = ${cpS(A)}` }); return it; }
     if(/^Welche Funktion gehört zum Graphen/.test(t)){ const lb = cpLin(AL); if(!lb) return null;
-      return [{ svg: true }, { note: `Suche, wo die Gerade die y-Achse kreuzt: b = ${cpS(lb[1])}.` }, { note: `Gehe 1 nach rechts und zähle: m = ${cpS(lb[0])}.` }, { result: AL }]; }
+      return [{ svg: true }, { note: `Suche, wo die Gerade die y-Achse kreuzt: b = ${cpS(lb[1])}.` }, { note: `Gehe 1 Kästchen nach rechts und zähle die Kästchen ${lb[0] >= 0 ? "nach oben" : "nach unten"} bis zur Geraden: m = ${cpS(lb[0])}.` }, { result: AL }]; }
     if((m = t.match(/^Gerade durch P\((−?\d+) \| (−?\d+)\) und Q\((−?\d+) \| (−?\d+)\)\nSteigung m = \?$/))){
       const [x1, y1, x2, y2] = m.slice(1).map(cpN);
-      return [{ calc: `${cpS(y2)} − ${lxPar(y1)}`, pre: "hoch:", say: "Rechne y von Q minus y von P." }, { calc: `${cpS(x2)} − ${lxPar(x1)}`, pre: "rechts:", say: "Rechne x von Q minus x von P." },
-        { calc: `${cpS(y2 - y1)} : ${x2 - x1}`, pre: "m =", say: "Teile hoch durch rechts." }, { result: `m = ${cpS(A)}` }]; }
+      return [{ calc: `${cpS(y2)} − ${lxPar(y1)}`, pre: "nach oben:", say: `Rechne den Weg nach oben: y von Q minus y von P = ${cpS(y2)} − ${lxPar(y1)}.` }, { calc: `${cpS(x2)} − ${lxPar(x1)}`, pre: "nach rechts:", say: `Rechne den Weg nach rechts: x von Q minus x von P = ${cpS(x2)} − ${lxPar(x1)}.` },
+        { calc: `${cpS(y2 - y1)} : ${x2 - x1}`, pre: "m =", say: `Teile den Weg nach oben (${cpS(y2 - y1)}) durch den Weg nach rechts (${x2 - x1}).` }, { result: `m = ${cpS(A)}` }]; }
     if(ix && ix.kind === "graph" && ix.param === "b"){ const { m: k, px, py } = ix;
-      return [{ line: `P(${px}|${cpS(py)})`, say: `Hier steht: x = ${px}, y = ${cpS(py)}.` }, { calc: `${k} · ${px}`, pre: `${cpS(py)} =`, say: `Setze x = ${px} in ${k === 1 ? "" : k}x ein.` },
-        { calc: `${cpS(py)} − ${lxPar(k * px)}`, pre: "b =", say: `Rechne auf beiden Seiten − ${cpS(k * px)}.` }, { result: `b = ${cpS(A)}` }]; }
-    if(ix && ix.kind === "graph" && ix.param === "m"){ const { b, px, py } = ix; const it = [{ line: `Q(${px}|${cpS(py)})`, say: `Hier steht: x = ${px}, y = ${cpS(py)}.` }];
-      if(b) it.push({ calc: `${cpS(py)} ${b > 0 ? M : "+"} ${Math.abs(b)}`, pre: `m · ${px} =`, say: `Rechne auf beiden Seiten ${b > 0 ? M : "+"} ${Math.abs(b)}.` });
-      if(px !== 1) it.push({ calc: `${cpS(py - b)} : ${px}`, pre: "m =", say: `Teile beide Seiten durch ${px}.` });
+      return [{ line: `P(${px}|${cpS(py)})`, say: `Lies den Punkt: x = ${px}, y = ${cpS(py)}.` }, { calc: `${k} · ${px}`, pre: `${cpS(py)} =`, say: `Ersetze in ${k === 1 ? "" : k}x das x durch ${px}.` },
+        { calc: `${cpS(py)} − ${lxPar(k * px)}`, pre: "b =", say: `Rechne auf beiden Seiten − ${cpS(k * px)}, damit nur b übrig bleibt.` }, { result: `b = ${cpS(A)}` }]; }
+    if(ix && ix.kind === "graph" && ix.param === "m"){ const { b, px, py } = ix; const it = [{ line: `Q(${px}|${cpS(py)})`, say: `Lies den Punkt: x = ${px}, y = ${cpS(py)}.` }];
+      if(b) it.push({ calc: `${cpS(py)} ${b > 0 ? M : "+"} ${Math.abs(b)}`, pre: `m · ${px} =`, say: `Rechne auf beiden Seiten ${b > 0 ? M : "+"} ${Math.abs(b)}, damit links nur m · ${px} steht.` });
+      if(px !== 1) it.push({ calc: `${cpS(py - b)} : ${px}`, pre: "m =", say: `Teile beide Seiten durch ${px}, damit nur m übrig bleibt.` });
       it.push({ result: `m = ${cpS(A)}` }); return it; }
     // ---------- Algebra ----------
     if(/^Die Waage ist im Gleichgewicht/.test(t) && svgT.length >= 2){ const L = svgT[0].replace(/−/g, "-"), R = cpN(svgT[1]); const mm = L.match(/^(\d*)x \+ (\d+)$/); if(!mm) return null;
       return { prog: lxProgEquation(mm[1] ? parseInt(mm[1], 10) : 1, parseInt(mm[2], 10), R, "+", false) }; }
     if(ix && ix.kind === "balance") return { prog: lxProgEquation(ix.a, ix.b, ix.right, "+", false) };
-    if((m = t.match(/^Erster Schritt für (.+)\?$/))){ const bb = m[1].match(/\+ (\d+) =/); return [{ line: m[1], say: `Suche, was mit Plus bei x steht: + ${bb ? bb[1] : "?"}.` }, { note: "Mach das Gegenteil – auf beiden Seiten." }, { result: AL }]; }
+    if((m = t.match(/^Erster Schritt für (.+)\?$/))){ const bb = m[1].match(/\+ (\d+) =/); return [{ line: m[1], say: `Suche die Zahl, die zum x-Teil dazukommt: + ${bb ? bb[1] : "?"}.` }, { note: `Rechne das Gegenteil auf beiden Seiten: ${M} ${bb ? bb[1] : "?"}.` }, { result: AL }]; }
     if((m = t.match(/^(\d+) · \(x \+ (\d+)\) = (−?\d+)\nx = \?$/))){ const a = cpN(m[1]), b = cpN(m[2]), c = cpN(m[3]);
-      return [{ line: `${a} · (x + ${b}) = ${cpS(c)}`, say: `Teile beide Seiten durch ${a}.` }, { calc: `${cpS(c)} : ${a}`, pre: `x + ${b} =` },
-        { calc: `${cpS(c / a)} − ${b}`, pre: "x =", say: `Rechne auf beiden Seiten − ${b}.` }, { result: `x = ${cpS(A)}` }]; }
+      return [{ line: `${a} · (x + ${b}) = ${cpS(c)}`, say: `Teile beide Seiten durch die Zahl vor der Klammer: ${a}.` }, { calc: `${cpS(c)} : ${a}`, pre: `x + ${b} =` },
+        { calc: `${cpS(c / a)} − ${b}`, pre: "x =", say: `Rechne auf beiden Seiten − ${b}, damit links nur x steht.` }, { result: `x = ${cpS(A)}` }]; }
     if((m = t.match(/^(\d+)x \+ (\d+) = (\d*)x \+ (−?\d+)\nx = \?$/))){ const a = cpN(m[1]), b = cpN(m[2]), c = m[3] ? cpN(m[3]) : 1, d = cpN(m[4]); const k = a - c;
-      const it = [{ line: `${a}x + ${b} = ${c === 1 ? "" : c}x + ${cpS(d)}`, say: `Rechne auf beiden Seiten − ${c === 1 ? "" : c}x.` },
-        { calc: `${cpS(d)} − ${b}`, pre: `${k === 1 ? "" : k}x =`, say: `Rechne auf beiden Seiten − ${b}.` }];
-      if(k !== 1) it.push({ calc: `${cpS(d - b)} : ${k}`, pre: "x =", say: `Teile beide Seiten durch ${k}.` });
+      const it = [{ line: `${a}x + ${b} = ${c === 1 ? "" : c}x + ${cpS(d)}`, say: `Rechne auf beiden Seiten − ${c === 1 ? "" : c}x, damit x nur noch links steht.` },
+        { calc: `${cpS(d)} − ${b}`, pre: `${k === 1 ? "" : k}x =`, say: `Rechne auf beiden Seiten − ${b}, damit links nur ${k === 1 ? "" : k}x steht.` }];
+      if(k !== 1) it.push({ calc: `${cpS(d - b)} : ${k}`, pre: "x =", say: `Teile beide Seiten durch die Zahl vor dem x: ${k}.` });
       it.push({ result: `x = ${cpS(A)}` }); return it; }
     // ---------- Prozent ----------
     if(/^Wie viel Prozent sind gefärbt/.test(t)){ const r = Math.floor(A / 10), e = A % 10;
       const it = [{ svg: true }, { note: `Zähle die vollen Reihen: ${r}.` }];
       if(e) it.push({ note: `Zähle die einzelnen Kästchen: ${e}.` }, { calc: `${r} · 10 + ${e}` }); else it.push({ calc: `${r} · 10` });
       it.push({ result: `${A} %` }); return it; }
-    if(/^Welcher Anteil ist gefärbt/.test(t)){ const p = cpN(AL); return [{ svg: true }, { note: `Zähle die gefärbten Viertel: ${p / 25}.` }, { calc: `${p / 25} · 25`, say: "Jedes Viertel sind 25 %." }, { result: AL }]; }
+    if(/^Welcher Anteil ist gefärbt/.test(t)){ const p = cpN(AL); return [{ svg: true }, { note: `Zähle die gefärbten Viertel: ${p / 25}.` }, { calc: `${p / 25} · 25`, say: `Nimm für jedes gefärbte Viertel 25 %: ${p / 25} · 25.` }, { result: AL }]; }
     if((m = t.match(/^(\d+) % sind (\d+)\.\nGrundwert \(100 %\) = \?$/))){ const p = cpN(m[1]), v = cpN(m[2]);
-      return [{ line: `${p} % = ${v}`, say: `Hier steht: ${p} % sind ${v}.` }, { calc: `${v} : ${p}`, pre: "1 % =", say: "Rechne auf 1 % zurück." },
-        { calc: `${cpFmt(v / p)} · 100`, pre: "100 % =", say: "Rechne hoch auf 100 %." }, { result: cpS(A) }]; }
+      return [{ line: `${p} % = ${v}`, say: `Lies ab: ${p} % sind ${v}.` }, { calc: `${v} : ${p}`, pre: "1 % =", say: `Rechne 1 % aus: ${v} : ${p}.` },
+        { calc: `${cpFmt(v / p)} · 100`, pre: "100 % =", say: "Rechne 100 % aus: 1 % mal 100." }, { result: cpS(A) }]; }
     if((m = t.match(/^(\d+) von (\d+)\nsind wie viel Prozent\?$/))){ const a = cpN(m[1]), g = cpN(m[2]);
-      return [{ calc: `${a} : ${g}`, say: "Teile den Teil durch das Ganze." }, { calc: `${cpFmt(a / g)} · 100`, say: "Nimm das Ergebnis mal 100." }, { result: `${A} %` }]; }
+      return [{ calc: `${a} : ${g}`, say: `Teile den Teil (${a}) durch das Ganze (${g}).` }, { calc: `${cpFmt(a / g)} · 100`, say: "Nimm das Ergebnis mal 100, damit Prozent herauskommen." }, { result: `${A} %` }]; }
     if(ix && ix.kind === "gridfill"){ const r = Math.floor(A / 10), e = A % 10;
-      return [{ line: `${A} % = ${A} Kästchen`, say: "Nimm für jedes Prozent ein Kästchen." }, { line: `${r} Reihen${e ? " + " + e : ""}`, say: `Färbe ${r} volle Reihen${e ? " und " + e + " einzelne Kästchen" : ""}.` }, { result: `${A} Kästchen` }]; }
-    if(ix && ix.kind === "slider" && ix.max === 100) return [{ line: `${A} %`, say: `Hier steht: ${A} %.` }, { line: "0 %   50 %   100 %", say: `Suche ${A} % auf dem Strahl.` }, { result: `${A} %` }];
+      return [{ line: `${A} % = ${A} Kästchen`, say: `Färbe für jedes Prozent ein Kästchen: ${A} % = ${A} Kästchen.` }, { line: `${r} Reihen${e ? " + " + e : ""}`, say: `Färbe ${r} volle Reihen${e ? " und " + e + " einzelne Kästchen" : ""}.` }, { result: `${A} Kästchen` }]; }
+    if(ix && ix.kind === "slider" && ix.max === 100) return [{ line: `${A} %`, say: `Lies ab: ${A} %.` }, { line: "0 %   50 %   100 %", say: `Suche ${A} % auf dem Strahl.` }, { result: `${A} %` }];
     if(ix && ix.kind === "slider"){ const p = cpNums(t)[1]; return [{ calc: `${ix.max} : 100 · ${p}`, say: `Rechne ${p} % von ${ix.max}.` }, { result: cpS(A) }]; }
     // ---------- Geometrie ----------
     if(/^Wie groß ist die Fläche\? \(cm²\)$/.test(t) && svgT.length >= 2){ const a = cpN(svgT[0]), b = cpN(svgT[1]);
-      return [{ svg: true }, { calc: `${a} · ${b}`, say: a === b ? "Rechne Seite mal Seite." : "Rechne Länge mal Breite." }, { result: `${A} cm²` }]; }
+      return [{ svg: true }, { calc: `${a} · ${b}`, say: a === b ? `Rechne Seite mal Seite: ${a} · ${b}.` : `Rechne Länge mal Breite: ${a} · ${b}.` }, { result: `${A} cm²` }]; }
     if(/^Wie groß ist der Umfang\? \(cm\)$/.test(t) && svgT.length >= 2){ const a = cpN(svgT[0]), b = cpN(svgT[1]);
-      return [{ svg: true }, { calc: `${a} + ${b} + ${a} + ${b}`, say: "Zähle alle 4 Seiten zusammen." }, { result: `${A} cm` }]; }
-    if((m = t.match(/^Quadrat: a = (\d+) cm\nUmfang = \? cm$/))) return [{ calc: `4 · ${m[1]}`, say: "Nimm die Seite 4-mal." }, { result: `${A} cm` }];
+      return [{ svg: true }, { calc: `${a} + ${b} + ${a} + ${b}`, say: `Zähle alle 4 Seiten zusammen: ${a} + ${b} + ${a} + ${b}.` }, { result: `${A} cm` }]; }
+    if((m = t.match(/^Quadrat: a = (\d+) cm\nUmfang = \? cm$/))) return [{ calc: `4 · ${m[1]}`, say: `Ein Quadrat hat 4 gleiche Seiten: Nimm die Seite ${m[1]} vier Mal.` }, { result: `${A} cm` }];
     if(/^Wie groß ist die Fläche des Dreiecks/.test(t)){ const g = cpNums(svgT[0])[0], h = cpNums(svgT[1])[0];
-      return [{ svg: true }, { calc: `${g} · ${h} : 2`, say: "Rechne g mal h, dann durch 2." }, { result: `${A} cm²` }]; }
+      return [{ svg: true }, { calc: `${g} · ${h} : 2`, say: `Rechne Grundseite mal Höhe, dann durch 2: ${g} · ${h} : 2.` }, { result: `${A} cm²` }]; }
     if(/^Welche Formel gilt für die Dreiecksfläche/.test(t)) return [{ svg: true }, { line: "Rechteck: g · h", say: "Schreibe die Fläche vom Rechteck um das Dreieck: g · h." }, { line: "Dreieck: g · h : 2", say: "Teile durch 2 für das halbe Rechteck." }, { result: AL }];
     if((m = t.match(/^Fläche = (\d+) cm²\. Wie lang ist die fehlende Seite/))){ const F = cpN(m[1]), a = cpNums(svgT[0])[0];
-      return [{ svg: true }, { calc: `${F} : ${a}`, say: "Teile die Fläche durch die bekannte Seite." }, { result: `${A} cm` }]; }
-    if((m = t.match(/^Würfel: a = (\d+) cm\nVolumen = \? cm³$/))) return [{ calc: `${m[1]} · ${m[1]} · ${m[1]}`, say: "Rechne a mal a mal a." }, { result: `${A} cm³` }];
+      return [{ svg: true }, { calc: `${F} : ${a}`, say: `Teile die Fläche (${F}) durch die bekannte Seite (${a}).` }, { result: `${A} cm` }]; }
+    if((m = t.match(/^Würfel: a = (\d+) cm\nVolumen = \? cm³$/))) return [{ calc: `${m[1]} · ${m[1]} · ${m[1]}`, say: `Rechne Seite mal Seite mal Seite: ${m[1]} · ${m[1]} · ${m[1]}.` }, { result: `${A} cm³` }];
     if(/^Wie groß ist das Volumen\? \(cm³\)$/.test(t) && svgT.length >= 3){ const [a, b, c] = svgT.map(x => cpNums(x)[0]);
-      return [{ svg: true }, { calc: `${a} · ${b} · ${c}`, say: "Rechne Länge mal Breite mal Höhe." }, { result: `${A} cm³` }]; }
+      return [{ svg: true }, { calc: `${a} · ${b} · ${c}`, say: `Rechne Länge mal Breite mal Höhe: ${a} · ${b} · ${c}.` }, { result: `${A} cm³` }]; }
     if(ix && ix.kind === "rect" && ix.measure === "area"){ const T0 = ix.target; let w = 1, h = T0; for(let k = 1; k <= ix.maxH; k++) if(T0 % k === 0 && T0 / k <= ix.max){ w = T0 / k; h = k; }
       return [{ line: `Fläche = ${T0}`, say: `Suche zwei Zahlen, die mal genommen ${T0} ergeben.` }, { calc: `${w} · ${h}`, say: `Probiere Länge ${w} und Breite ${h}.` }, { result: `${w} × ${h} cm` }]; }
     if(ix && ix.kind === "rect"){ const T0 = ix.target, half = T0 / 2, a = Math.min(ix.max, half - 1), b = half - a;
-      return [{ calc: `${T0} : 2`, pre: "Länge + Breite =", say: "Teile den Umfang durch 2." }, { calc: `${a} + ${b}`, say: `Probiere Länge ${a} und Breite ${b}.` }, { result: `${a} × ${b} cm` }]; }
+      return [{ calc: `${T0} : 2`, pre: "Länge + Breite =", say: `Teile den Umfang (${T0}) durch 2 – das ist Länge plus Breite.` }, { calc: `${a} + ${b}`, say: `Probiere Länge ${a} und Breite ${b}.` }, { result: `${a} × ${b} cm` }]; }
     // ---------- Brüche ----------
     if(/^Welcher Bruch ist gefärbt/.test(t)){ const [k, qq] = String(AL).split("/"); return [{ svg: true }, { note: `Zähle alle Stücke: ${qq} → unten.` }, { note: `Zähle die gefärbten Stücke: ${k} → oben.` }, { result: AL }]; }
     if(/^Welcher Bruch ist größer/.test(t)){ const [f1, f2] = q.choices; const [a1, b1] = f1.split("/").map(Number), [a2, b2] = f2.split("/").map(Number);
       return b1 === b2 ? [{ line: `${f1}   ${f2}`, say: `Gleicher Nenner: Vergleiche die Zähler ${a1} und ${a2}.` }, { result: AL }]
                        : [{ line: `${f1}   ${f2}`, say: `Gleicher Zähler: Nimm den kleineren Nenner (${Math.min(b1, b2)}).` }, { result: AL }]; }
     if((m = t.match(/^Kürze: (\d+)\/(\d+) = \?\/(\d+)$/))){ const [z, n, n2] = m.slice(1).map(cpN);
-      return [{ calc: `${n} : ${n2}`, say: "Rechne, durch was der Nenner geteilt wurde." }, { calc: `${z} : ${n / n2}`, say: "Teile den Zähler durch dieselbe Zahl." }, { result: `${A}/${n2}` }]; }
+      return [{ calc: `${n} : ${n2}`, say: `Rechne, wie oft der neue Nenner (${n2}) in den alten Nenner (${n}) passt.` }, { calc: `${z} : ${n / n2}`, say: `Teile den Zähler (${z}) durch dieselbe Zahl: ${n / n2}.` }, { result: `${A}/${n2}` }]; }
     if((m = t.match(/^Erweitere: (\d+)\/(\d+) = \?\/(\d+)$/))){ const [z, n, n2] = m.slice(1).map(cpN);
-      return [{ calc: `${n2} : ${n}`, say: "Rechne, mit was der Nenner malgenommen wurde." }, { calc: `${z} · ${n2 / n}`, say: "Nimm den Zähler mit derselben Zahl mal." }, { result: `${A}/${n2}` }]; }
+      return [{ calc: `${n2} : ${n}`, say: `Rechne, wie oft der alte Nenner (${n}) in den neuen Nenner (${n2}) passt.` }, { calc: `${z} · ${n2 / n}`, say: `Nimm den Zähler (${z}) mit derselben Zahl mal: ${n2 / n}.` }, { result: `${A}/${n2}` }]; }
     if((m = t.match(/^(\d+)\/(\d+) \+ (\d+)\/(\d+) = \?\/(\d+)$/))){ const [a, n1, b, n2, n3] = m.slice(1).map(cpN); const it = [];
-      if(n1 !== n3){ it.push({ calc: `${n3} : ${n1}`, say: `Rechne, womit du ${a}/${n1} erweitern musst.` }, { calc: `${a} · ${n3 / n1}`, say: "Erweitere den Zähler." }); }
-      else it.push({ line: `Nenner bleibt ${n3}`, say: "Lass den Nenner gleich." });
-      it.push({ calc: `${a * n3 / n1} + ${b}`, say: "Zähle die Zähler zusammen." }, { result: `${A}/${n3}` }); return it; }
+      if(n1 !== n3){ it.push({ calc: `${n3} : ${n1}`, say: `Rechne, wie oft ${n1} in den gemeinsamen Nenner ${n3} passt.` }, { calc: `${a} · ${n3 / n1}`, say: `Erweitere: Nimm den Zähler ${a} mit derselben Zahl mal: ${n3 / n1}.` }); }
+      else it.push({ line: `Nenner bleibt ${n3}`, say: `Lass den gleichen Nenner stehen: ${n3}.` });
+      it.push({ calc: `${a * n3 / n1} + ${b}`, say: `Zähle die Zähler zusammen: ${a * n3 / n1} + ${b}.` }, { result: `${A}/${n3}` }); return it; }
     if((m = t.match(/^(\d+)\/(\d+) − (\d+)\/(\d+) = \?\/(\d+)$/))){ const [a, n1, b, n2, n3] = m.slice(1).map(cpN);
-      return [{ calc: `${n3} : ${n2}`, say: `Rechne, womit du ${b}/${n2} erweitern musst.` }, { calc: `${b} · ${n3 / n2}`, say: "Erweitere den Zähler." },
-        { calc: `${a} − ${b * n3 / n2}`, say: "Ziehe die Zähler ab." }, { result: `${A}/${n3}` }]; }
+      return [{ calc: `${n3} : ${n2}`, say: `Rechne, wie oft ${n2} in den gemeinsamen Nenner ${n3} passt.` }, { calc: `${b} · ${n3 / n2}`, say: `Erweitere: Nimm den Zähler ${b} mit derselben Zahl mal: ${n3 / n2}.` },
+        { calc: `${a} − ${b * n3 / n2}`, say: `Ziehe die Zähler ab: ${a} − ${b * n3 / n2}.` }, { result: `${A}/${n3}` }]; }
     if((m = t.match(/^(\d+)\/(\d+) = \? %$/))){ const [p, n] = m.slice(1).map(cpN);
-      return [{ calc: `100 : ${n}`, say: "Rechne, womit du erweitern musst, damit unten 100 steht." }, { calc: `${p} · ${100 / n}`, say: "Nimm den Zähler genauso mal." }, { result: `${A} %` }]; }
+      return [{ calc: `100 : ${n}`, say: `Rechne, wie oft der Nenner ${n} in 100 passt.` }, { calc: `${p} · ${100 / n}`, say: `Nimm den Zähler ${p} genauso mal: ${100 / n}.` }, { result: `${A} %` }]; }
     if((m = t.match(/^(\d+)\/(\d+) · (\d+) = \?$/))){ const [p, n, N] = m.slice(1).map(cpN);
-      return [{ calc: `${N} : ${n} · ${p}`, say: "Teile durch den Nenner, nimm mal den Zähler." }, { result: cpS(A) }]; }
+      return [{ calc: `${N} : ${n} · ${p}`, say: `Teile ${N} durch den Nenner ${n}, dann nimm mal den Zähler ${p}.` }, { result: cpS(A) }]; }
     if((m = t.match(/^Wie viele Ganze stecken in (\d+)\/(\d+)\?$/))){ const [z, n] = m.slice(1).map(cpN);
-      return [{ calc: `${n} · ${A}`, say: `Suche, wie oft ${n} in ${z} passt: ${A}-mal.` }, { calc: `${z} − ${n * A}`, pre: "Rest:", say: "Rechne den Rest." }, { result: `${A}` }]; }
+      return [{ calc: `${n} · ${A}`, say: `Suche, wie oft ${n} in ${z} passt: ${A}-mal.` }, { calc: `${z} − ${n * A}`, pre: "Rest:", say: `Rechne, was übrig bleibt: ${z} − ${n * A}.` }, { result: `${A}` }]; }
     // ---------- Potenzen & Wurzeln ----------
-    if(/^Wie viele Kästchen hat ein Quadrat/.test(t)){ const s = cpNums(t)[0]; return [{ svg: true }, { calc: `${s} · ${s}`, say: "Rechne Seite mal Seite." }, { result: cpS(A) }]; }
-    if((m = t.match(/^√(\d+) = \?$/))) return [{ line: `? · ? = ${m[1]}`, say: `Suche die Zahl, die mit sich selbst mal ${m[1]} ergibt.` }, { calc: `${A} · ${A}`, say: `Probiere ${A}.` }, { result: cpS(A) }];
-    if((m = t.match(/^\?² = (\d+)$/))) return [{ line: `? · ? = ${m[1]}`, say: `Suche die Zahl, die mit sich selbst mal ${m[1]} ergibt.` }, { calc: `${A} · ${A}`, say: `Probiere ${A}.` }, { result: cpS(A) }];
+    if(/^Wie viele Kästchen hat ein Quadrat/.test(t)){ const s = cpNums(t)[0]; return [{ svg: true }, { calc: `${s} · ${s}`, say: `Rechne Seite mal Seite: ${s} · ${s}.` }, { result: cpS(A) }]; }
+    if((m = t.match(/^√(\d+) = \?$/))) return [{ line: `? · ? = ${m[1]}`, say: `Suche die Zahl, die mit sich selbst mal ${m[1]} ergibt.` }, { calc: `${A} · ${A}`, say: `Probiere ${A} · ${A}.` }, { result: cpS(A) }];
+    if((m = t.match(/^\?² = (\d+)$/))) return [{ line: `? · ? = ${m[1]}`, say: `Suche die Zahl, die mit sich selbst mal ${m[1]} ergibt.` }, { calc: `${A} · ${A}`, say: `Probiere ${A} · ${A}.` }, { result: cpS(A) }];
     if((m = t.match(/^(\d+)([⁰¹²³⁴⁵⁶⁷⁸⁹]+) = \?$/))){ const b = cpN(m[1]), e = parseInt(m[2].split("").map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹".indexOf(c)).join(""), 10);
       return [{ calc: Array(e).fill(b).join(" · "), say: `Schreibe ${b}${m[2]} als ${e}-mal ${b} malgenommen.` }, { result: cpS(A) }]; }
-    if((m = t.match(/^√(\d+) \+ √(\d+) = \?$/))){ const a = cpN(m[1]), b = cpN(m[2]); return [cpRoot(a), cpRoot(b), { calc: `${Math.sqrt(a)} + ${Math.sqrt(b)}`, say: "Zähle beide zusammen." }, { result: cpS(A) }]; }
+    if((m = t.match(/^√(\d+) \+ √(\d+) = \?$/))){ const a = cpN(m[1]), b = cpN(m[2]); return [cpRoot(a), cpRoot(b), { calc: `${Math.sqrt(a)} + ${Math.sqrt(b)}`, say: `Zähle beide Wurzeln zusammen: ${Math.sqrt(a)} + ${Math.sqrt(b)}.` }, { result: cpS(A) }]; }
     if((m = t.match(/^(\d+)([⁰-⁹¹²³]+) · \d+([⁰-⁹¹²³]+) = (\d+) hoch \?$/))){ const sup = s => parseInt(s.split("").map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹".indexOf(c)).join(""), 10);
-      return [{ calc: `${sup(m[2])} + ${sup(m[3])}`, pre: "Hochzahl:", say: "Addiere die Hochzahlen." }, { result: `${m[4]} hoch ${A}` }]; }
+      return [{ calc: `${sup(m[2])} + ${sup(m[3])}`, pre: "Hochzahl:", say: `Die Basis ist gleich (${m[4]}) und es wird malgenommen: Zähle die Hochzahlen zusammen: ${sup(m[2])} + ${sup(m[3])}.` }, { result: `${m[4]} hoch ${A}` }]; }
     if((m = t.match(/^(\d+)([⁰-⁹¹²³]+) : \d+([⁰-⁹¹²³]+) = (\d+) hoch \?$/))){ const sup = s => parseInt(s.split("").map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹".indexOf(c)).join(""), 10);
-      return [{ calc: `${sup(m[2])} − ${sup(m[3])}`, pre: "Hochzahl:", say: "Ziehe die Hochzahlen ab." }, { result: `${m[4]} hoch ${A}` }]; }
+      return [{ calc: `${sup(m[2])} − ${sup(m[3])}`, pre: "Hochzahl:", say: `Die Basis ist gleich (${m[4]}) und es wird geteilt: Ziehe die Hochzahlen voneinander ab: ${sup(m[2])} − ${sup(m[3])}.` }, { result: `${m[4]} hoch ${A}` }]; }
     if((m = t.match(/^\((\d+)([⁰-⁹¹²³]+)\)([⁰-⁹¹²³]+) = (\d+) hoch \?$/))){ const sup = s => parseInt(s.split("").map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹".indexOf(c)).join(""), 10);
-      return [{ calc: `${sup(m[2])} · ${sup(m[3])}`, pre: "Hochzahl:", say: "Nimm die Hochzahlen mal." }, { result: `${m[4]} hoch ${A}` }]; }
+      return [{ calc: `${sup(m[2])} · ${sup(m[3])}`, pre: "Hochzahl:", say: `Eine Potenz wird nochmal hoch genommen: Nimm die beiden Hochzahlen mal: ${sup(m[2])} · ${sup(m[3])}.` }, { result: `${m[4]} hoch ${A}` }]; }
     if((m = t.match(/^\(−(\d+)\)([²³]) = \?$/))){ const b = m[1], e = m[2] === "²" ? 2 : 3;
       return [{ calc: Array(e).fill(`(${M}${b})`).join(" · "), say: `Schreibe als ${e}-mal (${M}${b}) malgenommen.` }, { result: cpS(A) }]; }
     // ---------- Dreisatz ----------
-    if((m = t.match(/^1 (\S+) kostet (\d+) €\. Wie viel kosten (\d+) /))) return [{ calc: `${m[3]} · ${m[2]}`, say: "Nimm den Preis für 1 Stück mal die Anzahl." }, { result: `${A} €` }];
-    if((m = t.match(/^(\d+) \S+ kosten (\d+) €\. Wie viel kostet 1 /))) return [{ calc: `${m[2]} : ${m[1]}`, say: "Teile den Preis durch die Anzahl." }, { result: `${A} €` }];
+    if((m = t.match(/^1 (\S+) kostet (\d+) €\. Wie viel kosten (\d+) /))) return [{ calc: `${m[3]} · ${m[2]}`, say: `Nimm den Preis für 1 Stück (${m[2]} €) mal die Anzahl (${m[3]}).` }, { result: `${A} €` }];
+    if((m = t.match(/^(\d+) \S+ kosten (\d+) €\. Wie viel kostet 1 /))) return [{ calc: `${m[2]} : ${m[1]}`, say: `Teile den Gesamtpreis (${m[2]} €) durch die Anzahl (${m[1]}).` }, { result: `${A} €` }];
     if((m = t.match(/^(\d+) (\S+) kosten (\d+) €\. Wie viel kosten (\d+) /))){ const [c1, , T1, c2] = [cpN(m[1]), m[2], cpN(m[3]), cpN(m[4])];
-      return [{ calc: `${T1} : ${c1}`, pre: "1 Stück:", say: "Rechne auf 1 Stück runter." }, { calc: `${T1 / c1} · ${c2}`, pre: `${c2} Stück:`, say: "Rechne hoch auf die neue Anzahl." }, { result: `${A} €` }]; }
-    if(/ Hefte kosten …$/.test(t)) return [{ line: t.replace(" kosten …", ""), say: "Ändere den Preis genauso wie die Menge." }, { result: AL }];
-    if((m = t.match(/^Ein Auto fährt (\d+) km in 1 Stunde\. Wie weit kommt es in (\d+) /))) return [{ calc: `${m[1]} · ${m[2]}`, say: "Nimm die km pro Stunde mal die Stunden." }, { result: `${A} km` }];
+      return [{ calc: `${T1} : ${c1}`, pre: "1 Stück:", say: `Rechne den Preis für 1 Stück: ${T1} € : ${c1}.` }, { calc: `${T1 / c1} · ${c2}`, pre: `${c2} Stück:`, say: `Nimm den Preis für 1 Stück mal die neue Anzahl: ${c2}.` }, { result: `${A} €` }]; }
+    if(/ Hefte kosten …$/.test(t)) return [{ line: t.replace(" kosten …", ""), say: `Ändere den Preis genauso wie die Menge: ${AL}.` }, { result: AL }];
+    if((m = t.match(/^Ein Auto fährt (\d+) km in 1 Stunde\. Wie weit kommt es in (\d+) /))) return [{ calc: `${m[1]} · ${m[2]}`, say: `Nimm die Strecke pro Stunde (${m[1]} km) mal die Stunden (${m[2]}).` }, { result: `${A} km` }];
     if((m = t.match(/^Für (\d+) Personen braucht man (\d+) g Mehl\. Wie viel für (\d+) /))){ const [p, g, q2] = m.slice(1).map(cpN);
-      return [{ calc: `${g} : ${p}`, pre: "1 Person:", say: "Rechne auf 1 Person runter." }, { calc: `${g / p} · ${q2}`, pre: `${q2} Personen:`, say: "Rechne hoch auf die neue Anzahl." }, { result: `${A} g` }]; }
+      return [{ calc: `${g} : ${p}`, pre: "1 Person:", say: `Rechne die Menge für 1 Person: ${g} g : ${p}.` }, { calc: `${g / p} · ${q2}`, pre: `${q2} Personen:`, say: `Nimm die Menge für 1 Person mal die neue Anzahl: ${q2}.` }, { result: `${A} g` }]; }
     if((m = t.match(/^(\d+) (Arbeiter|Pumpen) .*? (\d+) Stunden\. Wie lange brauchen (\d+) /))){ const [w1, , tt, w2] = [cpN(m[1]), m[2], cpN(m[3]), cpN(m[4])]; const one = m[2] === "Arbeiter" ? "1 Arbeiter" : "1 Pumpe";
-      return [{ calc: `${w1} · ${tt}`, pre: `${one}:`, say: `Rechne für ${one}: mal nehmen – allein dauert es länger.` }, { calc: `${w1 * tt} : ${w2}`, pre: `${w2} ${m[2]}:`, say: "Teile durch die neue Anzahl." }, { result: `${A} Std.` }]; }
-    if(/Proportional oder antiproportional\?$/.test(t)){ const sc = t.split("\n")[0]; return [{ line: sc, say: "Prüfe: mehr → mehr oder mehr → weniger?" }, { result: AL }]; }
+      return [{ calc: `${w1} · ${tt}`, pre: `${one}:`, say: `Rechne, wie lange ${one} allein bräuchte: ${w1} · ${tt}.` }, { calc: `${w1 * tt} : ${w2}`, pre: `${w2} ${m[2]}:`, say: `Teile die Zeit durch die neue Anzahl: ${w2}.` }, { result: `${A} Std.` }]; }
+    if(/Proportional oder antiproportional\?$/.test(t)){ const sc = t.split("\n")[0]; return [{ line: sc, say: AL === "proportional" ? "Prüfe: Wird das eine mehr, wird das andere auch mehr." : "Prüfe: Wird das eine mehr, wird das andere weniger." }, { result: AL }]; }
     if((m = t.match(/^Bei (\d+) Personen bekommt jeder (\d+) Stücke\. Wie viele bekommt jeder bei (\d+) /))){ const [s1, per, s2] = m.slice(1).map(cpN);
-      return [{ calc: `${s1} · ${per}`, pre: "alle Stücke:", say: "Rechne alle Stücke zusammen." }, { calc: `${s1 * per} : ${s2}`, pre: "pro Person:", say: "Teile durch die neue Personenzahl." }, { result: cpS(A) }]; }
+      return [{ calc: `${s1} · ${per}`, pre: "alle Stücke:", say: `Rechne alle Stücke zusammen: ${s1} Personen · ${per} Stücke.` }, { calc: `${s1 * per} : ${s2}`, pre: "pro Person:", say: `Teile alle Stücke durch die neue Personenzahl: ${s2}.` }, { result: cpS(A) }]; }
     // ---------- Pythagoras ----------
-    if(/^Wie groß ist das Quadrat über einer Seite/.test(t)){ const s = cpNums(t)[0]; return [{ calc: `${s} · ${s}`, say: "Rechne Seite mal Seite." }, { result: `${A} cm²` }]; }
+    if(/^Wie groß ist das Quadrat über einer Seite/.test(t)){ const s = cpNums(t)[0]; return [{ calc: `${s} · ${s}`, say: `Rechne Seite mal Seite: ${s} · ${s}.` }, { result: `${A} cm²` }]; }
     if(/^Welche Seite ist die Hypotenuse/.test(t)) return [{ svg: true }, { note: "Suche den rechten Winkel (das Eck-Zeichen)." }, { note: `Nimm die Seite gegenüber: ${AL}.` }, { result: AL }];
     if((m = t.match(/^√\((\d+)² \+ (\d+)²\) = \?$/))){ const a = cpN(m[1]), b = cpN(m[2]);
-      return [{ calc: `${a} · ${a} + ${b} · ${b}`, say: "Rechne zuerst, was in der Klammer steht." }, cpRoot(a * a + b * b), { result: cpS(A) }]; }
+      return [{ calc: `${a} · ${a} + ${b} · ${b}`, say: `Rechne zuerst, was in der Klammer steht: ${a}² + ${b}².` }, cpRoot(a * a + b * b), { result: cpS(A) }]; }
     if(/^Wie lang ist die Hypotenuse c/.test(t)){ const [a, b] = [cpNums(svgT[0])[0], cpNums(svgT[1])[0]];
-      return [{ svg: true }, { calc: `${a} · ${a} + ${b} · ${b}`, pre: "c² =", say: "Rechne a² + b²." }, cpRoot(a * a + b * b, "c ="), { result: `c = ${A}` }]; }
+      return [{ svg: true }, { calc: `${a} · ${a} + ${b} · ${b}`, pre: "c² =", say: `Rechne die zwei kurzen Seiten im Quadrat zusammen: ${a}² + ${b}².` }, cpRoot(a * a + b * b, "c ="), { result: `c = ${A}` }]; }
     if(/^Wie lang ist die Seite a/.test(t)){ const b = cpNums(svgT[1])[0], c = cpNums(svgT[2])[0];
-      return [{ svg: true }, { calc: `${c} · ${c} − ${b} · ${b}`, pre: "a² =", say: "Rechne c² − b²." }, cpRoot(c * c - b * b, "a ="), { result: `a = ${A}` }]; }
+      return [{ svg: true }, { calc: `${c} · ${c} − ${b} · ${b}`, pre: "a² =", say: `Rechne lange Seite im Quadrat minus bekannte kurze Seite im Quadrat: ${c}² − ${b}².` }, cpRoot(c * c - b * b, "a ="), { result: `a = ${A}` }]; }
     if((m = t.match(/^Ist ein Dreieck mit den Seiten (\d+), (\d+) und (\d+) rechtwinklig\?$/))){ const [x, y, z] = m.slice(1).map(cpN);
-      return [{ calc: `${x} · ${x} + ${y} · ${y}`, pre: "a² + b² =", say: "Rechne die zwei kurzen Seiten im Quadrat zusammen." }, { calc: `${z} · ${z}`, pre: "c² =", say: "Rechne die längste Seite im Quadrat." },
-        { line: `${x * x + y * y} ${x * x + y * y === z * z ? "=" : "≠"} ${z * z}`, say: "Vergleiche beide Ergebnisse." }, { result: AL }]; }
+      return [{ calc: `${x} · ${x} + ${y} · ${y}`, pre: "a² + b² =", say: `Rechne die zwei kurzen Seiten im Quadrat zusammen: ${x}² + ${y}².` }, { calc: `${z} · ${z}`, pre: "c² =", say: `Rechne die längste Seite im Quadrat: ${z}².` },
+        { line: `${x * x + y * y} ${x * x + y * y === z * z ? "=" : "≠"} ${z * z}`, say: `Vergleiche beide Ergebnisse: ${x * x + y * y} und ${z * z}.` }, { result: AL }]; }
     if((m = t.match(/^Eine Leiter ist (\d+) m lang und steht (\d+) m /))){ const c = cpN(m[1]), a = cpN(m[2]);
-      return [{ calc: `${c} · ${c} − ${a} · ${a}`, pre: "Höhe² =", say: "Rechne Leiter² − Abstand²." }, cpRoot(c * c - a * a, "Höhe ="), { result: `${A} m` }]; }
+      return [{ calc: `${c} · ${c} − ${a} · ${a}`, pre: "Höhe² =", say: `Rechne Leiter im Quadrat minus Abstand im Quadrat: ${c}² − ${a}².` }, cpRoot(c * c - a * a, "Höhe ="), { result: `${A} m` }]; }
     if((m = t.match(/^Ein Rechteck ist (\d+) cm lang und (\d+) cm breit\. Wie lang ist die Diagonale/))){ const a = cpN(m[1]), b = cpN(m[2]);
-      return [{ calc: `${a} · ${a} + ${b} · ${b}`, pre: "d² =", say: "Rechne Länge² + Breite²." }, cpRoot(a * a + b * b, "d ="), { result: `${A} cm` }]; }
+      return [{ calc: `${a} · ${a} + ${b} · ${b}`, pre: "d² =", say: `Rechne Länge im Quadrat plus Breite im Quadrat: ${a}² + ${b}².` }, cpRoot(a * a + b * b, "d ="), { result: `${A} cm` }]; }
     if((m = t.match(/^a = (\d+) cm, b = (\d+) cm\. c = \? \(cm\)$/))){ const a = cpN(m[1]), b = cpN(m[2]);
-      return [{ calc: `${a} · ${a} + ${b} · ${b}`, pre: "c² =", say: "Rechne a² + b²." }, cpRoot(a * a + b * b, "c ="), { result: `c = ${A}` }]; }
+      return [{ calc: `${a} · ${a} + ${b} · ${b}`, pre: "c² =", say: `Rechne die zwei kurzen Seiten im Quadrat zusammen: ${a}² + ${b}².` }, cpRoot(a * a + b * b, "c ="), { result: `c = ${A}` }]; }
     if((m = t.match(/^c = (\d+) cm, a = (\d+) cm\. b = \? \(cm\)$/))){ const c = cpN(m[1]), a = cpN(m[2]);
-      return [{ calc: `${c} · ${c} − ${a} · ${a}`, pre: "b² =", say: "Rechne c² − a²." }, cpRoot(c * c - a * a, "b ="), { result: `b = ${A}` }]; }
+      return [{ calc: `${c} · ${c} − ${a} · ${a}`, pre: "b² =", say: `Rechne lange Seite im Quadrat minus bekannte kurze Seite im Quadrat: ${c}² − ${a}².` }, cpRoot(c * c - a * a, "b ="), { result: `b = ${A}` }]; }
     return null;
   }
   // Für JEDE Aufgabe ein Computerprinzip-Programm
@@ -21195,7 +21268,18 @@
     [/Distributivgesetz/i, "Distributivgesetz", "Die Zahl vor der Klammer wird mit jedem Teil in der Klammer malgenommen: 3 · (4 + 5) = 3 · 4 + 3 · 5."],
     [/Diagonale/i, "Diagonale", "Die schräge Linie von einer Ecke zur gegenüberliegenden Ecke."],
     [/Faktor/i, "Faktor", "Eine Zahl, die malgenommen wird."],
-    [/gleichen Nenner|gleichnamig/i, "gleicher Nenner", "Beide Brüche haben unten dieselbe Zahl – dann kann man oben einfach rechnen."]
+    [/gleichen Nenner|gleichnamig/i, "gleicher Nenner", "Beide Brüche haben unten dieselbe Zahl – dann kann man oben einfach rechnen."],
+    [/f\(x\)/i, "f(x)", "Der y-Wert der Funktion: wie hoch die Gerade an der Stelle x ist."],
+    [/x-Achse/i, "x-Achse", "Die waagerechte Linie im Koordinatensystem (von links nach rechts)."],
+    [/beiden Seiten/i, "beide Seiten", "Links und rechts vom =-Zeichen. Was du auf einer Seite machst, musst du auch auf der anderen machen – sonst stimmt die Gleichung nicht mehr."],
+    [/Gleichung/i, "Gleichung", "Eine Rechnung mit =-Zeichen, bei der links und rechts gleich viel herauskommt."],
+    [/Terme?/i, "Term", "Ein Rechenausdruck mit Zahlen und Buchstaben, z. B. 3x + 4."],
+    [/Punkt/i, "Punkt", "Ein Punkt P(x|y): die erste Zahl sagt, wie weit nach rechts, die zweite, wie weit nach oben."],
+    [/Grundseite/i, "Grundseite", "Die Seite unten, auf der das Dreieck steht."],
+    [/Gitter-Ecke/i, "Gitter-Ecke", "Ein Punkt, an dem sich zwei Linien des Kästchen-Gitters kreuzen."],
+    [/Strahl/i, "Zahlenstrahl", "Eine Linie, auf der die Werte der Reihe nach stehen – links wenig, rechts viel."],
+    [/kreuzt|Schnittpunkt/i, "Schnittpunkt", "Die Stelle, an der sich zwei Linien treffen."],
+    [/Teile mit x|x-Teile?/i, "x-Teil", "Ein Teil, in dem ein x vorkommt, z. B. 4x oder −x."]
   ];
   function pfGlossaryHtml(text){
     let html = lxEsc(text);
@@ -21564,7 +21648,7 @@
      gemischt, sondern nach Aufgabentyp geordnet wie in einer echten
      Arbeit. Keine Lupe, keine Lösung während der Arbeit, keine
      Wiederholung - am Ende Note 1-6, Belohnung und Fehler mit Lösung. */
-  const EXAM_MS = 10 * 60 * 1000, EXAM_TASKS = 15;
+  const EXAM_MS = 10 * 60 * 1000, EXAM_TASKS = 20;
   const EXAM_AURA = { 1: 200, 2: 120, 3: 70, 4: 40, 5: 15, 6: 5 };
   function examGrade(pct){ return pct >= 0.92 ? 1 : pct >= 0.81 ? 2 : pct >= 0.67 ? 3 : pct >= 0.5 ? 4 : pct >= 0.3 ? 5 : 6; }
   function lxBuildExam(topicId, ch){
@@ -21575,7 +21659,9 @@
     const chosen = byHard.slice(0, Math.min(byHard.length, EXAM_TASKS));
     const qs = [], keys = new Set();
     const add = t => { for(let k = 0; k < 20; k++){ const q = t.gen(n); const key = lxPlain(q.text) + "|" + (q.svg || "") + "|" + q.answer;
-        if(!Number.isInteger(q.answer) || keys.has(key)) continue; keys.add(key); q._order = all.indexOf(t); q._from = t.from; q._ti = LX_TYPES[topicId].indexOf(t); qs.push(q); return; } };
+        if(!Number.isInteger(q.answer) || keys.has(key)) continue; keys.add(key); q._order = all.indexOf(t); q._from = t.from; q._ti = LX_TYPES[topicId].indexOf(t);
+        const rel = t.from - (n - 10); q._pts = rel >= 7 ? 3 : rel >= 4 ? 2 : 1; // Punkte wie in einer echten Arbeit
+        qs.push(q); return; } };
     chosen.forEach(add);
     // ... auffüllen mit Aufgaben dieses Kapitels (höchste Stufe)
     const chapterTypes = all.filter(t => t.from > n - 10);
@@ -21600,6 +21686,8 @@
   function examRenderHead(){
     if(!lesson || !lesson.isExam) return;
     $("examHeadTitle").textContent = lesson.isSkip ? "⏭ Überspringen-Test" : "📝 Klassenarbeit";
+    $("examPts").style.display = lesson.isSkip ? "none" : "";
+    $("examPts").textContent = `${lesson.examPoints || 0} P.`;
     $("examHeadSub").textContent = `${lxTopic(lesson.topicId).name} · Kapitel ${lesson.examCh}${lesson.isSkip && lesson.skipToCh > lesson.examCh ? "–" + lesson.skipToCh : ""}${lesson.isSkip ? " · kein Fehler!" : ""}`;
     $("qTier").textContent = `Aufgabe ${lesson.index + 1} von ${lesson.questions.length}`;
     let dots = $("examDots");
@@ -21609,7 +21697,7 @@
   function examTimerTick(){
     if(!lesson || !lesson.isExam) return;
     const totalMs = lesson.examMs || EXAM_MS;
-    const remaining = Math.max(0, totalMs - (Date.now() - lesson.examStart));
+    const remaining = Math.max(0, totalMs - ((lesson.examPausedAt || Date.now()) - lesson.examStart)); // pausiert während der Lösung
     const s2 = Math.ceil(remaining / 1000);
     $("examTimer").textContent = `⏱ ${Math.floor(s2 / 60)}:${String(s2 % 60).padStart(2, "0")}`;
     $("examTimer").classList.toggle("low", remaining < 60000);
@@ -21629,9 +21717,11 @@
     const ok = !isTimeout && given === q.answer;
     if(ok) lesson.correct++;
     lxRecordTypeStat(lesson.topicId, q._ti, ok);
-    lesson.examResults.push({ q, ok, given: lesson.answer });
+    lesson.examResults.push({ q, ok, given: isTimeout ? "" : lesson.answer, pts: ok ? (q._pts || 1) : 0, max: q._pts || 1 });
+    if(ok) lesson.examPoints = (lesson.examPoints || 0) + (q._pts || 1);
     if(lesson.isSkip && !ok){ cancelAnimationFrame(timerRAF); finishSkip(false, q, false); return; } // Sudden Death
-    // nichts verraten - nur "gespeichert", dann weiter
+    if(!lesson.isSkip){ examShowFeedback(q, ok); return; } // Klassenarbeit: Lösung + Punkte sofort
+    // Überspringen-Test: nichts verraten - nur "gespeichert", dann weiter
     const el = $("answerDisplay"); el.classList.remove("wrong", "right", "empty"); el.textContent = "✓ gespeichert";
     triggerHaptic(10);
     setTimeout(() => {
@@ -21642,6 +21732,38 @@
       renderQuestion();
     }, 380);
   }
+
+  // ---- Klassenarbeit: Lösung + Punkte direkt nach jeder Aufgabe (NEU) ----
+  function examAnswerText(q){
+    if(q.answerLabel !== undefined) return q.answerLabel;
+    const t = lxPlain(q.text), unit = (t.match(/\((cm²|cm³|cm|m|km|€|g|Std\.)\)\s*$/) || [])[1];
+    if(/\? %$/.test(t) || /in Prozent/.test(t)) return lxNum(q.answer) + " %";
+    return lxNum(q.answer) + (unit ? " " + unit : "");
+  }
+  function examShowFeedback(q, ok){
+    lesson.examPausedAt = Date.now(); // Zeit läuft nicht, solange die Lösung angezeigt wird
+    const pts = q._pts || 1;
+    if(q.choices) document.querySelectorAll("#lxChoices .lx-choice").forEach((b, i) => { if(b.classList.contains("picked") && i !== q.answer) b.classList.add("wrong"); b.classList.remove("picked"); if(i === q.answer) b.classList.add("right"); });
+    const el = $("answerDisplay"); el.classList.remove("empty"); el.classList.toggle("right", ok); el.classList.toggle("wrong", !ok);
+    const fbx = $("examFb");
+    fbx.className = "exam-fb show " + (ok ? "ok" : "no");
+    $("examFbIcon").textContent = ok ? "✓" : "✗";
+    $("examFbTitle").textContent = ok ? `Richtig! +${pts} ${pts === 1 ? "Punkt" : "Punkte"}` : "Leider falsch";
+    const sol = q.solution && String(q.solution) !== String(examAnswerText(q)) ? ` · ${q.solution}` : "";
+    $("examFbText").textContent = ok ? `Lösung: ${examAnswerText(q)}${sol}` : `Richtig ist: ${examAnswerText(q)}${sol}`;
+    $("examPts").textContent = `${lesson.examPoints || 0} P.`;
+    triggerHaptic(ok ? 15 : [40, 30, 40]);
+  }
+  function examNext(){
+    if(!lesson || !lesson.isExam) return;
+    $("examFb").classList.remove("show");
+    if(lesson.examPausedAt){ lesson.examStart += Date.now() - lesson.examPausedAt; lesson.examPausedAt = 0; }
+    lesson.index++;
+    if(lesson.index >= lesson.questions.length){ finishExam(false); return; }
+    lesson.locked = false; lesson.answer = "";
+    renderQuestion();
+  }
+  $("examFbNext").addEventListener("click", examNext);
   function examTimeUp(){
     if(!lesson || !lesson.isExam) return;
     cancelAnimationFrame(timerRAF);
@@ -21653,8 +21775,11 @@
   let examLast = null;
   function finishExam(timeUp){
     cancelAnimationFrame(timerRAF);
-    const L = lesson, total = L.questions.length, pts = L.examResults.filter(r => r.ok).length;
-    const grade = examGrade(pts / total), usedMs = Math.min(EXAM_MS, Date.now() - L.examStart);
+    $("examFb").classList.remove("show");
+    const L = lesson;
+    const maxPts = L.questions.reduce((a, q) => a + (q._pts || 1), 0);
+    const pts = L.examResults.reduce((a, r) => a + (r.pts || 0), 0);
+    const grade = examGrade(pts / maxPts);
     const st = lxState(L.topicId);
     if(!st.exams) st.exams = {};
     const prev = st.exams[L.examCh];
@@ -21662,38 +21787,37 @@
     const aura = EXAM_AURA[grade];
     profile.totalAura += aura; logAuraTransaction(aura, `Klassenarbeit Note ${grade}`);
     let chestMsg = "";
-    if(grade === 1 && !st.chests["x" + L.examCh]){ // erste 1 im Kapitel: epische Truhe
-      st.chests["x" + L.examCh] = { tier: "epic", attemptsUsed: 0, claimed: false };
-      chestMsg = " + 💜 Epische Truhe";
-    }
-    pushInboxEvent("📝", `Klassenarbeit ${lxTopic(L.topicId).name} Kapitel ${L.examCh}: Note ${grade}`);
+    if(grade === 1 && !st.chests["x" + L.examCh]){ st.chests["x" + L.examCh] = { tier: "epic", attemptsUsed: 0, claimed: false }; chestMsg = " + 💜 Epische Truhe"; }
+    pushInboxEvent("📝", `Klassenarbeit ${lxTopic(L.topicId).name} Kapitel ${L.examCh}: Note ${grade} (${pts}/${maxPts} P.)`);
     saveProfile();
     examLast = { topicId: L.topicId, ch: L.examCh, wrong: L.examResults.filter(r => !r.ok).map(r => r.q), all: L.examResults.map(r => r.ok) };
-    // Ergebnis-Fenster
-    const gc = grade <= 2 ? "g-good" : grade <= 4 ? "g-mid" : "g-bad";
-    $("examGrade").className = "exam-grade " + gc; $("examGrade").textContent = grade;
-    $("examGradeWord").textContent = ["", "sehr gut", "gut", "befriedigend", "ausreichend", "mangelhaft", "ungenügend"][grade];
-    $("examTitle").textContent = timeUp ? "⏰ Zeit abgelaufen!" : `📝 ${lxTopic(L.topicId).name} · Kapitel ${L.examCh}`;
-    const sec = Math.round(usedMs / 1000);
-    $("examStats").innerHTML = `<div><b>${pts}/${total}</b><small>Punkte</small></div><div><b>${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}</b><small>Zeit</small></div><div><b>+${aura}</b><small>Aura${chestMsg ? " + Truhe" : ""}</small></div>`;
-    $("examList").innerHTML = L.examResults.map((r, i) => `<div class="exam-row ${r.ok ? "ok" : "no"}"><span>${r.ok ? "✓" : "✗"}</span><div>${i + 1}. ${lxEsc(lxPlain(r.q.text).replace(/\n/g, " · ")).slice(0, 70)}</div></div>`).join("");
+    // ---- Arbeitsblatt füllen ----
+    const t = lxTopic(L.topicId);
+    $("epTopic").textContent = `${t.name} · Kapitel ${L.examCh}`;
+    $("epName").textContent = profile.username ? "@" + profile.username : "—";
+    $("epDate").textContent = new Date().toLocaleDateString("de-DE");
+    const rows = L.questions.map((q, i) => {
+      const r = L.examResults[i] || { ok: false, pts: 0, max: q._pts || 1, timeUp: true };
+      const txt = lxEsc(lxPlain(q.text).replace(/\n/g, " · ")).slice(0, 64);
+      return `<div class="ep-row" style="--d:${(0.25 + i * 0.12).toFixed(2)}s">
+        <span class="ep-no">${i + 1}.</span><span class="ep-q">${txt}${!r.ok ? `<em class="ep-hand">${r.timeUp ? "nicht bearbeitet – " : ""}richtig: ${lxEsc(examAnswerText(q))}</em>` : ""}</span>
+        <span class="ep-mark ep-hand ${r.ok ? "ok" : "no"}">${r.ok ? "✓" : "✗"}</span><span class="ep-p ep-hand">${r.pts || 0}/${r.max || q._pts || 1}</span></div>`;
+    }).join("");
+    $("epRows").innerHTML = rows;
+    $("epPoints").textContent = `${pts} / ${maxPts} P.`;
+    $("epComment").textContent = timeUp ? "Zeit war um – weiter üben!" : ["", "Hervorragend! 🌟", "Sehr ordentlich!", "Gut, da geht noch mehr.", "Bestanden – bitte üben.", "Das musst du nochmal üben.", "Bitte das Kapitel wiederholen."][grade];
+    $("epStamp").querySelector("b").textContent = grade;
+    $("epReward").textContent = `+${aura} Aura${chestMsg}`;
     $("examReviewBtn").style.display = examLast.wrong.length ? "" : "none";
     $("examReviewBtn").textContent = `🧩 ${examLast.wrong.length} Fehler mit Lösung ansehen`;
     lesson = null;
-    // Ablauf: korrigieren (Haken nacheinander) -> Punkte zählen hoch -> Note-Stempel
-    const card = $("overlayExamResult").querySelector(".exam-card");
-    card.classList.remove("revealed", "stamped");
-    $("examTicks").innerHTML = examLast.all.map((ok, i) => `<span class="${ok ? "ok" : "no"}" style="animation-delay:${(0.35 + i * 0.09).toFixed(2)}s">${ok ? "✓" : "✗"}</span>`).join("");
-    $("examPoints").textContent = `0 / ${total}`;
+    const paper = $("examPaper");
+    paper.classList.remove("marked", "stamped");
     $("overlayExamResult").classList.add("show");
-    const tickEnd = 350 + total * 90;
-    setTimeout(() => { // Punkte hochzählen
-      const t0 = performance.now(), dur = 650;
-      const step = now => { const k = Math.min(1, (now - t0) / dur); $("examPoints").textContent = `${Math.round(pts * (1 - Math.pow(1 - k, 3)))} / ${total}`; if(k < 1) requestAnimationFrame(step); };
-      requestAnimationFrame(step);
-    }, tickEnd);
-    setTimeout(() => { card.classList.add("revealed"); }, tickEnd + 1000);
-    setTimeout(() => { card.classList.add("stamped"); triggerHaptic([30, 40, 80]); if(grade <= 2 && typeof spawnConfetti === "function") spawnConfetti(); }, tickEnd + 1350);
+    $("overlayExamResult").scrollTop = 0;
+    requestAnimationFrame(() => paper.classList.add("marked")); // Korrektur-Haken erscheinen nacheinander
+    const doneAt = 250 + L.questions.length * 120 + 400;
+    setTimeout(() => { paper.classList.add("stamped"); triggerHaptic([30, 40, 80]); if(grade <= 2 && typeof spawnConfetti === "function") spawnConfetti(); }, doneAt);
   }
   // Fehler durchgehen: jede falsche Aufgabe mit der Lösung (Computerprinzip)
   function startExamReview(){

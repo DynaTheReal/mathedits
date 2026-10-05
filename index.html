@@ -3746,6 +3746,38 @@
   #screen-lesson.hard-mode .answer-display{ color:#fecaca; }
   @media (prefers-reduced-motion: reduce){ .hm-fx.show, .hm-title, #screen-lesson.hard-mode::after, .hm-bolts span{ animation:none !important; } }
 
+
+  /* ===== Lösung: ganze Aufgabe zuerst, dann reinzoomen (NEU) ===== */
+  .pf-task{ display:none; }
+  .solve-stage.pf-mode .pf-task{ display:block; width:100%; padding:16px; border-radius:18px; text-align:center;
+    background:color-mix(in srgb, var(--text) 5%, transparent); border:1px solid var(--border); transition:padding .45s ease, opacity .45s ease; }
+  .pf-task small{ display:block; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; opacity:.55; margin-bottom:6px; }
+  .pf-task-t{ font-size:21px; font-weight:800; line-height:1.35; transition:font-size .45s ease; }
+  .pf-task-svg{ height:150px; margin-top:10px; color:var(--text); transition:height .45s ease, opacity .3s ease; }
+  .pf-task-svg svg{ width:100%; height:100%; }
+  .pf-task-ch{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-top:10px; }
+  .pf-task-ch span{ padding:4px 10px; border-radius:10px; font-size:13px; font-weight:700; background:var(--card-2); border:1px solid var(--border); }
+  .pf-task.mini{ padding:7px 12px; opacity:.72; border-style:dashed; }
+  .pf-task.mini small{ display:none; }
+  .pf-task.mini .pf-task-t{ font-size:12.5px; font-weight:700; }
+  .pf-task.mini .pf-task-svg{ height:0; opacity:0; margin:0; overflow:hidden; }
+  .pf-task.mini .pf-task-ch{ display:none; }
+  .solve-stage.pf-mode .pf-board.pf-intro{ justify-content:center; }
+  .pf-board.pf-intro > :not(.pf-task){ display:none !important; }
+  .pf-board.pf-zoom > .pf-line:not(.pf-pending), .pf-board.pf-zoom > .pf-svgline{ animation:pf-zoomin .6s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes pf-zoomin{ from{ transform:scale(.35); opacity:0; filter:blur(4px); } to{ transform:none; opacity:1; filter:none; } }
+  /* ===== Kapitel überspringen (NEU) ===== */
+  .lx-section{ display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; }
+  .lx-skip{ padding:4px 11px; border-radius:999px; font:inherit; font-size:11.5px; font-weight:800; cursor:pointer; color:var(--text);
+    background:color-mix(in srgb, var(--lx-c, var(--accent)) 22%, transparent); border:1px solid color-mix(in srgb, var(--lx-c, var(--accent)) 55%, transparent); }
+  .lx-skip:active{ transform:scale(.95); }
+  .lx-skipped{ font-size:11px; font-weight:800; opacity:.6; }
+  .skip-card{ max-width:340px; text-align:center; }
+  .skip-icon{ width:86px; height:86px; margin:4px auto 10px; border-radius:50%; display:grid; place-items:center; font-size:42px; animation:rescue-pop .6s cubic-bezier(.34,1.7,.5,1) both; }
+  .skip-icon.ok{ background:radial-gradient(circle at 35% 30%, #86efac, #16a34a); box-shadow:0 0 34px rgba(34,197,94,.5); }
+  .skip-icon.no{ background:radial-gradient(circle at 35% 30%, #fca5a5, #dc2626); box-shadow:0 0 34px rgba(239,68,68,.5); }
+  .skip-card p{ font-size:14px; line-height:1.5; opacity:.85; }
+
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
     background:var(--card-2); border:1.5px solid var(--border); color:var(--text);
@@ -5871,7 +5903,7 @@
       <div class="exit-x" id="exitLesson">✕</div>
       <!-- Klassenarbeit: schlichte Kopfzeile (nur im Klassenarbeits-Modus sichtbar) -->
       <div class="exam-head" id="examHead">
-        <div class="exam-head-t"><b>📝 Klassenarbeit</b><span id="examHeadSub">Kapitel 1</span></div>
+        <div class="exam-head-t"><b id="examHeadTitle">📝 Klassenarbeit</b><span id="examHeadSub">Kapitel 1</span></div>
         <div class="exam-timer" id="examTimer">⏱ 10:00</div>
       </div>
       <div class="progress-track-wrap">
@@ -6837,6 +6869,17 @@
     <div class="hm-sub">2 Bonus-Aufgaben · doppelte Aura</div>
   </div>
 
+  <!-- Kapitel überspringen: Ergebnis -->
+  <div class="overlay" id="overlaySkipResult">
+    <div class="modal-card skip-card">
+      <div class="skip-icon" id="skipIcon">⏭</div>
+      <h2 id="skipTitle">Kapitel übersprungen!</h2>
+      <p id="skipText"></p>
+      <button class="btn btn-primary" id="skipReviewBtn" style="width:100%; margin-top:6px;">🧩 Lösung zur falschen Aufgabe</button>
+      <button class="btn btn-ghost" id="skipBackBtn" style="width:100%; margin-top:8px;">Zurück zum Pfad</button>
+    </div>
+  </div>
+
   <!-- Posteingang (NEU, Nova-Glocke) -->
   <div class="overlay" id="overlayInbox">
     <div class="modal-card inbox-card" style="max-width:380px; text-align:left;">
@@ -6954,7 +6997,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "3.96";
+  const APP_VERSION = "3.98";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -13057,7 +13100,8 @@
         const exams = { ...(a.exams || {}) };
         Object.entries(b.exams || {}).forEach(([c, e]) => { const x = exams[c];
           exams[c] = !x ? e : { best: Math.min(x.best, e.best), last: (e.at || 0) > (x.at || 0) ? e.last : x.last, count: Math.max(x.count || 0, e.count || 0), at: Math.max(x.at || 0, e.at || 0) }; });
-        out[id] = { done: Math.max(a.done || 0, b.done || 0), stars, chTut, chests, exams, tutorialSeen: !!(a.tutorialSeen || b.tutorialSeen) };
+        const skipped = { ...(a.skipped || {}), ...(b.skipped || {}) };
+        out[id] = { done: Math.max(a.done || 0, b.done || 0), stars, chTut, chests, exams, skipped, tutorialSeen: !!(a.tutorialSeen || b.tutorialSeen) };
       });
       merged.lessonTopics = out;
     }
@@ -18907,7 +18951,22 @@
     // Gewichtete Auswahl: frisch freigeschaltete Typen x3, einzelne Typen
     // können seltener sein (t.weight, z.B. die Gerade-Verschiebe-Aufgaben).
     const open = types.filter(t => n >= t.from);
-    const ws = open.map(t => ((n - t.from < 4) ? 3 : 1) * (t.weight === undefined ? 1 : t.weight));
+    // Anpassung ans Können (NEU): was man sicher kann, kommt seltener (aber
+    // weiterhin), was schwer fällt, kommt öfter - aus den Trefferquoten pro
+    // Aufgabenart. Erst nach ein paar Versuchen, damit ein einzelner Fehler
+    // nicht alles verschiebt.
+    const tid = Object.keys(LX_TYPES).find(k => LX_TYPES[k] === types);
+    const stats = (tid && profile.topicTypeStats && profile.topicTypeStats[tid]) || {};
+    const skill = t => {
+      const st = stats[types.indexOf(t)]; if(!st) return 1;
+      const tries = (st.c || 0) + (st.w || 0); if(tries < 3) return 1;
+      const acc = st.c / tries;
+      if(acc >= 0.9) return tries >= 5 ? 0.5 : 0.75;
+      if(acc >= 0.8) return 0.75;
+      if(acc >= 0.6) return 1.4;
+      return 2;
+    };
+    const ws = open.map(t => ((n - t.from < 4) ? 3 : 1) * (t.weight === undefined ? 1 : t.weight) * skill(t));
     let r = Math.random() * ws.reduce((a, b) => a + b, 0);
     // q._ti = welche Aufgabenart (für die Trends pro Aufgabenart)
     const make = t => { const q = t.gen(n); q._ti = types.indexOf(t); return q; };
@@ -19404,7 +19463,9 @@
     for(let n = 1; n <= LX_LESSONS_PER_TOPIC; n++){
       const ch = lxChapterOf(n);
       if((n - 1) % 10 === 0){
-        html += `<div class="lx-section">${LX_SECTIONS[ch - 1]} · Lektion ${n}–${n + 9}</div>`;
+        const skippable = st.done >= n - 1 && st.done < n + 9; // aktuelles, noch offenes Kapitel
+        const skipped = st.skipped && st.skipped[ch];
+        html += `<div class="lx-section">${LX_SECTIONS[ch - 1]} · Lektion ${n}–${n + 9}${skippable ? `<button class="lx-skip" data-skip="${ch}">⏭ Überspringen</button>` : ""}${skipped ? `<span class="lx-skipped">⏭ übersprungen</span>` : ""}</div>`;
         // Tutorial ist FREIWILLIG (NEU): kein START, sperrt nichts
         const tDone = !!st.chTut[ch], tOpen = st.done >= n - 1;
         html += `<button class="lx-node book optional${tDone ? " done" : tOpen ? "" : " locked"}" data-book="${ch}" style="--x:0px">
@@ -19437,6 +19498,11 @@
     $("lxBack").addEventListener("click", () => { lxCurrentTopic = null; renderLessonsScreen(); });
     $("lxOvBtn").addEventListener("click", () => lxOpenOverview(t.id));
     $("lxTutBtn").addEventListener("click", () => lxOpenTutorial(t.id, Math.min(3, lxChapterOf(Math.max(1, st.done + 1)))));
+    root.querySelectorAll("[data-skip]").forEach(b => b.addEventListener("click", async () => {
+      const ch = parseInt(b.dataset.skip, 10);
+      const ok = await showConfirmPopup(`⏭ Kapitel ${ch} überspringen?\n\nTest mit den schwierigsten Aufgaben: ${SKIP_TASKS} Aufgaben · 5 Minuten.\nKEIN Fehler erlaubt!\n\nGeschafft = alle Lektionen erledigt, aber ohne Aura, Sterne und Truhe.`);
+      if(ok) lxStartSkipTest(t.id, ch);
+    }));
     root.querySelectorAll("[data-exam]").forEach(b => b.addEventListener("click", async () => {
       const ch = parseInt(b.dataset.exam, 10);
       if(st.done < ch * 10){ showToast("📝 Schließe erst alle Lektionen dieses Kapitels ab."); return; }
@@ -21078,6 +21144,7 @@
     const replace = (ids, outs) => { const els = ids.map(pfEl).filter(Boolean); if(!els.length) return; let a = null;
       outs.forEach((tk, i) => { const sp = pfMakeTok(tk); if(i === 0) els[0].before(sp); else a.after(sp); a = sp; }); els.forEach(e => e.remove()); };
     switch(s.op){
+      case "intro": { const task = $("pfTask"); if(task) task.classList.add("mini"); $("pfBoard").classList.remove("pf-intro"); break; }
       case "subst": s.ids.forEach((id, i) => { const el = pfEl(id); if(el){ el.textContent = s.texts[i]; if(s.loosen) el.classList.remove("tight"); } }); break;
       case "insert": case "focusinsert": mkAfter(s.after, s.toks); break;
       case "remove": s.ids.forEach(id => pfEl(id) && pfEl(id).remove()); break;
@@ -21106,8 +21173,20 @@
     pfPos = k - 1;
     pfNext();
   }
+  // Die ganze Aufgabe als Karte oben auf der Tafel (NEU): erst groß ("Lies
+  // die ganze Aufgabe."), danach klein als Kopfzeile - die Rechnung zoomt rein.
+  let pfTaskQ = null;
+  function pfTaskCard(q){
+    const card = document.createElement("div"); card.className = "pf-task"; card.id = "pfTask";
+    const text = lxEsc(lxPlain(q.text)).replace(/\n/g, "<br>");
+    const choices = q.choices ? `<div class="pf-task-ch">${q.choices.map(c => `<span>${lxEsc(c)}</span>`).join("")}</div>` : "";
+    card.innerHTML = `<small>📋 Aufgabe</small><div class="pf-task-t">${text}</div>${q.svg ? `<div class="pf-task-svg">${q.svg}</div>` : ""}${choices}`;
+    return card;
+  }
   function pfRender(prog){
     const board = $("pfBoard"); board.innerHTML = "";
+    board.classList.remove("pf-intro", "pf-zoom");
+    if(pfTaskQ) board.appendChild(pfTaskCard(pfTaskQ));
     prog.lines.forEach(line => {
       if(!Array.isArray(line)){ // Grafik der Aufgabe auf der Tafel
         const div = document.createElement("div"); div.className = "pf-svgline"; div.dataset.id = line.id; div.innerHTML = line.svg; board.appendChild(div); return;
@@ -21116,6 +21195,8 @@
     });
   }
   function pfStart(prog){
+    pfTaskQ = lesson && lesson.questions ? lesson.questions[lesson.index] : null;
+    if(pfTaskQ && !prog._intro){ prog.steps.unshift({ op: "intro", why: "Lies die ganze Aufgabe." }); prog._intro = true; }
     pfProg = prog; pfPos = -1;
     $("solveStage").classList.add("pf-mode");
     $("lupePanel").classList.add("pondering");
@@ -21160,11 +21241,20 @@
     if(!pfProg) return;
     // Verspätete Animationen eines alten Schritts ignorieren (Zurück/Nochmal)
     const myGen = ++pfGen;
-    const setTimeout = (fn, ms) => window.setTimeout(() => { if(myGen === pfGen) fn(); }, ms);
     pfPos++;
     const s = pfProg.steps[pfPos]; if(!s) return;
+    // Zoom-Schritt (ganze Aufgabe -> Rechnung): Rahmen/Animationen erst NACH dem Zoom,
+    // sonst werden sie an der noch kleinen, wachsenden Zeile ausgerichtet.
+    const zoomOff = (s.op !== "intro" && $("pfBoard").classList.contains("pf-intro")) ? 650 : 0;
+    const setTimeout = (fn, ms) => window.setTimeout(() => { if(myGen === pfGen) fn(); }, (ms || 0) + zoomOff);
     pfClearMarks();
     pfRevealFor(s); // Zeilen, die in diesem Schritt vorkommen, jetzt einblenden
+    { const board = $("pfBoard"), task = $("pfTask");
+      if(s.op === "intro"){ board.classList.add("pf-intro"); if(task) task.classList.remove("mini"); }
+      else if(board.classList.contains("pf-intro")){ // ganze Aufgabe -> klein oben, Rechnung zoomt rein
+        board.classList.remove("pf-intro"); if(task) task.classList.add("mini");
+        board.classList.add("pf-zoom"); window.setTimeout(() => board.classList.remove("pf-zoom"), 750);
+      } }
     const last = pfPos === pfProg.steps.length - 1;
     const after = fn => setTimeout(() => requestAnimationFrame(fn), 0);
     switch(s.op){
@@ -21412,7 +21502,8 @@
   // Gesamt-Timer: mm:ss
   function examRenderHead(){
     if(!lesson || !lesson.isExam) return;
-    $("examHeadSub").textContent = `${lxTopic(lesson.topicId).name} · Kapitel ${lesson.examCh}`;
+    $("examHeadTitle").textContent = lesson.isSkip ? "⏭ Überspringen-Test" : "📝 Klassenarbeit";
+    $("examHeadSub").textContent = `${lxTopic(lesson.topicId).name} · Kapitel ${lesson.examCh}${lesson.isSkip ? " · kein Fehler!" : ""}`;
     $("qTier").textContent = `Aufgabe ${lesson.index + 1} von ${lesson.questions.length}`;
     let dots = $("examDots");
     if(!dots){ dots = document.createElement("div"); dots.id = "examDots"; dots.className = "exam-dots"; $("examHead").closest(".lesson-top").after(dots); }
@@ -21420,11 +21511,12 @@
   }
   function examTimerTick(){
     if(!lesson || !lesson.isExam) return;
-    const remaining = Math.max(0, EXAM_MS - (Date.now() - lesson.examStart));
+    const totalMs = lesson.examMs || EXAM_MS;
+    const remaining = Math.max(0, totalMs - (Date.now() - lesson.examStart));
     const s2 = Math.ceil(remaining / 1000);
     $("examTimer").textContent = `⏱ ${Math.floor(s2 / 60)}:${String(s2 % 60).padStart(2, "0")}`;
     $("examTimer").classList.toggle("low", remaining < 60000);
-    const frac = remaining / EXAM_MS;
+    const frac = remaining / totalMs;
     $("timerCircle").setAttribute("stroke-dashoffset", TIMER_CIRCUMFERENCE * (1 - frac));
     $("timerCircle").style.stroke = remaining < 60000 ? "var(--danger)" : "var(--accent)";
     const s = Math.ceil(remaining / 1000);
@@ -21441,13 +21533,14 @@
     if(ok) lesson.correct++;
     lxRecordTypeStat(lesson.topicId, q._ti, ok);
     lesson.examResults.push({ q, ok, given: lesson.answer });
+    if(lesson.isSkip && !ok){ cancelAnimationFrame(timerRAF); finishSkip(false, q, false); return; } // Sudden Death
     // nichts verraten - nur "gespeichert", dann weiter
     const el = $("answerDisplay"); el.classList.remove("wrong", "right", "empty"); el.textContent = "✓ gespeichert";
     triggerHaptic(10);
     setTimeout(() => {
       if(!lesson || !lesson.isExam) return;
       lesson.index++;
-      if(lesson.index >= lesson.questions.length){ finishExam(false); return; }
+      if(lesson.index >= lesson.questions.length){ if(lesson.isSkip) finishSkip(true); else finishExam(false); return; }
       lesson.locked = false; lesson.answer = "";
       renderQuestion();
     }, 380);
@@ -21455,6 +21548,7 @@
   function examTimeUp(){
     if(!lesson || !lesson.isExam) return;
     cancelAnimationFrame(timerRAF);
+    if(lesson.isSkip){ lesson.locked = true; finishSkip(false, null, true); return; }
     lesson.locked = true;
     for(let i = lesson.examResults.length; i < lesson.questions.length; i++) lesson.examResults.push({ q: lesson.questions[i], ok: false, given: "", timeUp: true });
     finishExam(true);
@@ -21669,6 +21763,7 @@
   const HARD_FROM_INDEX = 8;
   function lxHardEligible(){
     return !!(lesson && lesson.topicId && !lesson.isExam && !lesson.isExamReview && !lesson.isDuel && !lesson.hardMode
+      && (lesson.topicLessonNo || 0) % 10 === 0 // NUR in der letzten Lektion eines Kapitels (10, 20, 30)
       && lesson.index === HARD_FROM_INDEX && !lesson.hadMistake);
   }
   function lxHardQuestions(tid, n){
@@ -21712,6 +21807,73 @@
     }, 2100);
   }
 
+
+  /* ===== KAPITEL ÜBERSPRINGEN (NEU) =====
+     Test mit den schwierigsten Aufgaben des Kapitels, KEIN Fehler erlaubt.
+     Geschafft -> alle Lektionen des Kapitels erledigt, aber ohne Aura,
+     Sterne und Truhe. */
+  const SKIP_TASKS = 8, SKIP_MS = 5 * 60 * 1000;
+  function lxBuildSkip(topicId, ch){
+    const n = ch * 10, types = LX_TYPES[topicId];
+    const chTypes = types.filter(t => t.from > n - 10 && t.from <= n && !(t.weight !== undefined && t.weight < 1)).sort((a, b) => a.from - b.from);
+    const pool = chTypes.length ? chTypes : types.filter(t => t.from <= n);
+    const qs = [], keys = new Set();
+    for(let i = 0; qs.length < SKIP_TASKS && i < 300; i++){
+      const t = pool[i % pool.length], q = t.gen(n);
+      const key = lxPlain(q.text) + "|" + (q.svg || "") + "|" + q.answer;
+      if(!Number.isInteger(q.answer) || keys.has(key)) continue;
+      keys.add(key); q._ti = types.indexOf(t); q._order = pool.indexOf(t); qs.push(q);
+    }
+    return qs.sort((a, b) => a._order - b._order);
+  }
+  function lxStartSkipTest(topicId, ch){
+    lesson = {
+      tier: { id: "skip_" + topicId, name: `⏭ Überspringen · Kapitel ${ch}`, icon: "⏭", timeMs: SKIP_MS, normalAura: 0, editAura: 0 },
+      isMainProgression: false, noLifeLoss: true, isExam: true, isSkip: true, examCh: ch, topicId, examMs: SKIP_MS,
+      questions: lxBuildSkip(topicId, ch), index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false,
+      examStart: Date.now(), examResults: []
+    };
+    lesson.startedAt = performance.now();
+    showScreen("lesson");
+    renderQuestion();
+  }
+  let skipLast = null;
+  function finishSkip(success, failedQ, timeUp){
+    cancelAnimationFrame(timerRAF);
+    const L = lesson, ch = L.examCh, st = lxState(L.topicId);
+    skipLast = { topicId: L.topicId, ch, failedQ };
+    if(success){
+      st.done = Math.max(st.done, ch * 10);
+      if(!st.chests[ch * 10]) st.chests[ch * 10] = { tier: LX_CHEST_AT[ch * 10] || "rare", attemptsUsed: 0, claimed: true, skipped: true }; // keine Truhe
+      if(!st.skipped) st.skipped = {};
+      st.skipped[ch] = true;
+      pushInboxEvent("⏭", `${lxTopic(L.topicId).name}: Kapitel ${ch} übersprungen`);
+      saveProfile();
+    }
+    lesson = null;
+    $("skipIcon").textContent = success ? "⏭" : timeUp ? "⏰" : "❌";
+    $("skipIcon").className = "skip-icon " + (success ? "ok" : "no");
+    $("skipTitle").textContent = success ? `Kapitel ${ch} übersprungen!` : "Nicht geschafft";
+    $("skipText").textContent = success
+      ? `Alle 10 Lektionen sind jetzt erledigt – ohne Aura, Sterne und Truhe. ${ch < 3 ? `Weiter geht's mit Kapitel ${ch + 1}.` : "Damit ist das ganze Thema geschafft!"}`
+      : timeUp ? "Die Zeit ist abgelaufen. Beim Überspringen-Test muss alles sitzen."
+               : `Aufgabe ${L.examResults.length} war falsch. Beim Überspringen-Test ist kein Fehler erlaubt.`;
+    $("skipReviewBtn").style.display = !success && failedQ ? "" : "none";
+    $("overlaySkipResult").classList.add("show");
+    if(success){ triggerHaptic([30, 40, 60]); if(typeof spawnConfetti === "function") spawnConfetti(); }
+  }
+  $("skipBackBtn").addEventListener("click", () => {
+    $("overlaySkipResult").classList.remove("show");
+    lxCurrentTopic = skipLast ? skipLast.topicId : lxCurrentTopic;
+    showScreen("lessons"); renderLessonsScreen();
+  });
+  $("skipReviewBtn").addEventListener("click", () => {
+    if(!skipLast || !skipLast.failedQ) return;
+    $("overlaySkipResult").classList.remove("show");
+    examLast = { topicId: skipLast.topicId, ch: skipLast.ch, wrong: [skipLast.failedQ], all: [] };
+    startExamReview();
+  });
+
   $("backHomeFromLocked").addEventListener("click", () => {
     clearInterval(lockedInterval);
     showScreen("home");
@@ -21721,12 +21883,12 @@
   $("exitLesson").addEventListener("click", () => {
     if(lesson && (lesson.isExam || lesson.isExamReview)){ // Klassenarbeit: ohne Strafe, wird nicht gewertet
       stopTimer(); pendingAdvanceAt = null;
-      const tid = lesson.topicId, wasExam = lesson.isExam;
+      const tid = lesson.topicId, wasExam = lesson.isExam, wasSkip = !!lesson.isSkip;
       if(typeof lxLupeCancel === "function") lxLupeCancel();
       lesson = null;
       $("lupeClose").textContent = "Lupe schließen";
       lxCurrentTopic = tid; showScreen("lessons"); renderLessonsScreen();
-      if(wasExam) showToast("📝 Klassenarbeit abgebrochen – sie wird nicht gewertet.");
+      if(wasExam) showToast(wasSkip ? "⏭ Test abgebrochen." : "📝 Klassenarbeit abgebrochen – sie wird nicht gewertet.");
       return;
     }
     stopTimer();

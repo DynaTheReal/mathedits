@@ -2811,7 +2811,7 @@
      Die normalen Inhalte werden im Nova-Layout ausgeblendet, die
      Nova-Ansicht nutzt dieselben Daten und Funktionen.
      ============================================================ */
-  body.layout-nova #screen-missions > :not(#novaMissions):not(.tm-switch),
+  body.layout-nova #screen-missions > :not(#novaMissions):not(.tm-switch):not(#challengeCard),
   body.layout-nova #screen-trends > :not(#novaTrends):not(.tm-switch):not(#lxTrends){ display:none !important; }
   body.layout-nova #screen-missions,
   body.layout-nova #screen-trends{ padding-bottom:calc(env(safe-area-inset-bottom,0px) + 120px); }
@@ -3908,6 +3908,112 @@
   @keyframes boss-shake{ 0%,100%{ transform:none; } 20%{ transform:translate(-7px, 3px) rotate(-1deg); } 50%{ transform:translate(6px, -3px) rotate(1deg); } 80%{ transform:translate(-3px, 1px); } }
   .boss-dmg{ position:absolute; right:14px; top:8px; font-size:22px; font-weight:900; color:#fde68a; text-shadow:0 0 10px #ef4444; pointer-events:none; animation:boss-dmg .9s ease-out both; }
   @keyframes boss-dmg{ from{ transform:translateY(10px) scale(.6); opacity:0; } 25%{ transform:translateY(-6px) scale(1.25); opacity:1; } to{ transform:translateY(-40px); opacity:0; } }
+
+
+  /* Boss-Test: eigene Leben (NEU) */
+  .boss-lives{ display:none; }
+  #screen-lesson.boss-mode .boss-lives{ display:flex; align-items:center; gap:4px; margin:4px 6px 0; font-size:19px; }
+  .boss-lives span.off{ filter:grayscale(1); opacity:.5; animation:boss-heart .45s ease both; }
+  .boss-lives small{ margin-left:auto; font-size:11.5px; font-weight:800; opacity:.7; }
+  @keyframes boss-heart{ 0%{ transform:scale(1.5) rotate(-15deg); } 100%{ transform:none; } }
+  #screen-lesson.boss-miss .question-card{ animation:boss-spin 3s linear infinite, boss-shake .45s ease both !important; box-shadow:0 0 0 2px #ef4444, 0 0 46px rgba(239,68,68,.8) !important; }
+  #screen-lesson.boss-miss::after{ box-shadow:inset 0 0 160px rgba(239,68,68,.75) !important; }
+
+
+  /* ===================== GEHEIME DESIGNS (NEU) ===================== */
+  /* 🎃 HALLOWEEN: Orange/Schwarz, Kürbisse, Fledermäuse, Spinnennetze */
+  [data-theme="halloween"]{
+    --bg:#120804; --bg-soft:#1d0d05; --card:#24110a; --card-2:#2f170c; --border:#5c2b0f; --text:#fff1e2; --text-dim:#f2b583;
+    --accent:#ff7a1a; --accent-text:#1a0800; --accent-2:#a855f7; --danger:#ff3b3b; --success:#9be15d;
+    --shadow:0 20px 50px rgba(0,0,0,.6); --overlay-bg:rgba(18,8,4,.95);
+    --rainbow-header:linear-gradient(90deg,#ff7a1a,#ffb347,#a855f7);
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><text x='14' y='46' font-size='30' opacity='.14'>🎃</text><text x='130' y='92' font-size='22' opacity='.12'>🦇</text><text x='60' y='160' font-size='26' opacity='.1'>🕸️</text><text x='160' y='196' font-size='28' opacity='.13'>🎃</text><text x='96' y='30' font-size='16' opacity='.1'>🦇</text></svg>"),
+      radial-gradient(ellipse at 50% 120%, rgba(255,122,26,.35), transparent 60%),
+      radial-gradient(circle at 50% -10%, #2a1206, #120804 60%);
+    background-attachment:fixed, fixed, scroll;
+  }
+  [data-theme="halloween"] .topbar, [data-theme="halloween"] .bottom-nav{ box-shadow:0 0 26px rgba(255,122,26,.3); }
+  [data-theme="halloween"] .topbar{ position:relative; }
+  [data-theme="halloween"] .topbar::after{ content:"🕸️"; position:absolute; right:-4px; top:-6px; font-size:34px; opacity:.55; pointer-events:none; transform:rotate(12deg); }
+  [data-theme="halloween"] .bottom-nav::before{ content:"🎃  🦇  🎃  🦇  🎃"; position:absolute; left:0; right:0; top:-15px; text-align:center; font-size:15px; letter-spacing:8px; opacity:.85; pointer-events:none; }
+  [data-theme="halloween"] .bottom-nav{ position:relative; }
+  [data-theme="halloween"] .tier-card, [data-theme="halloween"] .shop-item, [data-theme="halloween"] .question-card, [data-theme="halloween"] .modal-card,
+  [data-theme="halloween"] .nv-card, [data-theme="halloween"] .nsx-card, [data-theme="halloween"] .lx-topic{ box-shadow:0 0 0 1px rgba(255,122,26,.18), 0 8px 26px rgba(255,90,0,.12); }
+  [data-theme="halloween"] .question-card::after, [data-theme="halloween"] .modal-card::after{ content:"🕷️"; position:absolute; top:6px; right:10px; font-size:16px; opacity:.5; pointer-events:none; animation:hw-spider 3s ease-in-out infinite; }
+  [data-theme="halloween"] .question-card, [data-theme="halloween"] .modal-card{ position:relative; }
+  @keyframes hw-spider{ 50%{ transform:translateY(6px); } }
+  [data-theme="halloween"]::after{ content:"🦇"; position:fixed; top:18%; left:-40px; font-size:26px; opacity:.55; pointer-events:none; z-index:1; animation:hw-bat 14s linear infinite; }
+  @keyframes hw-bat{ 0%{ transform:translate(0, 0); } 25%{ transform:translate(30vw, -30px); } 50%{ transform:translate(60vw, 20px); } 75%{ transform:translate(85vw, -20px); } 100%{ transform:translate(115vw, 10px); } }
+  /* ❄️ WINTER: Eis, Schnee auf den Karten, Lichterkette, Schneefall */
+  [data-theme="winter"]{
+    --bg:#061423; --bg-soft:#0a1d32; --card:#0d2238; --card-2:#112b46; --border:#2b5b84; --text:#eef8ff; --text-dim:#a6cce9;
+    --accent:#7dd3fc; --accent-text:#03121f; --accent-2:#c4b5fd; --danger:#fb7185; --success:#6ee7b7;
+    --shadow:0 20px 50px rgba(0,0,0,.55); --overlay-bg:rgba(6,20,35,.95);
+    --rainbow-header:linear-gradient(90deg,#7dd3fc,#e0f2fe,#c4b5fd);
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><text x='20' y='40' font-size='18' opacity='.18' fill='white'>❄</text><text x='120' y='80' font-size='12' opacity='.16' fill='white'>❅</text><text x='60' y='140' font-size='22' opacity='.14' fill='white'>❆</text><text x='160' y='180' font-size='14' opacity='.16' fill='white'>❄</text></svg>"),
+      linear-gradient(180deg, rgba(186,230,253,.08), transparent 30%),
+      radial-gradient(ellipse at 50% 120%, rgba(125,211,252,.28), transparent 60%),
+      radial-gradient(circle at 50% -10%, #0e2a47, #061423 60%);
+    background-attachment:fixed, fixed, fixed, scroll;
+  }
+  [data-theme="winter"]::after{ content:""; position:fixed; inset:-20% 0 0 0; pointer-events:none; z-index:1; opacity:.8;
+    background-image:radial-gradient(3px 3px at 10% 10%, #fff, transparent), radial-gradient(2px 2px at 25% 40%, #fff, transparent), radial-gradient(3px 3px at 45% 20%, #fff, transparent),
+      radial-gradient(2px 2px at 65% 55%, #fff, transparent), radial-gradient(3px 3px at 80% 30%, #fff, transparent), radial-gradient(2px 2px at 92% 70%, #fff, transparent),
+      radial-gradient(2px 2px at 35% 80%, #fff, transparent), radial-gradient(3px 3px at 55% 90%, #fff, transparent);
+    background-size:100% 50%; animation:wt-snow 9s linear infinite; }
+  @keyframes wt-snow{ from{ transform:translateY(0); } to{ transform:translateY(50%); } }
+  [data-theme="winter"] .topbar, [data-theme="winter"] .bottom-nav{ position:relative; box-shadow:0 0 26px rgba(125,211,252,.25); }
+  [data-theme="winter"] .topbar::after{ content:""; position:absolute; left:6px; right:6px; bottom:-7px; height:12px; pointer-events:none;
+    background:radial-gradient(circle, #f87171 3px, transparent 4px) 0 0/40px 12px, radial-gradient(circle, #facc15 3px, transparent 4px) 13px 0/40px 12px, radial-gradient(circle, #4ade80 3px, transparent 4px) 26px 0/40px 12px;
+    filter:drop-shadow(0 0 4px rgba(255,255,255,.7)); animation:wt-lights 1.6s steps(2) infinite; }
+  @keyframes wt-lights{ 50%{ filter:drop-shadow(0 0 8px rgba(255,255,255,1)) brightness(1.4); } }
+  [data-theme="winter"] .tier-card, [data-theme="winter"] .shop-item, [data-theme="winter"] .question-card, [data-theme="winter"] .modal-card,
+  [data-theme="winter"] .nv-card, [data-theme="winter"] .nsx-card, [data-theme="winter"] .lx-topic, [data-theme="winter"] .stat-pill{
+    position:relative; border-top:3px solid rgba(255,255,255,.9) !important; box-shadow:0 -2px 10px rgba(255,255,255,.25), 0 8px 26px rgba(0,0,0,.3), inset 0 0 22px rgba(186,230,253,.08); }
+  [data-theme="winter"] .question-card::before, [data-theme="winter"] .modal-card::before, [data-theme="winter"] .tier-card::before, [data-theme="winter"] .nv-card::before, [data-theme="winter"] .lx-topic::before{
+    content:""; position:absolute; left:10px; right:10px; top:-7px; height:10px; pointer-events:none; border-radius:10px 10px 0 0;
+    background:radial-gradient(ellipse 14px 7px at 12% 100%, #fff 60%, transparent 62%), radial-gradient(ellipse 22px 9px at 38% 100%, #fff 60%, transparent 62%),
+      radial-gradient(ellipse 16px 7px at 66% 100%, #fff 60%, transparent 62%), radial-gradient(ellipse 20px 8px at 90% 100%, #fff 60%, transparent 62%); }
+  [data-theme="winter"] .bottom-nav::before{ content:"🎄  ❄️  ⛄  ❄️  🎁"; position:absolute; left:0; right:0; top:-15px; text-align:center; font-size:14px; letter-spacing:8px; pointer-events:none; }
+
+  /* ===================== HERAUSFORDERUNG (Missionen) ===================== */
+  .challenge-wrap:empty{ display:none; }
+  body.layout-nova #screen-missions > #challengeCard{ display:block !important; margin:0 2px 10px; }
+  .ch-card{ position:relative; overflow:hidden; border-radius:24px; padding:18px 16px 16px; margin-bottom:14px; color:#fff;
+    background:linear-gradient(145deg, #4c1d95, #1e1b4b); box-shadow:0 14px 40px rgba(0,0,0,.4); }
+  .ch-card.st-halloween{ background:radial-gradient(circle at 85% 0%, rgba(255,170,60,.55), transparent 45%), linear-gradient(150deg, #c2410c, #3b0f04 70%); }
+  .ch-card.st-christmas{ background:radial-gradient(circle at 15% 0%, rgba(255,255,255,.25), transparent 40%), linear-gradient(150deg, #b91c1c, #14532d 75%); }
+  .ch-deco{ position:absolute; inset:0; pointer-events:none; font-size:26px; }
+  .ch-deco span{ position:absolute; opacity:.85; animation:ch-float 4s ease-in-out infinite; }
+  @keyframes ch-float{ 50%{ transform:translateY(-6px) rotate(6deg); } }
+  .ch-badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;
+    background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.25); }
+  .ch-title{ position:relative; font-size:24px; font-weight:900; line-height:1.15; margin:10px 0 4px; text-shadow:0 2px 12px rgba(0,0,0,.35); }
+  .ch-task{ position:relative; font-size:14px; font-weight:700; opacity:.9; }
+  .ch-time{ position:relative; font-size:12px; font-weight:800; opacity:.75; margin-top:4px; }
+  .ch-bar{ position:relative; height:14px; border-radius:999px; background:rgba(0,0,0,.35); margin-top:12px; overflow:hidden; border:1px solid rgba(255,255,255,.2); }
+  .ch-bar i{ position:absolute; inset:0 auto 0 0; border-radius:inherit; background:linear-gradient(90deg, #fde68a, #fff); box-shadow:0 0 12px rgba(255,255,255,.7); transition:width .6s ease; }
+  .ch-card.st-halloween .ch-bar i{ background:linear-gradient(90deg, #ff7a1a, #ffd08a); }
+  .ch-card.st-christmas .ch-bar i{ background:repeating-linear-gradient(45deg, #fff 0 10px, #ef4444 10px 20px); }
+  .ch-prog{ position:relative; display:flex; justify-content:space-between; font-size:12.5px; font-weight:800; margin-top:6px; opacity:.95; }
+  .ch-reward{ position:relative; display:flex; align-items:center; gap:10px; margin-top:12px; padding:9px 11px; border-radius:16px; background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.15); }
+  .ch-swatch{ width:34px; height:34px; border-radius:11px; flex-shrink:0; box-shadow:inset 0 0 0 2px rgba(255,255,255,.4); }
+  .ch-reward b{ display:block; font-size:13.5px; } .ch-reward small{ font-size:11.5px; opacity:.75; }
+  .ch-card.done .ch-reward{ background:rgba(34,197,94,.3); border-color:rgba(134,239,172,.6); }
+
+  /* ===================== GATEWAYS (NEU) ===================== */
+  .gw-highlight{ position:relative; z-index:5; animation:gw-pulse 1.1s ease-in-out 3 !important; border-radius:16px; }
+  @keyframes gw-pulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(250,204,21,0); } 50%{ box-shadow:0 0 0 4px #facc15, 0 0 30px 6px rgba(250,204,21,.6); } }
+  .gw-flash{ position:fixed; inset:0; z-index:99500; pointer-events:none; background:radial-gradient(circle, rgba(255,255,255,.65), rgba(250,204,21,.15) 50%, transparent 75%); animation:gw-flash .5s ease-out both; }
+  @keyframes gw-flash{ from{ opacity:1; transform:scale(.6); } to{ opacity:0; transform:scale(1.4); } }
+  #gwBadgeLayer{ position:fixed; inset:0; z-index:99400; pointer-events:none; }
+  .gw-badge{ position:fixed; pointer-events:auto; padding:3px 8px; border-radius:8px; font:700 10.5px/1.3 ui-monospace, monospace; color:#111; background:#facc15;
+    box-shadow:0 2px 8px rgba(0,0,0,.4); cursor:copy; white-space:nowrap; }
+  .gw-badge::before{ content:"🔗 "; }
+  #announcementGatewayBtn{ display:none; margin-top:18px; padding:14px 26px; border-radius:16px; border:0; font:inherit; font-size:16px; font-weight:900; cursor:pointer;
+    color:#111; background:linear-gradient(135deg, #facc15, #fb923c); box-shadow:0 10px 30px rgba(250,204,21,.35); }
 
   .week-nav-btn{
     width:34px; height:34px; flex-shrink:0; border-radius:50%;
@@ -5224,6 +5330,7 @@
 
   <section class="screen" id="screen-missions">
     <div class="tm-switch beta-lessons-only"><button id="tmSwitchMissions1" class="on">🎯 Missionen</button><button id="tmSwitchTrends1">📈 Trends</button></div>
+    <div id="challengeCard" class="challenge-wrap"></div>
     <div class="nova-screen layout-nova-only" id="novaMissions"></div>
     <div class="topbar">
       <div class="brand"><span class="dot"></span>MathEdits</div>
@@ -5532,6 +5639,7 @@
         <div class="owner-category-tile" id="ownerToolPoll"><span class="icon">📊</span><span class="label">Umfrage</span></div>
         <div class="owner-category-tile" id="ownerToolCodes"><span class="icon">🎁</span><span class="label">Einlöse-Codes</span></div>
         <div class="owner-category-tile" id="ownerToolPlayerGoal"><span class="icon">🎯</span><span class="label">Spieler-Ziel</span></div>
+        <div class="owner-category-tile" id="ownerToolChallenge"><span class="icon">🏆</span><span class="label">Herausforderung</span></div>
       </div>
 
       <!-- Kategorie-Inhalte (NEU): klappen direkt unter dem Kachel-Raster
@@ -5567,8 +5675,30 @@
           <option value="14">14 Tage</option>
           <option value="30">30 Tage</option>
         </select>
+        <div class="d" style="margin-bottom:4px;">Knopf mit Sprungziel (Gateway) – optional</div>
+        <input type="text" id="announcementBtnTextInput" class="input-field" placeholder="Knopf-Text, z. B. Zur Mission!" maxlength="40" style="margin-bottom:8px;">
+        <select id="announcementGatewaySelect" class="input-field" style="margin-bottom:8px;"></select>
+        <div class="d" style="margin-bottom:10px; font-size:11.5px;">Tipp: Im 🛠️ Entwicklermodus siehst du auf jedem Bildschirm gelbe 🔗-Schilder mit den Gateway-IDs.</div>
         <button class="btn btn-primary btn-small" id="announcementSendBtn" style="width:100%; background:#60a5fa; border-color:#60a5fa;">Ankündigung senden</button>
         <button class="btn btn-ghost btn-small" id="announcementDeleteBtn" style="width:100%; margin-top:8px; border-color:#ef4444; color:#ef4444;">🗑️ Aktuelle Ankündigung löschen</button>
+      </div>
+
+      <div class="owner-inline-panel" id="panelOwnerChallenge">
+        <div style="font-weight:800; margin-bottom:8px; color:#facc15;">🏆 Herausforderung für alle</div>
+        <div class="d" id="ownerChallengeStatus" style="margin-bottom:10px;">Aktuell keine Herausforderung.</div>
+        <div class="d" style="margin-bottom:4px;">Stil</div>
+        <select id="ownerChStyle" class="input-field" style="margin-bottom:8px;"><option value="standard">✨ Standard</option><option value="halloween" selected>🎃 Halloween</option><option value="christmas">🎄 Weihnachten</option></select>
+        <input type="text" id="ownerChTitle" class="input-field" placeholder="Titel, z. B. Kürbis-Jagd" maxlength="80" style="margin-bottom:8px;">
+        <div class="d" style="margin-bottom:4px;">Aufgabe: Lektionen insgesamt (ab Start)</div>
+        <input type="number" id="ownerChTarget" class="input-field" value="20" min="1" max="1000" style="margin-bottom:8px;">
+        <div class="d" style="margin-bottom:4px;">Dauer</div>
+        <select id="ownerChDuration" class="input-field" style="margin-bottom:8px;"><option value="1">1 Tag</option><option value="3">3 Tage</option><option value="7" selected>7 Tage</option><option value="14">14 Tage</option><option value="30">30 Tage</option></select>
+        <div class="d" style="margin-bottom:4px;">Belohnung (Design)</div>
+        <select id="ownerChReward" class="input-field" style="margin-bottom:10px;"></select>
+        <button class="btn btn-primary btn-small" id="ownerChStartBtn" style="width:100%; background:#facc15; border-color:#facc15; color:#111;">Herausforderung starten</button>
+        <button class="btn btn-ghost btn-small" id="ownerChDeleteBtn" style="width:100%; margin-top:8px; border-color:#ef4444; color:#ef4444;">🗑️ Aktuelle Herausforderung löschen</button>
+        <div class="d" style="margin:14px 0 4px;">Geheime Designs (🎃 Halloween, ❄️ Winter) – nicht im Shop</div>
+        <button class="btn btn-ghost btn-small" id="ownerUnlockSecretBtn" style="width:100%;">Für mich gratis freischalten</button>
       </div>
 
       <div class="owner-inline-panel" id="panelOwnerSiteStop">
@@ -6828,6 +6958,7 @@
     <button id="announcementCloseBtn" style="position:absolute; top:16px; right:16px; z-index:2; width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.3); color:#fff; font-size:20px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
     <div id="announcementTextDisplay" style="font-size:26px; font-weight:900; color:#fff; white-space:pre-wrap; line-height:1.35; max-width:440px; margin-bottom:18px;"></div>
     <img id="announcementImageDisplay" style="display:none; max-width:100%; max-height:55vh; border-radius:16px; object-fit:contain;">
+    <button id="announcementGatewayBtn">Los geht's!</button>
   </div>
 
   <!-- Feedback-Aura-Geschenk (NEU): Vollbild-Banner statt nur einer kleinen
@@ -7031,7 +7162,7 @@
     <div class="boss-fx-bg"></div>
     <div class="boss-ring"></div><div class="boss-ring r2"></div>
     <div class="boss-fx-title">⚔️ BOSS-TEST</div>
-    <div class="boss-fx-sub" id="bossFxSub">12 Aufgaben · kein Fehler erlaubt</div>
+    <div class="boss-fx-sub" id="bossFxSub">20 Aufgaben · 5 Minuten · 3 Leben</div>
   </div>
 
   <!-- Posteingang (NEU, Nova-Glocke) -->
@@ -7151,7 +7282,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.02";
+  const APP_VERSION = "4.04";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -8221,7 +8352,8 @@
     black: "#ffd700", white_clean: "#2563eb", clean: "#22c55e", pink: "#ec4899",
     glass: "#60a5fa", glow: "#c084fc", glitch: "#a855f7", galaxy: "#8b5cf6",
     sunset: "#f97316", cyber: "#00e5ff", royal: "#ffd700", cloud: "#60a5fa",
-    toxic: "#7fff00", crimson: "#dc2626", minimal: "#1a1a1a"
+    toxic: "#7fff00", crimson: "#dc2626", minimal: "#1a1a1a",
+    halloween: "#ff7a1a", winter: "#7dd3fc"
   };
   function broadcastNameColorFor(themeId){
     return THEME_ACCENT_COLORS[themeId] || THEME_ACCENT_COLORS.black;
@@ -8326,8 +8458,11 @@
         createdAt: Date.now(),
         expiresAt: Date.now() + days * 24 * 60 * 60 * 1000,
         createdBy: currentUser.uid,
-        targetUid: targetUid // null = an alle, sonst nur an diese eine Person
+        targetUid: targetUid, // null = an alle, sonst nur an diese eine Person
+        gateway: $("announcementGatewaySelect").value || null,
+        buttonText: ($("announcementBtnTextInput").value.trim() || "Los geht's!").slice(0, 40)
       });
+      $("announcementBtnTextInput").value = ""; $("announcementGatewaySelect").value = "";
       $("announcementTextInput").value = "";
       $("announcementImageInput").value = "";
       $("announcementTargetUsernameInput").value = "";
@@ -8418,6 +8553,10 @@
         $("announcementImageDisplay").style.display = "none";
       }
       $("overlayAnnouncement").dataset.currentId = docId;
+      // Gateway-Knopf (NEU): springt genau zur gewählten Stelle
+      $("announcementGatewayBtn").style.display = data.gateway ? "inline-block" : "none";
+      $("announcementGatewayBtn").dataset.gw = data.gateway || "";
+      $("announcementGatewayBtn").textContent = data.buttonText || "Los geht's!";
       $("overlayAnnouncement").style.display = "flex";
       pauseLessonTimerForOwnerEvent();
       // WICHTIG: sobald sie angezeigt wird, sofort als gesehen speichern -
@@ -13479,6 +13618,9 @@
       new Set([...Object.keys(a), ...Object.keys(b)]).forEach(tid => { const x = a[tid] || {}, y = b[tid] || {}; out[tid] = {};
         new Set([...Object.keys(x), ...Object.keys(y)]).forEach(ti => { out[tid][ti] = { c: Math.max((x[ti] || {}).c || 0, (y[ti] || {}).c || 0), w: Math.max((x[ti] || {}).w || 0, (y[ti] || {}).w || 0) }; }); });
       merged.topicTypeStats = out; }
+    { const a = localP.challengeProg, b = cloudP.challengeProg;
+      if(a && b && a.id === b.id) merged.challengeProg = { id: a.id, count: Math.max(a.count || 0, b.count || 0), claimed: !!(a.claimed || b.claimed) };
+      else merged.challengeProg = (a && b) ? ((a.id > b.id) ? a : b) : (a || b || null); }
     merged.claimedStreakRescueIds = Array.from(new Set([...(localP.claimedStreakRescueIds || []), ...(cloudP.claimedStreakRescueIds || [])]));
     merged.claimedAuraDonationIds = Array.from(new Set([
       ...(localP.claimedAuraDonationIds || []),
@@ -14076,7 +14218,8 @@
       removeDevModeLabels();
       stopDevModeObserver();
     }
-    showToast(profile.devModeEnabled ? "🛠️ Entwicklermodus AN" : "Entwicklermodus AUS");
+    showToast(profile.devModeEnabled ? "🛠️ Entwicklermodus AN – 🔗 Gateway-Schilder sichtbar" : "Entwicklermodus AUS");
+    if(typeof gwStartBadges === "function") gwStartBadges();
   }
 
   // Beobachtet neu hinzugefügte Elemente (z.B. Shop-Artikel oder Ranglisten-
@@ -14728,6 +14871,7 @@
     if(name === "lesson") screens.lesson.classList.toggle("exam-mode", !!(lesson && lesson.isExam));
     if(name === "lesson") screens.lesson.classList.toggle("hard-mode", !!(lesson && lesson.hardMode));
     if(name === "lesson") screens.lesson.classList.toggle("boss-mode", !!(lesson && lesson.isSkip));
+    if(name === "missions" && typeof renderChallengeCard === "function"){ renderChallengeCard(); loadChallenge(); }
     if(name !== "lesson" && typeof lxLupeCancel === "function") lxLupeCancel(); // Lupe beim Verlassen sauber schließen
 
     // Neue Lektionen / Lektions-Hintergrund (NEU, Beta-Einstellungen)
@@ -15428,6 +15572,8 @@
     if(t === "clean" || t === "light") icon = "🍃";
     if(t === "glass") icon = "🪟";
     if(t === "glow") icon = "🔮";
+    if(t === "halloween") icon = "🎃";
+    if(t === "winter") icon = "❄️";
     
     $("themeToggle").textContent = icon;
     $("themeToggleShop").textContent = icon;
@@ -15463,7 +15609,7 @@
   
   function populateThemeSelect(select, unlocked){
     if(!select) return;
-    select.innerHTML = ALL_THEME_IDS.map(id => {
+    select.innerHTML = ALL_THEME_IDS.filter(id => !SECRET_THEMES.includes(id) || unlocked.includes(id)).map(id => { // geheime nur, wenn freigeschaltet
       const label = THEME_DISPLAY_NAME[id] || id;
       const lockIcon = (id === "black" || unlocked.includes(id)) ? "" : " (🔒)";
       return `<option value="${id}">${label}${lockIcon}</option>`;
@@ -15490,13 +15636,17 @@
      Nutzer per Benutzername und erlaubt, dessen Aura/Level/Streak/
      freigeschaltete Designs direkt in dessen Firestore-Dokument zu setzen.
   ======================================================== */
-  const ALL_THEME_IDS = ["black", "white_clean", "clean", "pink", "glass", "glow", "glitch", "galaxy", "sunset", "cyber", "royal", "cloud", "toxic", "crimson", "minimal", "blocks", "webhero", "darkwolf", "ice"];
+  const ALL_THEME_IDS = ["black", "white_clean", "clean", "pink", "glass", "glow", "glitch", "galaxy", "sunset", "cyber", "royal", "cloud", "toxic", "crimson", "minimal", "blocks", "webhero", "darkwolf", "ice", "halloween", "winter"];
+  // Geheime Designs (NEU): nicht im Shop, nicht kaufbar - nur über den Owner
+  // oder als Belohnung einer Herausforderung. Wer sie nicht hat, sieht sie nirgends.
+  const SECRET_THEMES = ["halloween", "winter"];
   const THEME_DISPLAY_NAME = {
     black: "Schwarz", white_clean: "Weiß Clean", clean: "Clean", pink: "Pink",
     glass: "Glas", glow: "Glow", glitch: "Glitch", galaxy: "Galaxy",
     sunset: "Sunset", cyber: "Cyber", royal: "Royal", cloud: "Cloud",
     toxic: "Toxic", crimson: "Crimson", minimal: "Minimal",
-    blocks: "Pixel", webhero: "CobWeb", darkwolf: "Dark Wolf", ice: "Ice"
+    blocks: "Pixel", webhero: "CobWeb", darkwolf: "Dark Wolf", ice: "Ice",
+    halloween: "🎃 Halloween", winter: "❄️ Winter"
   };
   let ownerEditingUid = null;
   let ownerEditingOriginalAura = 0;
@@ -18042,6 +18192,7 @@
               lastSettingsJSON = settingsSnapshot(profile); // übernommene Einstellungen sind kein "neuer" Wechsel
               syncSettingsOnOpen(cloudData); // Einstellungen EINMAL beim Öffnen abgleichen
               setTimeout(() => { if(typeof claimStreakRescues === "function") claimStreakRescues(); }, 1500); // gerettete Streaks abholen
+              setTimeout(() => { if(typeof loadChallenge === "function") loadChallenge(true); }, 2000); // Herausforderung
               applyTheme();
               cloudSyncReady = true;
               // Bugfix (siehe init()): die Streak-/Icecube-Prüfung wird für
@@ -19700,7 +19851,7 @@
     root.querySelectorAll("[data-skipto]").forEach(b => b.addEventListener("click", async () => {
       const to = parseInt(b.dataset.skipto, 10), from = lxChapterOf(Math.min(st.done + 1, 30));
       const span = from === to - 1 ? `Kapitel ${from}` : `Kapitel ${from}–${to - 1}`;
-      const ok = await showConfirmPopup(`⏭ Zu Kapitel ${to} springen?\n\nTest über ${span} mit den schwierigsten Aufgaben: ${SKIP_TASKS} Aufgaben · 5 Minuten.\nKEIN Fehler erlaubt!\n\nGeschafft = übersprungene Lektionen erledigt, aber ohne Aura, Sterne und Truhen.`);
+      const ok = await showConfirmPopup(`⏭ Zu Kapitel ${to} springen?\n\nBoss-Test über ${span}: ${SKIP_TASKS} besonders schwere Aufgaben · 5 Minuten · ${BOSS_LIVES} Leben.\nJeder Fehler kostet ein Leben – ohne Leben ist der Test vorbei.\n\nGeschafft = übersprungene Lektionen erledigt, aber ohne Aura, Sterne und Truhen.`);
       if(ok) lxStartSkipTest(t.id, from, to - 1);
     }));
     root.querySelectorAll("[data-exam]").forEach(b => b.addEventListener("click", async () => {
@@ -20498,7 +20649,8 @@
     $("lupePanel").classList.add("show");
     $("screen-lesson").classList.add("lupe-on");
     // Die Lösung (Computerprinzip) startet direkt (NEU)
-    if(!lesson.isExamReview) setTimeout(() => { if(lxLupeActive && !pfProg && !lxSolvePlan) $("lupeShowResult").click(); }, 120);
+    // SOFORT (im selben Moment) - sonst blitzt kurz das alte Lupe-Fenster auf
+    if(!pfProg && !lxSolvePlan) $("lupeShowResult").click();
   }
   function lxLupeExplain(sp){
     const scr = $("screen-lesson"), bub = $("lupeBubble");
@@ -21782,7 +21934,7 @@
     $("examHeadTitle").textContent = lesson.isSkip ? "⚔️ Boss-Test" : "📝 Klassenarbeit";
     $("examPts").style.display = lesson.isSkip ? "none" : "";
     $("examPts").textContent = `${lesson.examPoints || 0} P.`;
-    $("examHeadSub").textContent = `${lxTopic(lesson.topicId).name} · Kapitel ${lesson.examCh}${lesson.isSkip && lesson.skipToCh > lesson.examCh ? "–" + lesson.skipToCh : ""}${lesson.isSkip ? " · kein Fehler!" : ""}`;
+    $("examHeadSub").textContent = `${lxTopic(lesson.topicId).name} · Kapitel ${lesson.examCh}${lesson.isSkip && lesson.skipToCh > lesson.examCh ? "–" + lesson.skipToCh : ""}`;
     $("qTier").textContent = `Aufgabe ${lesson.index + 1} von ${lesson.questions.length}`;
     let dots = $("examDots");
     if(!dots){ dots = document.createElement("div"); dots.id = "examDots"; dots.className = "exam-dots"; $("examHead").closest(".lesson-top").after(dots); }
@@ -21813,11 +21965,16 @@
     lxRecordTypeStat(lesson.topicId, q._ti, ok);
     lesson.examResults.push({ q, ok, given: isTimeout ? "" : lesson.answer, pts: ok ? (q._pts || 1) : 0, max: q._pts || 1 });
     if(ok) lesson.examPoints = (lesson.examPoints || 0) + (q._pts || 1);
-    if(lesson.isSkip && !ok){ cancelAnimationFrame(timerRAF); finishSkip(false, q, false); return; } // Sudden Death
+    if(lesson.isSkip && !ok){ // Boss-Test: ein Leben weg - bei 0 Leben ist der Test vorbei
+      lesson.bossLives = Math.max(0, (lesson.bossLives || 0) - 1);
+      bossMiss(); bossRenderHp();
+      if(lesson.bossLives <= 0){ cancelAnimationFrame(timerRAF); setTimeout(() => finishSkip(false, q, false), 650); return; }
+    }
     if(lesson.isSkip && ok){ bossHit(); bossRenderHp(); } // Treffer!
     if(!lesson.isSkip){ examShowFeedback(q, ok); return; } // Klassenarbeit: Lösung + Punkte sofort
-    // Überspringen-Test: nichts verraten - nur "gespeichert", dann weiter
-    const el = $("answerDisplay"); el.classList.remove("wrong", "right", "empty"); el.textContent = "✓ gespeichert";
+    // Boss-Test: Treffer oder Leben verloren, dann weiter (Lösung wird nicht verraten)
+    const el = $("answerDisplay"); el.classList.remove("wrong", "right", "empty");
+    el.textContent = ok ? "⚔️ Treffer!" : `✗ Falsch! −1 ❤️`; el.classList.add(ok ? "right" : "wrong");
     triggerHaptic(10);
     setTimeout(() => {
       if(!lesson || !lesson.isExam) return;
@@ -21930,9 +22087,8 @@
     renderQuestion();
     $("timerNum").textContent = `${lesson.index + 1}/${lesson.questions.length}`;
     setTimeout(() => {
-      lxLupeOpen();
+      lxLupeOpen(); // startet die Lösung direkt
       $("lupeClose").textContent = lesson.index < lesson.questions.length - 1 ? "Nächster Fehler ›" : "Fertig – zurück zum Pfad";
-      $("lupeShowResult").click();
     }, 250);
   }
   function examReviewNext(){
@@ -22129,15 +22285,17 @@
      Test mit den schwierigsten Aufgaben des Kapitels, KEIN Fehler erlaubt.
      Geschafft -> alle Lektionen des Kapitels erledigt, aber ohne Aura,
      Sterne und Truhe. */
-  const SKIP_TASKS = 12, SKIP_MS = 8 * 60 * 1000;
+  const SKIP_TASKS = 20, SKIP_MS = 5 * 60 * 1000, BOSS_LIVES = 3;
   function lxBuildSkip(topicId, fromCh, toCh){
     toCh = toCh || fromCh;
     const types = LX_TYPES[topicId], lo = (fromCh - 1) * 10, hi = toCh * 10;
     const chTypes = types.filter(t => t.from > lo && t.from <= hi && !(t.weight !== undefined && t.weight < 1)).sort((a, b) => a.from - b.from);
-    const pool = chTypes.length ? chTypes : types.filter(t => t.from <= hi);
+    // besonders schwierig: keine Einsteiger-Aufgaben (Mitmachen/Kästchen zählen), wenn genug andere da sind
+    const hard = chTypes.filter(t => !lxIsBasicType(t));
+    const pool = hard.length >= 2 ? hard : chTypes.length ? chTypes : types.filter(t => t.from <= hi);
     const qs = [], keys = new Set();
     for(let i = 0; qs.length < SKIP_TASKS && i < 300; i++){
-      const t = pool[i % pool.length], q = t.gen(Math.min(30, Math.ceil(t.from / 10) * 10)); // schwerste Stufe des jeweiligen Kapitels
+      const t = pool[i % pool.length], q = t.gen(30); // besonders schwierig: höchste Stufe
       const key = lxPlain(q.text) + "|" + (q.svg || "") + "|" + q.answer;
       if(!Number.isInteger(q.answer) || keys.has(key)) continue;
       keys.add(key); q._ti = types.indexOf(t); q._order = pool.indexOf(t); qs.push(q);
@@ -22149,6 +22307,7 @@
     lesson = {
       tier: { id: "skip_" + topicId, name: `⏭ Überspringen · Kapitel ${ch}`, icon: "⏭", timeMs: SKIP_MS, normalAura: 0, editAura: 0 },
       isMainProgression: false, noLifeLoss: true, isExam: true, isSkip: true, examCh: ch, skipToCh: toCh, topicId, examMs: SKIP_MS,
+      bossLives: BOSS_LIVES, // eigene Leben, unabhängig von den normalen (auch mit Super)
       questions: lxBuildSkip(topicId, ch, toCh), index: 0, correct: 0, aura: 0, answer: "", locked: false, missedCurrentQuestion: false,
       examStart: Date.now(), examResults: []
     };
@@ -22158,7 +22317,7 @@
     screens.lesson.classList.add("boss-mode");
     // Bossfight-Intro, danach startet die Zeit
     const fx = $("bossFx"); fx.classList.remove("show"); void fx.offsetWidth; fx.classList.add("show");
-    $("bossFxSub").textContent = `${L.questions.length} Aufgaben · kein Fehler erlaubt`;
+    $("bossFxSub").textContent = `${L.questions.length} Aufgaben · 5 Minuten · ${BOSS_LIVES} Leben`;
     triggerHaptic([80, 50, 80, 50, 160]);
     // erste Aufgabe schon HINTER dem Intro laden (sonst schimmert die alte Lektion durch), Zeit steht still
     L.examPausedAt = Date.now();
@@ -22176,15 +22335,23 @@
     if(!lesson || !lesson.isSkip) return;
     let hp = $("bossHp");
     if(!hp){ hp = document.createElement("div"); hp.id = "bossHp"; hp.className = "boss-hp"; hp.innerHTML = '<i id="bossHpFill"></i><span id="bossHpTxt"></span>'; $("examHead").closest(".lesson-top").after(hp); }
+    let lv = $("bossLives");
+    if(!lv){ lv = document.createElement("div"); lv.id = "bossLives"; lv.className = "boss-lives"; hp.after(lv); }
     const total = lesson.questions.length, left = total - (lesson.correct || 0);
     $("bossHpFill").style.width = (left / total * 100) + "%";
     $("bossHpTxt").textContent = `⚔️ Boss-HP ${left} / ${total}`;
+    lv.innerHTML = Array.from({ length: BOSS_LIVES }, (_, i) => `<span class="${i < lesson.bossLives ? "on" : "off"}">${i < lesson.bossLives ? "❤️" : "🖤"}</span>`).join("") + `<small>Aufgabe ${Math.min(lesson.index + 1, total)} / ${total}</small>`;
+  }
+  function bossMiss(){
+    const scr = screens.lesson; scr.classList.remove("boss-miss"); void scr.offsetWidth; scr.classList.add("boss-miss");
+    setTimeout(() => scr.classList.remove("boss-miss"), 600);
+    triggerHaptic([60, 40, 120]);
   }
   let skipLast = null;
   function finishSkip(success, failedQ, timeUp){
     cancelAnimationFrame(timerRAF);
     const L = lesson, ch = L.examCh, st = lxState(L.topicId);
-    skipLast = { topicId: L.topicId, ch, failedQ };
+    skipLast = { topicId: L.topicId, ch, failedQ, wrong: L.examResults.filter(r => !r.ok).map(r => r.q) };
     const toCh = L.skipToCh || ch;
     if(success){
       st.done = Math.max(st.done, toCh * 10);
@@ -22204,9 +22371,10 @@
     $("skipTitle").textContent = success ? (toCh < 3 ? `Willkommen in Kapitel ${toCh + 1}!` : "Thema übersprungen!") : "Nicht geschafft";
     $("skipText").textContent = success
       ? `Die übersprungenen Lektionen sind erledigt – ohne Aura, Sterne und Truhen. ${toCh < 3 ? `Weiter geht's mit Kapitel ${toCh + 1}.` : "Damit ist das ganze Thema geschafft!"}`
-      : timeUp ? "Die Zeit ist abgelaufen. Beim Überspringen-Test muss alles sitzen."
-               : `Aufgabe ${L.examResults.length} war falsch. Beim Überspringen-Test ist kein Fehler erlaubt.`;
-    $("skipReviewBtn").style.display = !success && failedQ ? "" : "none";
+      : timeUp ? `Die Zeit ist abgelaufen – ${L.examResults.filter(r => r.ok).length} von ${L.questions.length} Aufgaben geschafft.`
+               : `Alle ${BOSS_LIVES} Leben verloren – bei Aufgabe ${L.examResults.length} von ${L.questions.length}.`;
+    $("skipReviewBtn").style.display = !success && skipLast.wrong.length ? "" : "none";
+    $("skipReviewBtn").textContent = `🧩 ${skipLast.wrong.length} ${skipLast.wrong.length === 1 ? "Fehler" : "Fehler"} mit Lösung ansehen`;
     $("overlaySkipResult").classList.add("show");
     if(success){ triggerHaptic([30, 40, 60]); if(typeof spawnConfetti === "function") spawnConfetti(); }
   }
@@ -22216,9 +22384,9 @@
     showScreen("lessons"); renderLessonsScreen();
   });
   $("skipReviewBtn").addEventListener("click", () => {
-    if(!skipLast || !skipLast.failedQ) return;
+    if(!skipLast || !skipLast.wrong || !skipLast.wrong.length) return;
     $("overlaySkipResult").classList.remove("show");
-    examLast = { topicId: skipLast.topicId, ch: skipLast.ch, wrong: [skipLast.failedQ], all: [] };
+    examLast = { topicId: skipLast.topicId, ch: skipLast.ch, wrong: skipLast.wrong, all: [] };
     startExamReview();
   });
 
@@ -22243,6 +22411,193 @@
     }));
     $("overlayLxLevel").classList.add("show");
   }
+
+
+  /* ===================== HERAUSFORDERUNG FÜR ALLE (NEU) =====================
+     Owner erstellt in appConfig/challenge: Titel, Stil, Dauer, Ziel (Lektionen),
+     Belohnung (Design). Wird oben bei den Missionen groß angezeigt. Gezählt
+     werden nur Lektionen ab dem Start der Herausforderung. */
+  let challengeData = null, challengeLoadedAt = 0;
+  const CH_STYLES = {
+    standard: { label: "Standard", badge: "🏆 Herausforderung", deco: ["✨", "⭐", "✨"] },
+    halloween: { label: "🎃 Halloween", badge: "🎃 Halloween-Event", deco: ["🎃", "🦇", "🕸️", "👻"] },
+    christmas: { label: "🎄 Weihnachten", badge: "🎄 Weihnachts-Event", deco: ["❄️", "🎁", "🎄", "⭐"] }
+  };
+  function challengeActive(c){ const now = Date.now(); return !!(c && c.startAt <= now && now < c.endAt); }
+  async function loadChallenge(force){
+    if(!firebaseInitialized || !currentUser) return;
+    if(!force && Date.now() - challengeLoadedAt < 10 * 60 * 1000) return; // höchstens alle 10 Min lesen
+    challengeLoadedAt = Date.now();
+    try{
+      const doc = await db().collection("appConfig").doc("challenge").get();
+      challengeData = doc.exists ? doc.data() : null;
+    }catch(e){ console.error("Herausforderung laden:", e); }
+    renderChallengeCard();
+    if(typeof renderOwnerChallengeStatus === "function") renderOwnerChallengeStatus();
+  }
+  function challengeProg(){
+    const c = challengeData;
+    if(!c) return null;
+    if(!profile.challengeProg || profile.challengeProg.id !== c.id) profile.challengeProg = { id: c.id, count: 0, claimed: false };
+    return profile.challengeProg;
+  }
+  function challengeOnLesson(){
+    const c = challengeData;
+    if(!challengeActive(c)) return;
+    const pr = challengeProg();
+    pr.count++;
+    if(!pr.claimed && pr.count >= c.target){
+      pr.claimed = true;
+      const th = c.rewardTheme;
+      if(th){ profile.unlockedThemes = [...new Set([...(profile.unlockedThemes || ["black"]), th])]; }
+      pushInboxEvent("🏆", `Herausforderung „${c.title}“ geschafft – Design ${THEME_DISPLAY_NAME[th] || th} freigeschaltet!`);
+      setTimeout(() => { showToast(`🏆 Herausforderung geschafft! Design „${THEME_DISPLAY_NAME[th] || th}“ freigeschaltet`); if(typeof spawnConfetti === "function") spawnConfetti(); }, 1500);
+    }
+    saveProfile();
+    renderChallengeCard();
+  }
+  function challengeTimeLeft(c){
+    const ms = Math.max(0, c.endAt - Date.now()), d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4);
+    return d > 0 ? `noch ${d} ${d === 1 ? "Tag" : "Tage"} ${h} Std.` : h > 0 ? `noch ${h} Std. ${m} Min.` : `noch ${m} Min.`;
+  }
+  function renderChallengeCard(){
+    const box = $("challengeCard"); if(!box) return;
+    const c = challengeData;
+    if(!challengeActive(c)){ box.innerHTML = ""; return; }
+    const pr = challengeProg(), st = CH_STYLES[c.style] || CH_STYLES.standard;
+    const pct = Math.min(100, Math.round(pr.count / c.target * 100));
+    const deco = st.deco.map((e, i) => `<span style="right:${8 + i * 34}px; top:${i % 2 ? 40 : 8}px; animation-delay:${i * .6}s">${e}</span>`).join("");
+    const th = c.rewardTheme, col = (THEME_ACCENT_COLORS && THEME_ACCENT_COLORS[th]) || "#a78bfa";
+    box.innerHTML = `<div class="ch-card st-${c.style || "standard"}${pr.claimed ? " done" : ""}" data-gw-el="missions.challenge">
+      <div class="ch-deco">${deco}</div>
+      <span class="ch-badge">${st.badge}</span>
+      <div class="ch-title">${lxEsc(c.title || "Herausforderung")}</div>
+      <div class="ch-task">📚 Schaffe ${c.target} Lektionen</div>
+      <div class="ch-time">⏳ ${challengeTimeLeft(c)}</div>
+      <div class="ch-bar"><i style="width:${pct}%"></i></div>
+      <div class="ch-prog"><span>${Math.min(pr.count, c.target)} / ${c.target} Lektionen</span><span>${pct} %</span></div>
+      <div class="ch-reward"><div class="ch-swatch" style="background:linear-gradient(135deg, ${col}, #111)"></div>
+        <div><b>${pr.claimed ? "✓ Geschafft!" : "Belohnung"}</b><small>Design „${lxEsc(THEME_DISPLAY_NAME[th] || th || "?")}“${pr.claimed ? " ist freigeschaltet" : ""}</small></div></div>
+    </div>`;
+  }
+  // ---- Owner-Steuerung ----
+  function renderOwnerChallengeStatus(){
+    const el = $("ownerChallengeStatus"); if(!el) return;
+    const c = challengeData;
+    el.textContent = challengeActive(c) ? `Aktiv: „${c.title}“ · ${c.target} Lektionen · ${challengeTimeLeft(c)}` : c ? "Die letzte Herausforderung ist abgelaufen." : "Aktuell keine Herausforderung.";
+  }
+  async function ownerStartChallenge(){
+    if(!isOwner()) return;
+    const title = $("ownerChTitle").value.trim(), target = parseInt($("ownerChTarget").value, 10), days = parseFloat($("ownerChDuration").value);
+    if(!title) return showToast("Bitte einen Titel eingeben.");
+    if(!(target >= 1 && target <= 1000)) return showToast("Anzahl Lektionen: 1 bis 1000.");
+    const data = { id: "ch_" + Date.now(), title: title.slice(0, 80), style: $("ownerChStyle").value, type: "lessons", target,
+      rewardTheme: $("ownerChReward").value, startAt: Date.now(), endAt: Date.now() + days * 864e5, createdBy: currentUser.uid };
+    try{
+      await db().collection("appConfig").doc("challenge").set(data);
+      challengeData = data; challengeLoadedAt = Date.now();
+      renderOwnerChallengeStatus(); renderChallengeCard();
+      showToast("🏆 Herausforderung gestartet – alle sehen sie bei den Missionen!");
+    }catch(e){ showErrorPopup("Herausforderung konnte nicht gestartet werden:\n" + (e.message || e)); }
+  }
+  async function ownerDeleteChallenge(){
+    if(!isOwner()) return;
+    if(!(await showConfirmPopup("Aktuelle Herausforderung für ALLE löschen?"))) return;
+    try{
+      await db().collection("appConfig").doc("challenge").delete();
+      challengeData = null; renderOwnerChallengeStatus(); renderChallengeCard();
+      showToast("🗑️ Herausforderung gelöscht.");
+    }catch(e){ showErrorPopup("Löschen fehlgeschlagen:\n" + (e.message || e)); }
+  }
+  $("ownerChReward").innerHTML = ALL_THEME_IDS.map(id => `<option value="${id}">${THEME_DISPLAY_NAME[id] || id}${SECRET_THEMES.includes(id) ? " (geheim)" : ""}</option>`).join("");
+  $("ownerChReward").value = "halloween";
+  $("ownerChStartBtn").addEventListener("click", ownerStartChallenge);
+  $("ownerChDeleteBtn").addEventListener("click", ownerDeleteChallenge);
+  $("ownerToolChallenge").addEventListener("click", () => {
+    toggleOwnerPanel("panelOwnerChallenge", "ownerToolChallenge", () => { loadChallenge(true); renderOwnerChallengeStatus(); });
+  });
+  $("ownerUnlockSecretBtn").addEventListener("click", () => {
+    profile.unlockedThemes = [...new Set([...(profile.unlockedThemes || ["black"]), ...SECRET_THEMES])];
+    saveProfile(); renderSettings();
+    showToast("🎃❄️ Geheime Designs freigeschaltet – in den Einstellungen auswählbar.");
+  });
+
+  /* ===================== GATEWAYS (NEU) =====================
+     Feste Sprungziele in der App. Im Entwicklermodus zeigt jedes Ziel auf dem
+     aktuellen Bildschirm ein gelbes 🔗-Schild mit seiner ID (antippen =
+     kopieren). Eine Ankündigung kann einen Knopf mit einem Gateway haben:
+     Antippen springt genau dorthin und hebt die Stelle kurz hervor. */
+  const nav = id => () => { const b = $(id); if(b) b.click(); };
+  const nthMission = n => () => document.body.classList.contains("layout-nova")
+    ? document.querySelectorAll("#novaMissions .nsx-row")[n - 1] : ($("missionsList") ? $("missionsList").children[n - 1] : null);
+  const GATEWAYS = {
+    "home": { label: "🏠 Home", go: nav("navHome"), el: () => $("screen-home") },
+    "missions": { label: "🎯 Missionen", go: nav("navMissions"), el: () => $("screen-missions") },
+    "missions.challenge": { label: "🏆 Missionen → Herausforderung", go: nav("navMissions"), el: () => document.querySelector("#challengeCard .ch-card") },
+    "missions.daily.1": { label: "🎯 Missionen → 1. Tagesmission", go: nav("navMissions"), el: nthMission(1) },
+    "missions.daily.2": { label: "🎯 Missionen → 2. Tagesmission", go: nav("navMissions"), el: nthMission(2) },
+    "missions.daily.3": { label: "🎯 Missionen → 3. Tagesmission", go: nav("navMissions"), el: nthMission(3) },
+    "missions.daily.4": { label: "🎯 Missionen → 4. Tagesmission", go: nav("navMissions"), el: nthMission(4) },
+    "missions.daily.5": { label: "🎯 Missionen → 5. Tagesmission", go: nav("navMissions"), el: nthMission(5) },
+    "missions.daily.6": { label: "🎯 Missionen → Lektionen-Mission", go: nav("navMissions"), el: nthMission(6) },
+    "trends": { label: "📈 Trends", go: nav("navTrends"), el: () => $("screen-trends") },
+    "trends.topics": { label: "📈 Trends → Lektionen-Themen", go: nav("navTrends"), el: () => $("lxTrends") },
+    "lessons": { label: "📚 Lektionen", go: nav("navLessons"), el: () => $("screen-lessons") },
+    "shop": { label: "🛒 Shop", go: nav("navShop"), el: () => $("screen-shop") },
+    "shop.icecube": { label: "🛒 Shop → Icecube", go: nav("navShop"), el: () => $("buyIcecube") && $("buyIcecube").closest(".shop-item") || $("buyIcecube") },
+    "leaderboard": { label: "🏆 Rangliste", go: nav("navLeaderboard"), el: () => $("screen-leaderboard") },
+    "profile": { label: "👤 Profil", go: nav("navProfile"), el: () => $("screen-profile") },
+    "settings.design": { label: "⚙️ Einstellungen → Design", go: () => { showScreen("settings"); setTimeout(() => { renderSettings(); $("overlayDesignSettings").classList.add("show"); }, 150); }, el: () => $("themeSelect") }
+  };
+  // Themen der Lektionen als eigene Ziele
+  LX_TOPICS.forEach(t => { GATEWAYS["lessons." + t.id] = { label: `📚 Lektionen → ${t.icon} ${t.name}`, go: () => { nav("navLessons")(); setTimeout(() => { if(typeof lxOpenTopic === "function") lxOpenTopic(t.id); }, 150); }, el: () => document.querySelector(".lx-path, #screen-lessons") }; });
+  function gwGo(id){
+    const g = GATEWAYS[id]; if(!g){ showToast("Unbekanntes Ziel: " + id); return; }
+    document.querySelectorAll(".overlay.show").forEach(o => o.classList.remove("show"));
+    const fl = document.createElement("div"); fl.className = "gw-flash"; document.body.appendChild(fl); setTimeout(() => fl.remove(), 600); // "Teleport"
+    try{ g.go(); }catch(e){ console.error(e); }
+    setTimeout(() => {
+      const el = g.el && g.el(); if(!el) return;
+      if(el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      if(!/^screen-/.test(el.id || "")){ el.classList.remove("gw-highlight"); void el.offsetWidth; el.classList.add("gw-highlight"); setTimeout(() => el.classList.remove("gw-highlight"), 3500); }
+    }, 550);
+  }
+  // Entwicklermodus: Gateway-Schilder auf dem aktuellen Bildschirm
+  let gwBadgeTimer = null;
+  function gwRenderBadges(){
+    let layer = $("gwBadgeLayer");
+    if(!profile.devModeEnabled){ if(layer) layer.remove(); return; }
+    if(!layer){ layer = document.createElement("div"); layer.id = "gwBadgeLayer"; document.body.appendChild(layer); }
+    const html = [];
+    Object.entries(GATEWAYS).forEach(([id, g]) => {
+      let el = null; try{ el = g.el && g.el(); }catch(e){}
+      if(!el) return;
+      const r = el.getBoundingClientRect();
+      if(r.width < 4 || r.height < 4 || r.bottom < 0 || r.top > innerHeight) return;
+      const scr = el.closest && el.closest(".screen");
+      if(scr && !scr.classList.contains("active")) return; // nur Ziele auf dem aktuellen Bildschirm
+      const ov = el.closest && el.closest(".overlay"); if(ov && !ov.classList.contains("show")) return; // nicht in geschlossenen Fenstern
+      const isScreen = /^screen-/.test(el.id || "") || el.classList.contains("lx-path");
+      if(isScreen && !el.classList.contains("active") && !el.classList.contains("lx-path")) return;
+      const top = isScreen ? 64 + (html.length % 6) * 22 : Math.max(4, r.top + 4), left = isScreen ? 8 : Math.max(4, Math.min(innerWidth - 190, r.left + 6));
+      html.push(`<span class="gw-badge" data-gw="${id}" style="top:${top}px; left:${left}px">${id}</span>`);
+    });
+    layer.innerHTML = html.join("");
+    layer.querySelectorAll("[data-gw]").forEach(b => b.addEventListener("click", e => {
+      e.stopPropagation();
+      try{ navigator.clipboard.writeText(b.dataset.gw); }catch(_){}
+      showToast("🔗 Gateway kopiert: " + b.dataset.gw);
+    }));
+  }
+  function gwStartBadges(){ clearInterval(gwBadgeTimer); if(profile.devModeEnabled){ gwRenderBadges(); gwBadgeTimer = setInterval(gwRenderBadges, 1200); } else gwRenderBadges(); }
+  // Ankündigung: Gateway-Auswahl im Owner-Panel
+  $("announcementGatewaySelect").innerHTML = `<option value="">– kein Knopf –</option>` + Object.entries(GATEWAYS).map(([id, g]) => `<option value="${id}">${g.label}  (${id})</option>`).join("");
+  $("announcementGatewayBtn").addEventListener("click", () => {
+    const gw = $("announcementGatewayBtn").dataset.gw;
+    $("announcementCloseBtn").click();
+    if(gw) setTimeout(() => gwGo(gw), 120);
+  });
+  setTimeout(gwStartBadges, 1500);
 
   $("backHomeFromLocked").addEventListener("click", () => {
     clearInterval(lockedInterval);
@@ -23009,6 +23364,7 @@
     if(passed){
       const pick = COMPLETE_LINES[randInt(0, COMPLETE_LINES.length-1)];
       title = pick.title; sub = pick.sub; emoji = pick.emoji;
+      if(typeof challengeOnLesson === "function" && !lesson.isDuel) challengeOnLesson(); // Herausforderung zählen
       if(lesson.isMainProgression || lesson.topicId){ // Themen-Lektionen bringen jetzt auch Level (NEU)
         profile.levelProgress = (profile.levelProgress || 0) + 1;
         lastLessonGainedProgress = true;

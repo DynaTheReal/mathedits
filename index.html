@@ -3921,62 +3921,80 @@
 
 
   /* ===================== GEHEIME DESIGNS (NEU) ===================== */
-  /* 🎃 HALLOWEEN: Orange/Schwarz, Kürbisse, Fledermäuse, Spinnennetze */
+  /* 🎃 HALLOWEEN (überarbeitet): Nachthimmel, Mond, Kerzenlicht, Kürbisse */
   [data-theme="halloween"]{
-    --bg:#120804; --bg-soft:#1d0d05; --card:#24110a; --card-2:#2f170c; --border:#5c2b0f; --text:#fff1e2; --text-dim:#f2b583;
-    --accent:#ff7a1a; --accent-text:#1a0800; --accent-2:#a855f7; --danger:#ff3b3b; --success:#9be15d;
-    --shadow:0 20px 50px rgba(0,0,0,.6); --overlay-bg:rgba(18,8,4,.95);
-    --rainbow-header:linear-gradient(90deg,#ff7a1a,#ffb347,#a855f7);
+    --bg:#0f0712; --bg-soft:#170b1a; --card:#1d0e1a; --card-2:#27121f; --border:#4b2417; --text:#fff3e6; --text-dim:#f3b98a;
+    --accent:#ff7b1c; --accent-text:#1a0800; --accent-2:#a855f7; --danger:#ff3b3b; --success:#9be15d;
+    --shadow:0 20px 50px rgba(0,0,0,.6); --overlay-bg:rgba(15,7,18,.95);
+    --rainbow-header:linear-gradient(90deg,#ff7b1c,#ffb347,#a855f7);
     background-image:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><text x='14' y='46' font-size='30' opacity='.14'>🎃</text><text x='130' y='92' font-size='22' opacity='.12'>🦇</text><text x='60' y='160' font-size='26' opacity='.1'>🕸️</text><text x='160' y='196' font-size='28' opacity='.13'>🎃</text><text x='96' y='30' font-size='16' opacity='.1'>🦇</text></svg>"),
-      radial-gradient(ellipse at 50% 120%, rgba(255,122,26,.35), transparent 60%),
-      radial-gradient(circle at 50% -10%, #2a1206, #120804 60%);
-    background-attachment:fixed, fixed, scroll;
+      radial-gradient(circle at 86% 7%, #ffe3b0 0 30px, rgba(255,190,110,.45) 32px, rgba(255,150,60,.12) 70px, transparent 170px),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><text x='16' y='52' font-size='28' opacity='.09'>🎃</text><text x='150' y='120' font-size='20' opacity='.07'>🕸️</text><text x='70' y='200' font-size='24' opacity='.08'>🎃</text><text x='196' y='236' font-size='16' opacity='.07'>🕯️</text></svg>"),
+      radial-gradient(ellipse at 50% 115%, rgba(255,110,20,.3), transparent 60%),
+      linear-gradient(180deg, #1a0b26 0%, #0f0712 55%, #170905 100%);
+    background-attachment:fixed, fixed, fixed, fixed;
   }
-  [data-theme="halloween"] .topbar, [data-theme="halloween"] .bottom-nav{ box-shadow:0 0 26px rgba(255,122,26,.3); }
   [data-theme="halloween"] .topbar{ position:relative; }
-  [data-theme="halloween"] .topbar::after{ content:"🕸️"; position:absolute; right:-4px; top:-6px; font-size:34px; opacity:.55; pointer-events:none; transform:rotate(12deg); }
-  [data-theme="halloween"] .bottom-nav::before{ content:"🎃  🦇  🎃  🦇  🎃"; position:absolute; left:0; right:0; top:-15px; text-align:center; font-size:15px; letter-spacing:8px; opacity:.85; pointer-events:none; }
-  [data-theme="halloween"] .bottom-nav{ position:relative; }
+  [data-theme="halloween"] .topbar::after{ content:"🕸️"; position:absolute; right:-6px; top:-8px; font-size:30px; opacity:.45; pointer-events:none; transform:rotate(12deg); }
+  [data-theme="halloween"] .bottom-nav{ border-top-color:rgba(255,123,28,.45); box-shadow:0 -8px 28px rgba(255,110,20,.18); }
+  [data-theme="halloween"] .bottom-nav::before{ content:""; position:absolute; left:8%; right:8%; top:-1px; height:2px; border-radius:2px; pointer-events:none;
+    background:linear-gradient(90deg, transparent, #ffb347, #ff7b1c, #ffb347, transparent); box-shadow:0 0 12px #ff8a2a; animation:hw-candle 2.4s ease-in-out infinite; }
+  @keyframes hw-candle{ 0%,100%{ opacity:.85; } 30%{ opacity:.55; } 55%{ opacity:1; } 70%{ opacity:.7; } }
   [data-theme="halloween"] .tier-card, [data-theme="halloween"] .shop-item, [data-theme="halloween"] .question-card, [data-theme="halloween"] .modal-card,
-  [data-theme="halloween"] .nv-card, [data-theme="halloween"] .nsx-card, [data-theme="halloween"] .lx-topic{ box-shadow:0 0 0 1px rgba(255,122,26,.18), 0 8px 26px rgba(255,90,0,.12); }
-  [data-theme="halloween"] .question-card::after, [data-theme="halloween"] .modal-card::after{ content:"🕷️"; position:absolute; top:6px; right:10px; font-size:16px; opacity:.5; pointer-events:none; animation:hw-spider 3s ease-in-out infinite; }
-  [data-theme="halloween"] .question-card, [data-theme="halloween"] .modal-card{ position:relative; }
-  @keyframes hw-spider{ 50%{ transform:translateY(6px); } }
-  [data-theme="halloween"]::after{ content:"🦇"; position:fixed; top:18%; left:-40px; font-size:26px; opacity:.55; pointer-events:none; z-index:1; animation:hw-bat 14s linear infinite; }
-  @keyframes hw-bat{ 0%{ transform:translate(0, 0); } 25%{ transform:translate(30vw, -30px); } 50%{ transform:translate(60vw, 20px); } 75%{ transform:translate(85vw, -20px); } 100%{ transform:translate(115vw, 10px); } }
-  /* ❄️ WINTER: Eis, Schnee auf den Karten, Lichterkette, Schneefall */
+  [data-theme="halloween"] .nv-card, [data-theme="halloween"] .nsx-card, [data-theme="halloween"] .lx-topic{
+    background-image:linear-gradient(180deg, rgba(255,123,28,.08), transparent 45%); border-color:rgba(255,123,28,.24) !important;
+    box-shadow:0 0 0 1px rgba(255,123,28,.12), 0 10px 28px rgba(0,0,0,.35), 0 0 22px rgba(255,100,0,.08); }
+  [data-theme="halloween"] .question-card{ position:relative; }
+  [data-theme="halloween"] .question-card::after{ content:"🕷️"; position:absolute; top:8px; right:12px; font-size:14px; opacity:.45; pointer-events:none; animation:hw-spider 3.4s ease-in-out infinite; }
+  @keyframes hw-spider{ 50%{ transform:translateY(7px); } }
+  [data-theme="halloween"] .btn-primary, [data-theme="halloween"] .submit-btn{ background:linear-gradient(135deg, #ffa24a, #ff6a00) !important; color:#1a0800 !important;
+    box-shadow:0 8px 24px rgba(255,106,0,.35), inset 0 1px 0 rgba(255,255,255,.35) !important; border-color:transparent !important; }
+  /* ❄️ WINTER (überarbeitet): warme Lichterkette, weicher Schneefall, flauschige Schneekappen */
   [data-theme="winter"]{
     --bg:#061423; --bg-soft:#0a1d32; --card:#0d2238; --card-2:#112b46; --border:#2b5b84; --text:#eef8ff; --text-dim:#a6cce9;
-    --accent:#7dd3fc; --accent-text:#03121f; --accent-2:#c4b5fd; --danger:#fb7185; --success:#6ee7b7;
+    --accent:#7dd3fc; --accent-text:#03121f; --accent-2:#fcd34d; --danger:#fb7185; --success:#6ee7b7;
     --shadow:0 20px 50px rgba(0,0,0,.55); --overlay-bg:rgba(6,20,35,.95);
-    --rainbow-header:linear-gradient(90deg,#7dd3fc,#e0f2fe,#c4b5fd);
+    --rainbow-header:linear-gradient(90deg,#7dd3fc,#e0f2fe,#fcd34d);
     background-image:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><text x='20' y='40' font-size='18' opacity='.18' fill='white'>❄</text><text x='120' y='80' font-size='12' opacity='.16' fill='white'>❅</text><text x='60' y='140' font-size='22' opacity='.14' fill='white'>❆</text><text x='160' y='180' font-size='14' opacity='.16' fill='white'>❄</text></svg>"),
-      linear-gradient(180deg, rgba(186,230,253,.08), transparent 30%),
-      radial-gradient(ellipse at 50% 120%, rgba(125,211,252,.28), transparent 60%),
-      radial-gradient(circle at 50% -10%, #0e2a47, #061423 60%);
-    background-attachment:fixed, fixed, fixed, scroll;
+      linear-gradient(180deg, rgba(186,230,253,.07), transparent 30%),
+      radial-gradient(ellipse at 50% 120%, rgba(186,230,253,.3), transparent 60%),
+      radial-gradient(circle at 50% -10%, #0f2d4c, #061423 60%);
+    background-attachment:fixed, fixed, scroll;
   }
-  [data-theme="winter"]::after{ content:""; position:fixed; inset:-20% 0 0 0; pointer-events:none; z-index:1; opacity:.8;
-    background-image:radial-gradient(3px 3px at 10% 10%, #fff, transparent), radial-gradient(2px 2px at 25% 40%, #fff, transparent), radial-gradient(3px 3px at 45% 20%, #fff, transparent),
-      radial-gradient(2px 2px at 65% 55%, #fff, transparent), radial-gradient(3px 3px at 80% 30%, #fff, transparent), radial-gradient(2px 2px at 92% 70%, #fff, transparent),
-      radial-gradient(2px 2px at 35% 80%, #fff, transparent), radial-gradient(3px 3px at 55% 90%, #fff, transparent);
-    background-size:100% 50%; animation:wt-snow 9s linear infinite; }
-  @keyframes wt-snow{ from{ transform:translateY(0); } to{ transform:translateY(50%); } }
-  [data-theme="winter"] .topbar, [data-theme="winter"] .bottom-nav{ position:relative; box-shadow:0 0 26px rgba(125,211,252,.25); }
-  [data-theme="winter"] .topbar::after{ content:""; position:absolute; left:6px; right:6px; bottom:-7px; height:12px; pointer-events:none;
-    background:radial-gradient(circle, #f87171 3px, transparent 4px) 0 0/40px 12px, radial-gradient(circle, #facc15 3px, transparent 4px) 13px 0/40px 12px, radial-gradient(circle, #4ade80 3px, transparent 4px) 26px 0/40px 12px;
-    filter:drop-shadow(0 0 4px rgba(255,255,255,.7)); animation:wt-lights 1.6s steps(2) infinite; }
-  @keyframes wt-lights{ 50%{ filter:drop-shadow(0 0 8px rgba(255,255,255,1)) brightness(1.4); } }
+  /* Schnee: 6 Ebenen weicher Flocken, verschieden groß/schnell, leicht schräg */
+  [data-theme="winter"]::after{ content:""; position:fixed; inset:0; pointer-events:none; z-index:1;
+    background-image:
+      radial-gradient(circle, rgba(255,255,255,.95) 0 1.6px, rgba(255,255,255,.4) 2.4px, transparent 3.4px),
+      radial-gradient(circle, rgba(255,255,255,.9) 0 2.4px, rgba(255,255,255,.35) 3.4px, transparent 4.6px),
+      radial-gradient(circle, rgba(255,255,255,.75) 0 1px, transparent 2px),
+      radial-gradient(circle, rgba(255,255,255,.85) 0 3px, rgba(255,255,255,.3) 4.4px, transparent 6px),
+      radial-gradient(circle, rgba(255,255,255,.7) 0 1.2px, transparent 2.2px),
+      radial-gradient(circle, rgba(255,255,255,.8) 0 2px, transparent 3.2px);
+    background-size:180px 180px, 260px 260px, 120px 120px, 380px 380px, 150px 150px, 220px 220px;
+    background-position:10px 0, 90px 40px, 50px 70px, 200px 10px, 20px 110px, 140px 160px;
+    animation:wt-snow 16s linear infinite; opacity:.85; filter:blur(.2px); }
+  @keyframes wt-snow{ to{ background-position:40px 180px, 50px 300px, 80px 240px, 160px 390px, 50px 410px, 120px 600px; } }
+  [data-theme="winter"] .topbar{ position:relative; }
+  /* Lichterkette: Kabel + Glühbirnen in warmen Farben, warmes Leuchten, Funkeln */
+  [data-theme="winter"] .topbar::after{ content:""; position:absolute; left:-4px; right:-4px; bottom:-16px; height:22px; pointer-events:none; z-index:2;
+    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='22'><path d='M0 3 Q30 13 60 3 T120 3' stroke='%23284a34' stroke-width='1.6' fill='none'/><rect x='13.5' y='7' width='3' height='3' rx='.6' fill='%233b3b3b'/><ellipse cx='15' cy='13.5' rx='3.4' ry='4.8' fill='%23ffd27a'/><rect x='43.5' y='7' width='3' height='3' rx='.6' fill='%233b3b3b'/><ellipse cx='45' cy='13.5' rx='3.4' ry='4.8' fill='%23ff8a5c'/><rect x='73.5' y='7' width='3' height='3' rx='.6' fill='%233b3b3b'/><ellipse cx='75' cy='13.5' rx='3.4' ry='4.8' fill='%23fff1c9'/><rect x='103.5' y='7' width='3' height='3' rx='.6' fill='%233b3b3b'/><ellipse cx='105' cy='13.5' rx='3.4' ry='4.8' fill='%23ffb347'/></svg>") repeat-x 0 0/120px 22px;
+    filter:drop-shadow(0 0 3px rgba(255,200,110,.95)) drop-shadow(0 0 9px rgba(255,170,70,.65)); animation:wt-lights 2.6s ease-in-out infinite; }
+  [data-theme="winter"] .topbar::before{ content:""; position:absolute; left:0; right:0; bottom:-26px; height:26px; pointer-events:none; z-index:1;
+    background:radial-gradient(ellipse 60% 100% at 50% 0%, rgba(255,190,100,.18), transparent 70%); animation:wt-lights 2.6s ease-in-out infinite; }
+  @keyframes wt-lights{ 0%,100%{ opacity:1; } 25%{ opacity:.82; } 50%{ opacity:1; } 70%{ opacity:.9; } }
+  [data-theme="winter"] .bottom-nav{ box-shadow:0 0 26px rgba(125,211,252,.22); }
+  [data-theme="winter"] .bottom-nav::before{ content:"🎄  ❄️  ⛄  ❄️  🎁"; position:absolute; left:0; right:0; top:-17px; text-align:center; font-size:14px; letter-spacing:8px; pointer-events:none; }
   [data-theme="winter"] .tier-card, [data-theme="winter"] .shop-item, [data-theme="winter"] .question-card, [data-theme="winter"] .modal-card,
   [data-theme="winter"] .nv-card, [data-theme="winter"] .nsx-card, [data-theme="winter"] .lx-topic, [data-theme="winter"] .stat-pill{
-    position:relative; border-top:3px solid rgba(255,255,255,.9) !important; box-shadow:0 -2px 10px rgba(255,255,255,.25), 0 8px 26px rgba(0,0,0,.3), inset 0 0 22px rgba(186,230,253,.08); }
+    position:relative; border-top:2px solid rgba(255,255,255,.85) !important;
+    box-shadow:0 -1px 8px rgba(255,255,255,.22), 0 10px 26px rgba(0,0,0,.3), inset 0 0 24px rgba(186,230,253,.07); }
   [data-theme="winter"] .question-card::before, [data-theme="winter"] .modal-card::before, [data-theme="winter"] .tier-card::before, [data-theme="winter"] .nv-card::before, [data-theme="winter"] .lx-topic::before{
-    content:""; position:absolute; left:10px; right:10px; top:-7px; height:10px; pointer-events:none; border-radius:10px 10px 0 0;
-    background:radial-gradient(ellipse 14px 7px at 12% 100%, #fff 60%, transparent 62%), radial-gradient(ellipse 22px 9px at 38% 100%, #fff 60%, transparent 62%),
-      radial-gradient(ellipse 16px 7px at 66% 100%, #fff 60%, transparent 62%), radial-gradient(ellipse 20px 8px at 90% 100%, #fff 60%, transparent 62%); }
-  [data-theme="winter"] .bottom-nav::before{ content:"🎄  ❄️  ⛄  ❄️  🎁"; position:absolute; left:0; right:0; top:-15px; text-align:center; font-size:14px; letter-spacing:8px; pointer-events:none; }
+    content:""; position:absolute; left:8px; right:8px; top:-9px; height:13px; pointer-events:none; filter:drop-shadow(0 2px 2px rgba(120,170,210,.45));
+    background:
+      radial-gradient(ellipse 13px 8px at 8% 100%, #fff 62%, transparent 66%), radial-gradient(ellipse 24px 11px at 28% 100%, #fff 62%, transparent 66%),
+      radial-gradient(ellipse 15px 8px at 47% 100%, #fff 62%, transparent 66%), radial-gradient(ellipse 26px 12px at 68% 100%, #fff 62%, transparent 66%),
+      radial-gradient(ellipse 14px 8px at 90% 100%, #fff 62%, transparent 66%); }
+  [data-theme="winter"] .btn-primary, [data-theme="winter"] .submit-btn{ box-shadow:0 8px 24px rgba(125,211,252,.3), inset 0 1px 0 rgba(255,255,255,.6) !important; }
 
   /* ===================== HERAUSFORDERUNG (Missionen) ===================== */
   .challenge-wrap:empty{ display:none; }
@@ -5691,8 +5709,11 @@
         <input type="text" id="ownerChTitle" class="input-field" placeholder="Titel, z. B. Kürbis-Jagd" maxlength="80" style="margin-bottom:8px;">
         <div class="d" style="margin-bottom:4px;">Aufgabe: Lektionen insgesamt (ab Start)</div>
         <input type="number" id="ownerChTarget" class="input-field" value="20" min="1" max="1000" style="margin-bottom:8px;">
-        <div class="d" style="margin-bottom:4px;">Dauer</div>
-        <select id="ownerChDuration" class="input-field" style="margin-bottom:8px;"><option value="1">1 Tag</option><option value="3">3 Tage</option><option value="7" selected>7 Tage</option><option value="14">14 Tage</option><option value="30">30 Tage</option></select>
+        <div class="d" style="margin-bottom:4px;">Dauer (Tage)</div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <input type="number" id="ownerChDuration" class="input-field" value="7" min="1" max="60" step="1" style="width:90px; margin:0;">
+          <span class="d" id="ownerChEndDate" style="font-weight:700; color:var(--text);"></span>
+        </div>
         <div class="d" style="margin-bottom:4px;">Belohnung (Design)</div>
         <select id="ownerChReward" class="input-field" style="margin-bottom:10px;"></select>
         <button class="btn btn-primary btn-small" id="ownerChStartBtn" style="width:100%; background:#facc15; border-color:#facc15; color:#111;">Herausforderung starten</button>
@@ -7281,7 +7302,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.05";
+  const APP_VERSION = "4.06";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -22490,13 +22511,14 @@
   function renderOwnerChallengeStatus(){
     const el = $("ownerChallengeStatus"); if(!el) return;
     const c = challengeData;
-    el.textContent = challengeActive(c) ? `Aktiv: „${c.title}“ · ${c.target} Lektionen · ${challengeTimeLeft(c)}` : c ? "Die letzte Herausforderung ist abgelaufen." : "Aktuell keine Herausforderung.";
+    el.textContent = challengeActive(c) ? `Aktiv: „${c.title}“ · ${c.target} Lektionen · ${challengeTimeLeft(c)} (bis ${new Date(c.endAt).toLocaleDateString("de-DE")}, ${new Date(c.endAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })})` : c ? "Die letzte Herausforderung ist abgelaufen." : "Aktuell keine Herausforderung.";
   }
   async function ownerStartChallenge(){
     if(!isOwner()) return;
     const title = $("ownerChTitle").value.trim(), target = parseInt($("ownerChTarget").value, 10), days = parseFloat($("ownerChDuration").value);
     if(!title) return showToast("Bitte einen Titel eingeben.");
     if(!(target >= 1 && target <= 1000)) return showToast("Anzahl Lektionen: 1 bis 1000.");
+    if(!(days >= 1 && days <= 60)) return showToast("Dauer: 1 bis 60 Tage.");
     const data = { id: "ch_" + Date.now(), title: title.slice(0, 80), style: $("ownerChStyle").value, type: "lessons", target,
       rewardTheme: $("ownerChReward").value, startAt: Date.now(), endAt: Date.now() + days * 864e5, createdBy: currentUser.uid };
     try{
@@ -22517,10 +22539,18 @@
   }
   $("ownerChReward").innerHTML = ALL_THEME_IDS.map(id => `<option value="${id}">${THEME_DISPLAY_NAME[id] || id}${SECRET_THEMES.includes(id) ? " (geheim)" : ""}</option>`).join("");
   $("ownerChReward").value = "halloween";
+  function ownerChUpdateEnd(){
+    const d = parseFloat($("ownerChDuration").value);
+    if(!(d >= 1 && d <= 60)){ $("ownerChEndDate").textContent = "1 bis 60 Tage"; return; }
+    const end = new Date(Date.now() + d * 864e5);
+    $("ownerChEndDate").textContent = "endet am " + end.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" }) + " um " + end.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  }
+  $("ownerChDuration").addEventListener("input", ownerChUpdateEnd);
+  ownerChUpdateEnd();
   $("ownerChStartBtn").addEventListener("click", ownerStartChallenge);
   $("ownerChDeleteBtn").addEventListener("click", ownerDeleteChallenge);
   $("ownerToolChallenge").addEventListener("click", () => {
-    toggleOwnerPanel("panelOwnerChallenge", "ownerToolChallenge", () => { loadChallenge(true); renderOwnerChallengeStatus(); });
+    toggleOwnerPanel("panelOwnerChallenge", "ownerToolChallenge", () => { loadChallenge(true); renderOwnerChallengeStatus(); ownerChUpdateEnd(); });
   });
 
 

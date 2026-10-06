@@ -4151,6 +4151,14 @@
   .ixm-lights{ width:230px; height:22px; opacity:0; background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='22'><path d='M0 3 Q30 13 60 3 T120 3' stroke='%23284a34' stroke-width='1.6' fill='none'/><ellipse cx='15' cy='13.5' rx='3.4' ry='4.8' fill='%23ffd27a'/><ellipse cx='45' cy='13.5' rx='3.4' ry='4.8' fill='%23ff8a5c'/><ellipse cx='75' cy='13.5' rx='3.4' ry='4.8' fill='%23fff1c9'/><ellipse cx='105' cy='13.5' rx='3.4' ry='4.8' fill='%23ffb347'/></svg>") repeat-x 0 0/120px 22px;
     filter:drop-shadow(0 0 4px rgba(255,200,110,.95)) drop-shadow(0 0 10px rgba(255,170,70,.6)); animation:lxa-fade .5s ease 2.1s both, wt-lights 1.4s ease-in-out 2.1s infinite; }
 
+
+  /* Season-Banner im Shop (NEU) */
+  .season-banner{ display:flex; flex-direction:column; gap:2px; margin:4px 0 10px; padding:14px 16px; border-radius:20px; color:#fff;
+    background:linear-gradient(135deg, #7c3aed, #1e1b4b); box-shadow:0 10px 28px rgba(0,0,0,.3); }
+  .season-banner.st-halloween{ background:radial-gradient(circle at 90% 0%, rgba(255,170,60,.5), transparent 50%), linear-gradient(135deg, #c2410c, #3b0f04); }
+  .season-banner.st-christmas{ background:radial-gradient(circle at 10% 0%, rgba(255,240,210,.3), transparent 45%), linear-gradient(135deg, #b23a3a, #1e4d36); }
+  .season-banner b{ font-size:17px; font-weight:900; }
+  .season-banner span{ font-size:12.5px; font-weight:700; opacity:.85; }
   /* ===================== HERAUSFORDERUNG (Missionen) ===================== */
   .challenge-wrap:empty{ display:none; }
   body.layout-nova #screen-missions > #challengeCard{ display:block !important; margin:0 2px 10px; }
@@ -5280,20 +5288,26 @@
       <button class="buy-btn" id="buyIceTheme">900 Aura</button>
     </div>
 
-    <!-- Event-Kollektionen (NEU): nur sichtbar, wenn man das passende Design hat -->
+    <!-- Season-Kollektionen (NEU): kaufbar nur während der Season, Gekauftes bleibt -->
+    <div class="season-banner" id="shopSeasonBanner" style="display:none;"></div>
     <div class="shop-event-set" id="shopHalloweenSet" style="display:none;">
       <div class="shop-section-title">🎃 Halloween-Kollektion</div>
-      <div class="shop-item">
-        <div class="item-icon">🎬</div>
-        <div class="item-info"><div class="item-title">Halloween-Intro</div><div class="item-desc">Mond, Fledermäuse und ein leuchtender Kürbis beim App-Start. Inklusive.</div></div>
-        <button class="buy-btn" id="buyHalloweenIntro">Auswählen</button>
+      <div class="shop-item" id="buyHalloweenThemeRow">
+        <div class="item-icon">🎃</div>
+        <div class="item-info"><div class="item-title">Halloween-Design</div><div class="item-desc">Orange Nacht mit Mond, Kürbissen und Kerzenlicht.</div></div>
+        <button class="buy-btn" id="buyHalloweenTheme">2500 Aura</button>
       </div>
-      <div class="shop-item">
+      <div class="shop-item" id="buyHalloweenIntroRow">
+        <div class="item-icon">🎬</div>
+        <div class="item-info"><div class="item-title">Halloween-Intro</div><div class="item-desc">Mond, Fledermäuse und ein leuchtender Kürbis beim App-Start.</div></div>
+        <button class="buy-btn" id="buyHalloweenIntro">1000 Aura</button>
+      </div>
+      <div class="shop-item" id="buyHalloweenFontRow">
         <div class="item-icon">🕸️</div>
         <div class="item-info"><div class="item-title">Halloween-Schrift</div><div class="item-desc">Dein Name in orange glühender Grusel-Schrift.</div><div class="font-preview-sample font-halloween">DeinName</div></div>
         <button class="buy-btn" id="buyHalloweenFont">2000 Aura</button>
       </div>
-      <div class="shop-item">
+      <div class="shop-item" id="buyHalloweenFrameRow">
         <div class="item-icon">🎃</div>
         <div class="item-info"><div class="item-title">Halloween-Rahmen</div><div class="item-desc">Orange glühender Profilrahmen mit Kürbis und Fledermaus.</div></div>
         <button class="buy-btn" id="buyHalloweenFrame">1500 Aura</button>
@@ -5301,17 +5315,22 @@
     </div>
     <div class="shop-event-set" id="shopXmasSet" style="display:none;">
       <div class="shop-section-title">🎄 Weihnachts-Kollektion</div>
-      <div class="shop-item">
-        <div class="item-icon">🎬</div>
-        <div class="item-info"><div class="item-title">Weihnachts-Intro</div><div class="item-desc">Schneefall, ein Geschenk springt auf, goldene Lichter. Inklusive.</div></div>
-        <button class="buy-btn" id="buyXmasIntro">Auswählen</button>
+      <div class="shop-item" id="buyXmasThemeRow">
+        <div class="item-icon">❄️</div>
+        <div class="item-info"><div class="item-title">Winter-Design</div><div class="item-desc">Warmes Winterblau, Schneefall, Lichterkette und Schneekappen.</div></div>
+        <button class="buy-btn" id="buyXmasTheme">2500 Aura</button>
       </div>
-      <div class="shop-item">
+      <div class="shop-item" id="buyXmasIntroRow">
+        <div class="item-icon">🎬</div>
+        <div class="item-info"><div class="item-title">Weihnachts-Intro</div><div class="item-desc">Schneefall, ein Geschenk springt auf, goldene Lichter.</div></div>
+        <button class="buy-btn" id="buyXmasIntro">1000 Aura</button>
+      </div>
+      <div class="shop-item" id="buyXmasFontRow">
         <div class="item-icon">✨</div>
         <div class="item-info"><div class="item-title">Weihnachts-Schrift</div><div class="item-desc">Dein Name in rot-gold-grün schimmernder Zierschrift.</div><div class="font-preview-sample font-xmas">DeinName</div></div>
         <button class="buy-btn" id="buyXmasFont">2000 Aura</button>
       </div>
-      <div class="shop-item">
+      <div class="shop-item" id="buyXmasFrameRow">
         <div class="item-icon">🍬</div>
         <div class="item-info"><div class="item-title">Weihnachts-Rahmen</div><div class="item-desc">Zuckerstangen-Rahmen mit Schneekappe und Tannenbaum.</div></div>
         <button class="buy-btn" id="buyXmasFrame">1500 Aura</button>
@@ -5851,6 +5870,7 @@
         <div class="owner-category-tile" id="ownerToolCodes"><span class="icon">🎁</span><span class="label">Einlöse-Codes</span></div>
         <div class="owner-category-tile" id="ownerToolPlayerGoal"><span class="icon">🎯</span><span class="label">Spieler-Ziel</span></div>
         <div class="owner-category-tile" id="ownerToolChallenge"><span class="icon">🏆</span><span class="label">Herausforderung</span></div>
+        <div class="owner-category-tile" id="ownerToolSeason"><span class="icon">🍂</span><span class="label">Season</span></div>
       </div>
 
       <!-- Kategorie-Inhalte (NEU): klappen direkt unter dem Kachel-Raster
@@ -5912,6 +5932,20 @@
         <button class="btn btn-primary btn-small" id="ownerChStartBtn" style="width:100%; background:#facc15; border-color:#facc15; color:#111;">Herausforderung starten</button>
         <button class="btn btn-ghost btn-small" id="ownerChDeleteBtn" style="width:100%; margin-top:8px; border-color:#ef4444; color:#ef4444;">🗑️ Aktuelle Herausforderung löschen</button>
         <div class="d" style="margin:14px 0 4px;">Geheime Designs (🎃 Halloween, ❄️ Winter): nicht im Shop. Du hast sie automatisch, andere nur über eine Herausforderung oder einen Code.</div>
+      </div>
+
+      <div class="owner-inline-panel" id="panelOwnerSeason">
+        <div style="font-weight:800; margin-bottom:8px; color:#fb923c;">🍂 Season</div>
+        <div class="d" style="margin-bottom:10px;">Während einer Season kann jeder die passende Kollektion im Shop kaufen (Design, Intro, Schrift, Rahmen). Gekauftes bleibt danach erhalten.</div>
+        <div class="d" id="ownerSeasonStatus" style="margin-bottom:10px; font-weight:700;">Aktuell keine Season.</div>
+        <select id="ownerSeasonType" class="input-field" style="margin-bottom:8px;"><option value="halloween">🎃 Halloween-Season</option><option value="christmas">🎄 Weihnachts-Season</option></select>
+        <div class="d" style="margin-bottom:4px;">Dauer (Tage)</div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+          <input type="number" id="ownerSeasonDays" class="input-field" value="14" min="1" max="90" step="1" style="width:90px; margin:0;">
+          <span class="d" id="ownerSeasonEnd" style="font-weight:700; color:var(--text);"></span>
+        </div>
+        <button class="btn btn-primary btn-small" id="ownerSeasonStartBtn" style="width:100%; background:#fb923c; border-color:#fb923c; color:#111;">Season starten</button>
+        <button class="btn btn-ghost btn-small" id="ownerSeasonStopBtn" style="width:100%; margin-top:8px; border-color:#ef4444; color:#ef4444;">⏹ Season beenden</button>
       </div>
 
       <div class="owner-inline-panel" id="panelOwnerSiteStop">
@@ -7505,7 +7539,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.08";
+  const APP_VERSION = "4.09";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -7662,6 +7696,7 @@
   ======================================================== */
   const OWNER_USERNAME = "DynaTheReal";
 
+  function hasIntro(v){ return isOwner() || (profile.unlockedIntros || []).includes(v); } // gekaufte Event-Intros
   function isOwner(){
     return !!(profile.username && OWNER_USERNAME &&
       profile.username.toLowerCase() === OWNER_USERNAME.toLowerCase());
@@ -13922,6 +13957,7 @@
       ...(cloudP.unlockedFrames || ["none"])
     ]));
     merged.activeFrame = (localP.activeFrame && localP.activeFrame !== "none") ? localP.activeFrame : (cloudP.activeFrame || "none");
+    merged.unlockedIntros = Array.from(new Set([...(localP.unlockedIntros || []), ...(cloudP.unlockedIntros || [])])); // gekaufte Intros nie verlieren
     merged.unlockedFonts = Array.from(new Set([
       ...(localP.unlockedFonts || ["none"]),
       ...(cloudP.unlockedFonts || ["none"])
@@ -15103,6 +15139,7 @@
     if(name === "lesson") screens.lesson.classList.toggle("hard-mode", !!(lesson && lesson.hardMode));
     if(name === "lesson") screens.lesson.classList.toggle("boss-mode", !!(lesson && lesson.isSkip));
     if(name === "missions" && typeof renderChallengeCard === "function"){ renderChallengeCard(); loadChallenge(); }
+    if(name === "shop" && typeof loadSeason === "function") loadSeason();
     if(name !== "lesson" && typeof lxLupeCancel === "function") lxLupeCancel(); // Lupe beim Verlassen sauber schließen
 
     // Neue Lektionen / Lektions-Hintergrund (NEU, Beta-Einstellungen)
@@ -15568,12 +15605,7 @@
       }
     });
 
-    // Event-Kollektionen (NEU): nur sichtbar mit dem passenden (geheimen) Design
-    const hasTheme = t => isOwner() || (profile.unlockedThemes || []).includes(t);
-    $("shopHalloweenSet").style.display = hasTheme("halloween") ? "" : "none";
-    $("shopXmasSet").style.display = hasTheme("winter") ? "" : "none";
-    $("buyHalloweenIntro").textContent = profile.appIntroStyle === "halloween" ? "✓ Aktiv" : "Auswählen";
-    $("buyXmasIntro").textContent = profile.appIntroStyle === "xmas" ? "✓ Aktiv" : "Auswählen";
+    if(typeof renderSeasonShop === "function") renderSeasonShop(); // Season-Kollektionen (NEU)
     // Update Item Knöpfe
     const icecubeMaxed = (profile.inventory.icecube || 0) >= 2;
     $("buyIcecube").disabled = profile.totalAura < 500 || icecubeMaxed;
@@ -15680,6 +15712,7 @@
     { key: "xmas", cost: 1500, name: "Weihnachts", event: "winter" }
   ];
   function buyFrame(frameKey, cost, name){
+    if(!(profile.unlockedFrames || ["none"]).includes(frameKey) && !seasonBuyAllowed(frameKey)){ showToast("🔒 Nur während der passenden Season kaufbar."); return; }
     const unlocked = profile.unlockedFrames || ["none"];
     if(unlocked.includes(frameKey)){
       // Schon freigeschaltet - Klick aktiviert/deaktiviert stattdessen
@@ -15720,6 +15753,7 @@
   ];
   function buyFont(fontKey, cost, name){
     const unlocked = profile.unlockedFonts || ["none"];
+    if(!unlocked.includes(fontKey) && !seasonBuyAllowed(fontKey)){ showToast("🔒 Nur während der passenden Season kaufbar."); return; }
     if(unlocked.includes(fontKey)){
       // Schon freigeschaltet - Klick aktiviert/deaktiviert stattdessen (NEU).
       profile.activeFont = (profile.activeFont === fontKey) ? "none" : fontKey;
@@ -15746,10 +15780,10 @@
   $("buyXmasFont").addEventListener("click", () => buyFont("xmas", 2000, "Weihnachts"));
   $("buyHalloweenFrame").addEventListener("click", () => buyFrame("halloween", 1500, "Halloween"));
   $("buyXmasFrame").addEventListener("click", () => buyFrame("xmas", 1500, "Weihnachts"));
-  const pickEventIntro = (st, name) => { profile.appIntroStyle = profile.appIntroStyle === st ? "math" : st; saveProfile(); renderShop();
-    showToast(profile.appIntroStyle === st ? `🎬 ${name}-Intro aktiviert – beim nächsten Start zu sehen!` : "Intro zurückgesetzt."); };
-  $("buyHalloweenIntro").addEventListener("click", () => pickEventIntro("halloween", "Halloween"));
-  $("buyXmasIntro").addEventListener("click", () => pickEventIntro("xmas", "Weihnachts"));
+  $("buyHalloweenIntro").addEventListener("click", () => buyEventIntro("halloween", 1000, "Halloween"));
+  $("buyXmasIntro").addEventListener("click", () => buyEventIntro("xmas", 1000, "Weihnachts"));
+  $("buyHalloweenTheme").addEventListener("click", () => buyEventTheme("halloween", 2500, "Halloween"));
+  $("buyXmasTheme").addEventListener("click", () => buyEventTheme("winter", 2500, "Winter"));
   $("buyPinkFont").addEventListener("click", () => buyFont("pink", 500, "Pink"));
   $("buyGoldFont").addEventListener("click", () => buyFont("gold", 1000, "Gold"));
   $("buyPinkGlowFont").addEventListener("click", () => buyFont("pinkglow", 1000, "Pink Glow"));
@@ -17676,11 +17710,11 @@
     renderNovaSettingsMe();
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
     // Event-Intros nur anbieten, wenn das passende Design freigeschaltet ist (NEU)
-    { const sel = $("appIntroStyleSelect"), has = t => isOwner() || (profile.unlockedThemes || []).includes(t);
-      [["halloween", "🎃 Halloween", "halloween"], ["xmas", "🎄 Weihnachten", "winter"]].forEach(([v, l, th]) => {
+    { const sel = $("appIntroStyleSelect");
+      [["halloween", "🎃 Halloween"], ["xmas", "🎄 Weihnachten"]].forEach(([v, l]) => {
         let o = sel.querySelector(`option[value="${v}"]`);
-        if(has(th) && !o){ o = document.createElement("option"); o.value = v; o.textContent = l; sel.appendChild(o); }
-        if(!has(th) && o) o.remove();
+        if(hasIntro(v) && !o){ o = document.createElement("option"); o.value = v; o.textContent = l; sel.appendChild(o); }
+        if(!hasIntro(v) && o) o.remove();
       }); }
     $("appIntroStyleSelect").value = ["simple", "nova", "halloween", "xmas"].includes(profile.appIntroStyle) ? profile.appIntroStyle : "math";
     $("layoutStyleSelect").value = ["simpel","clean","nova"].includes(profile.layoutStyle) ? profile.layoutStyle : "clean";
@@ -18456,6 +18490,7 @@
               syncSettingsOnOpen(cloudData); // Einstellungen EINMAL beim Öffnen abgleichen
               setTimeout(() => { if(typeof claimStreakRescues === "function") claimStreakRescues(); }, 1500); // gerettete Streaks abholen
               setTimeout(() => { if(typeof loadChallenge === "function") loadChallenge(true); }, 2000); // Herausforderung
+              setTimeout(() => { if(typeof loadSeason === "function") loadSeason(true); }, 2200); // Season
               applyTheme();
               cloudSyncReady = true;
               // Bugfix (siehe init()): die Streak-/Icecube-Prüfung wird für
@@ -22870,6 +22905,130 @@
   });
   setTimeout(gwStartBadges, 1500);
 
+
+  /* ===================== SEASONS (NEU) =====================
+     appConfig/season { id, type: "halloween" | "christmas", startAt, endAt }.
+     Während der Season kann jeder die Kollektion kaufen, Gekauftes bleibt. */
+  let seasonData = null, seasonLoadedAt = 0;
+  const SEASON_INFO = {
+    halloween: { label: "🎃 Halloween-Season", set: "shopHalloweenSet", theme: "halloween", intro: "halloween", font: "halloween", frame: "halloween",
+                 btn: { theme: "buyHalloweenTheme", intro: "buyHalloweenIntro", font: "buyHalloweenFont", frame: "buyHalloweenFrame" } },
+    christmas: { label: "🎄 Weihnachts-Season", set: "shopXmasSet", theme: "winter", intro: "xmas", font: "xmas", frame: "xmas",
+                 btn: { theme: "buyXmasTheme", intro: "buyXmasIntro", font: "buyXmasFont", frame: "buyXmasFrame" } }
+  };
+  const seasonActive = type => !!(seasonData && seasonData.type === type && seasonData.startAt <= Date.now() && Date.now() < seasonData.endAt);
+  // Schrift-/Rahmen-Schlüssel -> Season ("halloween" | "xmas")
+  function seasonBuyAllowed(key){
+    if(key !== "halloween" && key !== "xmas") return true; // normale Artikel
+    return isOwner() || seasonActive(key === "xmas" ? "christmas" : "halloween");
+  }
+  async function loadSeason(force){
+    if(!firebaseInitialized || !currentUser) return;
+    if(!force && Date.now() - seasonLoadedAt < 10 * 60 * 1000) return; // höchstens alle 10 Min
+    seasonLoadedAt = Date.now();
+    try{ const d = await db().collection("appConfig").doc("season").get(); seasonData = d.exists ? d.data() : null; }catch(e){ console.error("Season laden:", e); }
+    if($("screen-shop") && $("screen-shop").classList.contains("active")) renderShop();
+    renderOwnerSeasonStatus();
+  }
+  function renderSeasonShop(){
+    const owns = { theme: k => (profile.unlockedThemes || []).includes(k), intro: k => (profile.unlockedIntros || []).includes(k),
+                   font: k => (profile.unlockedFonts || []).includes(k), frame: k => (profile.unlockedFrames || []).includes(k) };
+    let bannerHtml = "";
+    Object.entries(SEASON_INFO).forEach(([type, info]) => {
+      const active = seasonActive(type);
+      if(active) bannerHtml = `<b>${info.label}</b><span>noch ${seasonTimeLeft()} · nur jetzt im Shop</span>`;
+      let anyVisible = false;
+      ["theme", "intro", "font", "frame"].forEach(kind => {
+        const key = info[kind], have = isOwner() || owns[kind](key), row = $(info.btn[kind] + "Row"), btn = $(info.btn[kind]);
+        const show = have || active;
+        row.style.display = show ? "" : "none";
+        if(show) anyVisible = true;
+        if(kind === "theme"){
+          if(have){ const on = profile.theme === key; btn.textContent = on ? "✓ Aktiv" : "Aktivieren"; btn.disabled = false; btn.classList.toggle("btn-active-owned", on); }
+          else { btn.textContent = "2500 Aura"; btn.disabled = profile.totalAura < 2500; btn.classList.remove("btn-active-owned"); }
+        }
+        if(kind === "intro"){
+          if(have){ const on = profile.appIntroStyle === key; btn.textContent = on ? "✓ Aktiv" : "Auswählen"; btn.disabled = false; btn.classList.toggle("btn-active-owned", on); }
+          else { btn.textContent = "1000 Aura"; btn.disabled = profile.totalAura < 1000; btn.classList.remove("btn-active-owned"); }
+        }
+        // Schrift/Rahmen: Knopf-Texte setzen schon die normalen Schleifen
+      });
+      $(info.set).style.display = anyVisible ? "" : "none";
+    });
+    $("shopSeasonBanner").style.display = bannerHtml ? "" : "none";
+    $("shopSeasonBanner").innerHTML = bannerHtml;
+    $("shopSeasonBanner").className = "season-banner" + (seasonActive("halloween") ? " st-halloween" : seasonActive("christmas") ? " st-christmas" : "");
+  }
+  function seasonTimeLeft(){
+    const ms = Math.max(0, seasonData.endAt - Date.now()), d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5);
+    return d > 0 ? `${d} ${d === 1 ? "Tag" : "Tage"}${h ? " " + h + " Std." : ""}` : `${h} Std.`;
+  }
+  function buyEventTheme(theme, cost, name){
+    const have = (profile.unlockedThemes || []).includes(theme) || isOwner();
+    if(have){
+      profile.unlockedThemes = [...new Set([...(profile.unlockedThemes || ["black"]), theme])];
+      profile.theme = profile.theme === theme ? "black" : theme;
+      applyTheme(); saveProfile(); renderShop();
+      showToast(profile.theme === theme ? `🎨 ${name}-Design aktiviert!` : "Design zurück auf Schwarz.");
+      return;
+    }
+    if(!seasonActive(theme === "winter" ? "christmas" : "halloween")){ showToast("🔒 Nur während der Season kaufbar."); return; }
+    if(profile.totalAura < cost){ showToast("Nicht genug Aura!"); return; }
+    profile.totalAura -= cost; logAuraTransaction(-cost, `Design gekauft: ${name}`);
+    profile.unlockedThemes = [...new Set([...(profile.unlockedThemes || ["black"]), theme])];
+    profile.theme = theme; applyTheme(); saveProfile(); renderShop(); renderHome();
+    showToast(`🎨 ${name}-Design freigeschaltet und aktiviert!`);
+  }
+  function buyEventIntro(key, cost, name){
+    if(hasIntro(key)){
+      profile.appIntroStyle = profile.appIntroStyle === key ? "math" : key; saveProfile(); renderShop();
+      showToast(profile.appIntroStyle === key ? `🎬 ${name}-Intro aktiviert – beim nächsten Start zu sehen!` : "Intro zurückgesetzt.");
+      return;
+    }
+    if(!seasonActive(key === "xmas" ? "christmas" : "halloween")){ showToast("🔒 Nur während der Season kaufbar."); return; }
+    if(profile.totalAura < cost){ showToast("Nicht genug Aura!"); return; }
+    profile.totalAura -= cost; logAuraTransaction(-cost, `Intro gekauft: ${name}`);
+    profile.unlockedIntros = [...new Set([...(profile.unlockedIntros || []), key])];
+    profile.appIntroStyle = key; saveProfile(); renderShop(); renderHome();
+    showToast(`🎬 ${name}-Intro freigeschaltet und aktiviert!`);
+  }
+  // ---- Owner ----
+  function renderOwnerSeasonStatus(){
+    const el = $("ownerSeasonStatus"); if(!el) return;
+    const sd = seasonData;
+    el.textContent = sd && sd.endAt > Date.now() ? `Aktiv: ${SEASON_INFO[sd.type] ? SEASON_INFO[sd.type].label : sd.type} · noch ${seasonTimeLeft()} (bis ${new Date(sd.endAt).toLocaleDateString("de-DE")}, 00:00 Uhr)` : "Aktuell keine Season.";
+  }
+  function ownerSeasonUpdateEnd(){
+    const d = parseInt($("ownerSeasonDays").value, 10);
+    if(!(d >= 1 && d <= 90)){ $("ownerSeasonEnd").textContent = "1 bis 90 Tage"; return; }
+    const end = new Date(ownerChEndAt(d));
+    $("ownerSeasonEnd").textContent = "endet am " + end.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" }) + " um 00:00 Uhr";
+  }
+  async function ownerStartSeason(){
+    if(!isOwner()) return;
+    const d = parseInt($("ownerSeasonDays").value, 10);
+    if(!(d >= 1 && d <= 90)) return showToast("Dauer: 1 bis 90 Tage.");
+    const data = { id: "s_" + Date.now(), type: $("ownerSeasonType").value, startAt: Date.now(), endAt: ownerChEndAt(d), createdBy: currentUser.uid };
+    try{
+      await db().collection("appConfig").doc("season").set(data);
+      seasonData = data; seasonLoadedAt = Date.now(); renderOwnerSeasonStatus(); renderShop();
+      showToast(`${SEASON_INFO[data.type].label} gestartet – die Kollektion ist jetzt im Shop!`);
+    }catch(e){ showErrorPopup("Season konnte nicht gestartet werden:\n" + (e.message || e)); }
+  }
+  async function ownerStopSeason(){
+    if(!isOwner()) return;
+    if(!(await showConfirmPopup("Aktuelle Season beenden? Gekaufte Artikel bleiben bei den Spielern."))) return;
+    try{ await db().collection("appConfig").doc("season").delete(); seasonData = null; renderOwnerSeasonStatus(); renderShop(); showToast("⏹ Season beendet."); }
+    catch(e){ showErrorPopup("Beenden fehlgeschlagen:\n" + (e.message || e)); }
+  }
+  $("ownerSeasonDays").addEventListener("input", ownerSeasonUpdateEnd);
+  ownerSeasonUpdateEnd();
+  $("ownerSeasonStartBtn").addEventListener("click", ownerStartSeason);
+  $("ownerSeasonStopBtn").addEventListener("click", ownerStopSeason);
+  $("ownerToolSeason").addEventListener("click", () => {
+    toggleOwnerPanel("panelOwnerSeason", "ownerToolSeason", () => { loadSeason(true); renderOwnerSeasonStatus(); ownerSeasonUpdateEnd(); });
+  });
+
   $("backHomeFromLocked").addEventListener("click", () => {
     clearInterval(lockedInterval);
     showScreen("home");
@@ -24024,7 +24183,7 @@
   // noch passend zu dieser Dauer gewartet, bevor es weitergeht.
   function playStartupIntro(callback){
     let style = ["simple", "nova", "halloween", "xmas"].includes(profile.appIntroStyle) ? profile.appIntroStyle : "math"; // Math ist Standard
-    if((style === "halloween" || style === "xmas") && !(isOwner() || (profile.unlockedThemes || []).includes(style === "xmas" ? "winter" : "halloween"))) style = "math";
+    if((style === "halloween" || style === "xmas") && !hasIntro(style)) style = "math"; // nur gekaufte Intros
     if(style === "halloween" || style === "xmas"){
       // Event-Intros (NEU)
       ["introScreenSimple", "introScreenMath", "introScreenNova"].forEach(id => { if($(id)) $(id).style.display = "none"; });

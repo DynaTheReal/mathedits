@@ -5697,8 +5697,7 @@
         <select id="ownerChReward" class="input-field" style="margin-bottom:10px;"></select>
         <button class="btn btn-primary btn-small" id="ownerChStartBtn" style="width:100%; background:#facc15; border-color:#facc15; color:#111;">Herausforderung starten</button>
         <button class="btn btn-ghost btn-small" id="ownerChDeleteBtn" style="width:100%; margin-top:8px; border-color:#ef4444; color:#ef4444;">🗑️ Aktuelle Herausforderung löschen</button>
-        <div class="d" style="margin:14px 0 4px;">Geheime Designs (🎃 Halloween, ❄️ Winter) – nicht im Shop</div>
-        <button class="btn btn-ghost btn-small" id="ownerUnlockSecretBtn" style="width:100%;">Für mich gratis freischalten</button>
+        <div class="d" style="margin:14px 0 4px;">Geheime Designs (🎃 Halloween, ❄️ Winter): nicht im Shop. Du hast sie automatisch, andere nur über eine Herausforderung oder einen Code.</div>
       </div>
 
       <div class="owner-inline-panel" id="panelOwnerSiteStop">
@@ -7282,7 +7281,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.04";
+  const APP_VERSION = "4.05";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -15609,6 +15608,13 @@
   
   function populateThemeSelect(select, unlocked){
     if(!select) return;
+    // Owner hat die geheimen Designs automatisch (NEU) - alle anderen sehen
+    // sie nur, wenn sie sie freigeschaltet haben (z. B. über eine Herausforderung).
+    if(isOwner() && SECRET_THEMES.some(t => !(profile.unlockedThemes || []).includes(t))){
+      profile.unlockedThemes = [...new Set([...(profile.unlockedThemes || ["black"]), ...SECRET_THEMES])];
+      unlocked = profile.unlockedThemes;
+      saveProfile();
+    }
     select.innerHTML = ALL_THEME_IDS.filter(id => !SECRET_THEMES.includes(id) || unlocked.includes(id)).map(id => { // geheime nur, wenn freigeschaltet
       const label = THEME_DISPLAY_NAME[id] || id;
       const lockIcon = (id === "black" || unlocked.includes(id)) ? "" : " (🔒)";
@@ -22516,11 +22522,7 @@
   $("ownerToolChallenge").addEventListener("click", () => {
     toggleOwnerPanel("panelOwnerChallenge", "ownerToolChallenge", () => { loadChallenge(true); renderOwnerChallengeStatus(); });
   });
-  $("ownerUnlockSecretBtn").addEventListener("click", () => {
-    profile.unlockedThemes = [...new Set([...(profile.unlockedThemes || ["black"]), ...SECRET_THEMES])];
-    saveProfile(); renderSettings();
-    showToast("🎃❄️ Geheime Designs freigeschaltet – in den Einstellungen auswählbar.");
-  });
+
 
   /* ===================== GATEWAYS (NEU) =====================
      Feste Sprungziele in der App. Im Entwicklermodus zeigt jedes Ziel auf dem

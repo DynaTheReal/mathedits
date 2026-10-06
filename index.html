@@ -3996,6 +3996,45 @@
       radial-gradient(ellipse 14px 8px at 90% 100%, #fff 62%, transparent 66%); }
   [data-theme="winter"] .btn-primary, [data-theme="winter"] .submit-btn{ box-shadow:0 8px 24px rgba(125,211,252,.3), inset 0 1px 0 rgba(255,255,255,.6) !important; }
 
+  /* --- Halloween: Feinschliff --- */
+  [data-theme="halloween"] .brand{ color:#ffb15c; text-shadow:0 0 10px rgba(255,123,28,.75), 0 0 26px rgba(255,90,0,.35); }
+  [data-theme="halloween"] .brand .dot{ background:#ff7b1c; box-shadow:0 0 12px #ff7b1c, 0 0 26px #ff5a00; }
+  [data-theme="halloween"] .beta-streak-card, [data-theme="halloween"] .nv-streak{ position:relative; overflow:hidden;
+    background:radial-gradient(circle at 85% 70%, rgba(255,140,40,.55), transparent 55%) padding-box, linear-gradient(140deg, #3a1406, #1d0a24) padding-box,
+      linear-gradient(135deg, #ff7b1c, #a855f7) border-box !important; box-shadow:0 12px 32px rgba(255,100,0,.22), inset 0 0 30px rgba(255,120,30,.12) !important; }
+  [data-theme="halloween"] .beta-streak-card::after, [data-theme="halloween"] .nv-streak::after{ content:"🎃"; position:absolute; right:-6px; bottom:-14px; font-size:92px; opacity:.28;
+    pointer-events:none; filter:drop-shadow(0 0 18px rgba(255,140,0,.8)); animation:hw-glow 3s ease-in-out infinite; }
+  @keyframes hw-glow{ 50%{ opacity:.4; filter:drop-shadow(0 0 28px rgba(255,160,0,1)); } }
+  [data-theme="halloween"] .nav-item.active{ color:#ff9a3c !important; filter:drop-shadow(0 0 8px rgba(255,123,28,.85)); }
+  [data-theme="halloween"] .bottom-nav::after{ content:"🎃"; position:absolute; right:14px; top:-19px; font-size:20px; pointer-events:none; filter:drop-shadow(0 0 8px rgba(255,140,0,.8)); }
+  /* Nebel, der am unteren Rand entlangzieht */
+  [data-theme="halloween"]::after{ content:""; position:fixed; left:-20%; right:-20%; bottom:calc(52px + env(safe-area-inset-bottom)); height:120px; pointer-events:none; z-index:1;
+    background:radial-gradient(ellipse 30% 60% at 20% 70%, rgba(210,190,230,.13), transparent 70%), radial-gradient(ellipse 34% 55% at 62% 75%, rgba(210,190,230,.11), transparent 70%),
+      radial-gradient(ellipse 26% 50% at 92% 70%, rgba(210,190,230,.12), transparent 70%);
+    animation:hw-fog 22s ease-in-out infinite alternate; }
+  @keyframes hw-fog{ from{ transform:translateX(-6%); } to{ transform:translateX(6%); } }
+  /* --- Winter: Feinschliff --- */
+  [data-theme="winter"] .brand{ color:#f0f9ff; text-shadow:0 0 10px rgba(186,230,253,.8), 0 1px 0 #bae6fd; }
+  [data-theme="winter"] .brand .dot{ background:#e0f2fe; box-shadow:0 0 12px #bae6fd, 0 0 24px #7dd3fc; }
+  [data-theme="winter"] .beta-streak-card, [data-theme="winter"] .nv-streak{ position:relative; overflow:visible;
+    background:linear-gradient(160deg, rgba(255,255,255,.18), transparent 35%) padding-box, linear-gradient(140deg, #1c4d75, #0c2741) padding-box,
+      linear-gradient(135deg, #ffffff, #7dd3fc 60%, #c4b5fd) border-box !important; box-shadow:0 12px 32px rgba(56,189,248,.2), inset 0 0 30px rgba(186,230,253,.14) !important; }
+  [data-theme="winter"] .beta-streak-card::after, [data-theme="winter"] .nv-streak::after{ content:"❄️"; position:absolute; right:8px; bottom:4px; font-size:70px; opacity:.22; pointer-events:none;
+    filter:drop-shadow(0 0 12px rgba(186,230,253,.9)); animation:wt-spin 18s linear infinite; }
+  @keyframes wt-spin{ to{ transform:rotate(360deg); } }
+  [data-theme="winter"] .beta-streak-card::before, [data-theme="winter"] .nv-streak::before{ content:""; position:absolute; left:10px; right:10px; top:-10px; height:14px; pointer-events:none; z-index:2;
+    filter:drop-shadow(0 2px 2px rgba(120,170,210,.45));
+    background:radial-gradient(ellipse 18px 9px at 10% 100%, #fff 62%, transparent 66%), radial-gradient(ellipse 30px 13px at 34% 100%, #fff 62%, transparent 66%),
+      radial-gradient(ellipse 20px 9px at 58% 100%, #fff 62%, transparent 66%), radial-gradient(ellipse 30px 13px at 82% 100%, #fff 62%, transparent 66%); }
+  [data-theme="winter"] .nav-item.active{ color:#bae6fd !important; filter:drop-shadow(0 0 8px rgba(125,211,252,.9)); }
+  [data-theme="winter"] .bottom-nav::after{ content:""; position:absolute; left:0; right:0; top:-8px; height:11px; pointer-events:none;
+    background:radial-gradient(ellipse 34px 9px at 6% 100%, #fff 60%, transparent 64%), radial-gradient(ellipse 50px 11px at 26% 100%, #f0f9ff 60%, transparent 64%),
+      radial-gradient(ellipse 40px 9px at 50% 100%, #fff 60%, transparent 64%), radial-gradient(ellipse 54px 11px at 74% 100%, #f0f9ff 60%, transparent 64%),
+      radial-gradient(ellipse 36px 9px at 95% 100%, #fff 60%, transparent 64%); filter:drop-shadow(0 -1px 3px rgba(186,230,253,.6)); }
+  [data-theme="winter"] .bottom-nav::before{ top:-24px; }
+  [data-theme="winter"] .tier-card, [data-theme="winter"] .shop-item, [data-theme="winter"] .nv-card, [data-theme="winter"] .nsx-card, [data-theme="winter"] .lx-topic, [data-theme="winter"] .question-card{
+    background-image:linear-gradient(160deg, rgba(255,255,255,.07), transparent 40%); }
+
   /* ===================== HERAUSFORDERUNG (Missionen) ===================== */
   .challenge-wrap:empty{ display:none; }
   body.layout-nova #screen-missions > #challengeCard{ display:block !important; margin:0 2px 10px; }
@@ -7302,7 +7341,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.06";
+  const APP_VERSION = "4.07";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -22520,7 +22559,7 @@
     if(!(target >= 1 && target <= 1000)) return showToast("Anzahl Lektionen: 1 bis 1000.");
     if(!(days >= 1 && days <= 60)) return showToast("Dauer: 1 bis 60 Tage.");
     const data = { id: "ch_" + Date.now(), title: title.slice(0, 80), style: $("ownerChStyle").value, type: "lessons", target,
-      rewardTheme: $("ownerChReward").value, startAt: Date.now(), endAt: Date.now() + days * 864e5, createdBy: currentUser.uid };
+      rewardTheme: $("ownerChReward").value, startAt: Date.now(), endAt: ownerChEndAt(days), createdBy: currentUser.uid }; // endet um 0:00 Uhr
     try{
       await db().collection("appConfig").doc("challenge").set(data);
       challengeData = data; challengeLoadedAt = Date.now();
@@ -22539,11 +22578,14 @@
   }
   $("ownerChReward").innerHTML = ALL_THEME_IDS.map(id => `<option value="${id}">${THEME_DISPLAY_NAME[id] || id}${SECRET_THEMES.includes(id) ? " (geheim)" : ""}</option>`).join("");
   $("ownerChReward").value = "halloween";
+  // Herausforderungen enden IMMER um 0:00 Uhr (NEU): nach Ablauf der Tage
+  // auf die nächste Mitternacht aufgerundet - so hat man mindestens volle Tage.
+  function ownerChEndAt(days){ const e = new Date(Date.now() + days * 864e5); if(e.getHours() || e.getMinutes() || e.getSeconds() || e.getMilliseconds()){ e.setDate(e.getDate() + 1); e.setHours(0, 0, 0, 0); } return e.getTime(); }
   function ownerChUpdateEnd(){
-    const d = parseFloat($("ownerChDuration").value);
+    const d = parseInt($("ownerChDuration").value, 10);
     if(!(d >= 1 && d <= 60)){ $("ownerChEndDate").textContent = "1 bis 60 Tage"; return; }
-    const end = new Date(Date.now() + d * 864e5);
-    $("ownerChEndDate").textContent = "endet am " + end.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" }) + " um " + end.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    const end = new Date(ownerChEndAt(d));
+    $("ownerChEndDate").textContent = "endet am " + end.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" }) + " um 00:00 Uhr";
   }
   $("ownerChDuration").addEventListener("input", ownerChUpdateEnd);
   ownerChUpdateEnd();

@@ -4163,6 +4163,12 @@
   /* ===================== HERAUSFORDERUNG (Missionen) ===================== */
   .challenge-wrap:empty{ display:none; }
   body.layout-nova #screen-missions > #challengeCard{ display:block !important; margin:0 2px 10px; }
+  .ob-layout-desc{ display:block; text-align:left; margin-bottom:8px; min-height:58px; }
+  .ob-layout-desc b{ display:block; font-size:14px; font-weight:900; margin-bottom:2px; }
+  .ob-layout-desc small{ display:block; font-size:11px; line-height:1.35; opacity:.75; font-weight:600; }
+  .ch-guest{ position:relative; z-index:2; margin-top:12px; display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.18); }
+  .ch-guest span{ flex:1; font-size:12px; font-weight:700; line-height:1.3; }
+  .ch-guest button{ border:none; border-radius:10px; padding:8px 12px; font-weight:900; font-size:12px; background:#fff; color:#111; font-family:inherit; cursor:pointer; white-space:nowrap; }
   .ch-card{ position:relative; overflow:hidden; border-radius:24px; padding:18px 16px 16px; margin-bottom:14px; color:#fff;
     background:linear-gradient(145deg, #4c1d95, #1e1b4b); box-shadow:0 14px 40px rgba(0,0,0,.4); }
   .ch-card.st-halloween{ background:radial-gradient(circle at 85% 0%, rgba(255,170,60,.55), transparent 45%), linear-gradient(150deg, #c2410c, #3b0f04 70%); }
@@ -6758,24 +6764,8 @@
         <h2>Wähle dein Layout</h2>
         <p>Du kannst das später jederzeit in den Einstellungen wieder ändern.</p>
         <div style="display:flex; gap:12px; margin-top:18px;">
-          <button class="ob-layout-choice" id="obLayoutSimpelBtn" data-layout="simpel">
-            <div class="ob-layout-preview">
-              <div class="ob-preview-topbar"></div>
-              <div class="ob-preview-hero"></div>
-              <div class="ob-preview-row"><div class="ob-preview-pill"></div><div class="ob-preview-pill"></div></div>
-            </div>
-            <span>Simpel</span>
-          </button>
-          <button class="ob-layout-choice active" id="obLayoutCleanBtn" data-layout="clean">
-            <div class="ob-layout-preview ob-preview-glow">
-              <div class="ob-preview-topbar"></div>
-              <div class="ob-preview-stats"><div></div><div></div><div></div><div></div></div>
-              <div class="ob-preview-card ob-preview-card-purple"></div>
-              <div class="ob-preview-card ob-preview-card-orange"></div>
-            </div>
-            <span>Clean</span>
-          </button>
-          <button class="ob-layout-choice" id="obLayoutNovaBtn" data-layout="nova">
+          <button class="ob-layout-choice active" id="obLayoutNovaBtn" data-layout="nova">
+            <div class="ob-layout-desc"><b>Nova</b><small>Modern &amp; lebendig: große Karten, Glow-Effekte, alles auf einen Blick.</small></div>
             <div class="ob-layout-preview ob-preview-nova">
               <div class="ob-nv-bar"></div>
               <div class="ob-nv-stats"><div></div><div></div></div>
@@ -6783,6 +6773,15 @@
               <div class="ob-nv-nav"></div>
             </div>
             <span>Nova</span>
+          </button>
+          <button class="ob-layout-choice" id="obLayoutSimpelBtn" data-layout="simpel">
+            <div class="ob-layout-desc"><b>Simpel</b><small>Ruhig &amp; einfach: nur das Wichtigste, ohne Ablenkung.</small></div>
+            <div class="ob-layout-preview">
+              <div class="ob-preview-topbar"></div>
+              <div class="ob-preview-hero"></div>
+              <div class="ob-preview-row"><div class="ob-preview-pill"></div><div class="ob-preview-pill"></div></div>
+            </div>
+            <span>Simpel</span>
           </button>
         </div>
         <button class="btn-glow" id="obLayoutContinueBtn" style="margin-top:22px;">Weiter <span>→</span></button>
@@ -7023,9 +7022,8 @@
       <div class="d" style="font-weight:800; margin-bottom:6px;">Home-Layout</div>
       <div class="d" style="margin-bottom:8px;">Wie der Home-Bildschirm aussieht.</div>
       <select id="layoutStyleSelect" class="input-field" style="width:100%; margin-bottom:16px;">
-        <option value="simpel">Simpel</option>
-        <option value="clean">Clean</option>
         <option value="nova">Nova</option>
+        <option value="simpel">Simpel</option>
       </select>
 
       <div class="d" style="font-weight:800; margin-bottom:6px;">App-Intro</div>
@@ -7653,7 +7651,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.12";
+  const APP_VERSION = "4.13";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -7860,6 +7858,8 @@
   }
 
   function db(){ return firebase.firestore(); }
+  // Season & Herausforderung auch für Gäste laden (ohne Login)
+  setTimeout(() => { if(firebaseInitialized && !currentUser){ try{ loadSeason(true); loadChallenge(true); }catch(e){} } }, 3500);
 
   /* ========================================================
      EINLADUNGSLINK (NEU)
@@ -7990,7 +7990,7 @@
     answeredPollIds: [], // verhindert mehrfaches Einschicken derselben Umfrage
     appIntroStyle: "math", // "math" (Standard) oder "simple" - welche Start-Animation beim App-Öffnen läuft
     devModeEnabled: false, // Entwicklermodus: zeigt Debug-Beschriftungen an allen Elementen (nur Owner)
-    layoutStyle: "clean", // "clean" (Standard, frühere "Beta"-Ansicht) oder "simpel" (frühere "Normal"-Ansicht) - welches Home-Layout angezeigt wird
+    layoutStyle: "nova", // "clean" (Standard, frühere "Beta"-Ansicht) oder "simpel" (frühere "Normal"-Ansicht) - welches Home-Layout angezeigt wird
     pendingFeedbackBonusAura: 0, // Aura-Geschenk vom Owner fürs Feedback, das noch als Banner angezeigt werden muss
     todayActiveMs: 0, // heutige Nutzungszeit in der App (Millisekunden)
     todayActiveDate: null, // für welchen Tag todayActiveMs gilt
@@ -8024,7 +8024,7 @@
         // umbenannt - alte gespeicherte Werte auf die neuen Namen abbilden,
         // damit niemand ungewollt das Layout wechselt, nur weil die Werte
         // jetzt anders heißen.
-        if(parsed.layoutStyle === "beta") profile.layoutStyle = "clean";
+        if(parsed.layoutStyle === "beta" || parsed.layoutStyle === "clean") profile.layoutStyle = "nova";
         else if(parsed.layoutStyle === "normal") profile.layoutStyle = "simpel";
       }
     }catch(e){
@@ -8191,7 +8191,7 @@
         unlockedThemes: cloudData.unlockedThemes || ["black"],
         inventory: { ...DEFAULT_PROFILE.inventory, ...(cloudData.inventory || {}) },
         following: cloudData.following || [],
-        layoutStyle: cloudData.layoutStyle === "beta" ? "clean" : (cloudData.layoutStyle === "normal" ? "simpel" : (cloudData.layoutStyle || DEFAULT_PROFILE.layoutStyle))
+        layoutStyle: (cloudData.layoutStyle === "beta" || cloudData.layoutStyle === "clean") ? "nova" : (cloudData.layoutStyle === "normal" ? "simpel" : (cloudData.layoutStyle || DEFAULT_PROFILE.layoutStyle))
       };
       const previousDoubleAuraUntil = (profile.inventory && profile.inventory.doubleAuraUntil) || 0;
       const settingsBefore = settingsSnapshot(profile);
@@ -16091,6 +16091,7 @@
     { key: "xmas", cost: 1500, name: "Weihnachts", event: "winter" }
   ];
   function buyFrame(frameKey, cost, name){
+    if(!(profile.unlockedFrames || ["none"]).includes(frameKey) && (frameKey === "halloween" || frameKey === "xmas") && seasonGuestBlocked()) return;
     if(!(profile.unlockedFrames || ["none"]).includes(frameKey) && !seasonBuyAllowed(frameKey)){ showToast("🔒 Nur während der passenden Season kaufbar."); return; }
     const unlocked = profile.unlockedFrames || ["none"];
     if(unlocked.includes(frameKey)){
@@ -16132,6 +16133,7 @@
   ];
   function buyFont(fontKey, cost, name){
     const unlocked = profile.unlockedFonts || ["none"];
+    if(!unlocked.includes(fontKey) && (fontKey === "halloween" || fontKey === "xmas") && seasonGuestBlocked()) return;
     if(!unlocked.includes(fontKey) && !seasonBuyAllowed(fontKey)){ showToast("🔒 Nur während der passenden Season kaufbar."); return; }
     if(unlocked.includes(fontKey)){
       // Schon freigeschaltet - Klick aktiviert/deaktiviert stattdessen (NEU).
@@ -16215,7 +16217,8 @@
      THEME SYSTEM
   ======================================================== */
   function applyTheme(){
-    document.body.classList.toggle("layout-beta", profile.layoutStyle === "clean");
+    if(profile.layoutStyle !== "simpel" && profile.layoutStyle !== "nova") profile.layoutStyle = "nova"; // "Clean" gibt es nicht mehr
+    document.body.classList.toggle("layout-beta", false);
     document.body.classList.toggle("layout-nova", profile.layoutStyle === "nova");
     if(typeof lxApplyBeta === "function") lxApplyBeta(); // LEKTIONEN-SYSTEM
     // Absicherung: falls ein Konto noch auf das entfernte Custom-Theme
@@ -18106,7 +18109,7 @@
         if(!hasIntro(v) && o) o.remove();
       }); }
     $("appIntroStyleSelect").value = ["simple", "nova", "halloween", "xmas"].includes(profile.appIntroStyle) ? profile.appIntroStyle : "math";
-    $("layoutStyleSelect").value = ["simpel","clean","nova"].includes(profile.layoutStyle) ? profile.layoutStyle : "clean";
+    $("layoutStyleSelect").value = ["simpel","nova"].includes(profile.layoutStyle) ? profile.layoutStyle : "nova";
     updateNotificationAndInstallUI();
     const displayName = profile.username
       ? "@" + profile.username + (isSuperUser() ? " ⭐" : "")
@@ -18192,7 +18195,7 @@
   });
 
   $("layoutStyleSelect").addEventListener("change", (e) => {
-    profile.layoutStyle = ["simpel","clean","nova"].includes(e.target.value) ? e.target.value : "clean";
+    profile.layoutStyle = ["simpel","nova"].includes(e.target.value) ? e.target.value : "nova";
     saveProfile();
     applyTheme();
     renderHome();
@@ -18280,7 +18283,7 @@
 
   $("designSettingsRow").addEventListener("click", () => {
     $("overlayDesignSettings").classList.add("show");
-    $("layoutStyleSelect").value = ["simpel","clean","nova"].includes(profile.layoutStyle) ? profile.layoutStyle : "clean";
+    $("layoutStyleSelect").value = ["simpel","nova"].includes(profile.layoutStyle) ? profile.layoutStyle : "nova";
     $("appIntroStyleSelect").value = profile.appIntroStyle || "math";
     $("longModeSwitch").classList.toggle("on", !!profile.longMode);
     const currentMotif = profile.auraOverlayMotif === "ignite" ? "ignite" : "classic";
@@ -18618,15 +18621,13 @@
      Kachel, die ungefähr zeigt, wie das jeweilige Layout aussieht. Die
      Auswahl wird sofort angewendet (applyTheme()), damit man beim
      Weiterklicken direkt im gewählten Layout landet. */
-  let selectedOnboardingLayout = "clean";
+  let selectedOnboardingLayout = "nova";
   function selectOnboardingLayout(layout){
     selectedOnboardingLayout = layout;
     $("obLayoutSimpelBtn").classList.toggle("active", layout === "simpel");
-    $("obLayoutCleanBtn").classList.toggle("active", layout === "clean");
     $("obLayoutNovaBtn").classList.toggle("active", layout === "nova");
   }
   $("obLayoutSimpelBtn").addEventListener("click", () => selectOnboardingLayout("simpel"));
-  $("obLayoutCleanBtn").addEventListener("click", () => selectOnboardingLayout("clean"));
   $("obLayoutNovaBtn").addEventListener("click", () => selectOnboardingLayout("nova"));
   $("obLayoutContinueBtn").addEventListener("click", () => {
     profile.layoutStyle = selectedOnboardingLayout;
@@ -18828,7 +18829,7 @@
               unlockedThemes: cloudData.unlockedThemes || ["black"],
               inventory: { ...DEFAULT_PROFILE.inventory, ...(cloudData.inventory || {}) },
               following: cloudData.following || [],
-              layoutStyle: cloudData.layoutStyle === "beta" ? "clean" : (cloudData.layoutStyle === "normal" ? "simpel" : (cloudData.layoutStyle || DEFAULT_PROFILE.layoutStyle))
+              layoutStyle: (cloudData.layoutStyle === "beta" || cloudData.layoutStyle === "clean") ? "nova" : (cloudData.layoutStyle === "normal" ? "simpel" : (cloudData.layoutStyle || DEFAULT_PROFILE.layoutStyle))
             };
 
             let justReset = false;
@@ -23112,7 +23113,7 @@
   };
   function challengeActive(c){ const now = Date.now(); return !!(c && c.startAt <= now && now < c.endAt); }
   async function loadChallenge(force){
-    if(!firebaseInitialized || !currentUser) return;
+    if(!firebaseInitialized) return; // auch Gäste sehen die Herausforderung
     if(!force && Date.now() - challengeLoadedAt < 10 * 60 * 1000) return; // höchstens alle 10 Min lesen
     challengeLoadedAt = Date.now();
     try{
@@ -23131,6 +23132,7 @@
   function challengeOnLesson(){
     const c = challengeData;
     if(!challengeActive(c)) return;
+    if(!currentUser) return; // mitmachen nur mit Account
     const pr = challengeProg();
     pr.count++;
     if(!pr.claimed && pr.count >= c.target){
@@ -23165,7 +23167,9 @@
       <div class="ch-prog"><span>${Math.min(pr.count, c.target)} / ${c.target} Lektionen</span><span>${pct} %</span></div>
       <div class="ch-reward"><div class="ch-swatch" style="background:linear-gradient(135deg, ${col}, #111)"></div>
         <div><b>${pr.claimed ? "✓ Geschafft!" : "Belohnung"}</b><small>Design „${lxEsc(THEME_DISPLAY_NAME[th] || th || "?")}“${pr.claimed ? " ist freigeschaltet" : ""}</small></div></div>
+      ${currentUser ? "" : `<div class="ch-guest"><span>🔒 Melde dich an, um mitzumachen und die Belohnung zu bekommen.</span><button data-ch-login>Anmelden</button></div>`}
     </div>`;
+    const lb = box.querySelector("[data-ch-login]"); if(lb) lb.addEventListener("click", goToLogin);
   }
   // ---- Owner-Steuerung ----
   function renderOwnerChallengeStatus(){
@@ -23360,6 +23364,18 @@
     christmas: { label: "🎄 Weihnachts-Season", set: "shopXmasSet", theme: "winter", intro: "xmas", font: "xmas", frame: "xmas",
                  btn: { theme: "buyXmasTheme", intro: "buyXmasIntro", font: "buyXmasFont", frame: "buyXmasFrame" } }
   };
+  // Gäste: zum Login in den Einstellungen springen
+  function goToLogin(){
+    document.querySelectorAll(".overlay.show").forEach(o => o.classList.remove("show"));
+    showScreen("settings"); if(typeof renderSettings === "function") renderSettings();
+    setTimeout(() => { const el = $("authBox"); if(!el) return; el.scrollIntoView({ behavior: "smooth", block: "center" }); gwRing(() => $("authBox"), el, 2700); }, 250);
+  }
+  // Season-Artikel kaufen geht nur mit Account (Gäste sehen sie trotzdem)
+  function seasonGuestBlocked(){
+    if(currentUser || isOwner()) return false;
+    showToast("🔒 Melde dich an, um Season-Artikel zu kaufen."); setTimeout(goToLogin, 600);
+    return true;
+  }
   const seasonActive = type => !!(seasonData && seasonData.type === type && seasonData.startAt <= Date.now() && Date.now() < seasonData.endAt);
   // Schrift-/Rahmen-Schlüssel -> Season ("halloween" | "xmas")
   function seasonBuyAllowed(key){
@@ -23367,7 +23383,7 @@
     return isOwner() || seasonActive(key === "xmas" ? "christmas" : "halloween");
   }
   async function loadSeason(force){
-    if(!firebaseInitialized || !currentUser) return;
+    if(!firebaseInitialized) return; // auch Gäste bekommen die Season mit
     if(!force && Date.now() - seasonLoadedAt < 10 * 60 * 1000) return; // höchstens alle 10 Min
     seasonLoadedAt = Date.now();
     try{ const d = await db().collection("appConfig").doc("season").get(); seasonData = d.exists ? d.data() : null; seasonCacheStore(); }catch(e){ console.error("Season laden:", e); }
@@ -23417,6 +23433,7 @@
       showToast(profile.theme === theme ? `🎨 ${name}-Design aktiviert!` : "Design zurück auf Schwarz.");
       return;
     }
+    if(seasonGuestBlocked()) return;
     if(!seasonActive(theme === "winter" ? "christmas" : "halloween")){ showToast("🔒 Nur während der Season kaufbar."); return; }
     if(profile.totalAura < cost){ showToast("Nicht genug Aura!"); return; }
     profile.totalAura -= cost; logAuraTransaction(-cost, `Design gekauft: ${name}`);
@@ -23430,6 +23447,7 @@
       showToast(profile.appIntroStyle === key ? `🎬 ${name}-Intro aktiviert – beim nächsten Start zu sehen!` : "Intro zurückgesetzt.");
       return;
     }
+    if(seasonGuestBlocked()) return;
     if(!seasonActive(key === "xmas" ? "christmas" : "halloween")){ showToast("🔒 Nur während der Season kaufbar."); return; }
     if(profile.totalAura < cost){ showToast("Nicht genug Aura!"); return; }
     profile.totalAura -= cost; logAuraTransaction(-cost, `Intro gekauft: ${name}`);

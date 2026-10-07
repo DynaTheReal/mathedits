@@ -1286,8 +1286,9 @@
 
   /* ---------- Online-Freunde-Popup (NEU): sauberere Animation ---------- */
   /* ===== Online-Popup (Redesign) ===== */
-  .ofp{ position:fixed; top:calc(12px + env(safe-area-inset-top)); left:50%; z-index:96000; display:flex; align-items:center; gap:11px;
-    padding:7px 12px 7px 7px; border-radius:999px; max-width:calc(100% - 28px); cursor:pointer;
+  .ofp{ position:fixed; top:calc(12px + env(safe-area-inset-top)); left:50%; z-index:96000; display:block;
+    padding:7px 12px 7px 7px; border-radius:999px; box-sizing:border-box; overflow:hidden;
+    transition:width .45s cubic-bezier(.4,0,.2,1), border-radius .45s cubic-bezier(.4,0,.2,1), padding .45s cubic-bezier(.4,0,.2,1); max-width:calc(100% - 28px); cursor:pointer;
     background:color-mix(in srgb, var(--card, #15141b) 88%, transparent); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
     border:1px solid color-mix(in srgb, var(--text, #fff) 10%, transparent); box-shadow:0 14px 36px rgba(0,0,0,.4), 0 0 0 1px rgba(34,197,94,.12);
     transform:translate(-50%, -140%); opacity:0; visibility:hidden; font-family:inherit; }
@@ -1295,6 +1296,20 @@
   .ofp.hide{ animation:ofp-out .42s cubic-bezier(.5,0,.75,0) both; }
   @keyframes ofp-in{ 0%{ transform:translate(-50%, -140%) scale(.92); opacity:0; } 100%{ transform:translate(-50%, 0) scale(1); opacity:1; } }
   @keyframes ofp-out{ from{ transform:translate(-50%, 0); opacity:1; } to{ transform:translate(-50%, -140%) scale(.95); opacity:0; } }
+  .ofp-head{ display:flex; align-items:center; gap:11px; }
+  .ofp.big{ border-radius:24px; padding:10px 10px 10px 10px; }
+  .ofp-list{ display:flex; flex-direction:column; gap:6px; max-height:0; opacity:0; margin-top:0; transition:max-height .45s cubic-bezier(.4,0,.2,1), opacity .3s, margin-top .45s; }
+  .ofp.big .ofp-list{ max-height:330px; opacity:1; margin-top:10px; }
+  .ofp-row{ display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:16px; background:color-mix(in srgb, var(--text, #fff) 5%, transparent); animation:ofp-row .4s cubic-bezier(.34,1.4,.64,1) both; animation-delay:calc(.15s + var(--i) * .07s); }
+  @keyframes ofp-row{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:none; } }
+  .ofp-row .fr-av{ width:36px; height:36px; font-size:14px; }
+  .ofp-row-txt{ flex:1; min-width:0; line-height:1.2; }
+  .ofp-row-txt b{ display:block; font-size:13.5px; font-weight:800; color:var(--text, #fff); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ofp-row-txt small{ display:block; font-size:11.5px; font-weight:700; margin-top:1px; color:#22c55e; }
+  .ofp-row-txt small.lesson{ color:#60a5fa; }
+  .ofp-chips{ display:flex; gap:4px; flex-shrink:0; }
+  .ofp-chips span{ font-size:10.5px; font-weight:800; padding:3px 7px; border-radius:999px; background:color-mix(in srgb, var(--text, #fff) 8%, transparent); color:var(--text, #fff); white-space:nowrap; }
+  .ofp-more{ font-size:11.5px; font-weight:700; text-align:center; opacity:.6; padding:2px 0 0; color:var(--text, #fff); }
   .ofp-avs{ position:relative; display:flex; flex-shrink:0; }
   .ofp-av{ width:34px; height:34px; border-radius:50%; display:grid; place-items:center; overflow:hidden; font-weight:800; font-size:14px; color:#fff;
     background:linear-gradient(145deg, var(--accent, #8b5cf6), color-mix(in srgb, var(--accent, #8b5cf6) 45%, #000)); border:2px solid var(--card, #15141b);
@@ -2522,6 +2537,8 @@
   .nova-home .nv-user{display:flex;align-items:center;gap:12px;min-width:0;text-align:left}
   .nv-avatar{width:52px;height:52px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-weight:800;font-size:20px;color:#fff;
     background:linear-gradient(145deg,color-mix(in srgb, var(--accent) 78%, #000),color-mix(in srgb, var(--accent) 40%, #000));box-shadow:0 0 0 2px rgba(255,255,255,.12),0 8px 24px color-mix(in srgb, var(--accent) 40%, transparent)}
+  .nv-avatar{ overflow:hidden; cursor:pointer; } .nv-avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .nv-avatar.has-img{ background:#1c1a24; }
   .nova-home .nv-greet{font-size:13px;color:var(--nv-muted)}
   .nv-name{font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .nv-top-right{display:flex;align-items:center;gap:8px}
@@ -4495,6 +4512,48 @@
     font-size:13.5px;
   }
   .friend-row .name{font-weight:700;}
+  /* ===== Freunde (Redesign) ===== */
+  .fr-head{ display:flex; align-items:flex-end; justify-content:space-between; margin:6px 2px 10px; }
+  .fr-head b{ display:block; font-size:19px; font-weight:800; letter-spacing:-.01em; }
+  .fr-head small{ display:block; font-size:12px; font-weight:600; color:var(--text-dim, #8e8a9c); margin-top:2px; }
+  .fr-head small .on{ color:#22c55e; font-weight:800; }
+  .fr-tabs .social-tab{ font-size:12.5px; }
+  body.layout-nova #socialTabAdd, body.layout-nova #socialTabRequests{ font-size:12.5px !important; }
+  body.layout-nova #socialTabAdd::after, body.layout-nova #socialTabRequests::after{ content:none !important; }
+  .fr-row{ display:flex; align-items:center; gap:12px; padding:11px 12px; margin-bottom:8px; border-radius:18px; cursor:pointer;
+    background:var(--card); border:1px solid color-mix(in srgb, var(--text) 8%, transparent); transition:transform .15s, border-color .15s; }
+  .fr-row:active{ transform:scale(.985); }
+  .fr-row.online{ border-color:color-mix(in srgb, #22c55e 35%, transparent); }
+  .fr-av{ position:relative; width:44px; height:44px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; font-weight:800; font-size:17px; color:#fff;
+    background:linear-gradient(145deg, var(--accent, #8b5cf6), color-mix(in srgb, var(--accent, #8b5cf6) 40%, #000)); }
+  .fr-av img{ width:100%; height:100%; object-fit:cover; border-radius:50%; }
+  .fr-dot{ position:absolute; right:-1px; bottom:-1px; width:13px; height:13px; border-radius:50%; background:#22c55e; border:2.5px solid var(--card, #15141b); }
+  .fr-dot.lesson{ background:#60a5fa; }
+  .fr-info{ flex:1; min-width:0; line-height:1.25; }
+  .fr-info b{ display:block; font-size:14.5px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .fr-info small{ display:block; font-size:11.5px; font-weight:700; color:#22c55e; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .fr-info small.lesson{ color:#60a5fa; } .fr-info small.off{ color:var(--text-dim, #8e8a9c); font-weight:600; }
+  .fr-meta{ display:flex; gap:4px; margin-top:5px; }
+  .fr-meta span{ font-size:10.5px; font-weight:800; padding:2px 7px; border-radius:999px; background:color-mix(in srgb, var(--text) 7%, transparent); }
+  .fr-act{ display:flex; gap:6px; flex-shrink:0; }
+  .fr-btn{ width:38px; height:38px; border-radius:12px; border:1px solid color-mix(in srgb, var(--text) 12%, transparent); background:color-mix(in srgb, var(--text) 5%, transparent);
+    color:var(--text); font-size:16px; display:grid; place-items:center; cursor:pointer; font-family:inherit; padding:0; }
+  .fr-btn.ok{ background:var(--accent); color:var(--accent-text); border-color:transparent; font-weight:900; }
+  .fr-btn.no{ color:#ef4444; }
+  .fr-pill{ font-size:11px; font-weight:700; padding:5px 9px; border-radius:999px; background:color-mix(in srgb, var(--text) 7%, transparent); color:var(--text-dim, #8e8a9c); white-space:nowrap; }
+  .fr-sec{ font-size:11.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim, #8e8a9c); margin:14px 4px 8px; }
+  .fr-sec:first-child{ margin-top:2px; }
+  .fr-empty{ text-align:center; padding:26px 16px; border-radius:20px; border:1.5px dashed color-mix(in srgb, var(--text) 12%, transparent); color:var(--text-dim, #8e8a9c); font-size:13px; font-weight:600; }
+  .fr-empty .e{ font-size:30px; display:block; margin-bottom:6px; }
+  .fr-empty button{ margin-top:12px; }
+  .fr-add-card{ text-align:center; padding:20px 16px 16px; border-radius:22px; background:var(--card); border:1px solid color-mix(in srgb, var(--text) 8%, transparent); }
+  .fr-add-ico{ width:56px; height:56px; margin:0 auto 8px; border-radius:18px; display:grid; place-items:center; font-size:28px; background:color-mix(in srgb, var(--accent) 16%, transparent); }
+  .fr-add-card > b{ display:block; font-size:16px; font-weight:800; }
+  .fr-add-card > small{ display:block; font-size:12px; color:var(--text-dim, #8e8a9c); margin:4px auto 14px; max-width:280px; line-height:1.4; }
+  .fr-search{ display:flex; align-items:center; gap:8px; }
+  .fr-search .fr-at{ position:absolute; left:14px; top:50%; transform:translateY(-50%); font-weight:800; color:var(--text-dim, #8e8a9c); pointer-events:none; z-index:1; }
+  .fr-search .input-field{ flex:1; margin:0 !important; padding-left:30px; }
+  .fr-search .btn{ flex-shrink:0; height:44px; border-radius:14px; padding:0 16px; }
 
   /* ---------- Nachrichten (NEU) ---------- */
   .msg-friend-row{
@@ -4937,6 +4996,8 @@
 </style>
 </head>
 <body>
+<!-- Boot-Abdeckung (NEU): verhindert, dass beim Neuladen kurz die ungestylte/alte Ansicht aufblitzt -->
+<div id="bootCover" style="position:fixed; inset:0; background:#0b0f19; z-index:99998;"></div>
 <div class="app" data-theme="dark" id="app">
   <div id="offlineBanner" style="display:none; position:fixed; top:0; left:0; right:0; z-index:97000; background:#ef4444; color:#fff; text-align:center; font-size:12px; font-weight:700; padding:6px 10px; padding-top:calc(6px + env(safe-area-inset-top));">📴 Kein Internet - nur Lektionen sind offline verfügbar</div>
 
@@ -4969,9 +5030,12 @@
        Freunde online sind. -->
   <!-- Redesign (NEU): Avatare, Live-Punkt, Federanimation -->
   <div id="onlineFriendsPopup" class="ofp">
-    <div class="ofp-avs" id="ofpAvs"></div>
-    <div class="ofp-txt"><b id="onlineFriendsPopupText"></b><small id="ofpSub">ist jetzt online</small></div>
-    <span class="ofp-live"><i></i>Live</span>
+    <div class="ofp-head">
+      <div class="ofp-avs" id="ofpAvs"></div>
+      <div class="ofp-txt"><b id="onlineFriendsPopupText"></b><small id="ofpSub">ist jetzt online</small></div>
+      <span class="ofp-live"><i></i>Live</span>
+    </div>
+    <div class="ofp-list" id="ofpList"></div>
   </div>
 
   <!-- Icecube-Stand-Popup (NEU): erscheint kurz in der unteren Bildschirm-
@@ -5001,7 +5065,7 @@
 
       <header class="nv-top">
         <button class="nv-user" id="nvUser" aria-label="Profil öffnen">
-          <div class="nv-avatar" id="nvAvatar" aria-hidden="true">?</div>
+          <div class="nv-avatar" id="nvAvatar" title="Profil">?</div>
           <div style="min-width:0">
             <p class="nv-greet" id="nvGreet">Hey!</p>
             <p class="nv-name" id="nvName">Gast</p>
@@ -5579,11 +5643,14 @@
       Melde dich in den Einstellungen an, um Freunde hinzuzufügen und am Leaderboard teilzunehmen.
     </div>
 
-    <div id="profileLoggedInContent">
-      <div class="social-tabs">
-        <div class="social-tab active" id="socialTabFriends">Freunde</div>
-        <div class="social-tab" id="socialTabAdd">Freund hinzufügen</div>
-        <div class="social-tab" id="socialTabRequests" style="position:relative;">Freundschaftsanfragen<span class="nav-badge" id="friendRequestsTabBadge" style="display:none; position:absolute; top:-4px; right:-4px;">1</span></div>
+    <div id="profileLoggedInContent" class="fr-wrap">
+      <div class="fr-head">
+        <div><b>Freunde</b><small id="frHeadSub">Lädt …</small></div>
+      </div>
+      <div class="social-tabs fr-tabs">
+        <div class="social-tab active" id="socialTabFriends">👥 Freunde</div>
+        <div class="social-tab" id="socialTabAdd">➕ Hinzufügen</div>
+        <div class="social-tab" id="socialTabRequests" style="position:relative;">📨 Anfragen<span class="nav-badge" id="friendRequestsTabBadge" style="display:none; position:absolute; top:-4px; right:-4px;">1</span></div>
       </div>
 
       <div class="social-tab-content" id="socialContentFriends">
@@ -5591,17 +5658,23 @@
       </div>
 
       <div class="social-tab-content" id="socialContentAdd" style="display:none;">
-        <div class="add-friend-row" style="position:relative;">
-          <input type="text" id="addFriendInput" class="input-field" placeholder="Benutzername" autocomplete="off">
-          <button class="btn btn-primary btn-small" id="addFriendBtn">Adden</button>
-          <div id="addFriendSuggestions" style="display:none; position:absolute; top:100%; left:0; right:76px; margin-top:4px; background:var(--card); border:1.5px solid var(--border); border-radius:12px; box-shadow:var(--shadow); max-height:220px; overflow-y:auto; z-index:20;"></div>
+        <div class="fr-add-card">
+          <div class="fr-add-ico">🤝</div>
+          <b>Freund hinzufügen</b>
+          <small>Gib den Benutzernamen ein. Sobald ihr euch gegenseitig hinzugefügt habt, seid ihr Freunde.</small>
+          <div class="add-friend-row fr-search" style="position:relative;">
+            <span class="fr-at">@</span>
+            <input type="text" id="addFriendInput" class="input-field" placeholder="benutzername" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <button class="btn btn-primary btn-small" id="addFriendBtn">Senden</button>
+            <div id="addFriendSuggestions" style="display:none; position:absolute; top:100%; left:0; right:0; margin-top:6px; background:var(--card); border:1.5px solid var(--border); border-radius:14px; box-shadow:var(--shadow); max-height:220px; overflow-y:auto; z-index:20; text-align:left;"></div>
+          </div>
         </div>
       </div>
 
       <div class="social-tab-content" id="socialContentRequests" style="display:none;">
-        <div class="shop-section-title">Anfragen an dich</div>
+        <div class="fr-sec">Anfragen an dich</div>
         <div id="followBackList"></div>
-        <div class="shop-section-title">Gesendete Anfragen</div>
+        <div class="fr-sec">Von dir gesendet</div>
         <div id="sentRequestsList"></div>
       </div>
     </div>
@@ -7362,7 +7435,7 @@
 
   <!-- App-Start-Intro: "Simple" Variante (NEU: umbenannt, jetzt eine von zwei
        wählbaren Varianten - siehe playStartupIntro()) -->
-  <div id="introScreenSimple" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background-color: #121212; display: flex; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; animation: fadeOutIntro 0.4s forwards 2.4s;">
+  <div id="introScreenSimple" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background-color: #121212; justify-content: center; align-items: center; z-index: 9999; overflow: hidden; animation: fadeOutIntro 0.4s forwards 2.4s;">
     <div style="display: flex; align-items: center; gap: 15px;">
       <!-- Der Punkt (Farbe wird per JS an das aktive Theme angepasst) -->
       <div id="introDot" style="width: 45px; height: 45px; background-color: #d3fc55; border-radius: 50%; box-shadow: 0 0 20px rgba(211, 252, 85, 0.3); animation: growDot 0.8s cubic-bezier(0.8, 0, 0.2, 1) forwards 1.4s;"></div>
@@ -7651,7 +7724,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.13";
+  const APP_VERSION = "4.14";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -8410,6 +8483,16 @@
   // synthetische, für die Person unsichtbare "E-Mail" gebaut. Login und
   // Registrierung nutzen exakt dieselbe Umwandlung, sodass kein Nachschlagen
   // nötig ist.
+  // Name sofort anzeigen (NEU): direkt nach Login/Registrierung ist profile.username
+  // evtl. noch leer, bis die Cloud-Daten da sind - dann den eingegebenen Namen nehmen.
+  let pendingAuthUsername = "";
+  function currentDisplayUsername(){
+    if(profile.username) return profile.username;
+    if(!currentUser) return "";
+    if(pendingAuthUsername) return pendingAuthUsername;
+    const em = currentUser.email || "";
+    return em.endsWith("@mathedits.app") ? em.split("@")[0] : "";
+  }
   function usernameToSyntheticEmail(username){
     return normalizeUsername(username) + "@mathedits.app";
   }
@@ -8432,6 +8515,7 @@
     profile.usernameLower = lower;
     profile.hasEverSetUsername = true;
     saveProfile();
+    try{ if(screens.settings && screens.settings.classList.contains("active")) renderSettings(); renderHome(); }catch(e){}
   }
 
   // Legt bei jeder erfolgreichen Neu-Registrierung einen Eintrag an, den NUR
@@ -10352,10 +10436,47 @@
     if(ofpUsers.length === 1){ $("onlineFriendsPopupText").textContent = names[0]; $("ofpSub").textContent = "ist jetzt online"; }
     else if(ofpUsers.length > 1){ $("onlineFriendsPopupText").textContent = ofpUsers.length <= 2 ? names.join(" & ") : `${names[0]} +${ofpUsers.length - 1}`; $("ofpSub").textContent = "sind jetzt online"; }
     else { $("onlineFriendsPopupText").textContent = text; $("ofpSub").textContent = "Freunde online"; }
+    // Ausgeklappte Liste (NEU): wer, und was gerade (Lektion, Level, Streak)
+    const rows = ofpUsers.slice(0, 4).map((u, i) => {
+      const st = friendStatus(u);
+      return `<div class="ofp-row" style="--i:${i}">${frAvatarHtml(u, u.username)}<div class="ofp-row-txt"><b>@${esc(u.username || "?")}</b><small class="${st.cls}">${st.text}</small></div>
+        <div class="ofp-chips"><span>Lvl ${u.level || 0}</span>${u.streak ? `<span>🔥 ${u.streak}</span>` : ""}</div></div>`;
+    }).join("") + (ofpUsers.length > 4 ? `<div class="ofp-more">+${ofpUsers.length - 4} weitere online</div>` : "");
+    $("ofpList").innerHTML = rows;
     const popup = $("onlineFriendsPopup");
-    clearTimeout(onlineFriendsPopupHideTimer);
-    popup.classList.remove("show", "hide"); void popup.offsetWidth; popup.classList.add("show");
-    onlineFriendsPopupHideTimer = setTimeout(() => { popup.classList.add("hide"); setTimeout(() => popup.classList.remove("show", "hide"), 450); }, 3600);
+    clearTimeout(onlineFriendsPopupHideTimer); clearTimeout(ofpStageTimer);
+    popup.classList.remove("show", "hide", "big"); popup.style.width = "";
+    void popup.offsetWidth;
+    popup.classList.add("show");
+    const smallW = popup.offsetWidth, bigW = Math.min(360, innerWidth - 28);
+    popup.style.width = smallW + "px";
+    requestAnimationFrame(() => { if(ofpUsers.length){ popup.classList.add("big"); popup.style.width = bigW + "px"; } });
+    const shownAt = Date.now();
+    // Groß bleiben, bis das Start-Intro vorbei ist (+1 s), mindestens 3,2 s - dann klein, dann weg
+    (function waitCollapse(){
+      const ready = (typeof startupIntroDone === "undefined" || startupIntroDone);
+      if(!ready){ ofpStageTimer = setTimeout(waitCollapse, 200); return; }
+      const wait = Math.max(1000, 3200 - (Date.now() - shownAt));
+      ofpStageTimer = setTimeout(() => {
+        popup.classList.remove("big"); popup.style.width = smallW + "px";
+        onlineFriendsPopupHideTimer = setTimeout(() => {
+          popup.classList.add("hide");
+          setTimeout(() => { popup.classList.remove("show", "hide"); popup.style.width = ""; }, 450);
+        }, 1700);
+      }, wait);
+    })();
+  }
+  let ofpStageTimer = null;
+  // Status eines Freundes (NEU) - für Popup und Freundesliste
+  function friendStatus(u){
+    if(!u) return { cls: "", text: "" };
+    if(isInLesson(u)) return { cls: "lesson", text: "📚 Gerade in einer Lektion" };
+    if(isOnline(u)) return { cls: "", text: "● Online" };
+    return { cls: "off", text: u.lastActiveAt ? "zuletzt " + formatRelativeTime(u.lastActiveAt) : "offline" };
+  }
+  function frAvatarHtml(u, uname){
+    const e = t => String(t).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+    return `<span class="fr-av">${u && u.avatarData ? `<img src="${e(u.avatarData)}" alt="">` : e(((uname || "?") + "").charAt(0).toUpperCase())}${u && isOnline(u) ? `<i class="fr-dot${isInLesson(u) ? " lesson" : ""}"></i>` : ""}</span>`;
   }
 
   // Beim App-Start: zeigt einmalig, wer gerade schon online ist.
@@ -10551,13 +10672,16 @@
     const mutualUids = following.filter(uid => followerUids.includes(uid));
 
     $("profileFriendsCount").textContent = mutualUids.length;
+    const frEsc = t => String(t).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
 
     // Tab "Freunde": NUR gegenseitige Freundschaften, keine Anfragen.
     // Online-Freunde werden zuerst angezeigt.
     const friendsListEl = $("friendsList");
     friendsListEl.innerHTML = "";
+    $("frHeadSub").textContent = mutualUids.length ? `${mutualUids.length} ${mutualUids.length === 1 ? "Freund" : "Freunde"}` : "Noch keine Freunde";
     if(mutualUids.length === 0){
-      friendsListEl.innerHTML = "<div class='empty-hint'>Noch keine Freunde. Füge welche über \"Freund hinzufügen\" hinzu!</div>";
+      friendsListEl.innerHTML = `<div class="fr-empty"><span class="e">👋</span>Noch keine Freunde.<br>Füge jemanden hinzu und lernt zusammen!<br><button class="btn btn-primary btn-small" id="frEmptyAddBtn">➕ Freund hinzufügen</button></div>`;
+      $("frEmptyAddBtn").addEventListener("click", () => switchSocialTab("add"));
     } else {
       const friendDocs = await Promise.all(mutualUids.map(async uid => ({ uid, u: await fetchUserDoc(uid) })));
       friendDocs.sort((a, b) => {
@@ -10566,21 +10690,19 @@
         if(bOnline !== aOnline) return bOnline - aOnline;
         return (b.u && b.u.lastActiveAt || 0) - (a.u && a.u.lastActiveAt || 0);
       });
+      const onlineCount = friendDocs.filter(({ u }) => u && isOnline(u)).length;
+      if(onlineCount) $("frHeadSub").innerHTML = `${mutualUids.length} ${mutualUids.length === 1 ? "Freund" : "Freunde"} · <span class="on">${onlineCount} online</span>`;
       friendDocs.forEach(({ uid, u }) => {
         const uname = u ? (u.username || "Unbekannt") : ((profile.friendUsernameCache || {})[uid] || "Unbekannt");
         const row = document.createElement("div");
-        row.className = "friend-row";
-        row.style.cursor = "pointer";
-        const online = u && isOnline(u);
-        const lastSeenLine = !online && u && u.lastActiveAt
-          ? `<div style="font-size:10.5px; opacity:.6; margin-top:1px;">zuletzt online: ${formatRelativeTime(u.lastActiveAt)}</div>`
-          : "";
-        row.innerHTML = `<span class="name">${online ? `<span class="online-dot${isInLesson(u) ? " in-lesson" : ""}"></span>` : ""}@${uname}${lastSeenLine}</span>`;
-        const duelBtn = document.createElement("button");
-        duelBtn.className = "btn btn-duel btn-small";
-        duelBtn.textContent = "⚔️ 1vs1";
-        duelBtn.addEventListener("click", (e) => { e.stopPropagation(); startDuel(uid, uname); });
-        row.appendChild(duelBtn);
+        const online = u && isOnline(u), st = friendStatus(u);
+        row.className = "fr-row" + (online ? " online" : "");
+        row.innerHTML = `${frAvatarHtml(u, uname)}
+          <div class="fr-info"><b>@${frEsc(uname)}</b><small class="${st.cls}">${st.text}</small>
+            ${u ? `<div class="fr-meta"><span>Lvl ${u.level || 0}</span>${u.streak ? `<span>🔥 ${u.streak}</span>` : ""}</div>` : ""}</div>
+          <div class="fr-act"><button class="fr-btn" title="1vs1 Duell" data-duel>⚔️</button><button class="fr-btn" title="Nachricht" data-msg>💬</button></div>`;
+        row.querySelector("[data-duel]").addEventListener("click", (e) => { e.stopPropagation(); startDuel(uid, uname); });
+        row.querySelector("[data-msg]").addEventListener("click", (e) => { e.stopPropagation(); if(typeof openChat === "function") openChat(uid, uname); });
         row.addEventListener("click", () => openFriendProfile(uid));
         friendsListEl.appendChild(row);
       });
@@ -10604,29 +10726,16 @@
     updateMessagesBadge();
     followBackListEl.innerHTML = "";
     if(notFollowedBack.length === 0){
-      followBackListEl.innerHTML = "<div class='empty-hint'>Keine offenen Anfragen.</div>";
+      followBackListEl.innerHTML = `<div class="fr-empty" style="padding:16px;">Keine offenen Anfragen.</div>`;
     } else {
       notFollowedBack.forEach(f => {
+        const uname = f.username || (profile.friendUsernameCache || {})[f.uid] || "Unbekannt";
         const row = document.createElement("div");
-        row.className = "friend-row";
-        row.style.cursor = "pointer";
-        row.style.cssText += "display:flex; align-items:center; justify-content:space-between; gap:8px;";
-        row.innerHTML = `<span class="name">${isOnline(f) ? `<span class="online-dot${isInLesson(f) ? " in-lesson" : ""}"></span>` : ""}@${f.username || (profile.friendUsernameCache || {})[f.uid] || "Unbekannt"}</span>`;
-        const btnWrap = document.createElement("span");
-        btnWrap.style.cssText = "display:flex; align-items:center; gap:6px; flex-shrink:0;";
-        const btn = document.createElement("button");
-        btn.className = "btn btn-primary btn-small";
-        btn.textContent = "Zurückfolgen";
-        btn.addEventListener("click", (e) => { e.stopPropagation(); followBack(f.uid); });
-        const declineBtn = document.createElement("button");
-        declineBtn.className = "banner-close-x";
-        declineBtn.style.cssText = "position:static; font-size:15px; padding:6px;";
-        declineBtn.title = "Anfrage ablehnen";
-        declineBtn.textContent = "✕";
-        declineBtn.addEventListener("click", (e) => { e.stopPropagation(); declineFollowRequest(f.uid); });
-        btnWrap.appendChild(btn);
-        btnWrap.appendChild(declineBtn);
-        row.appendChild(btnWrap);
+        row.className = "fr-row";
+        row.innerHTML = `${frAvatarHtml(f, uname)}<div class="fr-info"><b>@${frEsc(uname)}</b><small class="off">möchte dein Freund sein · Lvl ${f.level || 0}</small></div>
+          <div class="fr-act"><button class="fr-btn ok" title="Annehmen" data-ok>✓</button><button class="fr-btn no" title="Ablehnen" data-no>✕</button></div>`;
+        row.querySelector("[data-ok]").addEventListener("click", (e) => { e.stopPropagation(); followBack(f.uid); });
+        row.querySelector("[data-no]").addEventListener("click", (e) => { e.stopPropagation(); declineFollowRequest(f.uid); });
         row.addEventListener("click", () => openFriendProfile(f.uid));
         followBackListEl.appendChild(row);
       });
@@ -10636,15 +10745,16 @@
     const pendingSent = following.filter(uid => !followerUids.includes(uid));
     sentRequestsListEl.innerHTML = "";
     if(pendingSent.length === 0){
-      sentRequestsListEl.innerHTML = "<div class='empty-hint'>Keine ausstehenden Anfragen.</div>";
+      sentRequestsListEl.innerHTML = `<div class="fr-empty" style="padding:16px;">Keine ausstehenden Anfragen.</div>`;
     } else {
       for(const uid of pendingSent){
         const u = await fetchUserDoc(uid);
         const uname = u ? (u.username || "Unbekannt") : ((profile.friendUsernameCache || {})[uid] || "Unbekannt");
         const row = document.createElement("div");
-        row.className = "friend-row";
-        row.style.cssText = "display:flex; align-items:center; justify-content:space-between; gap:8px;";
-        row.innerHTML = `<span class="name">@${uname}</span><span style="display:flex; align-items:center; gap:8px;"><span class="duel-outcome">Wartet auf Bestätigung …</span><button class="banner-close-x cancel-friend-request-btn" data-uid="${uid}" style="position:static;">✕</button></span>`;
+        row.className = "fr-row";
+        row.innerHTML = `${frAvatarHtml(u, uname)}<div class="fr-info"><b>@${frEsc(uname)}</b><small class="off">⏳ Wartet auf Bestätigung</small></div>
+          <div class="fr-act"><button class="fr-btn no cancel-friend-request-btn" title="Zurückziehen" data-uid="${uid}">✕</button></div>`;
+        row.addEventListener("click", (e) => { if(!e.target.closest("button")) openFriendProfile(uid); });
         sentRequestsListEl.appendChild(row);
       }
       sentRequestsListEl.querySelectorAll(".cancel-friend-request-btn").forEach(btn => {
@@ -18111,8 +18221,8 @@
     $("appIntroStyleSelect").value = ["simple", "nova", "halloween", "xmas"].includes(profile.appIntroStyle) ? profile.appIntroStyle : "math";
     $("layoutStyleSelect").value = ["simpel","nova"].includes(profile.layoutStyle) ? profile.layoutStyle : "nova";
     updateNotificationAndInstallUI();
-    const displayName = profile.username
-      ? "@" + profile.username + (isSuperUser() ? " ⭐" : "")
+    const displayName = currentDisplayUsername()
+      ? "@" + currentDisplayUsername() + (isSuperUser() ? " ⭐" : "")
       : (currentUser ? "Angemeldet (noch kein Benutzername)" : "Nicht angemeldet / Gast");
     $("usernameTextDisplay").textContent = displayName;
 
@@ -18146,7 +18256,8 @@
     }
 
     if(currentUser){
-      $("authTitle").textContent = "Angemeldet als: @" + (profile.username || "?");
+      const shownName = currentDisplayUsername();
+      $("authTitle").textContent = shownName ? "Angemeldet als: @" + shownName : "Angemeldet";
       $("authModeChoice").style.display = "none";
       $("authFormFields").style.display = "none";
       $("logoutBtn").style.display = "block";
@@ -19093,6 +19204,7 @@
       if(!isValidUsername(uname)){
         return showErrorPopup("Bitte gib deinen Benutzernamen ein.");
       }
+      pendingAuthUsername = $("authUsername").value.trim();
       emailToUse = usernameToSyntheticEmail(uname);
     }
     // Vor dem eigentlichen Login wird zuerst eine eventuell noch im
@@ -19110,6 +19222,7 @@
     if(!firebaseInitialized) return showToast("Firebase API Key nicht konfiguriert");
     const pass = $("authPassword").value;
     const uname = $("authUsername").value;
+    pendingAuthUsername = (uname || "").trim();
     if(!isValidUsername(normalizeUsername(uname))){
       return showErrorPopup("Bitte gib einen gültigen Benutzernamen ein (3-20 Zeichen: a-z, 0-9, _).");
     }
@@ -19575,6 +19688,7 @@
      bestehenden Funktionen/Buttons der App aus, statt eigene Kopien.
   ======================================================== */
   var novaWorldsExpanded = false; // var statt let: renderHome() kann schon beim Start vor dieser Zeile laufen
+  if($("nvAvatar")) $("nvAvatar").addEventListener("click", () => { const n = $("navProfile"); if(n) n.click(); });
   function renderNovaHome(){
     if(!$("novaHome")) return;
     try{ renderNovaHomeInner(); }catch(err){ console.error("Nova-Layout Fehler:", err); }
@@ -19584,7 +19698,8 @@
     $("nvGreet").textContent = h < 11 ? "Guten Morgen" : h < 18 ? "Bereit für die nächste Runde?" : "Guten Abend";
     const uname = profile.username || "Gast";
     $("nvName").textContent = uname;
-    $("nvAvatar").textContent = uname.charAt(0).toUpperCase();
+    if(profile.avatarData){ $("nvAvatar").innerHTML = ""; const im = document.createElement("img"); im.src = profile.avatarData; im.alt = ""; $("nvAvatar").appendChild(im); $("nvAvatar").classList.add("has-img"); }
+    else { $("nvAvatar").textContent = uname.charAt(0).toUpperCase(); $("nvAvatar").classList.remove("has-img"); }
     $("nvAura").textContent = profile.totalAura || 0;
     $("nvTheme").textContent = ($("themeToggle") && $("themeToggle").textContent.trim()) || "🌙";
 
@@ -22795,7 +22910,7 @@
   /* =================== KLASSENARBEIT ENDE =================== */
 
   $("onlineFriendsPopup").addEventListener("click", () => {
-    const u = ofpUsers[0]; $("onlineFriendsPopup").classList.remove("show", "hide");
+    const u = ofpUsers[0]; clearTimeout(ofpStageTimer); clearTimeout(onlineFriendsPopupHideTimer); $("onlineFriendsPopup").classList.remove("show", "hide", "big"); $("onlineFriendsPopup").style.width = "";
     if(u && u.uid && typeof openFriendProfile === "function") openFriendProfile(u.uid);
   });
 
@@ -24646,7 +24761,10 @@
   // eigene CSS-Animation ab (Text rein, Punkt wächst riesig ab 1.4s+0.8s=2.2s,
   // 0.2s Pause, dann blendet ab 2.4s+0.4s=2.8s alles aus) - hier wird nur
   // noch passend zu dieser Dauer gewartet, bevor es weitergeht.
+  function removeBootCover(){ const c = $("bootCover"); if(c){ c.style.transition = "opacity .15s"; c.style.opacity = "0"; setTimeout(() => c.remove(), 160); } }
+  setTimeout(removeBootCover, 6000); // Sicherheitsnetz
   function playStartupIntro(callback){
+    setTimeout(removeBootCover, 80); // erst wenn das Intro schon sichtbar ist
     let style = ["simple", "nova", "halloween", "xmas"].includes(profile.appIntroStyle) ? profile.appIntroStyle : "math"; // Math ist Standard
     if((style === "halloween" || style === "xmas") && !hasIntro(style)) style = "math"; // nur gekaufte Intros
     // Während einer Season läuft bei JEDEM automatisch das passende Intro (nur das Intro - Design, Schrift, Rahmen bleiben)

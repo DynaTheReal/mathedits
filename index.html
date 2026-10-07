@@ -1582,27 +1582,35 @@
   .trend-cell.trend-green{ border-color:#22c55e; background:rgba(34,197,94,.12); }
   .trend-cell.trend-neutral{ opacity:.5; }
 
+  @property --nbp{ syntax:"<number>"; inherits:false; initial-value:1; }
   .duel-invite-banner{
-    position:fixed; top:calc(10px + env(safe-area-inset-top)); left:50%;
-    transform:translate(-50%,-150%) scale(.96); width:calc(100% - 24px); max-width:420px; box-sizing:border-box;
-    background:color-mix(in srgb, var(--card, #15141b) 90%, transparent); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px);
-    border:1px solid color-mix(in srgb, var(--text, #fff) 10%, transparent); border-radius:22px; overflow:hidden;
-    padding:11px 12px; display:flex; align-items:center; gap:12px;
-    box-shadow:0 18px 44px rgba(0,0,0,.45); z-index:99700; cursor:pointer;
-    transition:transform .45s cubic-bezier(.3,1.35,.5,1), opacity .3s; opacity:0;
+    position:fixed; top:calc(8px + env(safe-area-inset-top)); left:50%;
+    transform:translate(-50%,-160%); width:max-content; min-width:240px; max-width:min(372px, calc(100% - 24px)); box-sizing:border-box;
+    background:rgba(16,15,22,.82); -webkit-backdrop-filter:blur(20px) saturate(1.5); backdrop-filter:blur(20px) saturate(1.5);
+    border:1px solid rgba(255,255,255,.09); border-radius:999px;
+    padding:6px 8px 6px 6px; display:flex; align-items:center; gap:10px; color:#f4f3f8;
+    box-shadow:0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06); z-index:99700; cursor:pointer;
+    transition:transform .5s cubic-bezier(.3,1.35,.45,1), opacity .25s; opacity:0;
   }
-  .duel-invite-banner.show{ transform:translate(-50%,0) scale(1); opacity:1; }
-  .duel-invite-banner::after{ content:""; position:absolute; left:0; bottom:0; height:2.5px; width:100%; background:var(--accent); opacity:.8; transform-origin:left; transform:scaleX(0); }
-  .duel-invite-banner.show.timed::after{ animation:nb-timer 5s linear forwards; }
-  @keyframes nb-timer{ from{ transform:scaleX(1); } to{ transform:scaleX(0); } }
-  .duel-invite-icon{ width:42px; height:42px; border-radius:14px; flex-shrink:0; display:grid; place-items:center; font-size:21px;
-    background:color-mix(in srgb, var(--accent) 18%, transparent); }
-  #duelInviteBanner .duel-invite-icon{ background:rgba(239,68,68,.18); }
-  #friendRequestBanner .duel-invite-icon{ background:rgba(34,197,94,.16); }
-  .duel-invite-text{ flex:1; min-width:0; font-size:13px; color:var(--text); line-height:1.38; opacity:.85; }
-  .duel-invite-text b{ opacity:1; font-weight:800; }
-  .duel-invite-banner .banner-close-x{ position:static !important; width:30px; height:30px; flex-shrink:0; border-radius:50%; display:grid; place-items:center; font-size:13px; padding:0;
-    background:color-mix(in srgb, var(--text, #fff) 8%, transparent); border:none; color:var(--text); opacity:.7; }
+  .duel-invite-banner.show{ transform:translate(-50%,0); opacity:1; }
+  .duel-invite-banner:active{ transform:translate(-50%,0) scale(.97); }
+  .duel-invite-icon{ --nb:var(--accent); position:relative; width:36px; height:36px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; font-size:17px;
+    background:color-mix(in srgb, var(--nb) 22%, #111); }
+  #duelInviteBanner .duel-invite-icon{ --nb:#ef4444; } #friendRequestBanner .duel-invite-icon{ --nb:#22c55e; } #messageNotifyBanner .duel-invite-icon{ --nb:#60a5fa; } #ownerRegNotifyBanner .duel-invite-icon{ --nb:#facc15; }
+  /* Countdown-Ring um das Icon (5 s) */
+  .duel-invite-icon::after{ content:""; position:absolute; inset:-3px; border-radius:50%; padding:2px;
+    background:conic-gradient(var(--nb) calc(var(--nbp) * 360deg), rgba(255,255,255,.08) 0);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; }
+  .duel-invite-banner.show.timed .duel-invite-icon::after{ animation:nb-ring 5s linear forwards; }
+  @keyframes nb-ring{ from{ --nbp:1; } to{ --nbp:0; } }
+  .duel-invite-banner.show .duel-invite-icon{ animation:nb-pop .5s cubic-bezier(.3,1.7,.5,1) .15s both; }
+  @keyframes nb-pop{ from{ transform:scale(.3) rotate(-30deg); } }
+  .duel-invite-text{ flex:1; min-width:0; font-size:12.5px; line-height:1.3; color:rgba(244,243,248,.7); padding-right:4px;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .duel-invite-text b{ color:#fff; font-weight:800; }
+  .duel-invite-text br{ content:""; }
+  .duel-invite-banner .banner-close-x{ position:static !important; width:26px; height:26px; flex-shrink:0; border-radius:50%; display:grid; place-items:center; font-size:11px; padding:0;
+    background:rgba(255,255,255,.07); border:none; color:#fff; opacity:.6; }
   /* ---------- Owner-Werkzeug-Symbole (NEU) ---------- */
   .owner-tool-icon-btn{
     width:54px; height:54px; border-radius:16px;
@@ -4792,7 +4800,14 @@
   .ch-quick{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:14px; }
   .ch-quick button{ border:1px solid color-mix(in srgb, var(--text) 12%, transparent); background:var(--card); color:var(--text); border-radius:999px; padding:8px 12px; font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
   .ch-emoji{ display:grid; grid-template-columns:repeat(8,1fr); gap:2px; padding:0 12px; max-height:0; overflow:hidden; transition:max-height .25s ease, padding .25s; }
-  .ch-emoji.open{ max-height:120px; padding:8px 12px; }
+  .ch-emoji.open{ max-height:170px; padding:8px 12px; }
+  .ch-emoji{ position:relative; }
+  .ch-emoji-head{ grid-column:1 / -1; display:flex; align-items:baseline; justify-content:space-between; padding:2px 4px 4px; }
+  .ch-emoji-head span{ font-size:12.5px; font-weight:900; color:var(--accent); } .ch-emoji-head small{ font-size:11px; font-weight:700; color:var(--text-dim); }
+  .ch-emoji-lock{ display:none; }
+  .ch-emoji.used button{ opacity:.25; pointer-events:none; filter:grayscale(1); }
+  .ch-emoji.used .ch-emoji-lock{ display:flex; position:absolute; left:12px; right:12px; top:34px; bottom:8px; align-items:center; justify-content:center; text-align:center;
+    font-size:12.5px; font-weight:800; color:var(--text); border-radius:14px; background:color-mix(in srgb, var(--bg, #000) 70%, transparent); }
   .ch-emoji button{ border:none; background:none; font-size:24px; padding:6px 0; border-radius:10px; cursor:pointer; transition:transform .1s; }
   .ch-emoji button:active{ transform:scale(1.3); }
   .ch-input{ display:flex; align-items:center; gap:8px; padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 12px); border-top:1px solid color-mix(in srgb, var(--text) 8%, transparent); }
@@ -7545,7 +7560,7 @@
       <div class="chat-messages ch-msgs" id="groupChatMessagesList"></div>
       <div class="ch-emoji" id="groupChatEmojiTray"></div>
       <div class="ch-input" id="groupChatInputRow">
-        <button class="ch-emo-btn" id="groupChatEmojiBtn" aria-label="Emoji">😊</button>
+        <button class="ch-emo-btn" id="groupChatEmojiBtn" aria-label="Reaktion" title="Reaktion (1× pro Tag)">⚡</button>
         <input type="text" id="groupChatInput" placeholder="Nachricht an die Gruppe …" maxlength="500" autocomplete="off">
         <button class="ch-send" id="groupChatSendBtn" aria-label="Senden">➤</button>
       </div>
@@ -7579,7 +7594,7 @@
       <div class="chat-messages ch-msgs" id="chatMessagesList"></div>
       <div class="ch-emoji" id="chatEmojiTray"></div>
       <div class="ch-input">
-        <button class="ch-emo-btn" id="chatEmojiBtn" aria-label="Emoji">😊</button>
+        <button class="ch-emo-btn" id="chatEmojiBtn" aria-label="Reaktion" title="Reaktion (1× pro Tag)">⚡</button>
         <input type="text" id="chatInput" placeholder="Nachricht …" maxlength="500" autocomplete="off">
         <button class="ch-send" id="chatSendBtn" aria-label="Senden">➤</button>
       </div>
@@ -8053,7 +8068,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.17";
+  const APP_VERSION = "4.18";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -11423,7 +11438,8 @@
     }
     lastGroupMessageSentAt = now;
     input.value = ""; chatUpdateSendState("group");
-    if(chFxEmoji(text)) playChatEmojiFx(text);
+    const isReaction = chReactionSend && !!chFxEmoji(text);
+    if(isReaction){ chUseReaction(); playChatEmojiFx(text); }
 
     // Coole Abschick-Animation (NEU, wie beim 1:1-Chat).
     const sendBtn = $("groupChatSendBtn");
@@ -11438,9 +11454,11 @@
     }
 
     try{
-      await db().collection("groups").doc(activeGroupId).collection("messages").add({
-        text, fromUid: currentUser.uid, fromUsername: profile.username || "?", createdAt: now
+      const gref = await db().collection("groups").doc(activeGroupId).collection("messages").add({
+        text, fromUid: currentUser.uid, fromUsername: profile.username || "?", createdAt: now,
+        ...(isReaction ? { reaction: true } : {})
       });
+      if(isReaction) fxMarkPlayed(gref && gref.id);
       await db().collection("groups").doc(activeGroupId).set({
         lastMessage: text, lastMessageAt: now, lastMessageBy: currentUser.uid
       }, { merge: true });
@@ -11562,7 +11580,7 @@
   }
   function chNameColor(name){ let h = 0; for(const c of String(name)) h = (h * 31 + c.charCodeAt(0)) % 360; return `hsl(${h} 75% 65%)`; }
   function renderMsgBubbles(el, msgs, opt){
-    const first = !el._seen; const seen = el._seen || new Set(); const readSet = el._read || new Set(); const fxQueue = [];
+    const first = !el._seen || el._seen.size === 0; const seen = el._seen || new Set(); const played = fxPlayedSet(); const readSet = el._read || new Set(); const fxQueue = [];
     const nearBottom = first || (el.scrollHeight - el.scrollTop - el.clientHeight) < 120;
     if(!msgs.length){
       el.innerHTML = `<div class="ch-hello"><span class="e">👋</span>${opt.group ? "Noch keine Nachrichten in der Gruppe." : "Noch keine Nachrichten.<br>Sag einfach Hallo!"}
@@ -11585,15 +11603,16 @@
       const readAnim = mine && !opt.group && m.read && !first && !readSet.has(key);
       if(mine && m.read) readSet.add(key);
       const tick = mine && !opt.group ? `<svg class="ch-tick${m.read ? " read" : ""}${readAnim ? " anim" : ""}" viewBox="0 0 18 12" aria-label="${m.read ? "Gelesen" : "Gesendet"}"><path class="c1" d="M1.5 6.5 4.6 9.6 10.8 2.6"/><path class="c2" d="M7.4 9.6 8 9.6 14.6 2.6"/></svg>` : "";
-      if(isNew && !mine && chFxEmoji(text)) fxQueue.push({ e: text.trim(), from: m.fromUsername || (opt.group ? "?" : openChatFriendUsername) });
+      // Reaktion abspielen: nur echte Reaktionen vom anderen, die hier noch nie liefen (auch nachträglich beim Öffnen)
+      if(m.reaction && !mine && chFxEmoji(text) && !played.has(String(m.id)) && (opt.group || !m.read)) fxQueue.push({ e: text.trim(), id: m.id });
       const sender = opt.group && !mine && !cont ? `<div class="ch-sender" style="color:${chNameColor(m.fromUsername || "?")}">@${msEsc(m.fromUsername || "?")}</div>` : "";
-      html += `<div class="chat-bubble ${mine ? "mine" : "theirs"}${cont ? " cont" : ""}${big ? " big-emoji" : ""}${big && chFxEmoji(text) ? " fx" : ""}${isNew ? " new" : ""}" data-text="${msEsc(text)}">${sender}<div>${msEsc(text)}</div><div class="ch-meta">${time}${tick}</div></div>`;
+      html += `<div class="chat-bubble ${mine ? "mine" : "theirs"}${cont ? " cont" : ""}${big ? " big-emoji" : ""}${m.reaction && chFxEmoji(text) ? " fx" : ""}${isNew ? " new" : ""}" data-text="${msEsc(text)}">${sender}<div>${msEsc(text)}</div><div class="ch-meta">${time}${tick}</div></div>`;
       prev = m;
     });
     el.innerHTML = html; el._seen = seen; el._read = readSet;
     if(first){ el.classList.remove("enter"); void el.offsetWidth; el.classList.add("enter"); }
     if(nearBottom) requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
-    if(fxQueue.length){ const f = fxQueue[fxQueue.length - 1]; setTimeout(() => playChatEmojiFx(f.e), 250); }
+    if(fxQueue.length){ fxQueue.forEach(f => fxMarkPlayed(f.id)); const f = fxQueue[fxQueue.length - 1]; setTimeout(() => playChatEmojiFx(f.e), first ? 450 : 250); }
   }
   // Emoji-Effekte (NEU): ein einzelnes Emoji aus der Leiste wird bei beiden groß gefeiert
   const CH_FX = {
@@ -11662,12 +11681,26 @@
     ov.addEventListener("click", () => ov.remove());
   }
   // Emoji aus der Leiste: sofort senden (ohne Eingabefeld) - Effekt spielt direkt ab
+  // Reaktionen (NEU): die Emojis aus der ⚡-Leiste - 1 pro Tag, nur sie haben Effekte
+  let chReactionSend = false;
+  const reactionUsedToday = () => profile.lastReactionDate === todayStr();
   function chSendEmojiNow(kind, emoji){
+    if(reactionUsedToday()){ showToast("⚡ Deine Reaktion für heute ist verbraucht – morgen wieder!"); return; }
     const i = kind === "group" ? $("groupChatInput") : $("chatInput");
     const keep = i.value; i.value = emoji;
-    (kind === "group" ? sendGroupMessage : sendChatMessage)();
+    chReactionSend = true;
+    try{ (kind === "group" ? sendGroupMessage : sendChatMessage)(); } finally { chReactionSend = false; }
     i.value = keep; chatUpdateSendState(kind);
   }
+  function chUseReaction(){
+    profile.lastReactionDate = todayStr(); saveProfile();
+    document.querySelectorAll(".ch-emoji").forEach(t => { t.classList.add("used"); t.classList.remove("open"); });
+  }
+  function chRefreshReactionTrays(){ document.querySelectorAll(".ch-emoji").forEach(t => t.classList.toggle("used", reactionUsedToday())); }
+  // Bereits abgespielte Reaktionen (pro Gerät) - nichts wird doppelt abgespielt
+  let fxPlayed = null;
+  function fxPlayedSet(){ if(!fxPlayed){ try{ fxPlayed = new Set(JSON.parse(localStorage.getItem("me_fxPlayed") || "[]")); }catch(e){ fxPlayed = new Set(); } } return fxPlayed; }
+  function fxMarkPlayed(id){ if(!id) return; const st = fxPlayedSet(); st.add(String(id)); try{ localStorage.setItem("me_fxPlayed", JSON.stringify([...st].slice(-400))); }catch(e){} }
   // Langes Drücken / Rechtsklick auf eine Nachricht: Kopieren
   function chShowPop(x, y, text){
     document.querySelectorAll(".ch-pop").forEach(p => p.remove());
@@ -11682,9 +11715,9 @@
   const CH_EMOJIS = ["😂", "😍", "🔥", "👍", "🙏", "😎", "😭", "🥳", "💀", "🤯", "❤️", "💯", "⚔️", "📚", "🧠", "👋"];
   function chSetupEmoji(trayId, btnId, inputId, kind){
     const tray = $(trayId);
-    tray.innerHTML = CH_EMOJIS.map(e => `<button>${e}</button>`).join("");
+    tray.innerHTML = `<div class="ch-emoji-head"><span>⚡ Reaktion</span><small>1× pro Tag · mit Effekt</small></div>` + CH_EMOJIS.map(e => `<button>${e}</button>`).join("") + `<div class="ch-emoji-lock">✓ Heute schon reagiert – morgen gibt's eine neue</div>`;
     tray.querySelectorAll("button").forEach(b => b.addEventListener("click", () => chSendEmojiNow(kind, b.textContent)));
-    $(btnId).addEventListener("click", () => tray.classList.toggle("open"));
+    $(btnId).addEventListener("click", () => { chRefreshReactionTrays(); tray.classList.toggle("open"); });
   }
   function chatUpdateSendState(kind){
     const i = kind === "group" ? $("groupChatInput") : $("chatInput"), b = kind === "group" ? $("groupChatSendBtn") : $("chatSendBtn");
@@ -11707,7 +11740,8 @@
     }
     lastChatMessageSentAt = now;
     input.value = ""; chatUpdateSendState("chat");
-    if(chFxEmoji(text)) playChatEmojiFx(text);
+    const isReaction = chReactionSend && !!chFxEmoji(text);
+    if(isReaction){ chUseReaction(); playChatEmojiFx(text); }
 
     // Coole Abschick-Animation (NEU): kurzer Puls am Button + ein
     // expandierender Ring, der danach von selbst verschwindet.
@@ -11733,8 +11767,10 @@
         toUid: openChatFriendUid,
         text: text.slice(0, 500),
         createdAt: Date.now(),
-        read: false
+        read: false,
+        ...(isReaction ? { reaction: true } : {})
       });
+      if(isReaction) fxMarkPlayed(ref && ref.id);
       console.log("[Chat] Nachricht erfolgreich angelegt, id=" + (ref && ref.id));
     }catch(err){
       showToast("Nachricht konnte nicht gesendet werden.");
@@ -16157,6 +16193,12 @@
   });
 
   function showScreen(name){
+    // Offene Chats schließen, damit nichts halb darüber liegt
+    try{
+      if($("overlayChat") && $("overlayChat").classList.contains("show")) closeChat();
+      if($("overlayMessagesList")) $("overlayMessagesList").classList.remove("show");
+      if(typeof activeGroupId !== "undefined" && activeGroupId) closeGroupChat();
+    }catch(e){}
     if(isOffline() && !OFFLINE_ALLOWED_SCREENS.includes(name)){
       showToast("📴 Kein Internet - nur Lektionen sind offline verfügbar.");
       name = "home";

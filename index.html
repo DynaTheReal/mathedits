@@ -4193,13 +4193,26 @@
   .ann-dot{ width:9px; height:9px; border-radius:50%; background:var(--text-dim); flex-shrink:0; }
   .ann-status.on{ border-color:rgba(34,197,94,.45); background:rgba(34,197,94,.08); } .ann-status.on .ann-dot{ background:#22c55e; box-shadow:0 0 8px #22c55e; animation:gw-pulse 1.6s infinite; }
   .ann-status-txt{ flex:1; font-size:12.5px; font-weight:700; color:var(--text); line-height:1.35; }
+  .ann-acts{ display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
+  .ann-edit{ border:1px solid #60a5fa; color:#60a5fa; background:transparent; border-radius:10px; padding:6px 10px; font-weight:800; font-size:12px; cursor:pointer; font-family:inherit; }
+  .ann-editbar{ display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(96,165,250,.14); border:1px solid rgba(96,165,250,.5); color:#93c5fd; border-radius:12px; padding:8px 10px; font-size:12px; font-weight:800; margin-top:8px; }
+  .ann-editbar button{ border:none; background:var(--card-2); color:var(--text); border-radius:8px; padding:5px 9px; font-weight:800; font-size:11.5px; font-family:inherit; cursor:pointer; }
+  .ann-tpls{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:8px; }
+  .ann-tpl{ position:relative; border:2px solid transparent; border-radius:10px; overflow:hidden; padding:0; background:#000; cursor:pointer; aspect-ratio:16/9; }
+  .ann-tpl img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .ann-tpl span{ position:absolute; left:0; right:0; bottom:0; font-size:9.5px; font-weight:800; color:#fff; background:linear-gradient(transparent,rgba(0,0,0,.85)); padding:8px 4px 3px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ann-tpl.on{ border-color:#60a5fa; box-shadow:0 0 0 3px rgba(96,165,250,.3); }
+  .ann-tpl.on::after{ content:"✓"; position:absolute; top:4px; right:4px; width:18px; height:18px; border-radius:50%; background:#60a5fa; color:#0b1220; font-size:11px; font-weight:900; display:grid; place-items:center; }
+  .ann-days{ flex:1; display:flex; align-items:center; gap:6px; } .ann-days .input-field{ margin:0; width:100%; min-width:0; text-align:center; font-weight:800; } .ann-days span{ font-size:12.5px; font-weight:700; color:var(--text-dim); }
+  .ann-enddate{ font-size:12px; font-weight:700; color:var(--text); margin-top:6px; }
+  .ann-reshow{ display:flex; gap:8px; align-items:center; font-size:12px; color:var(--text-dim); margin-top:14px; }
   .ann-del{ border:1px solid #ef4444; color:#ef4444; background:transparent; border-radius:10px; padding:6px 10px; font-weight:800; font-size:12px; cursor:pointer; flex-shrink:0; font-family:inherit; }
   .ann-sec{ display:flex; align-items:center; gap:8px; font-weight:800; font-size:13px; margin:14px 0 8px; color:var(--text); }
   .ann-sec em{ font-style:normal; font-weight:600; color:var(--text-dim); font-size:11.5px; }
   .ann-step{ width:20px; height:20px; border-radius:50%; background:#60a5fa; color:#0b1220; font-size:11px; display:grid; place-items:center; font-weight:900; }
   .ann-file{ display:block; border:1.5px dashed var(--border); border-radius:12px; padding:10px; text-align:center; font-size:12.5px; color:var(--text-dim); cursor:pointer; }
   .ann-file input{ display:none; }
-  .ann-row{ display:flex; gap:8px; } .ann-row .input-field{ margin:0; min-width:0; } .ann-row input{ flex:1.4; } .ann-row select{ flex:1; }
+  .ann-row{ display:flex; gap:8px; } .ann-row .input-field{ margin:0; min-width:0; } .ann-row > input{ flex:1.5; }
   .ann-gw-wrap{ display:flex; align-items:center; gap:6px; position:relative; }
   .ann-gw-wrap .input-field{ margin:0; flex:1; padding-left:34px; font-family:ui-monospace,Menlo,monospace; font-size:13px; }
   .ann-gw-pre{ position:absolute; left:11px; font-size:14px; pointer-events:none; }
@@ -5921,12 +5934,18 @@
         <div class="ann-status" id="annStatusCard">
           <div class="ann-dot"></div>
           <div class="ann-status-txt" id="announcementCurrentStatus">Aktuell keine aktive Ankündigung.</div>
-          <button class="ann-del" id="announcementDeleteBtn" style="display:none;">🗑️ Löschen</button>
+          <div class="ann-acts" id="annStatusActs" style="display:none;">
+            <button class="ann-edit" id="announcementEditBtn">✏️ Bearbeiten</button>
+            <button class="ann-del" id="announcementDeleteBtn">🗑️ Löschen</button>
+          </div>
         </div>
+        <div class="ann-editbar" id="annEditBar" style="display:none;"><span>✏️ Du bearbeitest die aktuelle Ankündigung</span><button id="annEditCancelBtn">Abbrechen</button></div>
 
         <div class="ann-sec"><span class="ann-step">1</span>Inhalt</div>
         <textarea id="announcementTextInput" class="input-field" rows="3" placeholder="Was möchtest du allen sagen?" style="width:100%; resize:vertical; font-family:inherit; margin-bottom:8px;"></textarea>
-        <label class="ann-file"><input type="file" id="announcementImageInput" accept="image/*"><span>🖼️ Bild hinzufügen (optional)</span></label>
+        <div class="d" style="margin:2px 0 6px; font-size:11.5px;">Bild (optional) – Vorlage wählen oder eigenes hochladen</div>
+        <div class="ann-tpls" id="annTemplates"></div>
+        <label class="ann-file"><input type="file" id="announcementImageInput" accept="image/*"><span>📁 Eigenes Bild hochladen</span></label>
         <div id="announcementImagePreviewWrap" style="display:none; margin:8px 0;">
           <img id="announcementImagePreview" style="max-width:100%; max-height:140px; border-radius:10px; display:block;">
           <button class="btn btn-ghost btn-small" id="announcementImageRemoveBtn" style="margin-top:6px;">Bild entfernen</button>
@@ -5935,14 +5954,9 @@
         <div class="ann-sec"><span class="ann-step">2</span>Empfänger &amp; Dauer</div>
         <div class="ann-row">
           <input type="text" id="announcementTargetUsernameInput" class="input-field" placeholder="@Name (leer = alle)">
-          <select id="announcementDurationSelect" class="input-field">
-            <option value="1">1 Tag</option>
-            <option value="3" selected>3 Tage</option>
-            <option value="7">7 Tage</option>
-            <option value="14">14 Tage</option>
-            <option value="30">30 Tage</option>
-          </select>
+          <div class="ann-days"><input type="number" id="announcementDaysInput" class="input-field" value="3" min="1" max="365" step="1" inputmode="numeric"><span>Tage</span></div>
         </div>
+        <div class="ann-enddate" id="announcementEndDate"></div>
 
         <div class="ann-sec"><span class="ann-step">3</span>Knopf mit Sprungziel <em>optional</em></div>
         <div class="ann-gw-wrap">
@@ -5955,6 +5969,7 @@
         <input type="text" id="announcementBtnTextInput" class="input-field" placeholder="Knopf-Text, z. B. Zur Mission!" maxlength="40" style="margin:8px 0 0;">
         <div class="ann-btn-prev" id="announcementBtnPreview" style="display:none;"><span>Vorschau:</span><button tabindex="-1" id="announcementBtnPreviewBtn">Los geht's!</button></div>
 
+        <label class="ann-reshow" id="annReshowWrap" style="display:none;"><input type="checkbox" id="annReshowCheck"> Allen nochmal zeigen (auch wer sie schon gesehen hat)</label>
         <button class="btn btn-primary btn-small ann-send" id="announcementSendBtn">📣 Ankündigung senden</button>
       </div>
 
@@ -7583,7 +7598,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.10";
+  const APP_VERSION = "4.11";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -8700,6 +8715,204 @@
      jede Person sieht sie genau einmal, solange sie noch aktiv ist.
   ======================================================== */
   let pendingAnnouncementImageDataUri = null;
+  // Bildvorlagen für Ankündigungen (NEU) - als SVG, sehr klein (wenige KB)
+  const ANN_TEMPLATES = (() => {
+    const F = `font-family="'Arial Black','Segoe UI Black',Impact,sans-serif" font-weight="900"`;
+    const rnd = (seed => () => (seed = (seed * 9301 + 49297) % 233280) / 233280)(7);
+    const stars = (n, h, op) => Array.from({ length: n }, () => `<circle cx="${(rnd() * 800).toFixed(0)}" cy="${(rnd() * h).toFixed(0)}" r="${(rnd() * 1.6 + .4).toFixed(1)}" fill="#fff" opacity="${(rnd() * op + .2).toFixed(2)}"/>`).join("");
+    const pumpkin = (x, y, s, rot) => `<g transform="translate(${x} ${y}) scale(${s}) rotate(${rot})">
+        <ellipse cx="0" cy="0" rx="62" ry="50" fill="url(#pk)"/>
+        <ellipse cx="-30" cy="2" rx="30" ry="47" fill="url(#pk)" stroke="#9a3412" stroke-width="2" opacity=".9"/>
+        <ellipse cx="30" cy="2" rx="30" ry="47" fill="url(#pk)" stroke="#9a3412" stroke-width="2" opacity=".9"/>
+        <ellipse cx="0" cy="2" rx="24" ry="49" fill="url(#pk)" stroke="#9a3412" stroke-width="2"/>
+        <path d="M-4 -46 q2 -20 14 -26" stroke="#3f6212" stroke-width="9" fill="none" stroke-linecap="round"/>
+        <path d="M-34 -10 l14 -14 l12 14z M34 -10 l-14 -14 l-12 14z" fill="#fde047"/>
+        <path d="M-36 14 q36 30 72 0 l-9 3 -6 -7 -8 8 -8 -7 -8 7 -8 -8 -6 7z" fill="#fde047"/>
+      </g>`;
+    const bat = (x, y, s) => `<path transform="translate(${x} ${y}) scale(${s})" d="M0 0 c8 -10 18 -12 28 -6 c-4 4 -4 9 0 12 c4 -6 10 -6 12 0 c2 -6 8 -6 12 0 c4 -3 4 -8 0 -12 c10 -6 20 -4 28 6 c-12 -2 -18 4 -22 14 c-6 -6 -14 -4 -16 4 c-4 -4 -10 -4 -12 0 c-2 -8 -10 -10 -16 -4 c-4 -10 -10 -16 -22 -14z" fill="#0b0613"/>`;
+    const halloween = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a0b2e"/><stop offset=".65" stop-color="#3b1442"/><stop offset="1" stop-color="#7c2d12"/></linearGradient>
+        <radialGradient id="moon" cx=".45" cy=".4" r=".6"><stop offset="0" stop-color="#fff7d6"/><stop offset=".7" stop-color="#fcd34d"/><stop offset="1" stop-color="#f59e0b"/></radialGradient>
+        <radialGradient id="mglow"><stop offset="0" stop-color="#fbbf24" stop-opacity=".55"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
+        <radialGradient id="pk" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#fdba74"/><stop offset=".55" stop-color="#f97316"/><stop offset="1" stop-color="#c2410c"/></radialGradient>
+        <radialGradient id="pglow"><stop offset="0" stop-color="#fb923c" stop-opacity=".6"/><stop offset="1" stop-color="#fb923c" stop-opacity="0"/></radialGradient>
+        <filter id="tg" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <rect width="800" height="450" fill="url(#sky)"/>
+      ${stars(70, 260, .7)}
+      <circle cx="680" cy="105" r="140" fill="url(#mglow)"/>
+      <circle cx="680" cy="105" r="64" fill="url(#moon)"/>
+      <circle cx="660" cy="88" r="9" fill="#f59e0b" opacity=".35"/><circle cx="702" cy="124" r="12" fill="#f59e0b" opacity=".3"/><circle cx="694" cy="80" r="5" fill="#f59e0b" opacity=".35"/>
+      ${bat(560, 150, .8)}${bat(670, 175, .6)}${bat(150, 60, .75)}${bat(250, 120, .5)}
+      <path d="M0 360 Q120 300 250 340 T520 330 T800 320 V450 H0z" fill="#170a1f"/>
+      <path d="M70 352 c4 -60 -6 -110 8 -170 c-30 -20 -40 -40 -44 -60 c16 18 32 30 48 34 c2 -24 -6 -46 -20 -64 c22 14 34 40 34 66 c14 -12 30 -16 46 -14 c-18 8 -32 22 -40 40 c-6 50 0 110 4 168z" fill="#0b0613"/>
+      <path d="M0 400 Q200 360 400 395 T800 385 V450 H0z" fill="#0b0613"/>
+      <circle cx="560" cy="385" r="110" fill="url(#pglow)"/>
+      ${pumpkin(560, 380, 1, -4)}${pumpkin(680, 400, .7, 6)}${pumpkin(450, 405, .55, -8)}
+      <text x="50" y="215" ${F} font-size="72" fill="#fb923c" filter="url(#tg)" letter-spacing="2">HALLOWEEN</text>
+      <text x="54" y="262" ${F} font-size="26" fill="#e9d5ff" letter-spacing="7">IST ZURÜCK 🎃</text>
+    </svg>`;
+
+    const tree = `
+      <polygon points="400,92 330,200 470,200" fill="url(#tr)"/>
+      <polygon points="400,140 305,280 495,280" fill="url(#tr)"/>
+      <polygon points="400,200 280,370 520,370" fill="url(#tr)"/>
+      <rect x="384" y="368" width="32" height="34" rx="4" fill="#78350f"/>
+      <path d="M345 190 Q400 215 455 186 M322 268 Q400 300 482 262 M300 356 Q400 392 505 348" stroke="#fde68a" stroke-width="2" fill="none" opacity=".7"/>
+      ${[[352,193,"#fbbf24"],[384,203,"#ef4444"],[420,200,"#fbbf24"],[448,190,"#60a5fa"],[330,272,"#ef4444"],[365,284,"#fbbf24"],[400,288,"#60a5fa"],[438,282,"#fbbf24"],[472,268,"#ef4444"],[310,360,"#fbbf24"],[350,374,"#60a5fa"],[392,380,"#ef4444"],[432,378,"#fbbf24"],[472,366,"#60a5fa"],[498,352,"#fbbf24"]]
+        .map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="13" fill="${c}" opacity=".28"/><circle cx="${x}" cy="${y}" r="5.5" fill="${c}"/>`).join("")}
+      <path d="M400 62 l9 19 21 3 -15 15 4 21 -19 -10 -19 10 4 -21 -15 -15 21 -3z" fill="#fde047"/>
+      <circle cx="400" cy="92" r="42" fill="url(#sg)"/>`;
+    const gift = (x, y, w, h, c, r) => `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="${c}"/><rect x="${x + w / 2 - 6}" y="${y}" width="12" height="${h}" fill="${r}"/><rect x="${x}" y="${y + h / 2 - 5}" width="${w}" height="10" fill="${r}" opacity=".85"/><path d="M${x + w / 2} ${y} c-18 -18 -30 -4 -14 2z M${x + w / 2} ${y} c18 -18 30 -4 14 2z" fill="${r}"/></g>`;
+    const flake = (x, y, s, o) => `<g transform="translate(${x} ${y}) scale(${s})" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity="${o}">${[0, 60, 120].map(a => `<g transform="rotate(${a})"><path d="M0 -14 V14 M-4 -10 L0 -6 L4 -10 M-4 10 L0 6 L4 10"/></g>`).join("")}</g>`;
+    const christmas = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1a2e"/><stop offset=".7" stop-color="#14304a"/><stop offset="1" stop-color="#1f3b52"/></linearGradient>
+        <radialGradient id="warm" cx=".5" cy=".75" r=".6"><stop offset="0" stop-color="#f59e0b" stop-opacity=".35"/><stop offset="1" stop-color="#f59e0b" stop-opacity="0"/></radialGradient>
+        <linearGradient id="tr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22c55e"/><stop offset="1" stop-color="#14532d"/></linearGradient>
+        <radialGradient id="sg"><stop offset="0" stop-color="#fde047" stop-opacity=".5"/><stop offset="1" stop-color="#fde047" stop-opacity="0"/></radialGradient>
+        <filter id="tg" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <rect width="800" height="450" fill="url(#bg)"/>
+      <rect width="800" height="450" fill="url(#warm)"/>
+      ${stars(50, 300, .5)}
+      ${Array.from({ length: 90 }, () => [rnd() * 800, rnd() * 370]).filter(([x, y]) => !(x > 250 && x < 550) && !(x < 340 && y < 175) && !(x > 530 && x < 720 && y < 115)).slice(0, 22).map(([x, y]) => flake(x.toFixed(0), y.toFixed(0), (rnd() * .6 + .35).toFixed(2), (rnd() * .5 + .3).toFixed(2))).join("")}
+      <path d="M0 395 Q200 370 400 392 T800 385 V450 H0z" fill="#e2e8f0"/>
+      <path d="M0 412 Q220 395 420 410 T800 405 V450 H0z" fill="#f8fafc"/>
+      ${tree}
+      ${gift(300, 372, 54, 40, "#dc2626", "#fde047")}${gift(452, 380, 46, 32, "#2563eb", "#f8fafc")}${gift(510, 386, 36, 26, "#16a34a", "#fca5a5")}
+      <text x="40" y="92" ${F} font-size="46" fill="#fef3c7" filter="url(#tg)">Frohe</text>
+      <text x="40" y="146" ${F} font-size="46" fill="#fca5a5" filter="url(#tg)">Weihnachten</text>
+      <text x="545" y="92" ${F} font-size="20" fill="#bae6fd" letter-spacing="5">🎄 SEASON</text>
+    </svg>`;
+
+    const update = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+      <defs>
+        <radialGradient id="g1" cx=".75" cy=".45" r=".6"><stop offset="0" stop-color="#d3fc55" stop-opacity=".28"/><stop offset="1" stop-color="#d3fc55" stop-opacity="0"/></radialGradient>
+        <radialGradient id="g2" cx=".1" cy="1" r=".6"><stop offset="0" stop-color="#8b5cf6" stop-opacity=".35"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></radialGradient>
+        <linearGradient id="rk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8fafc"/><stop offset="1" stop-color="#94a3b8"/></linearGradient>
+        <linearGradient id="fl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde047"/><stop offset=".5" stop-color="#f97316"/><stop offset="1" stop-color="#ef4444" stop-opacity="0"/></linearGradient>
+      </defs>
+      <rect width="800" height="450" fill="#0b0f19"/>
+      <rect width="800" height="450" fill="url(#g1)"/><rect width="800" height="450" fill="url(#g2)"/>
+      <g stroke="#d3fc55" stroke-opacity=".07">${Array.from({ length: 21 }, (_, i) => `<path d="M${i * 40} 0 V450"/>`).join("")}${Array.from({ length: 12 }, (_, i) => `<path d="M0 ${i * 40} H800"/>`).join("")}</g>
+      ${["π", "∑", "√x", "∫", "x²", "Δ", "∞"].map((t, i) => `<text x="${[90, 300, 520, 700, 180, 420, 650][i]}" y="${[70, 405, 60, 400, 330, 120, 260][i]}" ${F} font-size="${[34, 28, 30, 26, 24, 22, 30][i]}" fill="#d3fc55" opacity=".16">${t}</text>`).join("")}
+      <g transform="translate(600 225) rotate(35)">
+        <path d="M-22 70 Q0 160 22 70z" fill="url(#fl)"/>
+        <path d="M0 -110 C40 -70 42 0 30 70 H-30 C-42 0 -40 -70 0 -110z" fill="url(#rk)"/>
+        <circle cx="0" cy="-30" r="18" fill="#0b0f19" stroke="#d3fc55" stroke-width="6"/>
+        <path d="M-30 30 L-60 80 L-30 70z M30 30 L60 80 L30 70z" fill="#d3fc55"/>
+      </g>
+      <circle cx="60" cy="150" r="10" fill="#d3fc55" />
+      <text x="84" y="162" ${F} font-size="26" fill="#d3fc55" letter-spacing="6">NEU</text>
+      <text x="56" y="245" ${F} font-size="74" fill="#fff">Update</text>
+      <text x="56" y="310" ${F} font-size="30" fill="#94a3b8">ist da! Schau rein ✨</text>
+    </svg>`;
+
+    const challenge = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+      <defs>
+        <radialGradient id="bg" cx=".68" cy=".5" r=".75"><stop offset="0" stop-color="#3b2a05"/><stop offset="1" stop-color="#0f0b02"/></radialGradient>
+        <linearGradient id="gd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fef08a"/><stop offset=".5" stop-color="#facc15"/><stop offset="1" stop-color="#a16207"/></linearGradient>
+        <radialGradient id="gl"><stop offset="0" stop-color="#facc15" stop-opacity=".45"/><stop offset="1" stop-color="#facc15" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect width="800" height="450" fill="url(#bg)"/>
+      <g transform="translate(560 225)" fill="#facc15" opacity=".09">${Array.from({ length: 16 }, (_, i) => `<path transform="rotate(${i * 22.5})" d="M0 0 L-28 -420 L28 -420z"/>`).join("")}</g>
+      <circle cx="560" cy="210" r="170" fill="url(#gl)"/>
+      <g transform="translate(560 215)">
+        <path d="M-62 -110 H62 V-40 C62 20 30 50 0 54 C-30 50 -62 20 -62 -40z" fill="url(#gd)"/>
+        <path d="M-62 -92 C-120 -92 -112 -10 -48 0 M62 -92 C120 -92 112 -10 48 0" stroke="url(#gd)" stroke-width="14" fill="none"/>
+        <rect x="-12" y="52" width="24" height="40" fill="#ca8a04"/>
+        <rect x="-56" y="90" width="112" height="22" rx="6" fill="url(#gd)"/>
+        <rect x="-70" y="110" width="140" height="18" rx="5" fill="#a16207"/>
+        <path d="M0 -88 l9 19 21 3 -15 15 4 21 -19 -10 -19 10 4 -21 -15 -15 21 -3z" fill="#fff" opacity=".85"/>
+        <path d="M-40 -100 q-4 50 14 90" stroke="#fff" stroke-width="7" opacity=".35" fill="none" stroke-linecap="round"/>
+      </g>
+      ${[[380, 90], [720, 110], [430, 360], [740, 330], [690, 60]].map(([x, y], i) => `<path transform="translate(${x} ${y}) scale(${[.8, .6, .5, .7, .4][i]})" d="M0 -20 Q2 -2 20 0 Q2 2 0 20 Q-2 2 -20 0 Q-2 -2 0 -20z" fill="#fef08a"/>`).join("")}
+      <text x="48" y="168" ${F} font-size="24" fill="#facc15" letter-spacing="6">🏆 NEUE</text>
+      <text x="44" y="240" ${F} font-size="58" fill="#fff">Heraus-</text>
+      <text x="44" y="304" ${F} font-size="58" fill="#fff">forderung</text>
+      <text x="48" y="350" ${F} font-size="22" fill="#fde68a">Mach mit &amp; hol dir die Belohnung!</text>
+    </svg>`;
+
+    const burst = (x, y, r, c) => `<g transform="translate(${x} ${y})" stroke="${c}" stroke-width="3.5" stroke-linecap="round">${Array.from({ length: 16 }, (_, i) => { const a = i * Math.PI / 8, r1 = r * .35, r2 = r * (i % 2 ? .8 : 1); return `<path d="M${(Math.cos(a) * r1).toFixed(1)} ${(Math.sin(a) * r1).toFixed(1)} L${(Math.cos(a) * r2).toFixed(1)} ${(Math.sin(a) * r2).toFixed(1)}"/>`; }).join("")}<circle r="${(r * .18).toFixed(0)}" fill="${c}" stroke="none" opacity=".5"/></g>`;
+    const newyear = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+      <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05061a"/><stop offset="1" stop-color="#1e1b4b"/></linearGradient>
+      <filter id="gw" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+      <rect width="800" height="450" fill="url(#bg)"/>
+      ${stars(80, 450, .6)}
+      <g filter="url(#gw)">${burst(150, 110, 70, "#f472b6")}${burst(640, 95, 85, "#facc15")}${burst(330, 385, 42, "#60a5fa")}${burst(720, 360, 45, "#34d399")}${burst(80, 390, 38, "#facc15")}</g>
+      <path d="M640 450 Q630 300 640 180" stroke="#facc15" stroke-width="2" opacity=".35" fill="none" stroke-dasharray="4 8"/>
+      <path d="M150 450 Q160 300 150 190" stroke="#f472b6" stroke-width="2" opacity=".35" fill="none" stroke-dasharray="4 8"/>
+      <text x="400" y="230" text-anchor="middle" ${F} font-size="54" fill="#fff">Frohes neues Jahr!</text>
+      <text x="400" y="285" text-anchor="middle" ${F} font-size="24" fill="#c7d2fe" letter-spacing="5">🎆 AUF EIN STARKES MATHE-JAHR</text>
+    </svg>`;
+
+    const maint = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+      <rect width="800" height="450" fill="#111318"/>
+      <g opacity=".9"><path d="M0 0 H800 V36 H0z" fill="#facc15"/><path d="M0 414 H800 V450 H0z" fill="#facc15"/>
+      <g fill="#111318">${Array.from({ length: 22 }, (_, i) => `<path d="M${i * 40 - 10} 36 L${i * 40 + 14} 0 H${i * 40 + 34} L${i * 40 + 10} 36z M${i * 40 - 10} 450 L${i * 40 + 14} 414 H${i * 40 + 34} L${i * 40 + 10} 450z"/>`).join("")}</g></g>
+      <g transform="translate(600 225)">
+        <circle r="105" fill="#1f2430"/>
+        <g fill="#facc15"><path d="M-12 -86 h24 l4 18 a70 70 0 0 1 22 9 l15 -10 17 17 -10 15 a70 70 0 0 1 9 22 l18 4 v24 l-18 4 a70 70 0 0 1 -9 22 l10 15 -17 17 -15 -10 a70 70 0 0 1 -22 9 l-4 18 h-24 l-4 -18 a70 70 0 0 1 -22 -9 l-15 10 -17 -17 10 -15 a70 70 0 0 1 -9 -22 l-18 -4 v-24 l18 -4 a70 70 0 0 1 9 -22 l-10 -15 17 -17 15 10 a70 70 0 0 1 22 -9z"/></g>
+        <circle r="28" fill="#1f2430"/>
+      </g>
+      <text x="54" y="190" ${F} font-size="24" fill="#facc15" letter-spacing="6">🛠️ KURZ PAUSE</text>
+      <text x="50" y="258" ${F} font-size="60" fill="#fff">Wartung</text>
+      <text x="54" y="305" ${F} font-size="24" fill="#9ca3af">Wir machen MathEdits noch besser.</text>
+    </svg>`;
+
+    const enc = s => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s.replace(/\s{2,}/g, " "));
+    return [
+      { id: "halloween", label: "🎃 Halloween", uri: enc(halloween) },
+      { id: "christmas", label: "🎄 Weihnachten", uri: enc(christmas) },
+      { id: "update", label: "🚀 Update", uri: enc(update) },
+      { id: "challenge", label: "🏆 Herausforderung", uri: enc(challenge) },
+      { id: "newyear", label: "🎆 Neujahr", uri: enc(newyear) },
+      { id: "maintenance", label: "🛠️ Wartung", uri: enc(maint) }
+    ];
+  })();
+  let annEditingId = null, currentAnnouncementData = null;
+  function annSetImage(uri){
+    pendingAnnouncementImageDataUri = uri || null;
+    $("announcementImagePreview").src = uri || "";
+    $("announcementImagePreviewWrap").style.display = uri ? "block" : "none";
+    document.querySelectorAll("#annTemplates .ann-tpl").forEach(b => b.classList.toggle("on", !!uri && b.dataset.uri === uri));
+  }
+  function annUpdateEndDate(){
+    const d = parseInt($("announcementDaysInput").value, 10), el = $("announcementEndDate");
+    if(!(d >= 1 && d <= 365)){ el.textContent = "1 bis 365 Tage"; el.style.color = "#ef4444"; return null; }
+    el.style.color = "";
+    const end = new Date(ownerChEndAt(d));
+    el.textContent = "📅 sichtbar bis " + end.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" }) + ", 00:00 Uhr";
+    return end.getTime();
+  }
+  function annSetEditMode(on){
+    $("annEditBar").style.display = on ? "" : "none";
+    $("annReshowWrap").style.display = on ? "" : "none";
+    $("annReshowCheck").checked = false;
+    $("announcementSendBtn").textContent = on ? "💾 Änderungen speichern" : "📣 Ankündigung senden";
+    if(!on) annEditingId = null;
+  }
+  function annResetForm(){
+    $("announcementTextInput").value = ""; $("announcementImageInput").value = ""; $("announcementTargetUsernameInput").value = "";
+    $("announcementBtnTextInput").value = ""; $("announcementGatewayInput").value = ""; $("announcementDaysInput").value = 3;
+    annSetImage(null); annSetEditMode(false); annUpdateEndDate(); if(typeof annUpdateGatewayUi === "function") annUpdateGatewayUi();
+  }
+  async function annStartEdit(){
+    const d = currentAnnouncementData; if(!d || !currentAnnouncementId) return;
+    annEditingId = currentAnnouncementId;
+    $("announcementTextInput").value = d.text || "";
+    annSetImage(d.imageDataUri || null);
+    $("announcementDaysInput").value = Math.max(1, Math.min(365, Math.round((d.expiresAt - Date.now()) / 864e5) || 1)); annUpdateEndDate();
+    $("announcementGatewayInput").value = d.gateway || "";
+    $("announcementBtnTextInput").value = d.gateway ? (d.buttonText || "") : "";
+    annUpdateGatewayUi();
+    $("announcementTargetUsernameInput").value = "";
+    if(d.targetUid){ try{ const u = await fetchUserDoc(d.targetUid); if(u && u.username) $("announcementTargetUsernameInput").value = u.username; }catch(e){} }
+    annSetEditMode(true);
+    $("announcementTextInput").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
   let pendingFeedbackWarnImageDataUri = null;
   let feedbackWarnTargetUid = null;
   let feedbackWarnTargetName = null;
@@ -8741,7 +8954,8 @@
     }
     const gwRaw = $("announcementGatewayInput").value.trim();
     if(gwRaw && !GATEWAYS[gwRaw]) return showErrorPopup(`Unbekannte Gateway-ID „${gwRaw}“.\nIm Entwicklermodus siehst du die gültigen IDs auf den gelben 🔗-Schildern.`);
-    const days = parseInt($("announcementDurationSelect").value, 10) || 3;
+    const expiresAt = annUpdateEndDate();
+    if(!expiresAt) return showErrorPopup("Dauer: bitte 1 bis 365 Tage eingeben.");
     const targetUsernameRaw = $("announcementTargetUsernameInput").value.trim();
     let targetUid = null;
     if(targetUsernameRaw){
@@ -8756,23 +8970,25 @@
       targetUid = unameDoc.data().uid;
     }
     try{
-      await db().collection("announcements").add({
+      const fields = {
         text: text.slice(0, 1000),
         imageDataUri: pendingAnnouncementImageDataUri || null,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + days * 24 * 60 * 60 * 1000,
-        createdBy: currentUser.uid,
+        expiresAt,
         targetUid: targetUid, // null = an alle, sonst nur an diese eine Person
         gateway: annGatewayValue(),
         buttonText: ($("announcementBtnTextInput").value.trim() || "Los geht's!").slice(0, 40)
-      });
-      $("announcementBtnTextInput").value = ""; $("announcementGatewayInput").value = ""; annUpdateGatewayUi();
-      $("announcementTextInput").value = "";
-      $("announcementImageInput").value = "";
-      $("announcementTargetUsernameInput").value = "";
-      pendingAnnouncementImageDataUri = null;
-      $("announcementImagePreviewWrap").style.display = "none";
-      showToast(targetUid ? `📣 Ankündigung an @${targetUsernameRaw} gesendet!` : "📣 Ankündigung an alle gesendet!");
+      };
+      const editing = annEditingId;
+      if(editing && !$("annReshowCheck").checked){
+        // Bearbeiten: gleiche Ankündigung - wer sie schon gesehen hat, sieht sie nicht nochmal
+        await db().collection("announcements").doc(editing).update({ ...fields, editedAt: Date.now() });
+      } else {
+        // Neu (oder "allen nochmal zeigen": neue ID, alte wird entfernt)
+        await db().collection("announcements").add({ ...fields, createdAt: Date.now(), createdBy: currentUser.uid });
+        if(editing){ try{ await db().collection("announcements").doc(editing).delete(); }catch(e){ console.error(e); } }
+      }
+      annResetForm();
+      showToast(editing ? "💾 Ankündigung aktualisiert!" : targetUid ? `📣 Ankündigung an @${targetUsernameRaw} gesendet!` : "📣 Ankündigung an alle gesendet!");
       renderOwnerAnnouncementStatus();
       checkForAnnouncement();
     }catch(err){
@@ -8796,6 +9012,7 @@
     try{
       const snap = await db().collection("announcements").orderBy("createdAt", "desc").limit(1).get();
       const data = snap.empty ? null : snap.docs[0].data();
+      currentAnnouncementData = data && data.expiresAt >= Date.now() ? data : null;
       if(!data || data.expiresAt < Date.now()){
         statusEl.textContent = "Aktuell keine aktive Ankündigung.";
         currentAnnouncementId = null;
@@ -8805,7 +9022,8 @@
         currentAnnouncementId = snap.docs[0].id;
       }
       $("annStatusCard").classList.toggle("on", !!currentAnnouncementId);
-      $("announcementDeleteBtn").style.display = currentAnnouncementId ? "" : "none";
+      $("annStatusActs").style.display = currentAnnouncementId ? "" : "none";
+      if(!currentAnnouncementId && annEditingId) annResetForm();
     }catch(err){
       console.error("Ankündigungs-Status Fehler:", err);
     }
@@ -8817,6 +9035,7 @@
     try{
       await db().collection("announcements").doc(currentAnnouncementId).delete();
       currentAnnouncementId = null;
+      if(annEditingId) annResetForm();
       showToast("🗑️ Ankündigung gelöscht.");
       renderOwnerAnnouncementStatus();
     }catch(err){
@@ -17409,19 +17628,25 @@
     const file = e.target.files[0];
     if(!file) return;
     try{
-      pendingAnnouncementImageDataUri = await compressImageFile(file);
-      $("announcementImagePreview").src = pendingAnnouncementImageDataUri;
-      $("announcementImagePreviewWrap").style.display = "block";
+      annSetImage(await compressImageFile(file));
     }catch(err){
       showToast("Bild konnte nicht geladen werden.");
       console.error(err);
     }
   });
   $("announcementImageRemoveBtn").addEventListener("click", () => {
-    pendingAnnouncementImageDataUri = null;
     $("announcementImageInput").value = "";
-    $("announcementImagePreviewWrap").style.display = "none";
+    annSetImage(null);
   });
+  $("annTemplates").innerHTML = ANN_TEMPLATES.map(t => `<button class="ann-tpl" data-uri="${t.uri.replace(/"/g, "&quot;")}" data-id="${t.id}"><img src="${t.uri.replace(/"/g, "&quot;")}" alt=""><span>${t.label}</span></button>`).join("");
+  $("annTemplates").querySelectorAll(".ann-tpl").forEach(b => b.addEventListener("click", () => {
+    $("announcementImageInput").value = "";
+    annSetImage(pendingAnnouncementImageDataUri === b.dataset.uri ? null : b.dataset.uri); // nochmal tippen = abwählen
+  }));
+  $("announcementDaysInput").addEventListener("input", annUpdateEndDate);
+  annUpdateEndDate();
+  $("announcementEditBtn").addEventListener("click", annStartEdit);
+  $("annEditCancelBtn").addEventListener("click", annResetForm);
   $("announcementSendBtn").addEventListener("click", sendAnnouncement);
   $("announcementDeleteBtn").addEventListener("click", deleteCurrentAnnouncement);
 

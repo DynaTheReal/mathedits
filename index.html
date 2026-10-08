@@ -8069,7 +8069,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.19";
+  const APP_VERSION = "4.20";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -10801,8 +10801,14 @@
   }
 
   // Beim App-Start: zeigt einmalig, wer gerade schon online ist.
+  // WICHTIG (Bugfix): wird aus dem Profil-Live-Abgleich aufgerufen, der bei JEDER
+  // Änderung am eigenen Profil feuert (z. B. wenn man gleichzeitig am PC und Handy
+  // ist) - darum nur EINMAL pro App-Start, sonst startet das Popup immer wieder neu.
+  let onlinePopupCheckedThisSession = false;
   async function showOnlineFriendsPopupIfAny(){
     if(!firebaseInitialized || !currentUser) return;
+    if(onlinePopupCheckedThisSession) return;
+    onlinePopupCheckedThisSession = true;
     try{
       const following = profile.following || [];
       if(following.length === 0) return;
@@ -19431,6 +19437,7 @@
 
   /* Firebase Auth & Realtime Synchronization Listener */
   if(firebaseInitialized){
+    var sessionWatchersUid = null; // Beobachter laufen schon für diesen Account
     firebase.auth().onAuthStateChanged((user) => {
       currentUser = user;
       cloudSyncReady = false; // bei jedem Auth-Wechsel neu abgleichen, bevor wieder geschrieben wird
@@ -19634,20 +19641,27 @@
             checkUsernameRequired();
             claimPendingReferralRewards();
             checkAndGrantWeeklyInviteReward();
-            watchOwnerRegistrationNotifications();
-            watchOwnerFeedbackNotifications();
-            watchOwnerModActionNotifications();
-            watchFriendRequests();
-            watchLiveBroadcast();
-            watchAuraDonations();
-            initFcmAndSaveToken();
-            watchLiveUpdateNotice();
-            watchLivePoll();
-            checkForAnnouncement();
-            publishCurrentVersionIfNewer();
-            checkForNewerVersion();
-            showOnlineFriendsPopupIfAny();
-            checkFeedbackAuraBonus();
+            // WICHTIG (Bugfix, Lesevorgänge & Popup-Flackern): dieser Abgleich feuert bei
+            // JEDER Profiländerung (z. B. von einem zweiten Gerät). Die Beobachter und
+            // Start-Prüfungen nur EINMAL pro Anmeldung starten - nicht jedes Mal neu,
+            // sonst wird alles ständig neu gelesen und Popups starten immer wieder.
+            if(sessionWatchersUid !== user.uid){
+              sessionWatchersUid = user.uid;
+              watchOwnerRegistrationNotifications();
+              watchOwnerFeedbackNotifications();
+              watchOwnerModActionNotifications();
+              watchFriendRequests();
+              watchLiveBroadcast();
+              watchAuraDonations();
+              initFcmAndSaveToken();
+              watchLiveUpdateNotice();
+              watchLivePoll();
+              checkForAnnouncement();
+              publishCurrentVersionIfNewer();
+              checkForNewerVersion();
+              showOnlineFriendsPopupIfAny();
+              checkFeedbackAuraBonus();
+            }
           } else {
             cloudSyncReady = true;
             // Nur EINMAL versuchen, das Dokument anzulegen - nicht bei jedem
@@ -19668,6 +19682,7 @@
           }
         }, (err) => console.error("Firestore Sync Fehler:", err));
       } else {
+        sessionWatchersUid = null; // nach dem Abmelden beim nächsten Login wieder starten
         $("overlayUsername").classList.remove("show");
       }
       renderSettings();

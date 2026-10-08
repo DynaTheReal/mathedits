@@ -712,7 +712,7 @@
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
-  html,body{height:100%;}
+  html,body{height:100%; overflow-x:hidden; overscroll-behavior-x:none;}
   body{
     margin:0;
     background:var(--bg);
@@ -785,7 +785,7 @@
   .screen{
     display:none; flex-direction:column; flex:1; min-height:0;
     padding:14px 16px calc(14px + env(safe-area-inset-bottom));
-    overflow-y:auto;
+    overflow-y:auto; overflow-x:hidden; overscroll-behavior-x:none;
     -webkit-overflow-scrolling:touch;
   }
   .screen.active{display:flex;}
@@ -1585,16 +1585,16 @@
   @property --nbp{ syntax:"<number>"; inherits:false; initial-value:1; }
   .duel-invite-banner{
     position:fixed; top:calc(8px + env(safe-area-inset-top)); left:50%;
-    transform:translate(-50%,-160%); width:max-content; min-width:240px; max-width:min(372px, calc(100% - 24px)); box-sizing:border-box;
+    transform:translate(-50%,-160%); width:calc(100% - 20px); max-width:420px; box-sizing:border-box;
     background:rgba(16,15,22,.82); -webkit-backdrop-filter:blur(20px) saturate(1.5); backdrop-filter:blur(20px) saturate(1.5);
-    border:1px solid rgba(255,255,255,.09); border-radius:999px;
-    padding:6px 8px 6px 6px; display:flex; align-items:center; gap:10px; color:#f4f3f8;
+    border:1px solid rgba(255,255,255,.1); border-radius:22px;
+    padding:12px 12px 12px 12px; display:flex; align-items:center; gap:12px; color:#f4f3f8;
     box-shadow:0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06); z-index:99700; cursor:pointer;
     transition:transform .5s cubic-bezier(.3,1.35,.45,1), opacity .25s; opacity:0;
   }
   .duel-invite-banner.show{ transform:translate(-50%,0); opacity:1; }
   .duel-invite-banner:active{ transform:translate(-50%,0) scale(.97); }
-  .duel-invite-icon{ --nb:var(--accent); position:relative; width:36px; height:36px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; font-size:17px;
+  .duel-invite-icon{ --nb:var(--accent); position:relative; width:46px; height:46px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; font-size:22px;
     background:color-mix(in srgb, var(--nb) 22%, #111); }
   #duelInviteBanner .duel-invite-icon{ --nb:#ef4444; } #friendRequestBanner .duel-invite-icon{ --nb:#22c55e; } #messageNotifyBanner .duel-invite-icon{ --nb:#60a5fa; } #ownerRegNotifyBanner .duel-invite-icon{ --nb:#facc15; }
   /* Countdown-Ring um das Icon (5 s) */
@@ -1605,11 +1605,11 @@
   @keyframes nb-ring{ from{ --nbp:1; } to{ --nbp:0; } }
   .duel-invite-banner.show .duel-invite-icon{ animation:nb-pop .5s cubic-bezier(.3,1.7,.5,1) .15s both; }
   @keyframes nb-pop{ from{ transform:scale(.3) rotate(-30deg); } }
-  .duel-invite-text{ flex:1; min-width:0; font-size:12.5px; line-height:1.3; color:rgba(244,243,248,.7); padding-right:4px;
+  .duel-invite-text{ flex:1; min-width:0; font-size:14px; line-height:1.35; color:rgba(244,243,248,.78); padding-right:4px;
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .duel-invite-text b{ color:#fff; font-weight:800; }
+  .duel-invite-text b{ color:#fff; font-weight:800; font-size:14.5px; }
   .duel-invite-text br{ content:""; }
-  .duel-invite-banner .banner-close-x{ position:static !important; width:26px; height:26px; flex-shrink:0; border-radius:50%; display:grid; place-items:center; font-size:11px; padding:0;
+  .duel-invite-banner .banner-close-x{ position:static !important; width:32px; height:32px; flex-shrink:0; border-radius:50%; display:grid; place-items:center; font-size:13px; padding:0;
     background:rgba(255,255,255,.07); border:none; color:#fff; opacity:.6; }
   /* ---------- Owner-Werkzeug-Symbole (NEU) ---------- */
   .owner-tool-icon-btn{
@@ -3067,7 +3067,7 @@
 
   /* ---------- Einstellungen ---------- */
   body.layout-nova #screen-settings > .topbar{
-    position:sticky; top:0; z-index:12; margin:0 -20px 12px; padding:calc(env(safe-area-inset-top,0px) + 10px) 20px 12px;
+    position:sticky; top:0; z-index:12; margin:0 -16px 12px; padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 12px;
     background:linear-gradient(to bottom, rgba(7,6,11,.95) 60%, rgba(7,6,11,0));
   }
   body.layout-nova #screen-settings .settings-title{ font-size:26px; font-weight:800; letter-spacing:-.02em; margin-left:12px; flex:1; }
@@ -4858,17 +4858,18 @@
   /* VS-Intro */
   .dvs{ position:fixed; inset:0; z-index:99500; display:flex; align-items:center; justify-content:center; overflow:hidden; background:#07060b; animation:dvs-out .35s ease 2.85s forwards; }
   .dvs::before, .dvs::after{ content:""; position:absolute; top:0; bottom:0; width:60%; }
-  .dvs::before{ left:-10%; background:linear-gradient(100deg, color-mix(in srgb, var(--accent) 55%, #000), transparent); transform:skewX(-12deg) translateX(-100%); animation:dvs-l .45s cubic-bezier(.2,.9,.3,1) forwards; }
-  .dvs::after{ right:-10%; background:linear-gradient(-100deg, #7f1d1d, transparent); transform:skewX(-12deg) translateX(100%); animation:dvs-r .45s cubic-bezier(.2,.9,.3,1) forwards; }
+  .dvs::before{ left:-10%; background:linear-gradient(100deg, rgba(20,184,166,.55), rgba(20,184,166,.08) 70%, transparent); transform:skewX(-12deg) translateX(-100%); animation:dvs-l .45s cubic-bezier(.2,.9,.3,1) forwards; }
+  .dvs::after{ right:-10%; background:linear-gradient(-100deg, rgba(245,158,11,.5), rgba(245,158,11,.07) 70%, transparent); transform:skewX(-12deg) translateX(100%); animation:dvs-r .45s cubic-bezier(.2,.9,.3,1) forwards; }
   @keyframes dvs-l{ to{ transform:skewX(-12deg) translateX(0); } } @keyframes dvs-r{ to{ transform:skewX(-12deg) translateX(0); } }
   @keyframes dvs-out{ to{ opacity:0; visibility:hidden; } }
   .dvs-side{ position:absolute; top:50%; display:flex; flex-direction:column; align-items:center; gap:10px; z-index:2; }
   .dvs-side.l{ left:12%; transform:translateY(-50%); animation:dvs-sl .5s cubic-bezier(.2,1.3,.4,1) .15s both; }
   .dvs-side.r{ right:12%; transform:translateY(-50%); animation:dvs-sr .5s cubic-bezier(.2,1.3,.4,1) .15s both; }
   @keyframes dvs-sl{ from{ transform:translate(-60vw,-50%); } to{ transform:translate(0,-50%); } } @keyframes dvs-sr{ from{ transform:translate(60vw,-50%); } to{ transform:translate(0,-50%); } }
-  .dvs-side .fr-av{ width:84px; height:84px; font-size:32px; box-shadow:0 0 0 4px #07060b, 0 0 30px rgba(255,255,255,.25); }
+  .dvs-side .fr-av{ width:84px; height:84px; font-size:32px; box-shadow:0 0 0 4px #07060b, 0 0 0 6px #2dd4bf, 0 0 30px rgba(45,212,191,.45); }
+  .dvs-side.r .fr-av{ box-shadow:0 0 0 4px #07060b, 0 0 0 6px #fbbf24, 0 0 30px rgba(251,191,36,.45); }
   .dvs-side b{ font-size:15px; font-weight:900; color:#fff; max-width:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .dvs-vs{ position:relative; z-index:3; font-size:72px; font-weight:900; font-style:italic; color:#fff; text-shadow:0 0 30px rgba(239,68,68,.9), 0 4px 0 #7f1d1d; animation:dvs-slam .45s cubic-bezier(.2,1.6,.4,1) .55s both; }
+  .dvs-vs{ position:relative; z-index:3; font-size:72px; font-weight:900; font-style:italic; color:#fff; text-shadow:0 0 30px rgba(255,255,255,.55), 0 4px 0 rgba(0,0,0,.5); animation:dvs-slam .45s cubic-bezier(.2,1.6,.4,1) .55s both; }
   @keyframes dvs-slam{ from{ transform:scale(3); opacity:0; } to{ transform:scale(1); opacity:1; } }
   .dvs-count{ position:absolute; bottom:18%; left:0; right:0; text-align:center; z-index:3; font-size:44px; font-weight:900; color:#fff; }
   .dvs-count span{ display:inline-block; animation:dvs-num .6s cubic-bezier(.2,1.5,.4,1) both; }
@@ -8068,7 +8069,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.18";
+  const APP_VERSION = "4.19";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -10780,35 +10781,11 @@
     if(ofpUsers.length === 1){ $("onlineFriendsPopupText").textContent = names[0]; $("ofpSub").textContent = "ist jetzt online"; }
     else if(ofpUsers.length > 1){ $("onlineFriendsPopupText").textContent = ofpUsers.length <= 2 ? names.join(" & ") : `${names[0]} +${ofpUsers.length - 1}`; $("ofpSub").textContent = "sind jetzt online"; }
     else { $("onlineFriendsPopupText").textContent = text; $("ofpSub").textContent = "Freunde online"; }
-    // Ausgeklappte Liste (NEU): wer, und was gerade (Lektion, Level, Streak)
-    const rows = ofpUsers.slice(0, 4).map((u, i) => {
-      const st = friendStatus(u);
-      return `<div class="ofp-row" style="--i:${i}">${frAvatarHtml(u, u.username)}<div class="ofp-row-txt"><b>@${esc(u.username || "?")}</b><small class="${st.cls}">${st.text}</small></div>
-        <div class="ofp-chips"><span>Lvl ${u.level || 0}</span>${u.streak ? `<span>🔥 ${u.streak}</span>` : ""}</div></div>`;
-    }).join("") + (ofpUsers.length > 4 ? `<div class="ofp-more">+${ofpUsers.length - 4} weitere online</div>` : "");
-    $("ofpList").innerHTML = rows;
     const popup = $("onlineFriendsPopup");
     clearTimeout(onlineFriendsPopupHideTimer); clearTimeout(ofpStageTimer);
     popup.classList.remove("show", "hide", "big"); popup.style.width = "";
-    void popup.offsetWidth;
-    popup.classList.add("show");
-    const smallW = popup.offsetWidth, bigW = Math.min(360, innerWidth - 28);
-    popup.style.width = smallW + "px";
-    requestAnimationFrame(() => { if(ofpUsers.length){ popup.classList.add("big"); popup.style.width = bigW + "px"; } });
-    const shownAt = Date.now();
-    // Groß bleiben, bis das Start-Intro vorbei ist (+1 s), mindestens 3,2 s - dann klein, dann weg
-    (function waitCollapse(){
-      const ready = (typeof startupIntroDone === "undefined" || startupIntroDone);
-      if(!ready){ ofpStageTimer = setTimeout(waitCollapse, 200); return; }
-      const wait = Math.max(1000, 3200 - (Date.now() - shownAt));
-      ofpStageTimer = setTimeout(() => {
-        popup.classList.remove("big"); popup.style.width = smallW + "px";
-        onlineFriendsPopupHideTimer = setTimeout(() => {
-          popup.classList.add("hide");
-          setTimeout(() => { popup.classList.remove("show", "hide"); popup.style.width = ""; }, 450);
-        }, 1700);
-      }, wait);
-    })();
+    void popup.offsetWidth; popup.classList.add("show");
+    onlineFriendsPopupHideTimer = setTimeout(() => { popup.classList.add("hide"); setTimeout(() => popup.classList.remove("show", "hide"), 450); }, 3600);
   }
   let ofpStageTimer = null;
   // Status eines Freundes (NEU) - für Popup und Freundesliste
@@ -16193,6 +16170,9 @@
   });
 
   function showScreen(name){
+    if(typeof pendingRescueFriends !== "undefined" && pendingRescueFriends && !["lesson", "result", "duelresults", "duellobby"].includes(name)){
+      const fr = pendingRescueFriends; pendingRescueFriends = null; setTimeout(() => checkFriendsForStreakRescue(fr), 1500);
+    }
     // Offene Chats schließen, damit nichts halb darüber liegt
     try{
       if($("overlayChat") && $("overlayChat").classList.contains("show")) closeChat();
@@ -21995,7 +21975,7 @@
     const vis = $("qVisual"), ch = $("lxChoices");
     if(!vis || !ch) return;
     if(lesson && lesson.hardMode && q && q.hard) setTimeout(() => { $("qTier").textContent = lesson.index === 8 ? "⚡ HARD MODE · nächstes Kapitel · 2× Aura" : "⚡ HARD MODE · sehr schwer · 2× Aura"; }, 0);
-    if(q && q.text && q.text.indexOf("{{") !== -1) $("qText").textContent = lxPlain(q.text); // Lupe-Markierungen ausblenden
+    if(q && q.text && (q.text.indexOf("{{") !== -1 || q.text.indexOf("[[") !== -1)) $("qText").textContent = lxPlain(q.text); // Lupe-Markierungen ausblenden
     if(typeof lxLupeHideUi === "function" && lxLupeActive) lxLupeHideUi();
     if(q && q.svg){ vis.innerHTML = q.svg; vis.style.display = "block"; } else { vis.innerHTML = ""; vis.style.display = "none"; }
     const useChoices = !!(q && q.choices);
@@ -23239,7 +23219,11 @@
      dass DU ihn gerettet hast. */
   const RESCUE_MIN_STREAK = 20, RESCUE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
   let rescueFriend = null;
+  let pendingRescueFriends = null;
   function checkFriendsForStreakRescue(friends){
+    // Nie mitten in einer Lektion/einem Duell - dann merken und danach zeigen
+    const busy = (typeof lesson !== "undefined" && lesson) || (screens && ["lesson", "result", "duelresults", "duellobby"].some(n => screens[n] && screens[n].classList.contains("active")));
+    if(busy){ pendingRescueFriends = friends; return; }
     if(!profile.username || document.querySelector(".overlay.show")) return;
     const seen = profile.rescuePromptSeen || {};
     const f = friends.find(u => (u.lastBrokenStreak || 0) >= RESCUE_MIN_STREAK && u.lastBrokenStreakAt
@@ -25410,7 +25394,21 @@
   });
   function removeBootCover(){ const c = $("bootCover"); if(c){ c.style.transition = "opacity .15s"; c.style.opacity = "0"; setTimeout(() => c.remove(), 160); } }
   setTimeout(removeBootCover, 6000); // Sicherheitsnetz
+  // Beim Start kurz prüfen, ob gerade eine Season läuft (max. ~1,2 s), damit sofort das Season-Intro kommt
+  let startupSeasonChecked = false;
+  function quickSeasonCheck(cb){
+    startupSeasonChecked = true;
+    let done = false; const finish = () => { if(!done){ done = true; cb(); } };
+    if(!firebaseInitialized){ finish(); return; }
+    setTimeout(finish, 1200);
+    try{
+      db().collection("appConfig").doc("season").get().then(d => {
+        seasonData = d.exists ? d.data() : null; seasonLoadedAt = Date.now(); seasonCacheStore(); finish();
+      }).catch(finish);
+    }catch(e){ finish(); }
+  }
   function playStartupIntro(callback){
+    if(!startupSeasonChecked){ quickSeasonCheck(() => playStartupIntro(callback)); return; }
     setTimeout(removeBootCover, 80); // erst wenn das Intro schon sichtbar ist
     let style = ["simple", "nova", "halloween", "xmas"].includes(profile.appIntroStyle) ? profile.appIntroStyle : "math"; // Math ist Standard
     if((style === "halloween" || style === "xmas") && !hasIntro(style)) style = "math"; // nur gekaufte Intros

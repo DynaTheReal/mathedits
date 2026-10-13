@@ -3156,6 +3156,38 @@
   .rs-hint{ margin-top:16px; max-width:360px; padding:11px 14px; border-radius:16px; font-size:13px; font-weight:600;
     background:color-mix(in srgb, var(--accent) 10%, transparent); border:1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
   .rs-continue{ width:100%; max-width:380px; margin:0 auto; }
+  /* Fortschritt nach der Lektion (NEU) */
+  .rsp{ width:100%; max-width:380px; margin-top:16px; display:flex; flex-direction:column; gap:8px; }
+  .rsp:empty{ display:none; }
+  .rsp-ch{ position:relative; overflow:hidden; padding:12px 14px; border-radius:18px; text-align:left; color:#fff;
+    background:linear-gradient(135deg, color-mix(in srgb, var(--chc, #a78bfa) 55%, #111), #15141b 80%); border:1px solid color-mix(in srgb, var(--chc, #a78bfa) 45%, transparent);
+    opacity:0; transform:translateY(10px); animation:rsp-in .45s cubic-bezier(.2,.9,.3,1) forwards; animation-delay:var(--d, .9s); }
+  .rsp-ch.st-halloween{ --chc:#f97316; } .rsp-ch.st-christmas{ --chc:#ef4444; }
+  @keyframes rsp-in{ to{ opacity:1; transform:none; } }
+  .rsp-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .rsp-top b{ font-size:14px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rsp-top small{ font-size:11px; font-weight:800; opacity:.75; white-space:nowrap; }
+  .rsp-bar{ position:relative; height:8px; border-radius:999px; background:rgba(255,255,255,.12); margin:9px 0 6px; overflow:hidden; }
+  .rsp-bar i{ position:absolute; left:0; top:0; bottom:0; border-radius:999px; background:linear-gradient(90deg, var(--chc, var(--accent)), color-mix(in srgb, var(--chc, var(--accent)) 55%, #fff)); transition:width 1s cubic-bezier(.2,.9,.3,1); }
+  .rsp-bar i.prev{ background:rgba(255,255,255,.35); z-index:1; transition:none; }
+  .rsp-bar i.now{ z-index:0; }
+  .rsp-foot{ display:flex; justify-content:space-between; font-size:12px; font-weight:700; opacity:.9; }
+  .rsp-plus{ color:#4ade80; font-weight:900; }
+  .rsp-ms{ padding:10px 12px; border-radius:18px; background:var(--card); border:1px solid color-mix(in srgb, var(--text) 8%, transparent); text-align:left;
+    opacity:0; transform:translateY(10px); animation:rsp-in .45s cubic-bezier(.2,.9,.3,1) forwards; animation-delay:var(--d, 1.05s); }
+  .rsp-ms-h{ font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); margin:0 2px 6px; display:flex; justify-content:space-between; }
+  .rsp-m{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:2px 10px; padding:5px 2px; }
+  .rsp-m + .rsp-m{ border-top:1px solid color-mix(in srgb, var(--text) 6%, transparent); }
+  .rsp-m b{ font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rsp-m span{ font-size:12px; font-weight:800; color:var(--text-dim); white-space:nowrap; }
+  .rsp-m.done span{ color:#22c55e; }
+  .rsp-m .rsp-bar{ grid-column:1 / -1; height:5px; margin:3px 0 0; background:color-mix(in srgb, var(--text) 9%, transparent); }
+  .rsp-m.done .rsp-bar i.now{ background:#22c55e; }
+  /* Herausforderung im Freundesprofil */
+  .fp-ch{ position:relative; overflow:hidden; border-radius:20px; padding:14px !important; color:#fff;
+    background:linear-gradient(135deg, color-mix(in srgb, var(--chc, #a78bfa) 50%, #111), #15141b 80%) !important; border:1px solid color-mix(in srgb, var(--chc, #a78bfa) 45%, transparent) !important; }
+  .fp-ch.st-halloween{ --chc:#f97316; } .fp-ch.st-christmas{ --chc:#ef4444; }
+  .fp-ch .rsp-top b{ font-size:14.5px; }
   /* Gestaffeltes Hereingleiten */
   #screen-result.rs-play .rs-in{ animation:rs-in .55s cubic-bezier(.2,.9,.25,1.05) both; animation-delay:var(--d, 0s); }
   @keyframes rs-in{ from{ opacity:0; transform:translateY(18px) scale(.97); } to{ opacity:1; transform:none; } }
@@ -7046,6 +7078,7 @@
       <div class="rs-hint rs-in" id="resultStreakHint" style="display:none; --d:.74s">
         🔥 Lern morgen noch einmal - am zweiten Tag gibt's eine Truhe!
       </div>
+      <div class="rsp" id="resProg"></div>
     </div>
     <button class="btn btn-primary rs-in rs-continue" id="resultContinue" style="--d:.8s">Weiter</button>
   </section>
@@ -7286,6 +7319,8 @@
         </div>
         <div id="friendProfileWeekChart" style="margin:10px 0 4px;"></div>
       </div>
+
+      <div class="fp-section fp-ch" id="fpChallenge" style="display:none;"></div>
 
       <div class="fp-actions">
       <button class="btn btn-primary" id="friendProfileAddBtn" style="margin-top:18px; display:none;">➕ Freund hinzufügen</button>
@@ -8069,7 +8104,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.20";
+  const APP_VERSION = "4.21";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -11106,6 +11141,20 @@
     showToast("Anfrage abgelehnt.");
   }
 
+  function renderFriendChallenge(u, isOwn){
+    const el = $("fpChallenge"); if(!el) return;
+    const c = challengeData;
+    if(!c || !challengeActive(c) || !u){ el.style.display = "none"; return; }
+    const pr = isOwn ? (profile.challengeProg || {}) : (u.challengeProg || {});
+    const count = pr.id === c.id ? Math.min(pr.count || 0, c.target) : 0, done = pr.id === c.id && pr.claimed;
+    const st = CH_STYLES[c.style] || CH_STYLES.standard;
+    const esc = t => String(t).replace(/[&<>"]/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[ch]));
+    el.className = "fp-section fp-ch st-" + (c.style || "standard");
+    el.innerHTML = `<div class="rsp-top"><b>${st.badge.split(" ")[0]} ${esc(c.title || "Herausforderung")}</b><small>${challengeTimeLeft(c)}</small></div>
+      <div class="rsp-bar"><i class="now" style="width:${count / c.target * 100}%"></i></div>
+      <div class="rsp-foot"><span>${isOwn ? "Du hast" : "@" + esc(u.username || "?") + " hat"} ${count} / ${c.target} Lektionen</span><span>${done ? "✓ Geschafft!" : Math.round(count / c.target * 100) + " %"}</span></div>`;
+    el.style.display = "";
+  }
   // Freund entfernen (NEU): eigenes "following" austragen und die Gegenrichtung
   // als abgelehnt merken, damit sie nicht als neue Anfrage auftaucht.
   async function removeFriend(uid, uname, onlyRequest){
@@ -13058,6 +13107,10 @@
 
     // "Aura spenden"-Button: bei jedem fremden Profil mit bekanntem
     // Benutzernamen, unabhängig von einer Freundschaft.
+    // Herausforderung im Profil (NEU): wie weit ist die Person in der laufenden Herausforderung?
+    renderFriendChallenge(u, isOwnProfile);
+    if(!challengeData && typeof loadChallenge === "function") loadChallenge().then(() => renderFriendChallenge(u, isOwnProfile)).catch(() => {});
+
     // Freund entfernen (NEU): bei bestehender Freundschaft oder offener eigener Anfrage
     const rmBtn = $("friendProfileRemoveBtn");
     if(!isOwnProfile && currentUser && alreadyFollowing){
@@ -16198,6 +16251,7 @@
     if(name === "lesson") screens.lesson.classList.toggle("hard-mode", !!(lesson && lesson.hardMode));
     if(name === "lesson") screens.lesson.classList.toggle("boss-mode", !!(lesson && lesson.isSkip));
     if(name === "lesson") screens.lesson.classList.toggle("duel-on", !!(lesson && lesson.isDuelLobby));
+    if(name === "lesson" && lesson && rsSnapLesson !== lesson){ rsSnapLesson = lesson; rsPrevSnap = rsTakeSnap(); } // Stand vor der Lektion
     if(name === "missions" && typeof renderChallengeCard === "function"){ renderChallengeCard(); loadChallenge(); }
     if(name === "shop" && typeof loadSeason === "function") loadSeason();
     if(name !== "lesson" && typeof lxLupeCancel === "function") lxLupeCancel(); // Lupe beim Verlassen sauber schließen
@@ -20555,9 +20609,59 @@
      animiert Ring, Sterne und hochzählende Zahlen. Wird bei jedem Anzeigen
      des End-Screens aufgerufen (Lektion UND Duell). */
   var rsAnimTimers = [];
+  // Missions-/Herausforderungs-Stand VOR der Lektion merken, um danach den Zuwachs zu zeigen
+  let rsPrevSnap = null, rsSnapLesson = null;
+  function rsTakeSnap(){
+    const snap = { ch: null, ms: {} };
+    try{
+      if(typeof challengeActive === "function" && challengeActive(challengeData) && profile.challengeProg && profile.challengeProg.id === challengeData.id) snap.ch = profile.challengeProg.count || 0;
+      ensureDailyMissions();
+      activeMissionDefs().forEach(m => { snap.ms[m.id] = missionProgressValue(m); });
+    }catch(e){}
+    return snap;
+  }
+  function renderResultProgress(){
+    const box = $("resProg"); if(!box) return;
+    const prev = rsPrevSnap || { ch: null, ms: {} };
+    const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+    let html = "", delay = .9;
+    // Herausforderung
+    const c = (typeof challengeData !== "undefined") ? challengeData : null;
+    if(currentUser && c && challengeActive(c)){
+      const pr = challengeProg(), now = Math.min(pr.count || 0, c.target), before = Math.min(prev.ch == null ? now : prev.ch, c.target);
+      const st = CH_STYLES[c.style] || CH_STYLES.standard;
+      html += `<div class="rsp-ch st-${c.style || "standard"}" style="--d:${delay}s">
+        <div class="rsp-top"><b>${st.badge.split(" ")[0]} ${esc(c.title || "Herausforderung")}</b><small>${challengeTimeLeft(c)}</small></div>
+        <div class="rsp-bar"><i class="prev" style="width:${before / c.target * 100}%"></i><i class="now" data-w="${now / c.target * 100}" style="width:${before / c.target * 100}%"></i></div>
+        <div class="rsp-foot"><span>${now} / ${c.target} Lektionen${now > before ? ` <span class="rsp-plus">+${now - before}</span>` : ""}</span><span>${pr.claimed ? "✓ Geschafft!" : Math.round(now / c.target * 100) + " %"}</span></div></div>`;
+      delay += .15;
+    }
+    // Tagesmissionen (kurz)
+    try{
+      ensureDailyMissions();
+      const defs = activeMissionDefs().map(m => {
+        const v = Math.min(missionProgressValue(m), m.target), b = Math.min(prev.ms[m.id] == null ? v : prev.ms[m.id], m.target);
+        return { m, v, b, changed: v > b };
+      }).sort((x, y) => (y.changed - x.changed) || ((x.v >= x.m.target) - (y.v >= y.m.target)));
+      const shown = defs.slice(0, 4);
+      if(shown.length){
+        const doneCount = defs.filter(d => d.v >= d.m.target).length;
+        html += `<div class="rsp-ms" style="--d:${delay}s"><div class="rsp-ms-h"><span>🎯 Missionen heute</span><span>${doneCount}/${defs.length} erledigt</span></div>` + shown.map(d => {
+          const done = d.v >= d.m.target;
+          return `<div class="rsp-m${done ? " done" : ""}"><b>${esc(d.m.label)}</b><span>${done ? "✓ " : ""}${d.v}/${d.m.target}${d.changed ? ` <span class="rsp-plus">+${d.v - d.b}</span>` : ""}</span>
+            <div class="rsp-bar"><i class="prev" style="width:${d.b / d.m.target * 100}%"></i><i class="now" data-w="${d.v / d.m.target * 100}" style="width:${d.b / d.m.target * 100}%"></i></div></div>`;
+        }).join("") + `</div>`;
+      }
+    }catch(e){ console.warn("Endscreen-Missionen:", e); }
+    box.innerHTML = html;
+    // Balken nach dem Einblenden hochlaufen lassen
+    rsAnimTimers.push(setTimeout(() => box.querySelectorAll("i.now").forEach(i => { i.style.width = i.dataset.w + "%"; }), (delay + .45) * 1000));
+    rsPrevSnap = rsTakeSnap(); // nächster Vergleich ab jetzt
+  }
   function animateResultScreen(){
     const scr = $("screen-result");
     if(!scr) return;
+    setTimeout(renderResultProgress, 0);
     rsAnimTimers.forEach(t => clearTimeout(t)); rsAnimTimers = [];
     const m = ($("resCorrect").textContent || "").match(/(\d+)\s*\/\s*(\d+)/);
     const correct = m ? parseInt(m[1], 10) : 0, total = m ? Math.max(1, parseInt(m[2], 10)) : 1;

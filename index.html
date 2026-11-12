@@ -4301,6 +4301,79 @@
   .wt-crumb{ position:fixed; z-index:97; width:5px; height:5px; border-radius:50%; background:#fff; pointer-events:none; box-shadow:0 0 4px rgba(255,255,255,.8);
     animation:wt-crumb .7s ease-out forwards; }
   @keyframes wt-crumb{ to{ transform:translate(var(--x), var(--y)) scale(.3); opacity:0; } }
+
+  /* ===== 🎄 Adventskalender ===== */
+  #screen-advent{ padding:0 0 calc(env(safe-area-inset-bottom,0px) + 120px) !important; background:radial-gradient(120% 50% at 50% 0%, #4a1d15 0%, #2a120e 35%, #120a08 70%) !important; }
+  .adv{ max-width:520px; margin:0 auto; padding:0 14px; color:#fbf3e4; font-family:'Plus Jakarta Sans', system-ui, sans-serif; }
+  .adv-hero{ position:relative; overflow:hidden; margin:0 -14px 18px; padding:calc(env(safe-area-inset-top,0px) + 34px) 18px 20px; text-align:center;
+    background:radial-gradient(90% 80% at 50% 0%, rgba(255,190,100,.35), transparent 70%), linear-gradient(180deg, #8a2a1c, #5a1912 60%, transparent); }
+  .adv-lights{ position:absolute; left:0; right:0; top:0; height:30px; pointer-events:none;
+    background:radial-gradient(circle at 6% 55%, #ffd27a 0 3.5px, rgba(255,200,110,.5) 5px, transparent 11px) 0 0/62px 30px repeat-x,
+      radial-gradient(circle at 56% 75%, #ffb35c 0 3.5px, rgba(255,170,80,.5) 5px, transparent 11px) 0 0/62px 30px repeat-x;
+    animation:adv-tw 2.8s ease-in-out infinite; }
+  .adv-lights::before{ content:""; position:absolute; left:0; right:0; top:0; height:16px; background:radial-gradient(ellipse 34px 12px at 50% 0, transparent 70%, #1d4a2b 72%, #1d4a2b 82%, transparent 84%) 0 0/62px 16px repeat-x; }
+  @keyframes adv-tw{ 50%{ opacity:.7; } }
+  .adv-snow{ position:absolute; inset:0; pointer-events:none; opacity:.55;
+    background-image:radial-gradient(circle, #fff 0 1.4px, transparent 2.2px), radial-gradient(circle, #fff 0 1px, transparent 1.8px);
+    background-size:90px 90px, 140px 140px; animation:adv-snow 14s linear infinite; }
+  @keyframes adv-snow{ to{ background-position:30px 180px, -40px 280px; } }
+  .adv-title{ position:relative; font-family:'Mountains of Christmas', 'Baloo 2', serif; font-weight:700; font-size:44px; line-height:1; color:#fff3d6;
+    text-shadow:0 0 22px rgba(255,190,100,.55), 0 3px 0 #5a1912; }
+  .adv-title span{ color:#ffd27a; }
+  .adv-sub{ position:relative; font-size:13.5px; font-weight:700; opacity:.85; margin-top:6px; }
+  .adv-stats{ position:relative; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:16px; }
+  .adv-stats > div{ padding:10px 6px; border-radius:16px; background:rgba(0,0,0,.25); border:1px solid rgba(255,210,140,.22); backdrop-filter:blur(6px); }
+  .adv-stats b{ display:block; font-size:20px; font-weight:900; color:#ffd27a; }
+  .adv-stats small{ display:block; font-size:10.5px; font-weight:700; opacity:.8; margin-top:2px; line-height:1.2; }
+  #advGiftState.lost b{ filter:grayscale(1); opacity:.6; } #advGiftState.lost small{ color:#fca5a5; }
+  .adv-preview{ position:relative; display:inline-block; margin-top:12px; font-size:11.5px; font-weight:800; padding:5px 12px; border-radius:999px; background:#38bdf8; color:#04121c; }
+  .adv-grid{ display:grid; grid-template-columns:repeat(4, 1fr); grid-auto-flow:dense; gap:9px; perspective:900px; }
+  .adv-door{ position:relative; aspect-ratio:1/1.08; border-radius:14px; cursor:default; transform-style:preserve-3d; }
+  .adv-door.big{ grid-column:span 2; grid-row:span 2; aspect-ratio:auto; min-height:0; }
+  .adv-in{ position:absolute; inset:0; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    background:radial-gradient(circle at 50% 40%, #3b2416, #1b100a); box-shadow:inset 0 0 16px rgba(0,0,0,.7); border:1px solid rgba(255,210,140,.2); }
+  .adv-in .i{ font-size:26px; filter:drop-shadow(0 0 8px rgba(255,200,110,.5)); }
+  .adv-door.big .adv-in .i{ font-size:54px; }
+  .adv-in small{ font-size:10.5px; font-weight:800; color:#ffd27a; text-align:center; line-height:1.15; padding:0 4px; }
+  .adv-front{ position:absolute; inset:0; border-radius:14px; display:grid; place-items:center; backface-visibility:hidden; transform-origin:0% 50%;
+    transition:transform .9s cubic-bezier(.3,1.1,.4,1), filter .3s; box-shadow:0 6px 14px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.18); overflow:hidden; }
+  .adv-front::before{ content:""; position:absolute; inset:0; opacity:.9; }
+  .adv-front .n{ position:relative; font-family:'Mountains of Christmas', 'Baloo 2', serif; font-weight:700; font-size:30px; color:#fff7e6; text-shadow:0 2px 0 rgba(0,0,0,.35), 0 0 12px rgba(255,220,160,.35); }
+  .adv-door.big .adv-front .n{ font-size:64px; }
+  .adv-front .rib{ position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(90deg, transparent 44%, rgba(255,214,120,.95) 44% 56%, transparent 56%), linear-gradient(0deg, transparent 44%, rgba(255,214,120,.85) 44% 56%, transparent 56%); opacity:.0; }
+  .adv-door.big .adv-front .rib{ opacity:1; }
+  .adv-door.big .adv-front .n{ background:rgba(90,25,18,.75); padding:4px 18px; border-radius:16px; z-index:1; }
+  .adv-door.big .adv-front::after{ content:"🎀"; position:absolute; top:-6px; font-size:46px; filter:drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+  .p0{ background:linear-gradient(145deg, #c0392b, #8e1f17); } .p0::before{ background:repeating-linear-gradient(45deg, transparent 0 10px, rgba(255,214,120,.18) 10px 13px); }
+  .p1{ background:linear-gradient(145deg, #1f6b3a, #134425); } .p1::before{ background:radial-gradient(circle, rgba(255,255,255,.28) 0 2px, transparent 2.6px) 0 0/14px 14px; }
+  .p2{ background:linear-gradient(145deg, #f3e3c3, #d9c08f); } .p2 .n{ color:#8e1f17 !important; text-shadow:none !important; } .p2::before{ background:repeating-linear-gradient(-45deg, transparent 0 8px, rgba(192,57,43,.25) 8px 11px); }
+  .p3{ background:linear-gradient(145deg, #1d3b5e, #10243b); } .p3::before{ background:radial-gradient(circle, rgba(255,232,170,.5) 0 1.4px, transparent 2px) 0 0/12px 12px; }
+  .pbig{ background:linear-gradient(145deg, #d4a23a, #a86f16); } .pbig::before{ background:radial-gradient(circle, rgba(255,255,255,.25) 0 2px, transparent 2.6px) 0 0/16px 16px; }
+  .adv-door.today{ cursor:pointer; z-index:2; }
+  .adv-door.today .adv-front{ animation:adv-wig 2.2s ease-in-out infinite; box-shadow:0 0 0 2.5px #ffd27a, 0 0 26px rgba(255,200,110,.75), 0 8px 18px rgba(0,0,0,.4); }
+  @keyframes adv-wig{ 0%,70%,100%{ transform:rotate(0); } 75%{ transform:rotate(-3deg) scale(1.04); } 85%{ transform:rotate(3deg) scale(1.04); } }
+  .adv-door.today::after{ content:"Heute!"; position:absolute; left:50%; bottom:-7px; transform:translateX(-50%); z-index:3; font-size:9.5px; font-weight:900; padding:2px 8px; border-radius:999px; background:#ffd27a; color:#3a1a05; white-space:nowrap; }
+  .adv-door.open .adv-front{ transform:rotateY(-108deg); filter:brightness(.7); pointer-events:none; }
+  .adv-door.opening .adv-front{ transition-duration:1.1s; }
+  .adv-door.missed .adv-front{ filter:grayscale(.85) brightness(.55); }
+  .adv-door.missed .adv-front::after{ content:"verpasst"; position:absolute; bottom:6px; font-size:9.5px; font-weight:800; color:#fff; opacity:.85; letter-spacing:.04em; }
+  .adv-door.future .adv-front{ filter:brightness(.82) saturate(.85); }
+  .adv-door.future .adv-front .lk{ position:absolute; top:5px; right:6px; font-size:11px; opacity:.75; }
+  .adv-chests{ margin-top:16px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+  .adv-chests:empty{ display:none; }
+  .adv-chests button{ border:none; border-radius:14px; padding:10px 14px; font:inherit; font-weight:800; font-size:13px; cursor:pointer; color:#3a1a05; background:linear-gradient(135deg, #ffe2a3, #f2b84b); box-shadow:0 6px 16px rgba(240,170,70,.35); animation:adv-wig 2.6s ease-in-out infinite; }
+  .adv-rules{ margin-top:18px; padding:14px; border-radius:18px; background:rgba(255,255,255,.04); border:1px solid rgba(255,210,140,.15); display:flex; flex-direction:column; gap:6px; font-size:12.5px; line-height:1.4; color:#e9dcc4; }
+  .adv-rules b{ color:#ffd27a; font-size:13px; }
+  .adv-pop{ position:relative; overflow:hidden; text-align:center; max-width:340px !important; background:radial-gradient(120% 70% at 50% 0%, rgba(255,190,100,.35), transparent 65%), linear-gradient(180deg, #5a1912, #2a120e) !important; color:#fff7e6 !important; border:1px solid rgba(255,210,140,.35) !important; }
+  .adv-pop-rays{ position:absolute; left:50%; top:90px; width:420px; height:420px; margin:-210px 0 0 -210px; pointer-events:none; opacity:.5;
+    background:repeating-conic-gradient(rgba(255,214,120,.22) 0 9deg, transparent 9deg 20deg); -webkit-mask:radial-gradient(circle, #000 15%, transparent 65%); mask:radial-gradient(circle, #000 15%, transparent 65%); animation:dl-spin 12s linear infinite; }
+  .adv-pop-day{ position:relative; display:inline-block; font-size:11.5px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; padding:4px 12px; border-radius:999px; background:rgba(255,214,120,.18); color:#ffd27a; }
+  .adv-pop-ico{ position:relative; font-size:84px; margin:10px 0 2px; filter:drop-shadow(0 0 26px rgba(255,200,110,.7)); animation:sf-pop .7s cubic-bezier(.2,1.6,.4,1) both; }
+  .adv-pop h2{ position:relative; color:#ffd27a !important; }
+  .adv-pop p{ position:relative; color:#f3e5cc !important; }
+  .adv-pop .btn-primary{ background:linear-gradient(135deg, #ffe2a3, #e9ab4c) !important; color:#3a1a05 !important; border:none !important; }
+  .adv-nav-dot{ background:#ffd27a !important; color:#3a1a05 !important; }
   /* ===== Event-Schriften (Profilname) ===== */
   .font-halloween{ font-family:'Creepster', 'Baloo 2', cursive !important; font-weight:400 !important; letter-spacing:.05em; color:#ff8a2a !important;
     text-shadow:0 0 8px rgba(255,120,20,.85), 0 0 22px rgba(255,80,0,.4), 0 2px 0 #4a1a04; animation:font-hw-flicker 3.2s ease-in-out infinite; }
@@ -6224,6 +6297,44 @@
   </section>
 
   <!-- ============ TRENDS (NEU) ============ -->
+  <!-- 🎄 Adventskalender (NEU) -->
+  <section class="screen" id="screen-advent">
+    <div class="adv">
+      <div class="adv-hero">
+        <div class="adv-lights"></div>
+        <div class="adv-snow"></div>
+        <div class="adv-title"><span>Advents</span>kalender</div>
+        <div class="adv-sub" id="advSub">Jeden Tag ein Türchen</div>
+        <div class="adv-stats">
+          <div><b id="advOpened">0</b><small>geöffnet</small></div>
+          <div><b id="advLeft">24</b><small>Tage bis Weihnachten</small></div>
+          <div id="advGiftState"><b>🎁</b><small>Geschenk möglich</small></div>
+        </div>
+        <div class="adv-preview" id="advPreviewBadge" style="display:none;">👁 Owner-Vorschau · Tag <span id="advPreviewDayLbl">1</span></div>
+      </div>
+      <div class="adv-grid" id="advGrid"></div>
+      <div class="adv-chests" id="advChests"></div>
+      <div class="adv-rules">
+        <b>So funktioniert's</b>
+        <span>🚪 Jeden Tag vom 1. bis 24. Dezember öffnet sich ein Türchen.</span>
+        <span>⏳ Verpasste Türchen bleiben zu – nur der heutige Tag geht auf.</span>
+        <span>🎁 Wer alle 23 Türchen öffnet, bekommt am 24. ein riesiges Weihnachtsgeschenk.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Türchen-Belohnung -->
+  <div class="overlay" id="overlayAdvent">
+    <div class="modal-card adv-pop">
+      <div class="adv-pop-rays"></div>
+      <div class="adv-pop-day" id="advPopDay">Tag 1</div>
+      <div class="adv-pop-ico" id="advPopIco">🎁</div>
+      <h2 id="advPopTitle">+50 Aura</h2>
+      <p id="advPopText">Frohe Adventszeit!</p>
+      <button class="btn btn-primary" id="advPopBtn" style="width:100%;">Juhu! 🎄</button>
+    </div>
+  </div>
+
   <section class="screen" id="screen-trends">
     <div class="tm-switch beta-lessons-only"><button id="tmSwitchMissions2">🎯 Missionen</button><button id="tmSwitchTrends2" class="on">📈 Trends</button></div>
     <div id="lxTrends" class="lx-trends"></div>
@@ -6518,6 +6629,7 @@
         <div class="owner-category-tile" id="ownerToolPlayerGoal"><span class="icon">🎯</span><span class="label">Spieler-Ziel</span></div>
         <div class="owner-category-tile" id="ownerToolChallenge"><span class="icon">🏆</span><span class="label">Herausforderung</span></div>
         <div class="owner-category-tile" id="ownerToolSeason"><span class="icon">🍂</span><span class="label">Season</span></div>
+        <div class="owner-category-tile" id="ownerToolAdvent"><span class="icon">🎄</span><span class="label">Advent</span></div>
       </div>
 
       <!-- Kategorie-Inhalte (NEU): klappen direkt unter dem Kachel-Raster
@@ -6606,6 +6718,20 @@
         <button class="btn btn-primary btn-small" id="ownerChStartBtn" style="width:100%; background:#facc15; border-color:#facc15; color:#111;">Herausforderung starten</button>
         <button class="btn btn-ghost btn-small" id="ownerChDeleteBtn" style="width:100%; margin-top:8px; border-color:#ef4444; color:#ef4444;">🗑️ Aktuelle Herausforderung löschen</button>
         <div class="d" style="margin:14px 0 4px;">Geheime Designs (🎃 Halloween, ❄️ Winter): nicht im Shop. Du hast sie automatisch, andere nur über eine Herausforderung oder einen Code.</div>
+      </div>
+
+      <div class="owner-inline-panel" id="panelOwnerAdvent">
+        <div style="font-weight:800; margin-bottom:8px; color:#f2c46d;">🎄 Adventskalender</div>
+        <div class="d" style="margin-bottom:10px;">Für alle startet er automatisch am 1. Dezember (bis 24.). Hier kannst du ihn schon vorher <b>nur für dich</b> testen – deine Vorschau zählt nicht für Dezember.</div>
+        <div class="settings-row" style="padding:0 0 10px;">
+          <div class="info"><div class="t">👁 Vorschau für mich</div><div class="d">Zeigt den Advent-Tab jetzt schon an.</div></div>
+          <div class="switch" id="ownerAdventPreviewSwitch"><div class="knob"></div></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="d">Testtag</span>
+          <input type="number" id="ownerAdventDay" class="input-field" min="1" max="24" value="1" style="width:76px; margin:0; text-align:center;">
+          <button class="btn btn-ghost btn-small" id="ownerAdventResetBtn" style="margin-left:auto;">Vorschau zurücksetzen</button>
+        </div>
       </div>
 
       <div class="owner-inline-panel" id="panelOwnerSeason">
@@ -7240,6 +7366,11 @@
       <svg class="nova-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
       <span class="icon">🏠</span>
       <span class="label">Home</span>
+    </button>
+    <button class="nav-item" id="navAdvent" style="display:none;">
+      <svg class="nova-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 6 10h3l-4 5.5h4L5 21h14l-4-5.5h4L15 10h3z"/><path d="M12 21v1.5"/></svg>
+      <span class="icon-wrap"><span class="icon">🎄</span><span class="nav-badge adv-nav-dot" id="advNavDot" style="display:none;">1</span></span>
+      <span class="label">Advent</span>
     </button>
     <button class="nav-item" id="navShop">
       <svg class="nova-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.4 11.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H6"/></svg>
@@ -8270,7 +8401,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.25";
+  const APP_VERSION = "4.26";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -8604,6 +8735,9 @@
     factPairStats: {}, // Trends-Detailansicht: pro Reihe (1-20) x Spalte (1-12) {correct, wrong}
     lessonInProgressAt: null, // erkennt, ob die App während einer laufenden Lektion geschlossen wurde
     redeemedCodeChests: {}, // Truhen aus eingelösten Codes, keyed nach Code-Dokument-ID
+    advent: null, // Adventskalender: { year, opened: { "1": {type, amount, ...} } }
+    adventChests: {}, // Truhen aus dem Adventskalender
+    adventPreview: false, adventPreviewDay: 1, adventPreviewData: null, // nur Owner: Vorschau
     hasReceivedInstallChest: false, // ob die Truhe fürs Hinzufügen zum Home-Bildschirm schon vergeben wurde
     installChest: null, // Truhe fürs Hinzufügen zum Home-Bildschirm
     lastLocalSaveAt: 0, // Zeitstempel des letzten lokalen Speicherns - entscheidet bei Aura, welche Seite beim Abgleich gewinnt
@@ -13624,6 +13758,9 @@
     if(sourceType === "install"){
       return profile.installChest;
     }
+    if(sourceType === "advent"){
+      return profile.adventChests ? profile.adventChests[sourceId] : null;
+    }
     return null;
   }
 
@@ -13654,6 +13791,8 @@
       title = "🎁 Einlöse-Code";
     } else if(sourceType === "install"){
       title = "📲 Zum Home-Bildschirm hinzugefügt!";
+    } else if(sourceType === "advent"){
+      title = "🎄 Adventskalender";
     }
     $("chestModalTitle").textContent = title;
     renderChestModal();
@@ -14199,6 +14338,7 @@
 
   function closeChestModal(){
     setTimeout(() => { if(screens.lessons && screens.lessons.classList.contains("active") && typeof renderLessonsScreen === "function") renderLessonsScreen(); }, 0); // LEKTIONEN-SYSTEM
+    setTimeout(() => { if(screens.advent && screens.advent.classList.contains("active")) renderAdvent(); }, 0);
     $("overlayChest").classList.remove("show");
     activeChestSource = null;
     renderMissions();
@@ -15188,6 +15328,13 @@
       merged.redeemedCodeChests[id] = (lrc[id] || crc[id]) ? pickFurtherChest(lrc[id], crc[id]) : null;
     });
     merged.lastStreakReminderShownDate = maxDateStr(localP.lastStreakReminderShownDate, cloudP.lastStreakReminderShownDate);
+    // Adventskalender: geöffnete Türchen vereinigen (gleiches Jahr), Truhen wie Code-Truhen
+    { const la = localP.advent, ca = cloudP.advent;
+      if(la && ca && la.year === ca.year) merged.advent = { year: la.year, opened: { ...(ca.opened || {}), ...(la.opened || {}) } };
+      else merged.advent = (la && ca) ? ((la.year || 0) >= (ca.year || 0) ? la : ca) : (la || ca || null);
+      const lac = localP.adventChests || {}, cac = cloudP.adventChests || {};
+      merged.adventChests = {};
+      new Set([...Object.keys(lac), ...Object.keys(cac)]).forEach(id => { merged.adventChests[id] = (lac[id] || cac[id]) ? pickFurtherChest(lac[id], cac[id]) : null; }); }
     merged.shareChest = (localP.shareChest || cloudP.shareChest) ? pickFurtherChest(localP.shareChest, cloudP.shareChest) : null;
     merged.countedDuelWins = Array.from(new Set([
       ...(localP.countedDuelWins || []),
@@ -16387,9 +16534,10 @@
     profile: $("screen-profile"), leaderboard: $("screen-leaderboard"), missions: $("screen-missions"),
     trends: $("screen-trends"), duellobby: $("screen-duellobby"), duelresults: $("screen-duelresults"),
     modpanel: $("screen-modpanel"),
-    lessons: $("screen-lessons") // LEKTIONEN-SYSTEM
+    lessons: $("screen-lessons"), // LEKTIONEN-SYSTEM
+    advent: $("screen-advent")
   };
-  const NAV_SCREENS = ["home", "shop", "leaderboard", "missions", "profile", "trends", "lessons"]; // "lessons" = LEKTIONEN-SYSTEM
+  const NAV_SCREENS = ["home", "shop", "leaderboard", "missions", "profile", "trends", "lessons", "advent"]; // "lessons" = LEKTIONEN-SYSTEM
 
   // Flugmodus-/Offline-Erkennung (NEU): verhindert, dass jemand offline zu
   // Sachen wie dem Shop oder Aura spenden navigiert, wo sich der lokale
@@ -16486,6 +16634,7 @@
       $("navTrends").classList.toggle("active", name === "trends");
       $("navMissions").classList.toggle("active", name === "missions");
       $("navProfile").classList.toggle("active", name === "profile");
+      $("navAdvent").classList.toggle("active", name === "advent");
       if(typeof lxApplyNav === "function") lxApplyNav(name); // LEKTIONEN-SYSTEM
     } else {
       nav.style.display = "none";
@@ -16509,6 +16658,133 @@
     }
   });
 
+
+  /* ===================== 🎄 ADVENTSKALENDER ===================== */
+  // Echte Kalender haben die Türchen gemischt - feste Reihenfolge, 24 groß am Ende
+  const ADV_ORDER = [7, 15, 2, 20, 11, 4, 18, 1, 13, 24, 9, 22, 5, 16, 3, 10, 21, 8, 14, 23, 6, 17, 12, 19];
+  function advPreviewOn(){ return isOwner() && !!profile.adventPreview; }
+  // Heutiger Kalendertag (1-24) oder null außerhalb der Adventszeit
+  function advToday(){
+    if(advPreviewOn()) return Math.max(1, Math.min(24, parseInt(profile.adventPreviewDay, 10) || 1));
+    const d = new Date();
+    return (d.getMonth() === 11 && d.getDate() <= 24) ? d.getDate() : null;
+  }
+  function advAvailable(){ return advToday() !== null; }
+  function advData(){
+    if(advPreviewOn()){
+      if(!profile.adventPreviewData) profile.adventPreviewData = { year: "preview", opened: {} };
+      return profile.adventPreviewData;
+    }
+    const y = new Date().getFullYear();
+    if(!profile.advent || profile.advent.year !== y) profile.advent = { year: y, opened: {} };
+    return profile.advent;
+  }
+  function advAllBeforeOpened(data){ for(let d = 1; d <= 23; d++) if(!data.opened[d]) return false; return true; }
+  function advGiveChest(tier, key){
+    if(!profile.adventChests) profile.adventChests = {};
+    const id = key + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+    profile.adventChests[id] = { tier, attemptsUsed: 0, claimed: false };
+    return id;
+  }
+  function advRoll(day, data){
+    const preview = advPreviewOn();
+    const giveAura = n => { if(!preview){ profile.totalAura += n; logAuraTransaction(n, `Adventskalender Tag ${day}`); } return { type: "aura", amount: n, ico: "💀", title: `+${n} Aura`, text: "Frohe Adventszeit! 🎄" }; };
+    const hasWinter = (profile.unlockedThemes || []).includes("winter");
+    if(day === 24){
+      if(!advAllBeforeOpened(data)) return { ...giveAura(100), text: "Für das große Weihnachtsgeschenk hätten alle 23 Türchen geöffnet sein müssen. Frohe Weihnachten trotzdem! 🎄" };
+      const gifts = ["aura1000", "chests10", "legend3", hasWinter ? "aura1500" : "winter"];
+      const g = gifts[Math.floor(Math.random() * gifts.length)];
+      if(g === "aura1000") return { ...giveAura(1000), ico: "💰", title: "+1000 Aura!", text: "Das große Weihnachtsgeschenk! Du hast alle Türchen geöffnet. 🎅", big: true };
+      if(g === "aura1500") return { ...giveAura(1500), ico: "💰", title: "+1500 Aura!", text: "Das große Weihnachtsgeschenk! Du hast alle Türchen geöffnet. 🎅", big: true };
+      if(g === "chests10"){ const ids = []; if(!preview) for(let i = 0; i < 10; i++) ids.push(advGiveChest("standard", "d24")); return { type: "chests", amount: 10, ids, ico: "📦", title: "10 Truhen!", text: "Zehn Truhen warten unten auf dich – viel Spaß beim Öffnen! 🎅", big: true }; }
+      if(g === "legend3"){ const ids = []; if(!preview) for(let i = 0; i < 3; i++) ids.push(advGiveChest("legendary", "d24")); return { type: "chests", amount: 3, ids, ico: "👑", title: "3 Legendäre Truhen!", text: "Drei legendäre Truhen – das ist ein richtiges Weihnachtswunder! 🎅", big: true }; }
+      if(!preview && !hasWinter){ profile.unlockedThemes = [...(profile.unlockedThemes || ["black"]), "winter"]; }
+      giveAura(500);
+      return { type: "theme", ico: "🎄", title: "Weihnachtsdesign + 500 Aura!", text: "Das exklusive Weihnachtsdesign gehört jetzt dir – plus 500 Aura obendrauf! 🎅", big: true };
+    }
+    const r = Math.random();
+    if(!hasWinter && !preview && r < .05){ profile.unlockedThemes = [...(profile.unlockedThemes || ["black"]), "winter"]; return { type: "theme", ico: "🎨", title: "Weihnachtsdesign!", text: "Selten! Du hast das Weihnachtsdesign freigeschaltet – findest du unter Design. ✨" }; }
+    if(r < .33){ const id = preview ? null : advGiveChest("standard", "d" + day); return { type: "chest", ids: id ? [id] : [], ico: "📦", title: "Eine Truhe!", text: "Tippe gleich drauf – vielleicht wird sie besser! 📦" }; }
+    return giveAura(20 + Math.round(Math.random() * 16) * 5); // 20 - 100
+  }
+  function advIconFor(rw){ return rw ? (rw.type === "aura" ? "💀" : rw.ico || "🎁") : "🎁"; }
+  function advLabelFor(rw){ if(!rw) return ""; if(rw.type === "aura") return `+${rw.amount}`; if(rw.type === "chest") return "Truhe"; if(rw.type === "chests") return `${rw.amount} Truhen`; if(rw.type === "theme") return "Design"; return ""; }
+  function renderAdvent(){
+    const today = advToday(), data = advData(), grid = $("advGrid");
+    if(today === null){ grid.innerHTML = ""; return; }
+    const openedCount = Object.keys(data.opened).length;
+    $("advOpened").textContent = openedCount;
+    const left = Math.max(0, 24 - today);
+    $("advLeft").textContent = left; $("advLeft").nextElementSibling.textContent = left === 1 ? "Tag bis Weihnachten" : left === 0 ? "Heute ist Heiligabend!" : "Tage bis Weihnachten";
+    $("advSub").textContent = today === 24 ? "🎅 Frohe Weihnachten!" : data.opened[today] ? "Heute schon geöffnet – morgen geht's weiter ✨" : "Dein heutiges Türchen wartet! 🎁";
+    let giftPossible = true; for(let d = 1; d < Math.min(today, 24); d++) if(!data.opened[d]) giftPossible = false;
+    const gs = $("advGiftState"); gs.classList.toggle("lost", !giftPossible);
+    gs.querySelector("small").textContent = data.opened[24] && data.opened[24].big ? "Geschenk erhalten!" : giftPossible ? "Geschenk möglich" : "Geschenk verpasst";
+    $("advPreviewBadge").style.display = advPreviewOn() ? "" : "none"; $("advPreviewDayLbl").textContent = today;
+    grid.innerHTML = ADV_ORDER.map((d, i) => {
+      const rw = data.opened[d], st = rw ? "open" : d === today ? "today" : d < today ? "missed" : "future";
+      return `<div class="adv-door ${st}${d === 24 ? " big" : ""}" data-d="${d}">
+        <div class="adv-in"><span class="i">${rw ? advIconFor(rw) : (d < today ? "🕸️" : "🎁")}</span><small>${rw ? advLabelFor(rw) : ""}</small></div>
+        <div class="adv-front ${d === 24 ? "pbig" : "p" + (i % 4)}"><span class="rib"></span><span class="n">${d}</span>${st === "future" ? '<span class="lk">🔒</span>' : ""}</div></div>`;
+    }).join("");
+    grid.querySelectorAll(".adv-door.today").forEach(el => el.addEventListener("click", () => advOpenDoor(el)));
+    grid.querySelectorAll(".adv-door.future").forEach(el => el.addEventListener("click", () => showToast(`🔒 Türchen ${el.dataset.d} öffnet sich am ${el.dataset.d}. Dezember.`)));
+    grid.querySelectorAll(".adv-door.missed").forEach(el => el.addEventListener("click", () => showToast("⏳ Dieses Türchen hast du verpasst.")));
+    // offene Advent-Truhen
+    const ch = Object.entries(profile.adventChests || {}).filter(([, c]) => c && !c.claimed);
+    $("advChests").innerHTML = ch.map(([id, c]) => `<button data-id="${id}">${CHEST_TIER_ICON[c.tier] || "📦"} Truhe öffnen</button>`).join("");
+    $("advChests").querySelectorAll("button").forEach(b => b.addEventListener("click", () => openChestModal("advent", b.dataset.id)));
+    advUpdateNav();
+  }
+  function advOpenDoor(el){
+    const d = parseInt(el.dataset.d, 10), data = advData();
+    if(d !== advToday() || data.opened[d]) return;
+    const rw = advRoll(d, data);
+    data.opened[d] = { type: rw.type, amount: rw.amount || 0, ico: rw.ico, big: !!rw.big, at: Date.now() };
+    saveProfile();
+    el.classList.add("opening", "open"); el.classList.remove("today");
+    el.querySelector(".adv-in .i").textContent = advIconFor(rw); el.querySelector(".adv-in small").textContent = advLabelFor(rw);
+    try{ triggerHaptic(rw.big ? [40, 60, 40, 60, 120] : [20, 40, 30]); }catch(e){}
+    setTimeout(() => {
+      $("advPopDay").textContent = d === 24 ? "🎅 Heiligabend" : `Türchen ${d}`;
+      $("advPopIco").textContent = rw.ico || "🎁";
+      $("advPopTitle").textContent = rw.title; $("advPopText").textContent = rw.text + (advPreviewOn() ? " (Vorschau – nichts gutgeschrieben)" : "");
+      $("advPopBtn").textContent = rw.ids && rw.ids.length ? "Truhe öffnen 📦" : "Juhu! 🎄";
+      $("advPopBtn").dataset.chest = (rw.ids && rw.ids[0]) || "";
+      $("overlayAdvent").classList.add("show");
+      spawnResultConfetti(); if(rw.big) setTimeout(spawnResultConfetti, 400);
+      renderAdvent();
+    }, 900);
+  }
+  function advUpdateNav(){
+    const on = advAvailable();
+    $("navAdvent").style.display = on ? "" : "none";
+    const today = advToday();
+    $("advNavDot").style.display = on && today && !advData().opened[today] ? "" : "none";
+    $("advNavDot").textContent = "!";
+    if(!on && screens.advent.classList.contains("active")) showScreen("home");
+  }
+  $("navAdvent").addEventListener("click", () => { showScreen("advent"); renderAdvent(); });
+  $("advPopBtn").addEventListener("click", () => {
+    $("overlayAdvent").classList.remove("show");
+    const id = $("advPopBtn").dataset.chest; if(id) openChestModal("advent", id);
+  });
+  // Owner-Vorschau
+  $("ownerToolAdvent").addEventListener("click", () => toggleOwnerPanel("panelOwnerAdvent", "ownerToolAdvent", () => {
+    $("ownerAdventPreviewSwitch").classList.toggle("on", !!profile.adventPreview); $("ownerAdventDay").value = profile.adventPreviewDay || 1;
+  }));
+  $("ownerAdventPreviewSwitch").addEventListener("click", () => {
+    profile.adventPreview = !profile.adventPreview; saveProfile();
+    $("ownerAdventPreviewSwitch").classList.toggle("on", profile.adventPreview);
+    advUpdateNav(); showToast(profile.adventPreview ? "🎄 Advent-Tab ist jetzt für dich sichtbar." : "Vorschau aus.");
+  });
+  $("ownerAdventDay").addEventListener("change", () => {
+    profile.adventPreviewDay = Math.max(1, Math.min(24, parseInt($("ownerAdventDay").value, 10) || 1)); $("ownerAdventDay").value = profile.adventPreviewDay;
+    saveProfile(); advUpdateNav(); if(screens.advent.classList.contains("active")) renderAdvent();
+  });
+  $("ownerAdventResetBtn").addEventListener("click", () => { profile.adventPreviewData = null; saveProfile(); showToast("Vorschau zurückgesetzt."); if(screens.advent.classList.contains("active")) renderAdvent(); });
+  setInterval(() => { try{ advUpdateNav(); }catch(e){} }, 30000);
+  setTimeout(() => { try{ advUpdateNav(); }catch(e){} }, 1500);
   $("navLeaderboard").addEventListener("click", () => {
     showScreen("leaderboard");
     renderLeaderboard();

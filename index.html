@@ -4194,6 +4194,113 @@
   [data-theme="winter"] .topbar, [data-theme="winter"] .bottom-nav{ box-shadow:0 0 24px rgba(233,194,124,.12); }
   [data-theme="winter"] .btn-primary, [data-theme="winter"] .submit-btn{ box-shadow:0 8px 22px rgba(233,194,124,.25), inset 0 1px 0 rgba(255,255,255,.4) !important; }
 
+
+  /* ===== 🎄 WEIHNACHTEN (neu): warme Lichterketten, Tannengirlanden, gemütliches Licht ===== */
+  [data-theme="winter"]{
+    --bg:#0a1511; --bg-soft:#0f1d17; --card:#13221b; --card-2:#192c23; --border:#2e4a3b; --text:#f8f0e2; --text-dim:#cbbfa6;
+    --accent:#f2c46d; --accent-text:#1f1504; --accent-2:#d9645a; --danger:#e26a5f; --success:#7fc794;
+    --overlay-bg:rgba(8,16,12,.95); --rainbow-header:linear-gradient(90deg,#f2c46d,#fff3d6,#d9645a);
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(255,190,100,.10) 0 3px, transparent 26px),
+      radial-gradient(circle at 86% 30%, rgba(255,170,80,.09) 0 4px, transparent 34px),
+      radial-gradient(circle at 70% 78%, rgba(255,200,120,.08) 0 3px, transparent 30px),
+      radial-gradient(circle at 24% 66%, rgba(255,160,90,.07) 0 5px, transparent 40px),
+      radial-gradient(ellipse at 50% 118%, rgba(255,170,80,.24), transparent 58%),
+      radial-gradient(ellipse at 50% -20%, rgba(40,90,60,.35), transparent 60%),
+      linear-gradient(180deg, #0d1c16, #0a1511 55%, #0e1712) !important;
+    background-attachment:fixed !important;
+  }
+  /* Schnee nur, wenn in den Einstellungen eingeschaltet (Standard: aus) */
+  body:not(.wt-snow-on) .app[data-theme="winter"]::after, body:not(.wt-snow-on):has(.app[data-theme="winter"])::before{ display:none !important; }
+  body.wt-snow-on .app[data-theme="winter"]::after{ animation:wt-snow 40s linear infinite !important; opacity:.6 !important; }
+  body.wt-snow-on:has(.app[data-theme="winter"])::before{ animation:wt-snow-front 52s linear infinite, wt-sway 9s ease-in-out infinite alternate !important; opacity:.5 !important; }
+  /* Tannengirlande mit warmen Birnen unter der Kopfleiste */
+  [data-theme="winter"] .topbar::after{ content:""; position:absolute; left:-6px; right:-6px; bottom:-22px; height:34px; pointer-events:none; z-index:2;
+    background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='34'%3E%3Cpath d='M0 4 Q40.0 16.8 80.0 4 Q120.0 16.8 160 4' stroke='%23163b22' stroke-width='10' fill='none' stroke-linecap='round'/%3E%3Cpath d='M0 4 Q40.0 16.8 80.0 4 Q120.0 16.8 160 4' stroke='%23245c34' stroke-width='7' fill='none' stroke-dasharray='1.5 2.5' stroke-linecap='round'/%3E%3Cpath d='M0 4 Q40.0 16.8 80.0 4 Q120.0 16.8 160 4' stroke='%233c8a4e' stroke-width='3' fill='none' stroke-dasharray='1 4' stroke-linecap='round' transform='translate%280 -2%29'/%3E%3Ccircle cx='19.2' cy='5.7' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='21.8' cy='6.7' r='1.6' fill='%23a93226'/%3E%3Ccircle cx='59.2' cy='5.9' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='61.8' cy='6.9' r='1.6' fill='%23a93226'/%3E%3Ccircle cx='99.2' cy='5.7' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='101.8' cy='6.7' r='1.6' fill='%23a93226'/%3E%3Ccircle cx='139.2' cy='5.9' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='141.8' cy='6.9' r='1.6' fill='%23a93226'/%3E%3Cpath d='M40.0 10.4 V14.4' stroke='%23123020' stroke-width='1'/%3E%3Crect x='38.3' y='14.4' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='40.0' cy='20.8' rx='3.2' ry='4.6' fill='%23ffd27a'/%3E%3Cellipse cx='39.0' cy='19.4' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3Cpath d='M74.0 5.8 V9.8' stroke='%23123020' stroke-width='1'/%3E%3Crect x='72.3' y='9.8' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='74.0' cy='16.2' rx='3.2' ry='4.6' fill='%23ffb35c'/%3E%3Cellipse cx='73.0' cy='14.8' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3Cpath d='M120.0 10.4 V14.4' stroke='%23123020' stroke-width='1'/%3E%3Crect x='118.3' y='14.4' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='120.0' cy='20.8' rx='3.2' ry='4.6' fill='%23fff0c9'/%3E%3Cellipse cx='119.0' cy='19.4' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3Cpath d='M154.0 5.8 V9.8' stroke='%23123020' stroke-width='1'/%3E%3Crect x='152.3' y='9.8' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='154.0' cy='16.2' rx='3.2' ry='4.6' fill='%23ffc46b'/%3E%3Cellipse cx='153.0' cy='14.8' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3C/svg%3E") repeat-x 0 0/160px 34px !important;
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.35)) !important; animation:none !important; }
+  [data-theme="winter"] .topbar::before{ content:""; position:absolute; left:-6px; right:-6px; bottom:-22px; height:34px; pointer-events:none; z-index:3; mix-blend-mode:screen;
+    background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='34'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23ffcf7a' stop-opacity='.9'/%3E%3Cstop offset='1' stop-color='%23ffb04a' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='40.0' cy='20.8' r='11' fill='url%28%23g%29'/%3E%3Ccircle cx='74.0' cy='16.2' r='11' fill='url%28%23g%29'/%3E%3Ccircle cx='120.0' cy='20.8' r='11' fill='url%28%23g%29'/%3E%3Ccircle cx='154.0' cy='16.2' r='11' fill='url%28%23g%29'/%3E%3C/svg%3E") repeat-x 0 0/160px 34px !important; animation:wt-twinkle 3.2s ease-in-out infinite !important; }
+  @keyframes wt-twinkle{ 0%,100%{ opacity:.95; } 20%{ opacity:.6; } 45%{ opacity:1; } 65%{ opacity:.72; } 85%{ opacity:.9; } }
+  [data-theme="winter"] .topbar{ box-shadow:0 10px 30px rgba(255,170,80,.08) !important; }
+  /* Girlande über der Navigationsleiste */
+  [data-theme="winter"] .bottom-nav{ box-shadow:0 -6px 30px rgba(255,170,80,.12) !important; }
+  [data-theme="winter"] .bottom-nav::before{ content:"" !important; position:absolute; left:-6px; right:-6px; top:-14px !important; height:26px; pointer-events:none; letter-spacing:0;
+    background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='26'%3E%3Cpath d='M0 4 Q35.0 12.0 70.0 4 Q105.0 12.0 140 4' stroke='%23163b22' stroke-width='10' fill='none' stroke-linecap='round'/%3E%3Cpath d='M0 4 Q35.0 12.0 70.0 4 Q105.0 12.0 140 4' stroke='%23245c34' stroke-width='7' fill='none' stroke-dasharray='1.5 2.5' stroke-linecap='round'/%3E%3Cpath d='M0 4 Q35.0 12.0 70.0 4 Q105.0 12.0 140 4' stroke='%233c8a4e' stroke-width='3' fill='none' stroke-dasharray='1 4' stroke-linecap='round' transform='translate%280 -2%29'/%3E%3Ccircle cx='16.8' cy='3.9' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='19.4' cy='4.9' r='1.6' fill='%23a93226'/%3E%3Ccircle cx='51.8' cy='4.1' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='54.4' cy='5.1' r='1.6' fill='%23a93226'/%3E%3Ccircle cx='86.8' cy='3.9' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='89.4' cy='4.9' r='1.6' fill='%23a93226'/%3E%3Ccircle cx='121.8' cy='4.1' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='124.4' cy='5.1' r='1.6' fill='%23a93226'/%3E%3Cpath d='M35.0 8.0 V12.0' stroke='%23123020' stroke-width='1'/%3E%3Crect x='33.3' y='12.0' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='35.0' cy='18.4' rx='3.2' ry='4.6' fill='%23ffd27a'/%3E%3Cellipse cx='34.0' cy='17.0' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3Cpath d='M64.0 5.3 V9.3' stroke='%23123020' stroke-width='1'/%3E%3Crect x='62.3' y='9.3' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='64.0' cy='15.7' rx='3.2' ry='4.6' fill='%23ffb35c'/%3E%3Cellipse cx='63.0' cy='14.3' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3Cpath d='M105.0 8.0 V12.0' stroke='%23123020' stroke-width='1'/%3E%3Crect x='103.3' y='12.0' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='105.0' cy='18.4' rx='3.2' ry='4.6' fill='%23fff0c9'/%3E%3Cellipse cx='104.0' cy='17.0' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3Cpath d='M134.0 5.3 V9.3' stroke='%23123020' stroke-width='1'/%3E%3Crect x='132.3' y='9.3' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='134.0' cy='15.7' rx='3.2' ry='4.6' fill='%23ffc46b'/%3E%3Cellipse cx='133.0' cy='14.3' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3C/svg%3E") repeat-x 0 0/140px 26px; filter:drop-shadow(0 -2px 3px rgba(0,0,0,.3)); }
+  [data-theme="winter"] .bottom-nav::after{ content:"" !important; position:absolute; left:-6px; right:-6px; top:-14px; height:26px; pointer-events:none; mix-blend-mode:screen;
+    background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='26'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23ffcf7a' stop-opacity='.9'/%3E%3Cstop offset='1' stop-color='%23ffb04a' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='35.0' cy='18.4' r='11' fill='url%28%23g%29'/%3E%3Ccircle cx='64.0' cy='15.7' r='11' fill='url%28%23g%29'/%3E%3Ccircle cx='105.0' cy='18.4' r='11' fill='url%28%23g%29'/%3E%3Ccircle cx='134.0' cy='15.7' r='11' fill='url%28%23g%29'/%3E%3C/svg%3E") repeat-x 0 0/140px 26px !important; filter:none !important; animation:wt-twinkle 2.7s ease-in-out .8s infinite; }
+  /* Karten: warm, mit feinem Goldrand statt Schneekappen */
+  [data-theme="winter"] .tier-card, [data-theme="winter"] .shop-item, [data-theme="winter"] .question-card, [data-theme="winter"] .modal-card,
+  [data-theme="winter"] .nv-card, [data-theme="winter"] .nsx-card, [data-theme="winter"] .lx-topic, [data-theme="winter"] .stat-pill{
+    border-top:1px solid rgba(242,196,109,.32) !important; border-color:rgba(242,196,109,.16) !important;
+    background-image:linear-gradient(170deg, rgba(255,200,120,.07), transparent 42%) !important;
+    box-shadow:0 10px 26px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,230,180,.08), 0 0 24px rgba(255,170,80,.04) !important; }
+  [data-theme="winter"] .question-card::before, [data-theme="winter"] .modal-card::before, [data-theme="winter"] .tier-card::before,
+  [data-theme="winter"] .nv-card::before, [data-theme="winter"] .lx-topic::before{ content:none !important; }
+  /* Streak-Karte: Samtgrün mit Goldrand und Girlande */
+  [data-theme="winter"] .beta-streak-card, [data-theme="winter"] .nv-streak{
+    background:radial-gradient(circle at 82% 85%, rgba(255,190,100,.28), transparent 55%) padding-box, linear-gradient(150deg, #1f4a33, #11291d) padding-box,
+      linear-gradient(135deg, #ffe2a3, #f2c46d 45%, #b8862f) border-box !important;
+    box-shadow:0 14px 34px rgba(0,0,0,.4), 0 0 30px rgba(255,170,80,.12), inset 0 0 30px rgba(255,200,120,.08) !important; }
+  [data-theme="winter"] .beta-streak-card::before, [data-theme="winter"] .nv-streak::before{ content:"" !important; left:6px; right:6px; top:-12px; height:26px; z-index:2;
+    background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='26'%3E%3Cpath d='M0 4 Q35.0 12.0 70.0 4 Q105.0 12.0 140 4' stroke='%23163b22' stroke-width='10' fill='none' stroke-linecap='round'/%3E%3Cpath d='M0 4 Q35.0 12.0 70.0 4 Q105.0 12.0 140 4' stroke='%23245c34' stroke-width='7' fill='none' stroke-dasharray='1.5 2.5' stroke-linecap='round'/%3E%3Cpath d='M0 4 Q35.0 12.0 70.0 4 Q105.0 12.0 140 4' stroke='%233c8a4e' stroke-width='3' fill='none' stroke-dasharray='1 4' stroke-linecap='round' transform='translate%280 -2%29'/%3E%3Ccircle cx='16.8' cy='3.9' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='19.4' cy='4.9' r='1.6' fill='%23a93226'/%3E%3Ccircle cx='51.8' cy='4.1' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='54.4' cy='5.1' r='1.6' fill='%23a93226'/%3E%3Ccircle cx='86.8' cy='3.9' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='89.4' cy='4.9' r='1.6' fill='%23a93226'/%3E%3Ccircle cx='121.8' cy='4.1' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='124.4' cy='5.1' r='1.6' fill='%23a93226'/%3E%3Cpath d='M35.0 8.0 V12.0' stroke='%23123020' stroke-width='1'/%3E%3Crect x='33.3' y='12.0' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='35.0' cy='18.4' rx='3.2' ry='4.6' fill='%23ffd27a'/%3E%3Cellipse cx='34.0' cy='17.0' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3Cpath d='M64.0 5.3 V9.3' stroke='%23123020' stroke-width='1'/%3E%3Crect x='62.3' y='9.3' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='64.0' cy='15.7' rx='3.2' ry='4.6' fill='%23ffb35c'/%3E%3Cellipse cx='63.0' cy='14.3' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3Cpath d='M105.0 8.0 V12.0' stroke='%23123020' stroke-width='1'/%3E%3Crect x='103.3' y='12.0' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='105.0' cy='18.4' rx='3.2' ry='4.6' fill='%23fff0c9'/%3E%3Cellipse cx='104.0' cy='17.0' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3Cpath d='M134.0 5.3 V9.3' stroke='%23123020' stroke-width='1'/%3E%3Crect x='132.3' y='9.3' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='134.0' cy='15.7' rx='3.2' ry='4.6' fill='%23ffc46b'/%3E%3Cellipse cx='133.0' cy='14.3' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3C/svg%3E") repeat-x 0 0/140px 26px !important; filter:drop-shadow(0 2px 3px rgba(0,0,0,.35)) !important; }
+  [data-theme="winter"] .beta-streak-card::after, [data-theme="winter"] .nv-streak::after{ content:"🎄" !important; font-size:78px; right:4px; bottom:-6px; opacity:.32 !important;
+    filter:drop-shadow(0 0 16px rgba(255,190,100,.7)) !important; animation:wt-glow 3.4s ease-in-out infinite !important; }
+  @keyframes wt-glow{ 50%{ opacity:.45; filter:drop-shadow(0 0 26px rgba(255,200,110,.95)); } }
+  [data-theme="winter"] .brand{ color:#fff3d6 !important; text-shadow:0 0 14px rgba(255,190,100,.6) !important; }
+  [data-theme="winter"] .brand .dot{ background:#f2c46d !important; box-shadow:0 0 12px #f2c46d, 0 0 26px rgba(255,180,80,.7) !important; }
+  [data-theme="winter"] .nav-item.active{ color:#f2c46d !important; filter:drop-shadow(0 0 8px rgba(255,190,100,.75)) !important; }
+  [data-theme="winter"] .btn-primary, [data-theme="winter"] .submit-btn{ background:linear-gradient(135deg, #f7d58e, #e9ab4c) !important; color:#1f1504 !important; border-color:transparent !important;
+    box-shadow:0 8px 24px rgba(240,170,70,.32), inset 0 1px 0 rgba(255,255,255,.45) !important; }
+
+  /* Nova-Home: Girlande unter der Werkzeugleiste + warme Karten */
+  body.layout-nova .app[data-theme="winter"] .nv-tools{ position:relative; overflow:visible !important; }
+  body.layout-nova .app[data-theme="winter"] .nv-tools::after{ content:""; position:absolute; left:10px; right:10px; bottom:-15px; height:26px; pointer-events:none; z-index:3;
+    background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='26'%3E%3Cpath d='M0 4 Q35.0 12.0 70.0 4 Q105.0 12.0 140 4' stroke='%23163b22' stroke-width='10' fill='none' stroke-linecap='round'/%3E%3Cpath d='M0 4 Q35.0 12.0 70.0 4 Q105.0 12.0 140 4' stroke='%23245c34' stroke-width='7' fill='none' stroke-dasharray='1.5 2.5' stroke-linecap='round'/%3E%3Cpath d='M0 4 Q35.0 12.0 70.0 4 Q105.0 12.0 140 4' stroke='%233c8a4e' stroke-width='3' fill='none' stroke-dasharray='1 4' stroke-linecap='round' transform='translate%280 -2%29'/%3E%3Ccircle cx='16.8' cy='3.9' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='19.4' cy='4.9' r='1.6' fill='%23a93226'/%3E%3Ccircle cx='51.8' cy='4.1' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='54.4' cy='5.1' r='1.6' fill='%23a93226'/%3E%3Ccircle cx='86.8' cy='3.9' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='89.4' cy='4.9' r='1.6' fill='%23a93226'/%3E%3Ccircle cx='121.8' cy='4.1' r='1.8' fill='%23c0392b'/%3E%3Ccircle cx='124.4' cy='5.1' r='1.6' fill='%23a93226'/%3E%3Cpath d='M35.0 8.0 V12.0' stroke='%23123020' stroke-width='1'/%3E%3Crect x='33.3' y='12.0' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='35.0' cy='18.4' rx='3.2' ry='4.6' fill='%23ffd27a'/%3E%3Cellipse cx='34.0' cy='17.0' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3Cpath d='M64.0 5.3 V9.3' stroke='%23123020' stroke-width='1'/%3E%3Crect x='62.3' y='9.3' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='64.0' cy='15.7' rx='3.2' ry='4.6' fill='%23ffb35c'/%3E%3Cellipse cx='63.0' cy='14.3' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3Cpath d='M105.0 8.0 V12.0' stroke='%23123020' stroke-width='1'/%3E%3Crect x='103.3' y='12.0' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='105.0' cy='18.4' rx='3.2' ry='4.6' fill='%23fff0c9'/%3E%3Cellipse cx='104.0' cy='17.0' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3Cpath d='M134.0 5.3 V9.3' stroke='%23123020' stroke-width='1'/%3E%3Crect x='132.3' y='9.3' width='3.4' height='2.8' rx='.6' fill='%233a3a2e'/%3E%3Cellipse cx='134.0' cy='15.7' rx='3.2' ry='4.6' fill='%23ffc46b'/%3E%3Cellipse cx='133.0' cy='14.3' rx='1' ry='1.6' fill='%23fffbe9' opacity='.85'/%3E%3C/svg%3E") repeat-x 0 0/140px 26px; filter:drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+  body.layout-nova .app[data-theme="winter"] .nv-tools::before{ content:""; position:absolute; left:10px; right:10px; bottom:-15px; height:26px; pointer-events:none; z-index:4; mix-blend-mode:screen;
+    background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='26'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23ffcf7a' stop-opacity='.9'/%3E%3Cstop offset='1' stop-color='%23ffb04a' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='35.0' cy='18.4' r='11' fill='url%28%23g%29'/%3E%3Ccircle cx='64.0' cy='15.7' r='11' fill='url%28%23g%29'/%3E%3Ccircle cx='105.0' cy='18.4' r='11' fill='url%28%23g%29'/%3E%3Ccircle cx='134.0' cy='15.7' r='11' fill='url%28%23g%29'/%3E%3C/svg%3E") repeat-x 0 0/140px 26px; animation:wt-twinkle 3s ease-in-out infinite; }
+  body.layout-nova .app[data-theme="winter"] .nv-card{ background:linear-gradient(165deg, rgba(255,196,110,.09), rgba(20,40,30,.0) 45%), linear-gradient(180deg, #16271f, #112019) !important;
+    border-color:rgba(242,196,109,.18) !important; box-shadow:0 10px 28px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,225,170,.09) !important; }
+  body.layout-nova .app[data-theme="winter"] #screen-home{ background:
+      radial-gradient(130% 40% at 50% -6%, rgba(255,180,90,.28), transparent 62%),
+      radial-gradient(70% 30% at 100% 55%, rgba(60,140,80,.18), transparent 70%),
+      radial-gradient(60% 30% at 0% 85%, rgba(255,170,80,.10), transparent 70%),
+      #0a1410 !important; }
+  .app[data-theme="winter"] .nova-home, .app[data-theme="winter"] .nova-screen{ --nv-card:#14251d; --nv-card-hi:#1a2f25; --nv-line:rgba(242,196,109,.14); --nv-glass:rgba(20,38,29,.82); --nv-muted:#bfb39b; }
+
+  /* ===== ❄️ Liegender Schnee auf den Karten (sammelt sich langsam an) ===== */
+  body.wt-snow-on .app[data-theme="winter"] :is(.nv-card, .tier-card, .shop-item, .lx-topic, .nsx-card):not(.nv-streak):not(.beta-streak-card){ position:relative; overflow:visible !important; }
+  body.wt-snow-on .app[data-theme="winter"] :is(.nv-card, .tier-card, .shop-item, .lx-topic, .nsx-card):not(.nv-streak):not(.beta-streak-card)::before{
+    content:"" !important; position:absolute; left:8px; right:8px; top:-15px; height:22px; z-index:3; pointer-events:none; display:block;
+    background:
+      radial-gradient(ellipse 34px 15px at 6% 100%, #f8fbff 64%, transparent 67%),
+      radial-gradient(ellipse 58px 20px at 24% 100%, #ffffff 64%, transparent 67%),
+      radial-gradient(ellipse 40px 16px at 45% 100%, #f6faff 64%, transparent 67%),
+      radial-gradient(ellipse 62px 21px at 66% 100%, #ffffff 64%, transparent 67%),
+      radial-gradient(ellipse 36px 15px at 88% 100%, #f8fbff 64%, transparent 67%),
+      linear-gradient(#fff, #e9f1f7) bottom / 100% 8px no-repeat !important;
+    border-radius:10px 10px 3px 3px; filter:drop-shadow(0 1px 1.5px rgba(120,150,170,.45)) drop-shadow(0 0 6px rgba(255,255,255,.18)) !important;
+    transform-origin:50% 100%; transform:scaleY(var(--wt-snow, 0)); opacity:calc(var(--wt-snow, 0) * 4);
+    transition:transform 1.6s ease, opacity 1.6s ease; }
+  body.wt-snow-on .app[data-theme="winter"] .wt-eaten::before{ transform:scaleY(0) !important; opacity:0 !important; transition:transform .9s ease, opacity .9s ease .2s !important; }
+  /* 🐕 Schneeräumer-Hund */
+  .wt-dog{ position:fixed; left:0; top:0; width:62px; height:42px; z-index:96; pointer-events:none; will-change:transform; }
+  .wt-dog svg{ width:100%; height:100%; overflow:visible; transition:transform .15s; filter:drop-shadow(0 0 1.5px rgba(255,236,200,.75)) drop-shadow(0 0 8px rgba(255,200,120,.35)) drop-shadow(0 4px 4px rgba(0,0,0,.4)); }
+  .wt-dog.left svg{ transform:scaleX(-1); }
+  .wt-dog .lg{ transform-box:fill-box; transform-origin:50% 0; }
+  .wt-dog.run .lg.a{ animation:wd-leg .22s ease-in-out infinite alternate; } .wt-dog.run .lg.b{ animation:wd-leg .22s ease-in-out infinite alternate-reverse; }
+  .wt-dog.run svg{ animation:wd-bob .22s ease-in-out infinite alternate; }
+  @keyframes wd-leg{ from{ transform:rotate(-28deg); } to{ transform:rotate(28deg); } }
+  @keyframes wd-bob{ to{ translate:0 -2px; } }
+  .wt-dog .tl{ transform-box:fill-box; transform-origin:100% 100%; animation:wd-tail .3s ease-in-out infinite alternate; }
+  @keyframes wd-tail{ from{ transform:rotate(-18deg); } to{ transform:rotate(22deg); } }
+  .wt-dog .hd{ transform-box:fill-box; transform-origin:20% 80%; }
+  .wt-dog.eat .hd{ animation:wd-eat .28s ease-in-out infinite alternate; }
+  @keyframes wd-eat{ from{ transform:rotate(8deg) translateY(1px); } to{ transform:rotate(30deg) translateY(4px); } }
+  .wt-dog .tg{ opacity:0; } .wt-dog.eat .tg{ opacity:1; animation:wd-lick .28s ease-in-out infinite alternate; }
+  @keyframes wd-lick{ to{ transform:translateY(2px) scaleY(1.3); } }
+  .wt-crumb{ position:fixed; z-index:97; width:5px; height:5px; border-radius:50%; background:#fff; pointer-events:none; box-shadow:0 0 4px rgba(255,255,255,.8);
+    animation:wt-crumb .7s ease-out forwards; }
+  @keyframes wt-crumb{ to{ transform:translate(var(--x), var(--y)) scale(.3); opacity:0; } }
   /* ===== Event-Schriften (Profilname) ===== */
   .font-halloween{ font-family:'Creepster', 'Baloo 2', cursive !important; font-weight:400 !important; letter-spacing:.05em; color:#ff8a2a !important;
     text-shadow:0 0 8px rgba(255,120,20,.85), 0 0 22px rgba(255,80,0,.4), 0 2px 0 #4a1a04; animation:font-hw-flicker 3.2s ease-in-out infinite; }
@@ -6651,6 +6758,7 @@
           <div class="owner-category-tile" id="ownerToolModRole"><span class="icon">🛡️</span><span class="label">Mod-Rolle</span></div>
           <div class="owner-category-tile" id="ownerToolBooster"><span class="icon">✨</span><span class="label">Booster</span></div>
           <div class="owner-category-tile" id="ownerToolStreakHistory"><span class="icon">🔥</span><span class="label">Streak-Verlauf</span></div>
+          <div class="owner-category-tile" id="ownerToolFreeze"><span class="icon">🛡️</span><span class="label">Streak-Schutz</span></div>
         </div>
 
         <div class="owner-inline-panel" id="panelOwnerStats">
@@ -6661,19 +6769,6 @@
           <input type="number" id="ownerLevelInput" class="input-field">
           <div class="d" style="margin-bottom:4px; margin-top:10px;">Streak</div>
           <input type="number" id="ownerStreakInput" class="input-field">
-          <div class="owner-freeze">
-            <div class="owner-freeze-h">🛡️ Streak-Schutz</div>
-            <div class="d" id="ownerFreezeStatus">Kein Schutz aktiv.</div>
-            <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
-              <input type="number" id="ownerFreezeDays" class="input-field" value="14" min="1" max="365" step="1" style="width:84px; margin:0; text-align:center;">
-              <span class="d">Tage</span>
-              <span class="d" id="ownerFreezeEnd" style="font-weight:700; color:var(--text); margin-left:auto; text-align:right;"></span>
-            </div>
-            <div style="display:flex; gap:8px; margin-top:8px;">
-              <button class="btn btn-primary btn-small" id="ownerFreezeGiveBtn" style="flex:1; background:#38bdf8; border-color:#38bdf8; color:#04121c;">🛡️ Schutz geben</button>
-              <button class="btn btn-ghost btn-small" id="ownerFreezeRemoveBtn" style="display:none; border-color:#ef4444; color:#ef4444;">Entfernen</button>
-            </div>
-          </div>
           <div class="d" style="margin-bottom:4px; margin-top:10px;">❤️ Herzen</div>
           <input type="number" id="ownerLivesInput" class="input-field" min="0">
           <div class="d" style="margin-bottom:6px; margin-top:10px;">Freigeschaltete Designs</div>
@@ -6748,6 +6843,23 @@
               <div class="switch" id="modPermSwitchCodes"><div class="knob"></div></div>
             </div>
             <button class="btn btn-primary btn-small" id="ownerSaveModPermsBtn" style="width:100%; margin-top:8px;">Berechtigungen speichern</button>
+          </div>
+        </div>
+
+        <div class="owner-inline-panel" id="panelOwnerFreeze">
+          <div style="font-weight:800; margin-bottom:8px; color:#7dd3fc;">🛡️ Streak-Schutz</div>
+          <div class="owner-freeze" style="margin-top:0;">
+            <div class="d" style="margin-bottom:6px; font-size:11.5px;">Der Streak geht in dieser Zeit nicht verloren, auch wenn die Person nicht lernt. Lernt sie, wächst er normal weiter.</div>
+            <div class="d" id="ownerFreezeStatus">Kein Schutz aktiv.</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+              <input type="number" id="ownerFreezeDays" class="input-field" value="14" min="1" max="365" step="1" style="width:84px; margin:0; text-align:center;">
+              <span class="d">Tage</span>
+              <span class="d" id="ownerFreezeEnd" style="font-weight:700; color:var(--text); margin-left:auto; text-align:right;"></span>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button class="btn btn-primary btn-small" id="ownerFreezeGiveBtn" style="flex:1; background:#38bdf8; border-color:#38bdf8; color:#04121c;">🛡️ Schutz geben</button>
+              <button class="btn btn-ghost btn-small" id="ownerFreezeRemoveBtn" style="display:none; border-color:#ef4444; color:#ef4444;">Entfernen</button>
+            </div>
           </div>
         </div>
 
@@ -7498,6 +7610,21 @@
       <div class="d" style="font-weight:800; margin-bottom:6px;">Design / Theme</div>
       <select class="select-input" id="themeSelect" style="width:100%; margin-bottom:16px;"></select>
 
+      <div class="settings-row" id="winterSnowRow" style="padding:0 0 14px; display:none;">
+        <div class="info">
+          <div class="t">❄️ Schneefall</div>
+          <div class="d">Im Weihnachtsdesign fallen langsam Schneeflocken im Hintergrund.</div>
+        </div>
+        <div class="switch" id="winterSnowSwitch"><div class="knob"></div></div>
+      </div>
+      <div class="settings-row" id="winterDogRow" style="padding:0 0 14px; display:none;">
+        <div class="info">
+          <div class="t">🐕 Schneeräumer-Hund</div>
+          <div class="d">Liegt zu viel Schnee, kommt alle 3 Minuten ein schwarzer Hund, frisst den Schnee von den Karten und rennt wieder weg.</div>
+        </div>
+        <div class="switch" id="winterDogSwitch"><div class="knob"></div></div>
+      </div>
+
       <div class="d" style="font-weight:800; margin-bottom:6px;">Home-Layout</div>
       <div class="d" style="margin-bottom:8px;">Wie der Home-Bildschirm aussieht.</div>
       <select id="layoutStyleSelect" class="input-field" style="width:100%; margin-bottom:16px;">
@@ -8143,7 +8270,7 @@
   // App-Versionsnummer (NEU): wird bei jedem Update um 0.01 erhöht
   // (z.B. 2.25 -> 2.26), bei 2.99 geht's weiter mit 3.00. Wird im
   // Start-Intro und unten in den Einstellungen angezeigt.
-  const APP_VERSION = "4.22";
+  const APP_VERSION = "4.25";
 
   // Installations-ID (NEU): einmalig pro Gerät/Browser erzeugt und dauerhaft
   // im localStorage gespeichert - unabhängig von Accounts, Logins oder
@@ -8397,6 +8524,8 @@
     betaLessonBackground: false, // Beta-Einstellung: dezentes Hintergrundbild in Lektionen (braucht betaCleanLessons)
     betaLessonBackgroundKeyboard: false, // Beta-Einstellung: cleanes Bild ueber der Tastatur statt Vollbild (braucht betaCleanLessons)
     betaButtonParticles: false,
+    winterSnow: false, // Schneefall im Weihnachtsdesign (Standard: aus)
+    winterSnowDog: false, // Schneeräumer-Hund (Standard: aus)
     lessonTopics: {}, // LEKTIONEN-SYSTEM: { linfun: { done, stars:{n:1-3}, tutorialSeen, chests:{10:{...}} } } // Beta-Einstellung: Partikel-Explosion beim Pruefen-Button vor der Aura-Animation
     lessonsCompleted: 0,
     theme: "black",
@@ -8554,7 +8683,7 @@
   // var + Funktionsdeklarationen: saveProfile() kann schon beim Start laufen,
   // bevor diese Zeilen erreicht sind (const/let würde dann abstürzen).
   var SETTINGS_SYNC_KEYS = ["theme", "layoutStyle", "appIntroStyle", "auraOverlayMotif", "longMode",
-    "betaNewShopEnabled", "betaCleanLessons", "betaLessonBackground", "betaLessonBackgroundKeyboard", "betaButtonParticles"];
+    "betaNewShopEnabled", "betaCleanLessons", "betaLessonBackground", "betaLessonBackgroundKeyboard", "betaButtonParticles", "winterSnow", "winterSnowDog"];
   var lastSettingsJSON = null;
   function settingsSnapshot(p){ return JSON.stringify((SETTINGS_SYNC_KEYS || []).map(k => p[k] === undefined ? null : p[k])); }
   function trackSettingsChange(){
@@ -17013,7 +17142,107 @@
   /* ========================================================
      THEME SYSTEM
   ======================================================== */
+
+  /* ===== ❄️ Liegender Schnee + 🐕 Schneeräumer-Hund (Weihnachtsdesign) ===== */
+  let wtSnowLevel = 0, wtSnowTick = Date.now(), wtDogBusy = false, wtLastDogAt = Date.now();
+  try{ wtSnowLevel = Math.max(0, Math.min(1, parseFloat(localStorage.getItem("me_wtSnow")) || 0)); }catch(e){}
+  const WT_SNOW_FULL_MS = 150000; // in ca. 2,5 Minuten ist alles voll
+  const WT_CARD_SEL = ":is(.nv-card, .tier-card, .shop-item, .lx-topic, .nsx-card):not(.nv-streak):not(.beta-streak-card)";
+  function wtSnowOn(){ return !!(profile.winterSnow && profile.theme === "winter"); }
+  function wtApplySnow(){ const app = document.querySelector(".app"); if(app) app.style.setProperty("--wt-snow", wtSnowLevel.toFixed(3)); }
+  setInterval(() => {
+    const now = Date.now(), dt = now - wtSnowTick; wtSnowTick = now;
+    if(!wtSnowOn() || document.hidden) return;
+    if(!wtDogBusy) wtSnowLevel = Math.min(1, wtSnowLevel + dt / WT_SNOW_FULL_MS);
+    wtApplySnow();
+    if(Math.random() < .15) try{ localStorage.setItem("me_wtSnow", wtSnowLevel.toFixed(3)); }catch(e){}
+    // Hund: höchstens alle 3 Minuten, nur wenn (fast) alles voll ist
+    if(profile.winterSnowDog && !wtDogBusy && wtSnowLevel >= .95 && now - wtLastDogAt >= 180000 && !(typeof lesson !== "undefined" && lesson) && !document.querySelector(".overlay.show")) wtRunDog();
+  }, 1000);
+  wtApplySnow();
+  const WT_DOG_SVG = `<svg viewBox="0 0 62 42" xmlns="http://www.w3.org/2000/svg">
+    <path class="tl" d="M12 17 Q4 12 3 4" stroke="#121212" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+    <rect class="lg a" x="14" y="24" width="4.2" height="14" rx="2" fill="#0d0d0d"/><rect class="lg b" x="20" y="24" width="4.2" height="14" rx="2" fill="#1b1b1b"/>
+    <rect class="lg b" x="34" y="24" width="4.2" height="14" rx="2" fill="#0d0d0d"/><rect class="lg a" x="40" y="24" width="4.2" height="14" rx="2" fill="#1b1b1b"/>
+    <ellipse cx="28" cy="21" rx="18" ry="9.5" fill="#151515"/>
+    <ellipse cx="27" cy="17" rx="13" ry="3" fill="#2a2a2a" opacity=".55"/>
+    <g class="hd">
+      <rect x="38" y="16" width="9" height="3.5" rx="1.5" fill="#d6453d"/>
+      <circle cx="47" cy="12" r="8.5" fill="#151515"/>
+      <ellipse cx="55" cy="15" rx="6.6" ry="4.4" fill="#151515"/>
+      <circle cx="61" cy="13.6" r="1.8" fill="#000"/>
+      <path d="M42 6 Q40 -1 46 4 Z" fill="#0b0b0b"/><path d="M43 7 Q38 10 40 16" stroke="#0b0b0b" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <circle cx="50" cy="10" r="1.4" fill="#fff"/><circle cx="50.3" cy="10.2" r=".7" fill="#000"/>
+      <ellipse class="tg" cx="57" cy="20" rx="2" ry="3" fill="#f27c8f"/>
+    </g>
+  </svg>`;
+  function wtCrumbs(x, y){
+    for(let i = 0; i < 6; i++){
+      const c = document.createElement("i"); c.className = "wt-crumb";
+      c.style.left = x + "px"; c.style.top = y + "px";
+      c.style.setProperty("--x", (Math.random() * 40 - 20).toFixed(0) + "px"); c.style.setProperty("--y", (-10 - Math.random() * 22).toFixed(0) + "px");
+      document.body.appendChild(c); setTimeout(() => c.remove(), 750);
+    }
+  }
+  async function wtRunDog(){
+    const act = document.querySelector(".screen.active"); if(!act) return;
+    const cards = [...act.querySelectorAll(WT_CARD_SEL)].filter(el => { const r = el.getBoundingClientRect(); return r.width > 80 && r.top > 70 && r.top < innerHeight - 140; })
+      .sort((a, b) => { const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect(); return (ra.top - rb.top) || (ra.left - rb.left); }).slice(0, 4);
+    wtLastDogAt = Date.now();
+    if(!cards.length) return;
+    wtDogBusy = true;
+    const dog = document.createElement("div"); dog.className = "wt-dog run"; dog.innerHTML = WT_DOG_SVG; document.body.appendChild(dog);
+    const W = 62, H = 42;
+    let pos = { x: -W - 10, y: cards[0].getBoundingClientRect().top - H + 2 };
+    const place = p => { dog.style.transform = `translate(${p.x}px, ${p.y}px)`; };
+    place(pos);
+    const move = (to, ms, hop) => new Promise(res => {
+      dog.classList.toggle("left", to.x < pos.x);
+      const mid = { x: (pos.x + to.x) / 2, y: Math.min(pos.y, to.y) - (hop ? 46 : 0) };
+      const kf = hop ? [{ transform: `translate(${pos.x}px, ${pos.y}px)` }, { transform: `translate(${mid.x}px, ${mid.y}px)` }, { transform: `translate(${to.x}px, ${to.y}px)` }]
+                     : [{ transform: `translate(${pos.x}px, ${pos.y}px)` }, { transform: `translate(${to.x}px, ${to.y}px)` }];
+      const an = dog.animate(kf, { duration: ms, easing: hop ? "ease-in-out" : "linear", fill: "forwards" });
+      an.onfinish = () => { pos = to; place(to); an.cancel(); res(); };
+    });
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    try{
+      for(let i = 0; i < cards.length; i++){
+        const r = cards[i].getBoundingClientRect();
+        const y = r.top - H + 3, a = { x: r.left + 4, y }, b = { x: Math.max(r.left + 4, r.right - W - 4), y };
+        const dist = Math.hypot(a.x - pos.x, a.y - pos.y);
+        await move(a, Math.max(380, dist * 1.6), i > 0 && Math.abs(a.y - pos.y) > 10);
+        // Schnee wegschlecken: auf der Karte entlanglaufen und fressen
+        dog.classList.add("eat"); dog.classList.remove("run");
+        cards[i].classList.add("wt-eaten");
+        wtCrumbs(pos.x + W - 4, pos.y + H - 6);
+        await wait(450);
+        dog.classList.add("run");
+        const steps = 3;
+        for(let k = 1; k <= steps; k++){
+          await move({ x: a.x + (b.x - a.x) * k / steps, y }, Math.max(260, (b.x - a.x) / steps * 6), false);
+          wtCrumbs(pos.x + W - 4, pos.y + H - 6);
+        }
+        dog.classList.remove("eat");
+      }
+      // satt - und weg
+      dog.classList.add("run");
+      await move({ x: innerWidth + 40, y: pos.y - 10 }, Math.max(500, (innerWidth - pos.x) * 1.4), true);
+    }catch(e){ console.warn("Hund:", e); }
+    dog.remove();
+    wtSnowLevel = 0; wtApplySnow();
+    try{ localStorage.setItem("me_wtSnow", "0"); }catch(e){}
+    setTimeout(() => document.querySelectorAll(".wt-eaten").forEach(el => el.classList.remove("wt-eaten")), 1800);
+    wtDogBusy = false; wtLastDogAt = Date.now();
+  }
+  function applyWinterSnow(){
+    document.body.classList.toggle("wt-snow-on", !!profile.winterSnow);
+    if($("winterSnowSwitch")) $("winterSnowSwitch").classList.toggle("on", !!profile.winterSnow);
+    if($("winterSnowRow")) $("winterSnowRow").style.display = profile.theme === "winter" ? "" : "none";
+    if($("winterDogRow")) $("winterDogRow").style.display = profile.theme === "winter" && profile.winterSnow ? "" : "none";
+    if($("winterDogSwitch")) $("winterDogSwitch").classList.toggle("on", !!profile.winterSnowDog);
+  }
   function applyTheme(){
+    try{ applyWinterSnow(); }catch(e){}
     if(profile.layoutStyle !== "simpel" && profile.layoutStyle !== "nova") profile.layoutStyle = "nova"; // "Clean" gibt es nicht mehr
     document.body.classList.toggle("layout-beta", false);
     document.body.classList.toggle("layout-nova", profile.layoutStyle === "nova");
@@ -18772,6 +19001,7 @@
       st.offset++; renderStreakWeekNav(key);
     });
   });
+  $("ownerToolFreeze").addEventListener("click", () => toggleOwnerPanel("panelOwnerFreeze", "ownerToolFreeze", () => renderOwnerFreeze(ownerEditingUserData && ownerEditingUserData.streakFreeze)));
   $("ownerToolStreakHistory").addEventListener("click", () => {
     toggleOwnerPanel("panelOwnerStreakHistory", "ownerToolStreakHistory", renderOwnerStreakHistory);
   });
@@ -19096,6 +19326,13 @@
     saveProfile();
     $("betaLessonBgKeyboardSwitch").classList.toggle("on", !!profile.betaLessonBackgroundKeyboard);
     $("betaLessonBgSwitch").classList.toggle("on", !!profile.betaLessonBackground);
+  });
+  $("winterDogSwitch").addEventListener("click", () => {
+    profile.winterSnowDog = !profile.winterSnowDog; saveProfile(); applyWinterSnow();
+    if(profile.winterSnowDog) showToast("🐕 Der Hund kommt, sobald genug Schnee liegt!");
+  });
+  $("winterSnowSwitch").addEventListener("click", () => {
+    profile.winterSnow = !profile.winterSnow; saveProfile(); applyWinterSnow();
   });
   $("betaButtonParticlesSwitch").addEventListener("click", () => {
     profile.betaButtonParticles = !profile.betaButtonParticles;
@@ -24279,7 +24516,7 @@
      Während der Season kann jeder die Kollektion kaufen, Gekauftes bleibt. */
   let seasonData = null, seasonLoadedAt = 0;
   // Letzte bekannte Season lokal merken - damit schon das Start-Intro weiß, ob eine Season läuft
-  function seasonCacheStore(){ try{ if(seasonData) localStorage.setItem("me_season", JSON.stringify({ type: seasonData.type, startAt: seasonData.startAt, endAt: seasonData.endAt })); else localStorage.removeItem("me_season"); }catch(e){} if(typeof applyAppIcon === "function") applyAppIcon(); }
+  function seasonCacheStore(){ try{ if(seasonData) localStorage.setItem("me_season", JSON.stringify({ type: seasonData.type, startAt: seasonData.startAt, endAt: seasonData.endAt, storedAt: Date.now() })); else localStorage.removeItem("me_season"); }catch(e){} if(typeof applyAppIcon === "function") applyAppIcon(); }
   const SEASON_INFO = {
     halloween: { label: "🎃 Halloween-Season", set: "shopHalloweenSet", theme: "halloween", intro: "halloween", font: "halloween", frame: "halloween",
                  btn: { theme: "buyHalloweenTheme", intro: "buyHalloweenIntro", font: "buyHalloweenFont", frame: "buyHalloweenFrame" } },
@@ -25626,12 +25863,18 @@
     if(!startupSeasonChecked){ quickSeasonCheck(() => playStartupIntro(callback)); return; }
     setTimeout(removeBootCover, 80); // erst wenn das Intro schon sichtbar ist
     let style = ["simple", "nova", "halloween", "xmas"].includes(profile.appIntroStyle) ? profile.appIntroStyle : "math"; // Math ist Standard
-    if((style === "halloween" || style === "xmas") && !hasIntro(style)) style = "math"; // nur gekaufte Intros
-    // Während einer Season läuft bei JEDEM automatisch das passende Intro (nur das Intro - Design, Schrift, Rahmen bleiben)
+    // Aktive Season (frisch geladen; ein alter Zwischenspeicher zählt nur, wenn er < 24 h alt ist)
+    let seasonIntro = null;
     try{
       const ss = JSON.parse(localStorage.getItem("me_season") || "null");
-      if(ss && ss.startAt <= Date.now() && Date.now() < ss.endAt) style = ss.type === "christmas" ? "xmas" : ss.type === "halloween" ? "halloween" : style;
+      const fresh = seasonLoadedAt > 0 || (ss && ss.storedAt && Date.now() - ss.storedAt < 24 * 3600 * 1000);
+      if(fresh && ss && ss.startAt <= Date.now() && Date.now() < ss.endAt) seasonIntro = ss.type === "christmas" ? "xmas" : ss.type === "halloween" ? "halloween" : null;
     }catch(e){}
+    // Bugfix: Event-Intros nur, wenn wirklich GEKAUFT - der Owner hat sie zwar automatisch,
+    // bekommt sie aber nur während ihrer Season (sonst lief nach dem Season-Ende weiter Halloween)
+    if((style === "halloween" || style === "xmas") && !(profile.unlockedIntros || []).includes(style) && style !== seasonIntro) style = "math";
+    // Während einer Season läuft bei JEDEM automatisch das passende Intro (nur das Intro - Design, Schrift, Rahmen bleiben)
+    if(seasonIntro) style = seasonIntro;
     if(style === "halloween" || style === "xmas"){
       // Event-Intros (NEU)
       ["introScreenSimple", "introScreenMath", "introScreenNova"].forEach(id => { if($(id)) $(id).style.display = "none"; });
